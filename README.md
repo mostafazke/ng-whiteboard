@@ -35,20 +35,6 @@ In the html file, you can insert the Whiteboard Component
     <ng-whiteboard></ng-whiteboard>
 ```
 
-If there is too much overhead with inputs, you can just specify the [options] input, and specify the options from the typescript code
-
-Example:
-```html
-<canvas-whiteboard #canvasWhiteboard
-                   [options]="canvasOptions"
-                   (onBatchUpdate)="onCanvasDraw($event)"
-                   (onClear)="onCanvasClear()"
-                   (onUndo)="onCanvasUndo($event)"
-                   (onRedo)="onCanvasRedo($event)">
-</canvas-whiteboard>
-```
-
-
 ## Options
 | Input  | Type | Default | Required | Description |
 | ------------- | ------------- | ------------- | ------------- | ------------- |

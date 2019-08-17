@@ -1,24 +1,59 @@
-# NgWhiteboard
+# ng-whiteboard
 
-This library was generated with [Angular CLI](https://github.com/angular/angular-cli) version 8.2.0.
 
-## Code scaffolding
+## Lightweight angular whiteboard
 
-Run `ng generate component component-name --project ng-whiteboard` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module --project ng-whiteboard`.
-> Note: Don't forget to add `--project ng-whiteboard` or else it will be added to the default project in your `angular.json` file. 
+#
+**Features:**<br/>
+- Supports touch.
+- Custom colors.
+- Custom stroke size.
+- Save drawn as png images
 
-## Build
+# Install
 
-Run `ng build ng-whiteboard` to build the project. The build artifacts will be stored in the `dist/` directory.
+1. Install npm module:
 
-## Publishing
+    ```bash
+    npm install ng-whiteboard --save
+    ```
+2. Add the module to your project
 
-After building your library with `ng build ng-whiteboard`, go to the dist folder `cd dist/ng-whiteboard` and run `npm publish`.
+```typescript
+@NgModule({
+    imports: [
+        NgWhiteboardModule
+    ]
+    ...
+)}
+```
 
-## Running unit tests
 
-Run `ng test ng-whiteboard` to execute the unit tests via [Karma](https://karma-runner.github.io).
+In the html file, you can insert the Whiteboard Component
 
-## Further help
+```html
+    <ng-whiteboard></ng-whiteboard>
+```
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+If there is too much overhead with inputs, you can just specify the [options] input, and specify the options from the typescript code
+
+Example:
+```html
+<canvas-whiteboard #canvasWhiteboard
+                   [options]="canvasOptions"
+                   (onBatchUpdate)="onCanvasDraw($event)"
+                   (onClear)="onCanvasClear()"
+                   (onUndo)="onCanvasUndo($event)"
+                   (onRedo)="onCanvasRedo($event)">
+</canvas-whiteboard>
+```
+
+
+## Options
+| Input  | Type | Default | Required | Description |
+| ------------- | ------------- | ------------- | ------------- | ------------- |
+| [color] | `string` |  `#333333` | no | Set brush color |
+| [size] | `string` |  `5px` | no | Set brush size |
+| [linejoin] | `string` |  `round` | no | Define the shape of two lines when joined together ('miter' | 'round' | 'bevel' | 'miter-clip' | 'arcs') |
+| [linecap] | `string` |  `round` | no | Define start and end shape of line ('butt' | 'square' | 'round') |
+| [whiteboardOptions] | `WhiteboardOptions` |  `` | no | Object of all inputs |

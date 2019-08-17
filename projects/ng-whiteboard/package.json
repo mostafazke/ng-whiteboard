@@ -1,6 +1,6 @@
 {
   "name": "ng-whiteboard",
-  "version": "0.0.1",
+  "version": "$VERSION",
   "peerDependencies": {
     "@angular/common": "^8.2.0",
     "@angular/core": "^8.2.0"
