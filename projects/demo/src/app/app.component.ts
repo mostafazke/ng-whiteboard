@@ -10,15 +10,15 @@ export class AppComponent {
   color = '#333333';
   size = '5px';
   isActive = false;
-  constructor(private _whiteboardService: NgWhiteboardService) {}
+  constructor(private whiteboardService: NgWhiteboardService) {}
   erase() {
-    this._whiteboardService.erase();
+    this.whiteboardService.erase();
   }
   setSize(size) {
     this.size = size;
     this.isActive = false;
   }
   save() {
-    this._whiteboardService.save();
+    this.whiteboardService.save();
   }
 }

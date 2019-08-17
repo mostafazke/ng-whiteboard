@@ -19,14 +19,14 @@ export class NgWhiteboardComponent implements AfterViewInit {
   @Input() linejoin: 'miter' | 'round' | 'bevel' | 'miter-clip' | 'arcs';
   @Input() linecap: 'butt' | 'square' | 'round';
   selection = undefined;
-  constructor(private _whiteboardService: NgWhiteboardService) {}
+  constructor(private whiteboardService: NgWhiteboardService) {}
 
   ngAfterViewInit() {
     this.selection = this.init(this.svgContainer.nativeElement);
-    this._whiteboardService.eraseSvgMethodCalled$.subscribe(() => {
+    this.whiteboardService.eraseSvgMethodCalled$.subscribe(() => {
       this.eraseSvg(this.selection);
     });
-    this._whiteboardService.saveSvgMethodCalled$.subscribe(() => {
+    this.whiteboardService.saveSvgMethodCalled$.subscribe(() => {
       this.save(this.svgContainer.nativeElement);
     });
   }
