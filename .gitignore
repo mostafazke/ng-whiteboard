@@ -9,8 +9,6 @@
 
 # dependencies
 /node_modules
-/projects/ng-whiteboard/node_modules
-/projects/ng-whiteboard-showcase/node_modules
 
 # profiling files
 chrome-profiler-events*.json

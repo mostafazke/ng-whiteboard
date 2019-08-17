@@ -37,6 +37,9 @@
     "@angular/platform-browser-dynamic": "~8.2.0",
     "@angular/router": "~8.2.0",
     "rxjs": "~6.4.0",
+    "d3": "^5.9.7",
+    "file-saver": "^2.0.2",
+    "save-svg-as-png": "^1.4.14",
     "zone.js": "~0.9.1"
   },
   "devDependencies": {
@@ -72,6 +75,8 @@
     "protractor": "~5.4.0",
     "replace-json-property": "^1.4.1",
     "semantic-release": "^15.13.21",
+    "@types/file-saver": "^2.0.1",
+    "@types/d3": "^5.7.2",
     "ts-node": "~7.0.0",
     "tsickle": "^0.36.0",
     "tslib": "^1.10.0",
