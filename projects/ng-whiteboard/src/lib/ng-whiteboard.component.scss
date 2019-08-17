@@ -1,0 +1,22 @@
+:host {
+    width: inherit;
+    height: inherit;
+    min-width: inherit;
+    min-height: inherit;
+    max-width: inherit;
+    max-height: inherit;
+    svg {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        width: inherit;
+        height: inherit;
+        min-width: inherit;
+        min-height: inherit;
+        max-width: inherit;
+        max-height: inherit;
+        // cursor: crosshair;
+        cursor: -webkit-image-set(url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAANCAYAAABy6+R8AAABlElEQVQoU3WSMWhTURSGv/8pShIIJKAiLsahUhIwWCQGwcLrELIJGR2EOOhQOmQrVPMQCl1UHBwDgpMd1C72kcGgQwwI6hCIQyFZrBBo00DzAiJeuZKUNjVnO3C+e/7z319MlDHmCpACYkAL+CDp9+ExHW6MMS+CIDjX7XZPtNvtn+l0+nIsFvsDrEh6P549gIwxb3zf/57P5+2ru8A2kAiFQmcGg0FG0pKkLxb8B9kN1Wp1O5fL/QK8CcVp4K4x5hZwXdIP2RuCIFiLRCKfgYeTN476m+VyueB53mlJ9y10u9Pp3EkkEpvA0ynQ+Uwm86TRaMxJmrHQYq1Wu+a67jvg1RToVDQafdbv963UGxZa6PV6q/F4/C2wNgWaKRaLy5VK5ZKkeQudBD6Gw+FPw+HwJfDtP+DjZrPpJJPJLUnPx+65xphHjuN8BdaBLWAHuAjcq9fr+9ls1jqXO7B8ZPtVYMPzvNe+759ttVp7hUIhVCqV9lKp1OwYOAKNwAvAA8AdbbL/tm4lTY3RRKQcSTZCx+ovBZKbDWrY7MEAAAAASUVORK5CYII=) 2x) 1 3, crosshair;
+    }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "ng-whiteboard",
+  "version": "0.0.1",
+  "peerDependencies": {
+    "@angular/common": "^8.2.0",
+    "@angular/core": "^8.2.0"
+  },
+  "dependencies": {
+    "d3": "^5.9.7",
+    "file-saver": "^2.0.2",
+    "save-svg-as-png": "^1.4.14"
+  },
+  "devDependencies": {
+    "@types/file-saver": "^2.0.1",
+    "@types/d3": "^5.7.2"
+  }
+}

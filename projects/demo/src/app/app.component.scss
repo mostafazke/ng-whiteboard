@@ -1,0 +1,114 @@
+$button-bg-color: #348AA7;
+$button-border-color: #166E84;
+$timing:.3s;
+
+.white-board {
+    width: 100%;
+    height: 100vh;
+    max-width: 800px;
+    max-height: 450px;
+    margin: 0 auto;
+    box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+    background: #fff;
+    border-radius: 2px;
+}
+.tools {
+    margin: 20px auto;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+button{
+    display: inline-block;
+    padding: 8px 16px 0;
+    margin-right: 5px;
+    background: $button-bg-color;
+    border: none;
+    outline: none;
+    color: white;
+    border-radius: 3px;
+    box-shadow: 0 5px 0px darken($button-bg-color,0%);
+    border-bottom: 2px solid darken($button-bg-color,3%);
+    &:hover{
+      background: darken($button-bg-color,5%);
+      box-shadow: 0 4px 1px darken($button-bg-color,5%);
+      border-bottom: 2px solid darken($button-bg-color,8%);
+      transition: all 0.1s ease-in;
+    }
+    
+    &:active{
+      transform:translateY(4px);
+      border-bottom-width: 2px;
+      box-shadow: none;
+    }
+  }
+  .color-input {
+      display: none;
+  }
+  .color-label {
+      display: inline-block;
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      box-shadow: 0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22);
+      margin-right: 5px;
+        cursor: pointer;
+  }
+  .size-dropdown {
+    position: relative;
+}
+.dropdown {
+    position: absolute;
+    top: 16px;
+    left: 0px;
+    opacity: 0;
+  min-width: 12em;
+  display: inline-block;
+  overflow:hidden;
+
+  cursor: pointer;
+  
+  outline: none;
+  border: .06em solid transparent;
+  border-radius: 1em;
+  background-color: mix($button-border-color,#fff,25%);
+  transition: $timing all ease-in-out;
+
+  .dropdown-item {
+    border-top: .06em solid #d9d9d9;
+    display:block;
+    height: 2em;
+    line-height: 2em;
+    padding-left: 1em;
+    padding-right: 3em;
+    cursor: pointer;
+    position: relative;
+    transition: $timing color ease-in-out;
+    &.selected {
+        background-color:$button-bg-color;
+        line {
+            stroke: #fff!important;
+        }
+      }
+  }
+
+  &.active {
+    border: .06em solid $button-border-color;
+    background: #fff;
+    border-radius: .25em;
+    padding: 0;
+    box-shadow: rgba(0, 0, 0, 0.1) 3px 3px 5px 0px;
+    max-height:15em;
+    opacity: 1;
+    .dropdown-item {
+      border-top: .06em solid #d9d9d9;
+      &:hover {
+        line {
+            stroke: $button-border-color!important;
+        }
+      }
+    }
+  }
+}
+}

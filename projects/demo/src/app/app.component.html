@@ -1,0 +1,36 @@
+  <div class="white-board">
+    <ng-whiteboard [color]="color" [size]="size"></ng-whiteboard>
+  </div>
+  <div class="tools">
+    <button (click)="erase()">Erase</button>
+
+    <input id="colorInput" class="color-input" type="color" [value]="color" (change)="color = $event.target.value" />
+    <label for="colorInput" class="color-label" [ngStyle]="{ 'background-color': color }"></label>
+
+    <div class="size-dropdown">
+      <button (click)="$event.preventDefault(); $event.stopPropagation(); isActive = !isActive">Size</button>
+      <ul class="dropdown" [ngClass]="{ active: isActive }">
+        <li class="dropdown-item" (click)="setSize('2.5px')" [class.selected]="size === '2.5px'">
+          <svg height="100%" width="100%">
+            <line x1="0" y1="50%" x2="100" y2="50%" style="stroke-width:2.5px" [ngStyle]="{stroke: color}" />
+          </svg>
+        </li>
+        <li class="dropdown-item" (click)="setSize('5px')" [class.selected]="size === '5px'">
+          <svg height="100%" width="100%">
+            <line x1="0" y1="50%" x2="100" y2="50%" style="stroke-width:5px" [ngStyle]="{stroke: color}" />
+          </svg>
+        </li>
+        <li class="dropdown-item" (click)="setSize('10px')" [class.selected]="size === '10px'">
+          <svg height="100%" width="100%">
+            <line x1="0" y1="50%" x2="100" y2="50%" style="stroke-width:10px" [ngStyle]="{stroke: color}" />
+          </svg>
+        </li>
+        <li class="dropdown-item" (click)="setSize('15px')" [class.selected]="size === '15px'">
+          <svg height="100%" width="100%">
+            <line x1="0" y1="50%" x2="100" y2="50%" style="stroke-width:15px" [ngStyle]="{stroke: color}" />
+          </svg>
+        </li>
+      </ul>
+    </div>
+    <button (click)="save()">Save</button>
+  </div>
