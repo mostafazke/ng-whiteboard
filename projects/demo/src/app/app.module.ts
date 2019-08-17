@@ -5,14 +5,9 @@ import { AppComponent } from './app.component';
 import { NgWhiteboardModule } from 'projects/ng-whiteboard/src/public-api';
 
 @NgModule({
-  declarations: [
-    AppComponent
-  ],
-  imports: [
-    BrowserModule,
-    NgWhiteboardModule
-  ],
+  declarations: [AppComponent],
+  imports: [BrowserModule, NgWhiteboardModule],
   providers: [],
   bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {}

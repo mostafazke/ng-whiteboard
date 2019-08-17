@@ -8,9 +8,8 @@ describe('NgWhiteboardComponent', () => {
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ NgWhiteboardComponent ]
-    })
-    .compileComponents();
+      declarations: [NgWhiteboardComponent]
+    }).compileComponents();
   }));
 
   beforeEach(() => {

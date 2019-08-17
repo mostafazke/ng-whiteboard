@@ -1,27 +1,59 @@
-# NgWhiteboard
+# ng-whiteboard
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 8.2.1.
 
-## Development server
+## Lightweight angular whiteboard
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+#
+**Features:**<br/>
+- Supports touch.
+- Custom colors.
+- Custom stroke size.
+- Save drawn as png images
 
-## Code scaffolding
+# Install
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+1. Install npm module:
 
-## Build
+    ```bash
+    npm install ng-whiteboard --save
+    ```
+2. Add the module to your project
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+```typescript
+@NgModule({
+    imports: [
+        NgWhiteboardModule
+    ]
+    ...
+)}
+```
 
-## Running unit tests
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+In the html file, you can insert the Whiteboard Component
 
-## Running end-to-end tests
+```html
+    <ng-whiteboard></ng-whiteboard>
+```
 
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
+If there is too much overhead with inputs, you can just specify the [options] input, and specify the options from the typescript code
 
-## Further help
+Example:
+```html
+<canvas-whiteboard #canvasWhiteboard
+                   [options]="canvasOptions"
+                   (onBatchUpdate)="onCanvasDraw($event)"
+                   (onClear)="onCanvasClear()"
+                   (onUndo)="onCanvasUndo($event)"
+                   (onRedo)="onCanvasRedo($event)">
+</canvas-whiteboard>
+```
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+
+## Options
+| Input  | Type | Default | Required | Description |
+| ------------- | ------------- | ------------- | ------------- | ------------- |
+| [color] | `string` |  `#333333` | no | Set brush color |
+| [size] | `string` |  `5px` | no | Set brush size |
+| [linejoin] | `string` |  `round` | no | Define the shape of two lines when joined together ('miter' | 'round' | 'bevel' | 'miter-clip' | 'arcs') |
+| [linecap] | `string` |  `round` | no | Define start and end shape of line ('butt' | 'square' | 'round') |
+| [whiteboardOptions] | `WhiteboardOptions` |  `` | no | Object of all inputs |
