@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/mostafazke/ng-whiteboard/compare/v1.0.0...v1.0.1) (2019-08-18)
+
+
+### Bug Fixes
+
+* **package:** add peer dependencies ([2df6984](https://github.com/mostafazke/ng-whiteboard/commit/2df6984))
+
 # 1.0.0 (2019-08-17)
 
 
