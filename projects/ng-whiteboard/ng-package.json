@@ -8,5 +8,6 @@
       "d3": "d3",
       "save-svg-as-png": "saveSvgAsPng"
     }
-  }
+  },
+  "whitelistedNonPeerDependencies": ["d3", "save-svg-as-png"]
 }

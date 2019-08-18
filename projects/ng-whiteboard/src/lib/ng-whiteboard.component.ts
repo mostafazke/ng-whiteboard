@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, ViewChild, Input, ElementRef } from '@angular/core';
+import { Component, AfterViewInit, ViewChild, Input } from '@angular/core';
 import * as d3 from 'd3';
 import { svgAsPngUri } from 'save-svg-as-png';
 import { WhiteboardOptions, NgWhiteboardService } from './ng-whiteboard.service';
@@ -12,7 +12,7 @@ import { WhiteboardOptions, NgWhiteboardService } from './ng-whiteboard.service'
 })
 export class NgWhiteboardComponent implements AfterViewInit {
   @ViewChild('svgContainer', { static: false })
-  private svgContainer: ElementRef;
+  private svgContainer;
   @Input() whiteboardOptions: WhiteboardOptions = new WhiteboardOptions();
   @Input() color: string;
   @Input() size: string;

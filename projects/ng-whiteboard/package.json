@@ -25,7 +25,9 @@
   },
   "peerDependencies": {
     "@angular/common": "^8.2.0",
-    "@angular/core": "^8.2.0",
+    "@angular/core": "^8.2.0"
+  },
+  "dependencies": {
     "d3": "^5.9.7",
     "save-svg-as-png": "^1.4.14"
   }
