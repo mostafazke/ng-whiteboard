@@ -19,12 +19,18 @@
     "component",
     "library"
   ],
-  "homepage": "https://github.com/mostafazke/ng-whiteboard#readme",
+  "homepage": "https://mostafazke.github.io/ng-whiteboard/",
   "bugs": {
     "url": "https://github.com/mostafazke/ng-whiteboard/issues"
   },
   "peerDependencies": {
     "@angular/common": "^8.2.0",
-    "@angular/core": "^8.2.0"
+    "@angular/core": "^8.2.0",
+    "d3": "^5.9.7",
+    "save-svg-as-png": "^1.4.14"
+  },
+  "dependencies": {
+    "d3": "^5.9.7",
+    "save-svg-as-png": "^1.4.14"
   }
 }
