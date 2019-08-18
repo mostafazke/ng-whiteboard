@@ -1,6 +1,28 @@
 {
   "name": "ng-whiteboard",
   "version": "0.0.1",
+  "author": {
+    "name": "Mostafa Zaki",
+    "email": "mostafazke@gmail.com"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mostafazke/ng-whiteboard.git"
+  },
+  "description": "Angular 6+ whiteboard component",
+  "keywords": [
+    "angular",
+    "whiteboard",
+    "component",
+    "library"
+  ],
+  "homepage": "https://github.com/mostafazke/ng-whiteboard#readme",
+  "bugs": {
+    "url": "https://github.com/mostafazke/ng-whiteboard/issues"
+  },
   "peerDependencies": {
     "@angular/common": "^8.2.0",
     "@angular/core": "^8.2.0",
