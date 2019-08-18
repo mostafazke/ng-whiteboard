@@ -8,6 +8,7 @@ import { NgWhiteboardService } from 'projects/ng-whiteboard/src/public-api';
 })
 export class AppComponent {
   color = '#333333';
+  backgroundColor = '#ffef00';
   size = '5px';
   isActive = false;
   constructor(private whiteboardService: NgWhiteboardService) {}

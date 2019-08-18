@@ -29,17 +29,15 @@ button{
     color: white;
     border-radius: 3px;
     box-shadow: 0 5px 0px darken($button-bg-color,0%);
-    border-bottom: 2px solid darken($button-bg-color,3%);
+    border-bottom: 2px solid transparent;
     &:hover{
       background: darken($button-bg-color,5%);
       box-shadow: 0 4px 1px darken($button-bg-color,5%);
-      border-bottom: 2px solid darken($button-bg-color,8%);
       transition: all 0.1s ease-in;
     }
     
     &:active{
       transform:translateY(4px);
-      border-bottom-width: 2px;
       box-shadow: none;
     }
   }

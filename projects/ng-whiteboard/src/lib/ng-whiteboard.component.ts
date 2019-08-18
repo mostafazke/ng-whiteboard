@@ -6,7 +6,7 @@ import { WhiteboardOptions, NgWhiteboardService } from './ng-whiteboard.service'
   // tslint:disable-next-line: component-selector
   selector: 'ng-whiteboard',
   template: `
-    <svg #svgContainer></svg>
+    <svg #svgContainer [style.background-color]="this.backgroundColor || this.whiteboardOptions.backgroundColor"></svg>
   `,
   styleUrls: ['ng-whiteboard.component.scss']
 })
@@ -15,6 +15,7 @@ export class NgWhiteboardComponent implements AfterViewInit {
   private svgContainer;
   @Input() whiteboardOptions: WhiteboardOptions = new WhiteboardOptions();
   @Input() color: string;
+  @Input() backgroundColor: string;
   @Input() size: string;
   @Input() linejoin: 'miter' | 'round' | 'bevel' | 'miter-clip' | 'arcs';
   @Input() linecap: 'butt' | 'square' | 'round';
@@ -33,40 +34,37 @@ export class NgWhiteboardComponent implements AfterViewInit {
 
   init(selector) {
     const line = d3.line().curve(d3.curveBasis);
-    const svg = d3
-      .select(selector)
-      .attr('style', 'background: #fff;')
-      .call(
-        d3
-          .drag()
-          .container(selector)
-          .subject(() => {
-            const p = [d3.event.x, d3.event.y];
-            return [p, p];
-          })
-          .on('start', () => {
-            const d = d3.event.subject;
-            const active = svg
-              .append('path')
-              .datum(d)
-              .attr('class', 'line')
-              .attr(
-                'style',
-                `
+    const svg = d3.select(selector).call(
+      d3
+        .drag()
+        .container(selector)
+        .subject(() => {
+          const p = [d3.event.x, d3.event.y];
+          return [p, p];
+        })
+        .on('start', () => {
+          const d = d3.event.subject;
+          const active = svg
+            .append('path')
+            .datum(d)
+            .attr('class', 'line')
+            .attr(
+              'style',
+              `
            fill: none;
            stroke: ${this.color || this.whiteboardOptions.color};
            stroke-width: ${this.size || this.whiteboardOptions.size};
            stroke-linejoin: ${this.linejoin || this.whiteboardOptions.linejoin};
            stroke-linecap: ${this.linecap || this.whiteboardOptions.linecap};
            `
-              );
-            d3.event.on('drag', function() {
-              active.datum().push(d3.mouse(this));
-              active.attr('d', line);
-            });
+            );
+          d3.event.on('drag', function() {
+            active.datum().push(d3.mouse(this));
             active.attr('d', line);
-          })
-      );
+          });
+          active.attr('d', line);
+        })
+    );
     return svg;
   }
   eraseSvg(svg) {

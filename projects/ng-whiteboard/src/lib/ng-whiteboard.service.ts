@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 
 export class WhiteboardOptions {
-  color = '#000';
+  color = '#000000';
+  backgroundColor = '#ffffff';
   size = '5px';
   linejoin: 'miter' | 'round' | 'bevel' | 'miter-clip' | 'arcs' = 'round';
   linecap: 'butt' | 'square' | 'round' = 'round';

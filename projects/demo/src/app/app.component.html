@@ -1,11 +1,8 @@
   <div class="white-board">
-    <ng-whiteboard [color]="color" [size]="size"></ng-whiteboard>
+    <ng-whiteboard [color]="color" [backgroundColor]="backgroundColor" [size]="size"></ng-whiteboard>
   </div>
   <div class="tools">
-    <button (click)="erase()">Erase</button>
-
-    <input id="colorInput" class="color-input" type="color" [value]="color" (change)="color = $event.target.value" />
-    <label for="colorInput" class="color-label" [ngStyle]="{ 'background-color': color }"></label>
+    <button (click)="save()">Save</button>
 
     <div class="size-dropdown">
       <button (click)="$event.preventDefault(); $event.stopPropagation(); isActive = !isActive">Size</button>
@@ -32,5 +29,13 @@
         </li>
       </ul>
     </div>
-    <button (click)="save()">Save</button>
+    
+    <button (click)="erase()">Erase</button>
+
+    <input id="colorInput" class="color-input" type="color" [value]="color" (change)="color = $event.target.value" />
+    <label for="colorInput" class="color-label" [ngStyle]="{ 'background-color': color }"></label>
+
+    <input id="backgroundInput" class="color-input" type="color" [value]="backgroundColor" (change)="backgroundColor = $event.target.value" />
+    <label for="backgroundInput" class="color-label" [ngStyle]="{ 'background-color': backgroundColor }"></label>
+
   </div>
