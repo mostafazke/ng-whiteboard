@@ -1,3 +1,10 @@
+## [1.0.4](https://github.com/mostafazke/ng-whiteboard/compare/v1.0.3...v1.0.4) (2019-08-18)
+
+
+### Bug Fixes
+
+* **packages:** fix third party libs imports ([0f8ea17](https://github.com/mostafazke/ng-whiteboard/commit/0f8ea17))
+
 ## [1.0.3](https://github.com/mostafazke/ng-whiteboard/compare/v1.0.2...v1.0.3) (2019-08-18)
 
 
