@@ -26,7 +26,7 @@
     "e2e": "ng e2e",
     "semantic-release": "semantic-release"
   },
-  "private": true,
+  "private": false,
   "dependencies": {
     "@angular/animations": "~8.2.0",
     "@angular/common": "~8.2.0",
