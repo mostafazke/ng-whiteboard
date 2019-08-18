@@ -5,6 +5,7 @@
     "name": "Mostafa Zaki",
     "email": "mostafazke@gmail.com"
   },
+  "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
