@@ -11,20 +11,15 @@
     "moduleResolution": "node",
     "importHelpers": true,
     "target": "es2015",
-    "typeRoots": [
-      "node_modules/@types"
-    ],
-    "lib": [
-      "es2018",
-      "dom"
-    ],
+    "typeRoots": ["node_modules/@types"],
+    "lib": ["es2018", "dom"],
     "paths": {
-      "ng-whiteboard": [
-        "dist/ng-whiteboard"
-      ],
-      "ng-whiteboard/*": [
-        "dist/ng-whiteboard/*"
-      ]
+      "ng-whiteboard": ["dist/ng-whiteboard"],
+      "ng-whiteboard/*": ["dist/ng-whiteboard/*"],
+      "@angular/*": ["./node_modules/@angular/*"],
+      "d3": ["./node_modules/d3"],
+      "file-saver": ["./node_modules/file-saver"],
+      "save-svg-as-png": ["./node_modules/save-svg-as-png"]
     }
   },
   "angularCompilerOptions": {

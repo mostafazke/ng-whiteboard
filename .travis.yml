@@ -41,7 +41,6 @@ jobs:
       if: branch = master
     - stage: build & publish lib
       script:
-        - cd projects/ng-whiteboard && npm install && cd ../..
         - npm run build:lib
         - npm run publish:lib
       if: branch = master
