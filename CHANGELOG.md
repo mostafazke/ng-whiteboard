@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/mostafazke/ng-whiteboard/compare/v1.0.5...v1.1.0) (2019-08-18)
+
+
+### Features
+
+* **whiteboard:** add backgroundColor option ([6d95789](https://github.com/mostafazke/ng-whiteboard/commit/6d95789))
+
 ## [1.0.5](https://github.com/mostafazke/ng-whiteboard/compare/v1.0.4...v1.0.5) (2019-08-18)
 
 
