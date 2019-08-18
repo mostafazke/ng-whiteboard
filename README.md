@@ -6,7 +6,7 @@
 
 - Supports touch.
 - Custom colors.
-- Custom background colors. **Suggested by [Nader Magdy](https://https://github.com/nader-magdy 'Nader Magdy')**
+- Custom background colors. **Suggested by [Nader Magdy](https://github.com/nader-magdy 'Nader Magdy')**
 - Custom stroke size.
 - Save drawn as png images
 
