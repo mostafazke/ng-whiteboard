@@ -1,3 +1,10 @@
+## [1.0.3](https://github.com/mostafazke/ng-whiteboard/compare/v1.0.2...v1.0.3) (2019-08-18)
+
+
+### Bug Fixes
+
+* **dependencies:** white list  Dependencies ([b2c64aa](https://github.com/mostafazke/ng-whiteboard/commit/b2c64aa))
+
 ## [1.0.2](https://github.com/mostafazke/ng-whiteboard/compare/v1.0.1...v1.0.2) (2019-08-18)
 
 
