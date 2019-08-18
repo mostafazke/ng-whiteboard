@@ -1,3 +1,10 @@
+## [1.0.5](https://github.com/mostafazke/ng-whiteboard/compare/v1.0.4...v1.0.5) (2019-08-18)
+
+
+### Bug Fixes
+
+* **public:** add  dependencies ([b38ae25](https://github.com/mostafazke/ng-whiteboard/commit/b38ae25))
+
 ## [1.0.4](https://github.com/mostafazke/ng-whiteboard/compare/v1.0.3...v1.0.4) (2019-08-18)
 
 
