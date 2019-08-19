@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/mostafazke/ng-whiteboard.svg?branch=master)](https://travis-ci.org/mostafazke/ng-whiteboard) [![codecov](https://codecov.io/gh/mostafazke/ng-whiteboard/branch/master/graph/badge.svg)](https://codecov.io/gh/mostafazke/ng-whiteboard) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-
 # ng-whiteboard
 
 ## Lightweight angular whiteboard [Demo](https://mostafazke.github.io/ng-whiteboard/ 'ng-whiteboard Demo')
