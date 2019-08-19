@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/mostafazke/ng-whiteboard/compare/v1.1.0...v1.2.0) (2019-08-19)
+
+
+### Features
+
+* **whitboard:** add background image input ([0b73b5b](https://github.com/mostafazke/ng-whiteboard/commit/0b73b5b))
+
 # [1.1.0](https://github.com/mostafazke/ng-whiteboard/compare/v1.0.5...v1.1.0) (2019-08-18)
 
 
