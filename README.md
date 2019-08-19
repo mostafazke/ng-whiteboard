@@ -9,8 +9,11 @@
 - Supports touch.
 - Custom colors.
 - Custom background colors. **Suggested by [Nader Magdy](https://github.com/nader-magdy 'Nader Magdy')**
+- Custom background images.
 - Custom stroke size.
-- Save drawn as png images
+- Save drawn as png images.
+
+***And more to come*...**
 
 # Install
 
@@ -47,7 +50,12 @@
 | ------------------- | ------------------- | --------- | -------- | ----------------------------------------------------------- |
 | [color]             | `string`            | `#000000` | no       | Set brush color                                             |
 | [backgroundColor]   | `string`            | `#ffffff` | no       | Set whiteboard background color                             |
+| [backgroundImage]   | `url`               |           | no       | Set whiteboard background Image                             |
 | [size]              | `string`            | `5px`     | no       | Set brush size                                              |
-| [linejoin]          | `string`            | `round`   | no       | Define the shape of two lines when joined together ('miter' | 'round' | 'bevel' | 'miter-clip' | 'arcs') |
-| [linecap]           | `string`            | `round`   | no       | Define start and end shape of line ('butt'                  | 'square' | 'round') |
+| [linejoin]          | `string`            | `round`   | no       | Define the shape of two lines when joined together ('miter' , 'round' , 'bevel' , 'miter-clip' , 'arcs') |
+| [linecap]           | `string`            | `round`   | no       | Define start and end shape of line ('butt', 'square' , 'round') |
 | [whiteboardOptions] | `WhiteboardOptions` |           | no       | Object of all inputs                                        |
+
+## Contributing
+
+The project is open for contributors! Please file an issue or make a PR:)

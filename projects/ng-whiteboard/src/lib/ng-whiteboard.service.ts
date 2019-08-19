@@ -4,6 +4,7 @@ import { Subject } from 'rxjs';
 export class WhiteboardOptions {
   color = '#000000';
   backgroundColor = '#ffffff';
+  backgroundImage = '';
   size = '5px';
   linejoin: 'miter' | 'round' | 'bevel' | 'miter-clip' | 'arcs' = 'round';
   linecap: 'butt' | 'square' | 'round' = 'round';

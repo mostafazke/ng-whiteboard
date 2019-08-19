@@ -3,14 +3,10 @@ $button-border-color: #166E84;
 $timing:.3s;
 
 .white-board {
-    width: 100%;
-    height: 100vh;
-    max-width: 800px;
-    max-height: 450px;
-    margin: 0 auto;
-    box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
-    background: #fff;
-    border-radius: 2px;
+  width: 100%;
+  height: 100vh;
+  background: #fff;
+  overflow: hidden;
 }
 .tools {
     margin: 20px auto;
@@ -18,6 +14,9 @@ $timing:.3s;
     display: flex;
     justify-content: center;
     align-items: center;
+    position: fixed;
+    bottom: 0;
+    left: 20px;
     
 button{
     display: inline-block;
@@ -58,7 +57,7 @@ button{
 }
 .dropdown {
     position: absolute;
-    top: 16px;
+    bottom: 50%;
     left: 0px;
     opacity: 0;
   min-width: 12em;

@@ -6,16 +6,24 @@ import { WhiteboardOptions, NgWhiteboardService } from './ng-whiteboard.service'
   // tslint:disable-next-line: component-selector
   selector: 'ng-whiteboard',
   template: `
-    <svg #svgContainer [style.background-color]="this.backgroundColor || this.whiteboardOptions.backgroundColor"></svg>
+    <svg
+      #svgContainer
+      [style.background-color]="this.backgroundColor || this.whiteboardOptions.backgroundColor"
+      [style.background-image]="'url(' + this.backgroundImage + ')'"
+      [style.background-image]="'url(' + this.whiteboardOptions.backgroundImage + ')'"
+    ></svg>
   `,
   styleUrls: ['ng-whiteboard.component.scss']
 })
+//
+//      [style.background-image]="'url(' + this.backgroundImage || this.whiteboardOptions.backgroundImage + ')'"
 export class NgWhiteboardComponent implements AfterViewInit {
   @ViewChild('svgContainer', { static: false })
   private svgContainer;
   @Input() whiteboardOptions: WhiteboardOptions = new WhiteboardOptions();
   @Input() color: string;
   @Input() backgroundColor: string;
+  @Input() backgroundImage: string;
   @Input() size: string;
   @Input() linejoin: 'miter' | 'round' | 'bevel' | 'miter-clip' | 'arcs';
   @Input() linecap: 'butt' | 'square' | 'round';
