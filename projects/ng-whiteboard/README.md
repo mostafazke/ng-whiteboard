@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/mostafazke/ng-whiteboard.svg?branch=master)](https://travis-ci.org/mostafazke/ng-whiteboard) [![codecov](https://codecov.io/gh/mostafazke/ng-whiteboard/branch/master/graph/badge.svg)](https://codecov.io/gh/mostafazke/ng-whiteboard) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+
 # ng-whiteboard
 
 ## Lightweight angular whiteboard [Demo](https://mostafazke.github.io/ng-whiteboard/ 'ng-whiteboard Demo')
@@ -20,32 +22,32 @@
 
 2. Add the module to your project
 
-    ```typescript
-    import { NgWhiteboardModule } from 'ng-whiteboard';
-    ...
+   ```typescript
+   import { NgWhiteboardModule } from 'ng-whiteboard';
+   ...
 
-    @NgModule({
-        imports: [
-            ...
-            NgWhiteboardModule
-        ]
-        ...
-    )}
-    ```
+   @NgModule({
+       imports: [
+           ...
+           NgWhiteboardModule
+       ]
+       ...
+   )}
+   ```
 
 3. Insert the Whiteboard Component in the html file.
 
-    ```html
-    <ng-whiteboard></ng-whiteboard>
-    ```
+   ```html
+   <ng-whiteboard></ng-whiteboard>
+   ```
 
 ## Options
 
-| Input               | Type                | Default                        | Required | Description                                                 |
-| ------------------- | ------------------- | ------------------------------ | -------- | ----------------------------------------------------------- |
-| [color]             | `string`            | `#000000`                      | no       | Set brush color |
-| [backgroundColor]   | `string`            | `#ffffff`                      | no       | Set whiteboard background color |
-| [size]              | `string`            | `5px`                          | no       | Set brush size |
-| [linejoin]          | `string`            | `round`                        | no       | Define the shape of two lines when joined together ('miter' | 'round' | 'bevel' | 'miter-clip' | 'arcs') |
-| [linecap]           | `string`            | `round`                        | no       | Define start and end shape of line ('butt'                  | 'square' | 'round') |
-| [whiteboardOptions] | `WhiteboardOptions` |                                | no       | Object of all inputs |
+| Input               | Type                | Default   | Required | Description                                                 |
+| ------------------- | ------------------- | --------- | -------- | ----------------------------------------------------------- |
+| [color]             | `string`            | `#000000` | no       | Set brush color                                             |
+| [backgroundColor]   | `string`            | `#ffffff` | no       | Set whiteboard background color                             |
+| [size]              | `string`            | `5px`     | no       | Set brush size                                              |
+| [linejoin]          | `string`            | `round`   | no       | Define the shape of two lines when joined together ('miter' | 'round' | 'bevel' | 'miter-clip' | 'arcs') |
+| [linecap]           | `string`            | `round`   | no       | Define start and end shape of line ('butt'                  | 'square' | 'round') |
+| [whiteboardOptions] | `WhiteboardOptions` |           | no       | Object of all inputs                                        |
