@@ -17,7 +17,7 @@ $timing:.3s;
     position: fixed;
     bottom: 0;
     left: 20px;
-    
+
 button{
     display: inline-block;
     padding: 8px 16px 0;
@@ -34,7 +34,7 @@ button{
       box-shadow: 0 4px 1px darken($button-bg-color,5%);
       transition: all 0.1s ease-in;
     }
-    
+
     &:active{
       transform:translateY(4px);
       box-shadow: none;
@@ -61,11 +61,10 @@ button{
     left: 0px;
     opacity: 0;
   min-width: 12em;
-  display: inline-block;
   overflow:hidden;
-
+  display: none;
   cursor: pointer;
-  
+
   outline: none;
   border: .06em solid transparent;
   border-radius: 1em;
@@ -98,6 +97,7 @@ button{
     box-shadow: rgba(0, 0, 0, 0.1) 3px 3px 5px 0px;
     max-height:15em;
     opacity: 1;
+    display: inline-block;
     .dropdown-item {
       border-top: .06em solid #d9d9d9;
       &:hover {
