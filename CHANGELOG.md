@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/mostafazke/ng-whiteboard/compare/v1.2.0...v1.2.1) (2019-08-21)
+
+
+### Bug Fixes
+
+* **demo:** change demo title ([299e934](https://github.com/mostafazke/ng-whiteboard/commit/299e934))
+
 # [1.2.0](https://github.com/mostafazke/ng-whiteboard/compare/v1.1.0...v1.2.0) (2019-08-19)
 
 
