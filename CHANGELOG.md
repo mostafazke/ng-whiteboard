@@ -1,3 +1,11 @@
+## [1.2.2](https://github.com/mostafazke/ng-whiteboard/compare/v1.2.1...v1.2.2) (2019-09-13)
+
+
+### Bug Fixes
+
+* **bg-image:** fit bg-image to board ([92a915d](https://github.com/mostafazke/ng-whiteboard/commit/92a915d))
+* **whiteboard:** remove unused dependencies ([370a8b5](https://github.com/mostafazke/ng-whiteboard/commit/370a8b5))
+
 ## [1.2.1](https://github.com/mostafazke/ng-whiteboard/compare/v1.2.0...v1.2.1) (2019-08-21)
 
 
