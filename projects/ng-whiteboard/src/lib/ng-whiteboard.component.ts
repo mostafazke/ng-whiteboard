@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, ViewChild, Input } from '@angular/core';
+import { Component, AfterViewInit, ViewChild, Input, OnChanges, SimpleChanges } from '@angular/core';
 import * as d3 from 'd3';
 import { svgAsPngUri } from 'save-svg-as-png';
 import { WhiteboardOptions, NgWhiteboardService } from './ng-whiteboard.service';
@@ -9,15 +9,14 @@ import { WhiteboardOptions, NgWhiteboardService } from './ng-whiteboard.service'
     <svg
       #svgContainer
       [style.background-color]="this.backgroundColor || this.whiteboardOptions.backgroundColor"
-      [style.background-image]="'url(' + this.backgroundImage + ')'"
-      [style.background-image]="'url(' + this.whiteboardOptions.backgroundImage + ')'"
+      (window:resize)="onResize($event)"
     ></svg>
   `,
   styleUrls: ['ng-whiteboard.component.scss']
 })
 //
 //      [style.background-image]="'url(' + this.backgroundImage || this.whiteboardOptions.backgroundImage + ')'"
-export class NgWhiteboardComponent implements AfterViewInit {
+export class NgWhiteboardComponent implements AfterViewInit, OnChanges {
   @ViewChild('svgContainer', { static: false })
   private svgContainer;
   @Input() whiteboardOptions: WhiteboardOptions = new WhiteboardOptions();
@@ -29,7 +28,8 @@ export class NgWhiteboardComponent implements AfterViewInit {
   @Input() linecap: 'butt' | 'square' | 'round';
   selection = undefined;
   constructor(private whiteboardService: NgWhiteboardService) {}
-
+  // [style.background-image]="'url(' + this.backgroundImage + ')'"
+  // [style.background-image]="'url(' + this.whiteboardOptions.backgroundImage + ')'"
   ngAfterViewInit() {
     this.selection = this.init(this.svgContainer.nativeElement);
     this.whiteboardService.eraseSvgMethodCalled$.subscribe(() => {
@@ -39,7 +39,11 @@ export class NgWhiteboardComponent implements AfterViewInit {
       this.save(this.svgContainer.nativeElement);
     });
   }
-
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.backgroundImage) {
+      d3.select('.bg-image').attr('xlink:href', this.backgroundImage);
+    }
+  }
   init(selector) {
     const line = d3.line().curve(d3.curveBasis);
     const svg = d3.select(selector).call(
@@ -73,10 +77,16 @@ export class NgWhiteboardComponent implements AfterViewInit {
           active.attr('d', line);
         })
     );
+    svg
+      .append('image')
+      .attr('class', 'bg-image')
+      .attr('width', svg.style('width'))
+      .attr('preserveAspectRatio', 'none')
+      .attr('height', svg.style('height'));
     return svg;
   }
   eraseSvg(svg) {
-    svg.html('');
+    svg.selectAll('.line').remove();
   }
   save(el) {
     svgAsPngUri(el, {}, uri => {
@@ -96,5 +106,11 @@ export class NgWhiteboardComponent implements AfterViewInit {
         document.body.removeChild(link);
       }
     });
+  }
+  onResize() {
+    // this.createChart();
+    d3.select('.bg-image')
+      .attr('width', this.selection.style('width'))
+      .attr('height', this.selection.style('height'));
   }
 }
