@@ -28,8 +28,6 @@ export class NgWhiteboardComponent implements AfterViewInit, OnChanges {
   @Input() linecap: 'butt' | 'square' | 'round';
   selection = undefined;
   constructor(private whiteboardService: NgWhiteboardService) {}
-  // [style.background-image]="'url(' + this.backgroundImage + ')'"
-  // [style.background-image]="'url(' + this.whiteboardOptions.backgroundImage + ')'"
   ngAfterViewInit() {
     this.selection = this.init(this.svgContainer.nativeElement);
     this.whiteboardService.eraseSvgMethodCalled$.subscribe(() => {
@@ -75,6 +73,7 @@ export class NgWhiteboardComponent implements AfterViewInit, OnChanges {
             active.attr('d', line);
           });
           active.attr('d', line);
+          console.log(active);
         })
     );
     svg
