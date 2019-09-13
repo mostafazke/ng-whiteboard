@@ -9,7 +9,7 @@ import { WhiteboardOptions, NgWhiteboardService } from './ng-whiteboard.service'
     <svg
       #svgContainer
       [style.background-color]="this.backgroundColor || this.whiteboardOptions.backgroundColor"
-      (window:resize)="onResize($event)"
+      (window:resize)="onResize()"
     ></svg>
   `,
   styleUrls: ['ng-whiteboard.component.scss']
