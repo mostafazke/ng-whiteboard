@@ -73,7 +73,6 @@ export class NgWhiteboardComponent implements AfterViewInit, OnChanges {
             active.attr('d', line);
           });
           active.attr('d', line);
-          console.log(active);
         })
     );
     svg
