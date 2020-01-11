@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/mostafazke/ng-whiteboard/compare/v1.2.2...v1.3.0) (2020-01-11)
+
+
+### Features
+
+* **whiteboard:** add (undo-redo) feature ([47c64bf](https://github.com/mostafazke/ng-whiteboard/commit/47c64bf47be15b214e3f0952a6a504576e40f773))
+
 ## [1.2.2](https://github.com/mostafazke/ng-whiteboard/compare/v1.2.1...v1.2.2) (2019-09-13)
 
 
