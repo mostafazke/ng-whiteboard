@@ -43,7 +43,7 @@
     "zone.js": "~0.9.1"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "~0.802.2",
+    "@angular-devkit/build-angular": "^0.803.22",
     "@angular-devkit/build-ng-packagr": "~0.802.2",
     "@angular/cli": "~8.2.1",
     "@angular/compiler-cli": "~8.2.0",
@@ -54,6 +54,8 @@
     "@semantic-release/changelog": "^3.0.4",
     "@semantic-release/exec": "^3.3.6",
     "@semantic-release/git": "^7.0.16",
+    "@types/d3": "^5.7.2",
+    "@types/file-saver": "^2.0.1",
     "@types/jasmine": "~3.3.8",
     "@types/jasminewd2": "~2.0.3",
     "@types/node": "~8.9.4",
@@ -75,12 +77,8 @@
     "protractor": "~5.4.0",
     "replace-json-property": "^1.4.1",
     "semantic-release": "^15.13.21",
-    "@types/file-saver": "^2.0.1",
-    "@types/d3": "^5.7.2",
     "ts-node": "~7.0.0",
     "tsickle": "^0.36.0",
-    "d3": "^5.9.7",
-    "save-svg-as-png": "^1.4.14",
     "tslib": "^1.10.0",
     "tslint": "~5.15.0",
     "typescript": "~3.5.3"
