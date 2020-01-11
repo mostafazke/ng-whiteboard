@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/mostafazke/ng-whiteboard/compare/v1.3.0...v1.3.1) (2020-01-11)
+
+
+### Bug Fixes
+
+* **dependancies:** fix vulnerabilies ([2b8dca4](https://github.com/mostafazke/ng-whiteboard/commit/2b8dca435441c44afdc42e125764f1652c9727c6))
+
 # [1.3.0](https://github.com/mostafazke/ng-whiteboard/compare/v1.2.2...v1.3.0) (2020-01-11)
 
 
