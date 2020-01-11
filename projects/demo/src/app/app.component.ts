@@ -24,6 +24,12 @@ export class AppComponent {
   save() {
     this.whiteboardService.save();
   }
+  undo() {
+    this.whiteboardService.undo();
+  }
+  redo() {
+    this.whiteboardService.redo();
+  }
   apply(fileInput) {
     const file = fileInput.files[0];
     const reader = new FileReader();

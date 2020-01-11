@@ -17,16 +17,26 @@ export class NgWhiteboardService {
   // Observable string sources
   private eraseSvgMethodCallSource = new Subject<any>();
   private saveSvgMethodCallSource = new Subject<any>();
+  private undoSvgMethodCallSource = new Subject<any>();
+  private redoSvgMethodCallSource = new Subject<any>();
 
   // Observable string streams
   eraseSvgMethodCalled$ = this.eraseSvgMethodCallSource.asObservable();
   saveSvgMethodCalled$ = this.saveSvgMethodCallSource.asObservable();
+  undoSvgMethodCalled$ = this.undoSvgMethodCallSource.asObservable();
+  redoSvgMethodCalled$ = this.redoSvgMethodCallSource.asObservable();
 
   // Service message commands
-  erase() {
+  public erase(): void {
     this.eraseSvgMethodCallSource.next();
   }
-  save() {
+  public save(): void {
     this.saveSvgMethodCallSource.next();
+  }
+  public undo(): void {
+    this.undoSvgMethodCallSource.next();
+  }
+  public redo(): void {
+    this.redoSvgMethodCallSource.next();
   }
 }
