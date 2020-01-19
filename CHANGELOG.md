@@ -1,3 +1,10 @@
+## [1.3.2](https://github.com/mostafazke/ng-whiteboard/compare/v1.3.1...v1.3.2) (2020-01-17)
+
+
+### Performance Improvements
+
+* **package.json:** update all dependancies ([77c71b5](https://github.com/mostafazke/ng-whiteboard/commit/77c71b52fbf900b5f6a8cd7bd164f68646dec591))
+
 ## [1.3.1](https://github.com/mostafazke/ng-whiteboard/compare/v1.3.0...v1.3.1) (2020-01-11)
 
 
