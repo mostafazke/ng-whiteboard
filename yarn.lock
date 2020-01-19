@@ -7767,6 +7767,13 @@ ng-packagr@^5.7.1:
     terser "^4.1.2"
     update-notifier "^3.0.0"
 
+ngx-toastr@^11.3.0:
+  version "11.3.0"
+  resolved "https://registry.yarnpkg.com/ngx-toastr/-/ngx-toastr-11.3.0.tgz#364574b31ecf7b5b76815fb74756b24e953e2aa1"
+  integrity sha512-GsrDO75N8DjNefUaI6qUqFfT6z/vdsQjcQqqiYMcXpr0GeaPF6eAlnNKLtLHTltjZ1MFRgjufoPDPLy0JiGB0w==
+  dependencies:
+    tslib "^1.9.0"
+
 nice-try@^1.0.4:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/nice-try/-/nice-try-1.0.5.tgz#a3378a7696ce7d223e88fc9b764bd7ef1089e366"
@@ -9893,11 +9900,6 @@ saucelabs@^1.5.0:
   integrity sha512-jlX3FGdWvYf4Q3LFfFWS1QvPg3IGCGWxIc8QBFdPTbpTJnt/v17FHXYVAn7C8sHf1yUXo2c7yIM0isDryfYtHQ==
   dependencies:
     https-proxy-agent "^2.2.1"
-
-save-svg-as-png@^1.4.14:
-  version "1.4.14"
-  resolved "https://registry.yarnpkg.com/save-svg-as-png/-/save-svg-as-png-1.4.14.tgz#d5017bb9746adf00c146a17e63ed4badd1e10b40"
-  integrity sha512-hJqOFSdRvhBVD2pQSM+mJStvQGfnvQCCF6ULtAxdjF4lDwXYfWZ9Eug0fcRl05YyPL2yknCDBEOpbO4Fkw5qmg==
 
 sax@0.5.x:
   version "0.5.8"

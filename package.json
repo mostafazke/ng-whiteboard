@@ -38,8 +38,8 @@
     "@angular/router": "^8.2.14",
     "d3": "^5.15.0",
     "file-saver": "^2.0.2",
+    "ngx-toastr": "^11.3.0",
     "rxjs": "~6.4.0",
-    "save-svg-as-png": "^1.4.14",
     "zone.js": "~0.9.1"
   },
   "devDependencies": {

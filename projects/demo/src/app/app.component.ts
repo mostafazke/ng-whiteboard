@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { NgWhiteboardService } from 'projects/ng-whiteboard/src/public-api';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-root',
@@ -9,11 +10,30 @@ import { NgWhiteboardService } from 'projects/ng-whiteboard/src/public-api';
 export class AppComponent {
   color = '#333333';
   backgroundColor = '#eee';
-  // backgroundColor = '#ffef00';
-  backgroundImage: string | ArrayBuffer = '';
   size = '5px';
   isActive = false;
-  constructor(private whiteboardService: NgWhiteboardService) {}
+
+  constructor(private toastr: ToastrService, private whiteboardService: NgWhiteboardService) {}
+
+  onInit() {
+    this.toastr.success('Init!');
+  }
+  onClear() {
+    this.toastr.success('Clear!');
+  }
+  onUndo() {
+    this.toastr.success('Undo!');
+  }
+  onRedo() {
+    this.toastr.success('Redo!');
+  }
+  onSave() {
+    this.toastr.success('Save!');
+  }
+  onImageAded() {
+    this.toastr.success('ImageAded!');
+  }
+
   erase() {
     this.whiteboardService.erase();
   }
@@ -30,19 +50,16 @@ export class AppComponent {
   redo() {
     this.whiteboardService.redo();
   }
-  apply(fileInput) {
+  addImage(fileInput) {
     const file = fileInput.files[0];
     const reader = new FileReader();
 
     reader.onloadend = () => {
-      this.backgroundImage = reader.result;
+      this.whiteboardService.addImage(reader.result);
     };
 
     if (file) {
       reader.readAsDataURL(file);
-    } else {
-      this.backgroundImage = '';
-      // https://cdn.pixabay.com/photo/2017/01/03/02/07/vine-1948358_960_720.png
     }
   }
 }

@@ -5,9 +5,8 @@
   "lib": {
     "entryFile": "src/public-api.ts",
     "umdModuleIds": {
-      "d3": "d3",
-      "save-svg-as-png": "saveSvgAsPng"
+      "d3": "d3"
     }
   },
-  "whitelistedNonPeerDependencies": ["d3", "save-svg-as-png"]
+  "whitelistedNonPeerDependencies": ["d3"]
 }

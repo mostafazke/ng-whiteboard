@@ -53,8 +53,13 @@
   <ng-whiteboard
     [color]="color"
     [backgroundColor]="backgroundColor"
-    [backgroundImage]="backgroundImage"
     [size]="size"
+    (init)="onInit()"
+    (clear)="onClear()"
+    (imageAdded)="onImageAded()"
+    (redo)="onRedo()"
+    (undo)="onUndo()"
+    (save)="onSave()"
   ></ng-whiteboard>
 </div>
 <div class="tools">
@@ -102,7 +107,7 @@
   />
   <label for="backgroundInput" class="color-label" [ngStyle]="{ 'background-color': backgroundColor }"></label>
 
-  <input type="file" class="color-input" id="photoInput" (change)="apply($event.target)" />
+  <input type="file" class="color-input" id="photoInput" (change)="addImage($event.target)" />
   <label
     for="photoInput"
     class="color-label"
