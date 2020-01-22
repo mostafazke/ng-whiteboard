@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/mostafazke/ng-whiteboard/compare/v1.3.2...v1.4.0) (2020-01-19)
+
+
+### Features
+
+* **whiterboard:** add Output Events ([79c9ffe](https://github.com/mostafazke/ng-whiteboard/commit/79c9ffe77bed39eeac04ee92ac6e579d51853b85))
+
 ## [1.3.2](https://github.com/mostafazke/ng-whiteboard/compare/v1.3.1...v1.3.2) (2020-01-17)
 
 
