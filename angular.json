@@ -60,7 +60,8 @@
             "aot": false,
             "assets": [
               "projects/demo/src/favicon.ico",
-              "projects/demo/src/assets"
+              "projects/demo/src/assets",
+              "projects/demo/src/manifest.webmanifest"
             ],
             "styles": [
               "projects/demo/src/styles.scss"
@@ -95,7 +96,9 @@
                   "maximumWarning": "6kb",
                   "maximumError": "10kb"
                 }
-              ]
+              ],
+              "serviceWorker": true,
+              "ngswConfigPath": "projects/demo/ngsw-config.json"
             }
           }
         },
@@ -125,7 +128,8 @@
             "karmaConfig": "projects/demo/karma.conf.js",
             "assets": [
               "projects/demo/src/favicon.ico",
-              "projects/demo/src/assets"
+              "projects/demo/src/assets",
+              "projects/demo/src/manifest.webmanifest"
             ],
             "styles": [
               "projects/demo/src/styles.scss"
