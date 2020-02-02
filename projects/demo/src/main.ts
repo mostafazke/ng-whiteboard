@@ -10,4 +10,11 @@ if (environment.production) {
 
 platformBrowserDynamic()
   .bootstrapModule(AppModule)
-  .catch(err => console.error(err));
+  // waiting for angular to load bootstrapping and then only loading service worker
+  .then(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register(`/ngsw-worker.js`);
+      console.log(`Registered as service worker`);
+    }
+  })
+  .catch(err => console.log(err));
