@@ -1,10 +1,9 @@
 {
-  "name": "demo",
-  "short_name": "demo",
+  "name": "Whiteboard App",
+  "short_name": "Whiteboard",
   "theme_color": "#9b59b6",
   "background_color": "#fafafa",
   "display": "standalone",
-  "scope": "/",
   "start_url": "/",
   "icons": [
     {

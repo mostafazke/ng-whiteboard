@@ -27,13 +27,8 @@
         "lint": {
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
-            "tsConfig": [
-              "projects/ng-whiteboard/tsconfig.lib.json",
-              "projects/ng-whiteboard/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
+            "tsConfig": ["projects/ng-whiteboard/tsconfig.lib.json", "projects/ng-whiteboard/tsconfig.spec.json"],
+            "exclude": ["**/node_modules/**"]
           }
         }
       }
@@ -58,14 +53,8 @@
             "polyfills": "projects/demo/src/polyfills.ts",
             "tsConfig": "projects/demo/tsconfig.app.json",
             "aot": false,
-            "assets": [
-              "projects/demo/src/favicon.ico",
-              "projects/demo/src/assets",
-              "projects/demo/src/manifest.webmanifest"
-            ],
-            "styles": [
-              "projects/demo/src/styles.scss"
-            ],
+            "assets": ["projects/demo/src/favicon.ico", "projects/demo/src/assets", "projects/demo/src/manifest.json"],
+            "styles": ["projects/demo/src/styles.scss"],
             "scripts": []
           },
           "configurations": {
@@ -126,14 +115,8 @@
             "polyfills": "projects/demo/src/polyfills.ts",
             "tsConfig": "projects/demo/tsconfig.spec.json",
             "karmaConfig": "projects/demo/karma.conf.js",
-            "assets": [
-              "projects/demo/src/favicon.ico",
-              "projects/demo/src/assets",
-              "projects/demo/src/manifest.webmanifest"
-            ],
-            "styles": [
-              "projects/demo/src/styles.scss"
-            ],
+            "assets": ["projects/demo/src/favicon.ico", "projects/demo/src/assets", "projects/demo/src/manifest.json"],
+            "styles": ["projects/demo/src/styles.scss"],
             "scripts": []
           }
         },
@@ -145,9 +128,7 @@
               "projects/demo/tsconfig.spec.json",
               "projects/demo/e2e/tsconfig.json"
             ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
+            "exclude": ["**/node_modules/**"]
           }
         },
         "e2e": {
@@ -163,6 +144,7 @@
           }
         }
       }
-    }},
+    }
+  },
   "defaultProject": "ng-whiteboard"
 }
