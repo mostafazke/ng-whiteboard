@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/mostafazke/ng-whiteboard/compare/v1.4.0...v1.4.1) (2020-04-22)
+
+
+### Bug Fixes
+
+* **whiteboard:** fix Images compatibility issue on Ipad ([48bbbbb](https://github.com/mostafazke/ng-whiteboard/commit/48bbbbbe5e2a8bade0957a9ba429ef5663928601))
+
 # [1.4.0](https://github.com/mostafazke/ng-whiteboard/compare/v1.3.2...v1.4.0) (2020-01-19)
 
 
