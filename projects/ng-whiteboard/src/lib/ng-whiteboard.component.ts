@@ -173,58 +173,71 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
       .attr('y', 0)
       .attr('transform', 'translate(0,0)');
 
-    group
-      .append('image')
-      .attr('x', 0)
-      .attr('y', 0)
-      .attr('height', this.selection.style('height'))
-      .attr('preserveAspectRatio', 'none')
-      .attr('xlink:href', image.toString());
+    const tempImg = new Image();
+    tempImg.onload = () => {
+      const height =
+        tempImg.height > Number(this.selection.style('height').replace('px', ''))
+          ? Number(this.selection.style('height').replace('px', '')) - 40
+          : tempImg.height;
+      const width =
+        height === Number(this.selection.style('height').replace('px', '')) - 40
+          ? tempImg.width - (Number(this.selection.style('height').replace('px', '')) - height)
+          : tempImg.width;
+      group
+        .append('image')
+        .attr('x', 0)
+        .attr('y', 0)
+        .attr('height', height)
+        .attr('width', width)
+        .attr('preserveAspectRatio', 'none')
+        .attr('xlink:href', image.toString());
 
-    group
-      .append('rect')
-      .attr('x', 0)
-      .attr('y', 0)
-      .attr('width', 20)
-      .attr('height', 20)
-      .style('opacity', 0)
-      .attr('fill', d => {
-        return '#cccccc';
-      })
-      .call(
-        drag()
-          .subject(() => {
-            const p = [event.x, event.y];
-            return [p, p];
-          })
-          .on('start', () => {
-            event.on('drag', function(d) {
-              const cursor = select(this);
-              const cord = mouse(this);
+      group
+        .append('rect')
+        .attr('x', 0)
+        .attr('y', 0)
+        .attr('width', 20)
+        .attr('height', 20)
+        .style('opacity', 0)
+        .attr('fill', d => {
+          return '#cccccc';
+        })
+        .call(
+          drag()
+            .subject(() => {
+              const p = [event.x, event.y];
+              return [p, p];
+            })
+            .on('start', () => {
+              event.on('drag', function(d) {
+                const cursor = select(this);
+                const cord = mouse(this);
 
-              d.x += cord[0] - Number(cursor.attr('width')) / 2;
-              d.y += cord[1] - Number(cursor.attr('height')) / 2;
-              select(this.parentNode).attr('transform', () => {
-                return (
-                  'translate(' + [d.x, d.y] + '),rotate(' + d.r + ',160, 160),scale(' + d.scale + ',' + d.scale + ')'
-                );
+                d.x += cord[0] - Number(cursor.attr('width')) / 2;
+                d.y += cord[1] - Number(cursor.attr('height')) / 2;
+                select(this.parentNode).attr('transform', () => {
+                  return (
+                    'translate(' + [d.x, d.y] + '),rotate(' + d.r + ',160, 160),scale(' + d.scale + ',' + d.scale + ')'
+                  );
+                });
               });
-            });
-          })
-      );
-    group
-      .on('mouseover', function() {
-        select(this)
-          .select('rect')
-          .style('opacity', 1.0);
-      })
-      .on('mouseout', function() {
-        select(this)
-          .select('rect')
-          .style('opacity', 0);
-      });
+            })
+        );
+      group
+        .on('mouseover', function() {
+          select(this)
+            .select('rect')
+            .style('opacity', 1.0);
+        })
+        .on('mouseout', function() {
+          select(this)
+            .select('rect')
+            .style('opacity', 0);
+        });
 
-    // this.undoStack.push({ type: ActionType.Image, image: group.node() });
+      // this.undoStack.push({ type: ActionType.Image, image: group.node() });
+    };
+    tempImg.src = image.toString();
   }
 
   private _unsubscribe(subscription: Subscription): void {
