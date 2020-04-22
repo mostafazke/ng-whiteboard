@@ -54,7 +54,7 @@
             "tsConfig": "projects/demo/tsconfig.app.json",
             "aot": false,
             "assets": [
-              "projects/demo/src/favicon.png",
+              "projects/demo/src/favicon.ico",
               "projects/demo/src/icon-144x144.png",
               "projects/demo/src/assets",
               "projects/demo/src/manifest.webmanifest"
@@ -121,7 +121,7 @@
             "tsConfig": "projects/demo/tsconfig.spec.json",
             "karmaConfig": "projects/demo/karma.conf.js",
             "assets": [
-              "projects/demo/src/favicon.png",
+              "projects/demo/src/favicon.ico",
               "projects/demo/src/icon-144x144.png",
               "projects/demo/src/assets",
               "projects/demo/src/manifest.webmanifest"
