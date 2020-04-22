@@ -10,7 +10,7 @@ import { ContainerElement, curveBasis, select, drag, Selection, line, event, mou
   template: `
     <svg #svgContainer [style.background-color]="this.backgroundColor || this.whiteboardOptions.backgroundColor"></svg>
   `,
-  styleUrls: ['ng-whiteboard.component.scss']
+  styleUrls: ['ng-whiteboard.component.scss'],
 })
 export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
   @ViewChild('svgContainer', { static: false }) private svgContainer: ElementRef<ContainerElement>;
@@ -47,13 +47,13 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
     );
     this.subscriptionList.push(this.whiteboardService.undoSvgMethodCalled$.subscribe(() => this.undoDraw()));
     this.subscriptionList.push(this.whiteboardService.redoSvgMethodCalled$.subscribe(() => this.redoDraw()));
-    this.subscriptionList.push(this.whiteboardService.addImageMethodCalled$.subscribe(image => this.addImage(image)));
+    this.subscriptionList.push(this.whiteboardService.addImageMethodCalled$.subscribe((image) => this.addImage(image)));
 
     this.selection = this.initSvg(this.svgContainer.nativeElement);
   }
 
   ngOnDestroy(): void {
-    this.subscriptionList.forEach(subscription => this._unsubscribe(subscription));
+    this.subscriptionList.forEach((subscription) => this._unsubscribe(subscription));
   }
 
   private initSvg(selector: ContainerElement) {
@@ -82,7 +82,7 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
            `
             );
           active.attr('d', d3Line);
-          event.on('drag', function() {
+          event.on('drag', function () {
             active.datum().push(mouse(this));
             active.attr('d', d3Line);
           });
@@ -120,7 +120,7 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
         Number(this.selection.style('width').replace('px', '')),
         Number(this.selection.style('height').replace('px', '')),
         format,
-        img => {
+        (img) => {
           this.download(img, name);
         }
       );
@@ -135,7 +135,7 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
     }
     this.redoStack.push(this.undoStack.pop());
     this.selection.selectAll('.line').remove();
-    this.undoStack.forEach(action => {
+    this.undoStack.forEach((action) => {
       if (action.type === ActionType.Line) {
         this.drawLine(action.line);
       } else if (action.type === ActionType.Image) {
@@ -151,7 +151,7 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
     }
     this.undoStack.push(this.redoStack.pop());
     this.selection.selectAll('.line').remove();
-    this.undoStack.forEach(action => {
+    this.undoStack.forEach((action) => {
       if (action.type === ActionType.Line) {
         this.drawLine(action.line);
       } else if (action.type === ActionType.Image) {
@@ -181,8 +181,13 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
           : tempImg.height;
       const width =
         height === Number(this.selection.style('height').replace('px', '')) - 40
-          ? tempImg.width - (Number(this.selection.style('height').replace('px', '')) - height)
+          ? ((Number(this.selection.style('height').replace('px', '')) - 40) * tempImg.width) / tempImg.height
           : tempImg.width;
+
+      console.log(tempImg.height);
+      console.log(Number(this.selection.style('height').replace('px', '')) - 40);
+      console.log(tempImg.width);
+
       group
         .append('image')
         .attr('x', 0)
@@ -199,7 +204,7 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
         .attr('width', 20)
         .attr('height', 20)
         .style('opacity', 0)
-        .attr('fill', d => {
+        .attr('fill', (d) => {
           return '#cccccc';
         })
         .call(
@@ -209,7 +214,7 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
               return [p, p];
             })
             .on('start', () => {
-              event.on('drag', function(d) {
+              event.on('drag', function (d) {
                 const cursor = select(this);
                 const cord = mouse(this);
 
@@ -224,15 +229,11 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
             })
         );
       group
-        .on('mouseover', function() {
-          select(this)
-            .select('rect')
-            .style('opacity', 1.0);
+        .on('mouseover', function () {
+          select(this).select('rect').style('opacity', 1.0);
         })
-        .on('mouseout', function() {
-          select(this)
-            .select('rect')
-            .style('opacity', 0);
+        .on('mouseout', function () {
+          select(this).select('rect').style('opacity', 0);
         });
 
       // this.undoStack.push({ type: ActionType.Image, image: group.node() });
