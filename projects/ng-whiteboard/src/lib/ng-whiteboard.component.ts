@@ -181,13 +181,8 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
           : tempImg.height;
       const width =
         height === Number(this.selection.style('height').replace('px', '')) - 40
-          ? ((Number(this.selection.style('height').replace('px', '')) - 40) * tempImg.width) / tempImg.height
+          ? tempImg.width - (Number(this.selection.style('height').replace('px', '')) - height)
           : tempImg.width;
-
-      console.log(tempImg.height);
-      console.log(Number(this.selection.style('height').replace('px', '')) - 40);
-      console.log(tempImg.width);
-
       group
         .append('image')
         .attr('x', 0)
