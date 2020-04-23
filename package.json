@@ -1,6 +1,6 @@
 {
   "name": "ng-whiteboard",
-  "version": "1.4.1",
+  "version": "0.0.0-semantically-released",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
