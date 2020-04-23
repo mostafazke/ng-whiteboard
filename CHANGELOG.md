@@ -1,3 +1,11 @@
+## [1.4.2](https://github.com/mostafazke/ng-whiteboard/compare/v1.4.1...v1.4.2) (2020-04-23)
+
+
+### Bug Fixes
+
+* **demo:** add favicon for demo app ([14c3153](https://github.com/mostafazke/ng-whiteboard/commit/14c3153fc0f743aaf62ffbed6b26faf3c3383515))
+* **whiteboard:** Fix image rotation on drag ([68ffe9c](https://github.com/mostafazke/ng-whiteboard/commit/68ffe9c6e5a8dd47b1095b8db362307f5687dc0a))
+
 ## [1.4.1](https://github.com/mostafazke/ng-whiteboard/compare/v1.4.0...v1.4.1) (2020-04-22)
 
 
