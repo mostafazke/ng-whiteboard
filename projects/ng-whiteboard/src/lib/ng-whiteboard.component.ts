@@ -235,10 +235,8 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
         .on('mouseout', function () {
           select(this).select('rect').style('opacity', 0);
         });
-
       // this.undoStack.push({ type: ActionType.Image, image: group.node() });
     };
-    tempImg.src = image.toString();
   }
 
   private _unsubscribe(subscription: Subscription): void {
