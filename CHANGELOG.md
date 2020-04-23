@@ -1,3 +1,25 @@
+## [1.4.3](https://github.com/mostafazke/ng-whiteboard/compare/v1.4.2...v1.4.3) (2020-04-23)
+
+
+### Bug Fixes
+
+* **whiteboard:** fix related with ipad image issue ([7462d60](https://github.com/mostafazke/ng-whiteboard/commit/7462d60077477d3f4091ffcb5aaec1b7eaa61c1a))
+
+## [1.4.2](https://github.com/mostafazke/ng-whiteboard/compare/v1.4.1...v1.4.2) (2020-04-23)
+
+
+### Bug Fixes
+
+* **demo:** add favicon for demo app ([14c3153](https://github.com/mostafazke/ng-whiteboard/commit/14c3153fc0f743aaf62ffbed6b26faf3c3383515))
+* **whiteboard:** Fix image rotation on drag ([68ffe9c](https://github.com/mostafazke/ng-whiteboard/commit/68ffe9c6e5a8dd47b1095b8db362307f5687dc0a))
+
+## [1.4.1](https://github.com/mostafazke/ng-whiteboard/compare/v1.4.0...v1.4.1) (2020-04-22)
+
+
+### Bug Fixes
+
+* **whiteboard:** fix Images compatibility issue on Ipad ([48bbbbb](https://github.com/mostafazke/ng-whiteboard/commit/48bbbbbe5e2a8bade0957a9ba429ef5663928601))
+
 # [1.4.0](https://github.com/mostafazke/ng-whiteboard/compare/v1.3.2...v1.4.0) (2020-01-19)
 
 
