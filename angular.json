@@ -53,12 +53,7 @@
             "polyfills": "projects/demo/src/polyfills.ts",
             "tsConfig": "projects/demo/tsconfig.app.json",
             "aot": false,
-            "assets": [
-              "projects/demo/src/favicon.ico",
-              "projects/demo/src/icon-144x144.png",
-              "projects/demo/src/assets",
-              "projects/demo/src/manifest.webmanifest"
-            ],
+            "assets": ["projects/demo/src/favicon.ico", "projects/demo/src/assets", "projects/demo/src/manifest.json"],
             "styles": ["projects/demo/src/styles.scss"],
             "scripts": []
           },
@@ -120,12 +115,7 @@
             "polyfills": "projects/demo/src/polyfills.ts",
             "tsConfig": "projects/demo/tsconfig.spec.json",
             "karmaConfig": "projects/demo/karma.conf.js",
-            "assets": [
-              "projects/demo/src/favicon.ico",
-              "projects/demo/src/icon-144x144.png",
-              "projects/demo/src/assets",
-              "projects/demo/src/manifest.webmanifest"
-            ],
+            "assets": ["projects/demo/src/favicon.ico", "projects/demo/src/assets", "projects/demo/src/manifest.json"],
             "styles": ["projects/demo/src/styles.scss"],
             "scripts": []
           }
