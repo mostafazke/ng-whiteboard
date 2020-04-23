@@ -217,7 +217,7 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
                 d.y += cord[1] - Number(cursor.attr('height')) / 2;
                 select(this.parentNode).attr('transform', () => {
                   return (
-                    'translate(' + [d.x, d.y] + '),rotate(' + 0 + ',160, 160),scale(' + d.scale + ',' + d.scale + ')'
+                    'translate(' + [d.x, d.y] + '),rotate(' + d.r + ',160, 160),scale(' + d.scale + ',' + d.scale + ')'
                   );
                 });
               });
