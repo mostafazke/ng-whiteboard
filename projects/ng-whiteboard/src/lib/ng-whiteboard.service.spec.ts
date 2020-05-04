@@ -6,7 +6,7 @@ describe('NgWhiteboardService', () => {
   beforeEach(() => TestBed.configureTestingModule({}));
 
   it('should be created', () => {
-    const service: NgWhiteboardService = TestBed.get(NgWhiteboardService);
+    const service: NgWhiteboardService = TestBed.inject(NgWhiteboardService);
     expect(service).toBeTruthy();
   });
 });
