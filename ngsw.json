@@ -1,6 +1,6 @@
 {
   "configVersion": 1,
-  "timestamp": 1588622124691,
+  "timestamp": 1588624146180,
   "index": "https://mostafazke.github.io/ng-whiteboard/index.html",
   "assetGroups": [
     {
@@ -10,8 +10,8 @@
       "urls": [
         "https://mostafazke.github.io/ng-whiteboard/favicon.ico",
         "https://mostafazke.github.io/ng-whiteboard/index.html",
-        "https://mostafazke.github.io/ng-whiteboard/main-es2015.1e89bb1a2d84d06c3dcd.js",
-        "https://mostafazke.github.io/ng-whiteboard/main-es5.1e89bb1a2d84d06c3dcd.js",
+        "https://mostafazke.github.io/ng-whiteboard/main-es2015.0d99e56501481890ac0b.js",
+        "https://mostafazke.github.io/ng-whiteboard/main-es5.0d99e56501481890ac0b.js",
         "https://mostafazke.github.io/ng-whiteboard/manifest.json",
         "https://mostafazke.github.io/ng-whiteboard/polyfills-es2015.cf487a8cd6529a4dabf4.js",
         "https://mostafazke.github.io/ng-whiteboard/polyfills-es5.a7866a542ac2090495b9.js",
@@ -51,9 +51,9 @@
     "https://mostafazke.github.io/ng-whiteboard/assets/icons/icon-96x96.png": "c28742a0e594cc07d3c294cd838093121daf1d43",
     "https://mostafazke.github.io/ng-whiteboard/cursor.50e267256fa02647da68.svg": "9670945e93fc66371d63e845e27d4cd8ef2b9368",
     "https://mostafazke.github.io/ng-whiteboard/favicon.ico": "9d35872b3a7d7f6db2f00438f76872ed484174b8",
-    "https://mostafazke.github.io/ng-whiteboard/index.html": "76f5e70c20fc912b261aa89808c67ecb07b80355",
-    "https://mostafazke.github.io/ng-whiteboard/main-es2015.1e89bb1a2d84d06c3dcd.js": "dbc3a8f8f304baa147963e22864f0c2297186cfb",
-    "https://mostafazke.github.io/ng-whiteboard/main-es5.1e89bb1a2d84d06c3dcd.js": "957dac9506ee5939115990c34f51981d57d5122c",
+    "https://mostafazke.github.io/ng-whiteboard/index.html": "050510a0e1ceb5e31000b9a6aec5db4b22807e5b",
+    "https://mostafazke.github.io/ng-whiteboard/main-es2015.0d99e56501481890ac0b.js": "2742384b843e1adc8c8b32126d22f161717e988b",
+    "https://mostafazke.github.io/ng-whiteboard/main-es5.0d99e56501481890ac0b.js": "a7e069356bc05b06f15739753947c80a5487d274",
     "https://mostafazke.github.io/ng-whiteboard/manifest.json": "aa02c5b4e056bfb02a88d340caf80695a88c82c4",
     "https://mostafazke.github.io/ng-whiteboard/polyfills-es2015.cf487a8cd6529a4dabf4.js": "c390c01ffbc2fe4ed798c2cdf9c887116ec0f6e1",
     "https://mostafazke.github.io/ng-whiteboard/polyfills-es5.a7866a542ac2090495b9.js": "3e3453a377c533c70f7a86f120aef9ef18ab5f03",
