@@ -13,8 +13,8 @@ platformBrowserDynamic()
   // waiting for angular to load bootstrapping and then only loading service worker
   .then(() => {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register(`/ngsw-worker.js`);
+      navigator.serviceWorker.register(`/ngsw-worker.js`, { scope: '/ng-whiteboard' });
       console.log(`Registered as service worker`);
     }
   })
-  .catch(err => console.log(err));
+  .catch((err) => console.log(err));
