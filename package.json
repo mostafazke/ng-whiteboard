@@ -23,67 +23,20 @@
     "adjust-version:lib": "rjp projects/ng-whiteboard/package.json version $VERSION",
     "adjust-version:main": "rjp package.json version $VERSION",
     "lint": "ng lint",
+    "lint:lib": "ng lint ng-whiteboard",
     "e2e": "ng e2e",
     "semantic-release": "semantic-release",
-    "postinstall": "ngcc"
+    "postinstall": "ngcc",
+    "commit": "git-cz"
   },
   "private": false,
-  "dependencies": {
-    "@angular/animations": "^9.1.3",
-    "@angular/common": "^9.1.3",
-    "@angular/compiler": "^9.1.3",
-    "@angular/core": "^9.1.3",
-    "@angular/forms": "^9.1.3",
-    "@angular/platform-browser": "^9.1.3",
-    "@angular/platform-browser-dynamic": "^9.1.3",
-    "@angular/pwa": "^0.901.2",
-    "@angular/router": "^9.1.3",
-    "@angular/service-worker": "^9.1.3",
-    "d3": "^5.16.0",
-    "file-saver": "^2.0.2",
-    "ngx-toastr": "^12.0.1",
-    "rxjs": "~6.5.5",
-    "zone.js": "~0.10.3"
+  "release": {
+    "pkgRoot": "dist/ng-whiteboard"
   },
-  "devDependencies": {
-    "@angular-devkit/build-angular": "^0.901.2",
-    "@angular-devkit/build-ng-packagr": "~0.901.2",
-    "@angular/cli": "~9.1.2",
-    "@angular/compiler-cli": "^9.1.3",
-    "@angular/language-service": "^9.1.3",
-    "@commitlint/cli": "^8.3.5",
-    "@commitlint/config-conventional": "^8.3.4",
-    "@semantic-release/changelog": "^5.0.1",
-    "@semantic-release/exec": "^5.0.0",
-    "@semantic-release/git": "^9.0.0",
-    "@types/d3": "^5.7.2",
-    "@types/file-saver": "^2.0.1",
-    "@types/jasmine": "~3.5.10",
-    "@types/jasminewd2": "^2.0.8",
-    "@types/node": "~13.13.2",
-    "codecov": "^3.6.5",
-    "codelyzer": "^5.2.2",
-    "copyfiles": "^2.2.0",
-    "husky": "^4.2.5",
-    "jasmine-core": "~3.5.0",
-    "jasmine-spec-reporter": "~5.0.1",
-    "karma": "~5.0.2",
-    "karma-chrome-launcher": "~3.1.0",
-    "karma-coverage-istanbul-reporter": "~2.1.1",
-    "karma-jasmine": "~3.1.1",
-    "karma-jasmine-html-reporter": "^1.5.3",
-    "lint-staged": "^10.1.7",
-    "ng-packagr": "^9.1.1",
-    "npm-run-all": "^4.1.5",
-    "prettier": "^2.0.5",
-    "protractor": "~5.4.4",
-    "replace-json-property": "^1.4.3",
-    "semantic-release": "^17.0.7",
-    "ts-node": "~8.9.0",
-    "tsickle": "^0.38.1",
-    "tslib": "^1.11.1",
-    "tslint": "~6.1.1",
-    "typescript": "~3.8.3"
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
   },
   "husky": {
     "hooks": {
@@ -96,10 +49,68 @@
       "prettier --write"
     ]
   },
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-conventional"
-    ]
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "dependencies": {
+    "@angular/animations": "~9.1.3",
+    "@angular/common": "~9.1.3",
+    "@angular/compiler": "~9.1.3",
+    "@angular/core": "~9.1.3",
+    "@angular/forms": "~9.1.3",
+    "@angular/platform-browser": "~9.1.3",
+    "@angular/platform-browser-dynamic": "~9.1.3",
+    "@angular/router": "~9.1.3",
+    "rxjs": "~6.5.4",
+    "tslib": "^1.10.0",
+    "zone.js": "~0.10.2",
+    "@angular/pwa": "^0.901.2",
+    "@angular/service-worker": "^9.1.3",
+    "d3": "^5.16.0",
+    "file-saver": "^2.0.2",
+    "ngx-toastr": "^12.0.1"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "~0.901.3",
+    "@angular-devkit/build-ng-packagr": "~0.901.3",
+    "@angular/cli": "~9.1.3",
+    "@angular/compiler-cli": "~9.1.3",
+    "@angular/language-service": "~9.1.3",
+    "@commitlint/cli": "^8.3.5",
+    "@commitlint/config-conventional": "^8.3.4",
+    "@types/jasmine": "~3.5.0",
+    "@types/jasminewd2": "~2.0.3",
+    "@types/node": "^12.11.1",
+    "codelyzer": "^5.1.2",
+    "cz-conventional-changelog": "^3.1.0",
+    "husky": "^4.2.5",
+    "jasmine-core": "~3.5.0",
+    "jasmine-spec-reporter": "~4.2.1",
+    "karma": "~5.0.0",
+    "karma-chrome-launcher": "~3.1.0",
+    "karma-coverage-istanbul-reporter": "~2.1.0",
+    "karma-jasmine": "~3.0.1",
+    "karma-jasmine-html-reporter": "^1.4.2",
+    "ng-packagr": "^9.0.0",
+    "protractor": "~5.4.3",
+    "semantic-release": "^17.0.7",
+    "ts-node": "~8.3.0",
+    "tslint": "~6.1.0",
+    "typescript": "~3.8.3",
+    "@semantic-release/changelog": "^5.0.1",
+    "@semantic-release/exec": "^5.0.0",
+    "@semantic-release/git": "^9.0.0",
+    "@types/d3": "^5.7.2",
+    "@types/file-saver": "^2.0.1",
+    "codecov": "^3.6.5",
+    "copyfiles": "^2.2.0",
+    "lint-staged": "^10.1.7",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.0.5",
+    "replace-json-property": "^1.4.3",
+    "tsickle": "^0.38.1"
   },
   "repository": {
     "type": "git",

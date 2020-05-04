@@ -1,24 +1,19 @@
-language: node_js
-node_js:
-  - 'stable'
-sudo: true
 dist: trusty
+sudo: false
+language: node_js
+node_js: node
 
+install:
+  - yarn install
 cache:
   directories:
-    - node_modules
-
-before_install:
-  - export CHROME_BIN=chromium-browser
-  - export DISPLAY=:99.0
-  - sh -e /etc/init.d/xvfb start
-  - npm install
+    - $HOME/.npm
 
 jobs:
   include:
-    # - stage: lint
-    #   script:
-    #     - ng lint
+    - stage: lint
+      script:
+        - npm run lint
     - stage: test
       script:
         - npm run test:lib-coverage
@@ -31,6 +26,7 @@ jobs:
         skip_cleanup: true
         github_token: $GH_TOKEN
         local_dir: dist/demo
+        keep-history: true
       if: branch = master
     - stage: build & publish lib
       script:
