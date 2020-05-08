@@ -12,16 +12,17 @@ $timing:.3s;
   position: absolute;
   bottom: 0;
   left: 20px;
-  overflow-y: auto;
-  white-space: nowrap;
   right: 20px;
-  padding: 30px 0;
-  max-width: 500px;
-  opacity: .1;
-  transition: opacity .3s ease-in-out;
+  max-width: 435px;
+  opacity: 0.1;
+  transition: opacity 0.3s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
   & > * {
-    display: inline-block;
-    vertical-align: middle;
+    margin-bottom: 10px;
   }
 button{
     display: inline-block;
