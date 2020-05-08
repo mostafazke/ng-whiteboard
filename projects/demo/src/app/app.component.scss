@@ -9,15 +9,20 @@ $timing:.3s;
   overflow: hidden;
 }
 .tools {
-    margin: 20px auto;
-    text-align: center;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: fixed;
-    bottom: 0;
-    left: 20px;
-
+  position: absolute;
+  bottom: 0;
+  left: 20px;
+  overflow-y: auto;
+  white-space: nowrap;
+  right: 20px;
+  padding: 30px 0;
+  max-width: 500px;
+  opacity: .1;
+  transition: opacity .3s ease-in-out;
+  & > * {
+    display: inline-block;
+    vertical-align: middle;
+  }
 button{
     display: inline-block;
     padding: 8px 16px 0;
@@ -108,4 +113,9 @@ button{
     }
   }
 }
-}
+
+
+
+&:hover {
+  opacity: 1;
+}}

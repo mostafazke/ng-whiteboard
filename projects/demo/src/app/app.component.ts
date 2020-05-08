@@ -5,7 +5,7 @@ import { ToastrService } from 'ngx-toastr';
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
   color = '#333333';
@@ -56,6 +56,7 @@ export class AppComponent {
 
     reader.onloadend = () => {
       this.whiteboardService.addImage(reader.result);
+      fileInput.value = '';
     };
 
     if (file) {

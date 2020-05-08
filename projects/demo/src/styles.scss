@@ -1,6 +1,12 @@
 /* You can add global styles to this file, and also import other style files */
 @import '~ngx-toastr/toastr';
 
+
+
+
+::-webkit-scrollbar{width:2px;height:2px;}
+::-webkit-scrollbar-button{width:2px;height:2px;}
+
 html,
 body {
   height: 100%;

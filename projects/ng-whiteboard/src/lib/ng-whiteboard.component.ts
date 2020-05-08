@@ -175,13 +175,14 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
 
     const tempImg = new Image();
     tempImg.onload = () => {
+      const aspectRatio = tempImg.width / tempImg.height;
       const height =
         tempImg.height > Number(this.selection.style('height').replace('px', ''))
           ? Number(this.selection.style('height').replace('px', '')) - 40
           : tempImg.height;
       const width =
         height === Number(this.selection.style('height').replace('px', '')) - 40
-          ? tempImg.width - (Number(this.selection.style('height').replace('px', '')) - height)
+          ? (Number(this.selection.style('height').replace('px', '')) - 40) * aspectRatio
           : tempImg.width;
       group
         .append('image')
@@ -232,6 +233,7 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
         });
       // this.undoStack.push({ type: ActionType.Image, image: group.node() });
     };
+    tempImg.src = image.toString();
   }
 
   private _unsubscribe(subscription: Subscription): void {
