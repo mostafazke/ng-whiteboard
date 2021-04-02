@@ -280,6 +280,11 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
 
   private saveAsSvg(svgNode): string {
     svgNode.setAttribute('xlink', 'http://www.w3.org/1999/xlink');
+
+    // Set width and height for svg element
+    svgNode.setAttribute('width', Number(this.selection.style('width').replace('px', '')));
+    svgNode.setAttribute('height', Number(this.selection.style('height').replace('px', '')));
+
     const serializer = new XMLSerializer();
     let svgString = serializer.serializeToString(svgNode);
     svgString = svgString.replace(/(\w+)?:?xlink=/g, 'xmlns:xlink='); // Fix root xlink without namespace
