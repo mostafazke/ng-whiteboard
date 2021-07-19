@@ -11,7 +11,7 @@
 - Custom background colors. **Thanks to [Nader Magdy](https://github.com/nader-magdy 'Nader Magdy')**
 - Custom background images.
 - Custom stroke size.
-- Save drawn as (svg | png | jpeg) images.
+- Save drawn as (svg | png | jpeg | base64) images.
 - Experimental (undo-redo).
 
 **_And more to come_...**
@@ -71,7 +71,7 @@
 
 | Name     | ARGS                             | Defaults                             | Description             |
 | -------- | -------------------------------- | ------------------------------------ | ----------------------- |
-| save     | [name]: string, [format]: string | [name]: 'New image', [format]: 'png' | Save current board      |
+| save     | [format]: string, [name]: string | [format]: 'png', [name]: 'New image' | Save current board      |
 | erase    | null                             | null                                 | Clean the whiteboard    |
 | undo     | null                             | null                                 | Undo last line          |
 | redo     | null                             | null                                 | Repaint last line       |

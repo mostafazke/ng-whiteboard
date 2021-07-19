@@ -1,7 +1,7 @@
 import { Component, AfterViewInit, ViewChild, Input, ElementRef, OnDestroy, Output, EventEmitter } from '@angular/core';
 import { NgWhiteboardService } from './ng-whiteboard.service';
 import { Subscription } from 'rxjs';
-import { WhiteboardOptions, ActionStack, ActionType } from './ng-whiteboard.types';
+import { WhiteboardOptions, ActionStack, ActionType, FormatType, formatTypes } from './ng-whiteboard.types';
 import { ContainerElement, curveBasis, select, drag, Selection, line, event, mouse } from 'd3';
 
 @Component({
@@ -110,23 +110,38 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
     this.clear.emit();
   }
 
-  private saveSvg(name, format: 'png' | 'jpeg' | 'svg') {
+  private saveSvg(name, format: formatTypes) {
     const svgString = this.saveAsSvg(this.selection.clone(true).node());
-    if (format === 'svg') {
-      this.download('data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString))), name);
-    } else {
-      this.svgString2Image(
-        svgString,
-        Number(this.selection.style('width').replace('px', '')),
-        Number(this.selection.style('height').replace('px', '')),
-        format,
-        (img) => {
-          this.download(img, name);
-        }
-      );
+    switch (format) {
+      case FormatType.Base64:
+        this.svgString2Image(
+          svgString,
+          Number(this.selection.style('width').replace('px', '')),
+          Number(this.selection.style('height').replace('px', '')),
+          format,
+          (imgSrc) => {
+            this.save.emit(imgSrc);
+          }
+        );
+        break;
+      case FormatType.Svg:
+        const imgSrc = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
+        this.download(imgSrc, name);
+        this.save.emit(imgSrc);
+        break;
+      default:
+        this.svgString2Image(
+          svgString,
+          Number(this.selection.style('width').replace('px', '')),
+          Number(this.selection.style('height').replace('px', '')),
+          format,
+          (imgSrc) => {
+            this.download(imgSrc, name);
+            this.save.emit(imgSrc);
+          }
+        );
+        break;
     }
-
-    this.save.emit();
   }
 
   private undoDraw() {

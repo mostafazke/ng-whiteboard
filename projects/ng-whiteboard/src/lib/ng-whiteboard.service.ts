@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
+import { FormatType, formatTypes } from './ng-whiteboard.types';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class NgWhiteboardService {
   // Observable string sources
   private eraseSvgMethodCallSource = new Subject<any>();
-  private saveSvgMethodCallSource = new Subject<{ name: string; format: 'png' | 'jpeg' | 'svg' }>();
+  private saveSvgMethodCallSource = new Subject<{ name: string; format: formatTypes }>();
   private undoSvgMethodCallSource = new Subject<any>();
   private redoSvgMethodCallSource = new Subject<any>();
   private addImageMethodCallSource = new Subject<string | ArrayBuffer>();
@@ -23,7 +24,7 @@ export class NgWhiteboardService {
   public erase(): void {
     this.eraseSvgMethodCallSource.next();
   }
-  public save(name: string = 'New image', format: 'png' | 'jpeg' | 'svg' = 'png'): void {
+  public save(format: formatTypes = FormatType.Png, name: string = 'New image'): void {
     this.saveSvgMethodCallSource.next({ name, format });
   }
   public undo(): void {
