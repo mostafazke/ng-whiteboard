@@ -21,7 +21,7 @@ jobs:
   include:
     - stage: lint
       script:
-        - npm run lint
+        - npm run lint:lib
     - stage: test
       script:
         - npm run test:lib-coverage

@@ -119,8 +119,8 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
           Number(this.selection.style('width').replace('px', '')),
           Number(this.selection.style('height').replace('px', '')),
           format,
-          (imgSrc) => {
-            this.save.emit(imgSrc);
+          (img) => {
+            this.save.emit(img);
           }
         );
         break;
@@ -135,9 +135,9 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
           Number(this.selection.style('width').replace('px', '')),
           Number(this.selection.style('height').replace('px', '')),
           format,
-          (imgSrc) => {
-            this.download(imgSrc, name);
-            this.save.emit(imgSrc);
+          (img) => {
+            this.download(img, name);
+            this.save.emit(img);
           }
         );
         break;
