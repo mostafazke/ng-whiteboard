@@ -15,7 +15,7 @@
     "format-package-json:main": "prettier --write \"package.json\"",
     "test": "ng test",
     "test:lib": "ng test ng-whiteboard",
-    "test:lib-coverage": "ng test ng-whiteboard --code-coverage --watch=false",
+    "test:lib-coverage": "ng test ng-whiteboard --code-coverage --watch=false --browsers=ChromeHeadless",
     "report-coverage:lib": "cat ./coverage/ng-whiteboard/lcov.info | codecov",
     "publish:demo": "npx angular-cli-ghpages --dir=./dist/demo",
     "publish:lib": "npx semantic-release",

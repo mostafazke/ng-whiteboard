@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mostafazke/ng-whiteboard.git"
+    "url": "https://github.com/mostafazke/ng-whiteboard"
   },
   "description": "Angular whiteboard component",
   "keywords": [
@@ -20,7 +20,7 @@
     "component",
     "library"
   ],
-  "homepage": "https://mostafazke.github.io/ng-whiteboard/",
+  "homepage": "https://github.com/mostafazke/ng-whiteboard#readme",
   "bugs": {
     "url": "https://github.com/mostafazke/ng-whiteboard/issues"
   },
