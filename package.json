@@ -7,7 +7,7 @@
     "copy:readme": "copyfiles ./README.md ./projects/ng-whiteboard",
     "build": "npm run build:lib && npm run build:demo",
     "build:lib": "npm run copy:readme && ng build ng-whiteboard",
-    "build:demo": "ng build --prod demo --base-href='https://mostafazke.github.io/ng-whiteboard/'",
+    "build:demo": "ng build --configuration production demo --base-href='https://mostafazke.github.io/ng-whiteboard/'",
     "format:check": "prettier --list-different \"projects/**/*.ts\"",
     "format:write": "prettier --write \"projects/**/*.ts\"",
     "format-package-json": "npm-run-all format-package-json:*",
