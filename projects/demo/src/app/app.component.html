@@ -7,7 +7,7 @@
     width="80"
     height="80"
     viewBox="0 0 250 250"
-    style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;"
+    style="fill: #151513; color: #fff; position: absolute; top: 0; border: 0; right: 0;"
     aria-hidden="true"
   >
     <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
@@ -59,33 +59,41 @@
     (imageAdded)="onImageAded()"
     (redo)="onRedo()"
     (undo)="onUndo()"
-    (save)="onSave()"
+    (save)="onSave($event)"
   ></ng-whiteboard>
 </div>
 <div class="tools">
-  <button (click)="save()">Save</button>
+  <div class="size-dropdown">
+    <button (click)="$event.preventDefault(); $event.stopPropagation(); isSaveActive = !isSaveActive">Save as</button>
+    <ul class="dropdown" [ngClass]="{ active: isSaveActive }">
+      <li class="dropdown-item" (click)="save(formatType.Svg)">Svg</li>
+      <li class="dropdown-item" (click)="save(formatType.Png)">Png</li>
+      <li class="dropdown-item" (click)="save(formatType.Jpeg)">Jpeg</li>
+      <li class="dropdown-item" (click)="save(formatType.Base64)">Base 64</li>
+    </ul>
+  </div>
 
   <div class="size-dropdown">
-    <button (click)="$event.preventDefault(); $event.stopPropagation(); isActive = !isActive">Size</button>
-    <ul class="dropdown" [ngClass]="{ active: isActive }">
+    <button (click)="$event.preventDefault(); $event.stopPropagation(); isSizeActive = !isSizeActive">Size</button>
+    <ul class="dropdown" [ngClass]="{ active: isSizeActive }">
       <li class="dropdown-item" (click)="setSize('2.5px')" [class.selected]="size === '2.5px'">
         <svg height="100%" width="100%">
-          <line x1="0" y1="50%" x2="100" y2="50%" style="stroke-width:2.5px" [ngStyle]="{ stroke: color }" />
+          <line x1="0" y1="50%" x2="100" y2="50%" style="stroke-width: 2.5px;" [ngStyle]="{ stroke: color }" />
         </svg>
       </li>
       <li class="dropdown-item" (click)="setSize('5px')" [class.selected]="size === '5px'">
         <svg height="100%" width="100%">
-          <line x1="0" y1="50%" x2="100" y2="50%" style="stroke-width:5px" [ngStyle]="{ stroke: color }" />
+          <line x1="0" y1="50%" x2="100" y2="50%" style="stroke-width: 5px;" [ngStyle]="{ stroke: color }" />
         </svg>
       </li>
       <li class="dropdown-item" (click)="setSize('10px')" [class.selected]="size === '10px'">
         <svg height="100%" width="100%">
-          <line x1="0" y1="50%" x2="100" y2="50%" style="stroke-width:10px" [ngStyle]="{ stroke: color }" />
+          <line x1="0" y1="50%" x2="100" y2="50%" style="stroke-width: 10px;" [ngStyle]="{ stroke: color }" />
         </svg>
       </li>
       <li class="dropdown-item" (click)="setSize('15px')" [class.selected]="size === '15px'">
         <svg height="100%" width="100%">
-          <line x1="0" y1="50%" x2="100" y2="50%" style="stroke-width:15px" [ngStyle]="{ stroke: color }" />
+          <line x1="0" y1="50%" x2="100" y2="50%" style="stroke-width: 15px;" [ngStyle]="{ stroke: color }" />
         </svg>
       </li>
     </ul>

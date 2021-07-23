@@ -25,7 +25,7 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
   @Output() clear = new EventEmitter();
   @Output() undo = new EventEmitter();
   @Output() redo = new EventEmitter();
-  @Output() save = new EventEmitter<string | Blob>();
+  @Output() save = new EventEmitter<string>();
   @Output() imageAdded = new EventEmitter();
 
   private selection: Selection<any, unknown, null, undefined> = undefined;

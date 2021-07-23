@@ -61,7 +61,7 @@
 | Name    | Description                     |
 | ------- | ------------------------------- |
 | (init)  | Fired on Component initialize   |
-| (save)  | Fired on Saving, include base64 |
+| (save)  | Fired on Saving, "return base64" |
 | (clear) | Fired on clearing               |
 | (erase) | Fired on Cleaning               |
 | (undo)  | Fired on undoing last draw      |
@@ -71,7 +71,7 @@
 
 | Name     | ARGS                             | Defaults                             | Description             |
 | -------- | -------------------------------- | ------------------------------------ | ----------------------- |
-| save     | [format]: string, [name]: string | [format]: 'png', [name]: 'New image' | Save current board      |
+| save     | [format]: string, [name]: string | [format]: 'base64', [name]: 'New board' | Save current board      |
 | erase    | null                             | null                                 | Clean the whiteboard    |
 | undo     | null                             | null                                 | Undo last line          |
 | redo     | null                             | null                                 | Repaint last line       |
@@ -80,7 +80,7 @@
 to use these Methods inject NgWhiteboardService in your project
 
 ```typescript
-import { NgWhiteboardService } from 'ng-whiteboard';
+import { NgWhiteboardService, FormatType } from 'ng-whiteboard';
 ...
 
 @Component({
@@ -91,7 +91,7 @@ import { NgWhiteboardService } from 'ng-whiteboard';
 )}
 
   constructor(private whiteboardService: NgWhiteboardService) {
-   this.whiteboardService.save();
+   this.whiteboardService.save(FormatType.Base64);
   }
 
 ```

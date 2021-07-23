@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { NgWhiteboardService } from 'projects/ng-whiteboard/src/public-api';
+import { NgWhiteboardService, FormatType, formatTypes } from 'projects/ng-whiteboard/src/public-api';
 import { ToastrService } from 'ngx-toastr';
 
 @Component({
@@ -11,7 +11,9 @@ export class AppComponent {
   color = '#333333';
   backgroundColor = '#eee';
   size = '5px';
-  isActive = false;
+  isSizeActive = false;
+  isSaveActive = false;
+  formatType = FormatType;
 
   constructor(private toastr: ToastrService, private whiteboardService: NgWhiteboardService) {}
 
@@ -27,8 +29,14 @@ export class AppComponent {
   onRedo() {
     this.toastr.success('Redo!');
   }
-  onSave() {
+  onSave(img: string) {
     this.toastr.success('Save!');
+
+    // Copy to clipboard
+    const cb = navigator.clipboard;
+    if (cb) {
+      cb.writeText(img);
+    }
   }
   onImageAded() {
     this.toastr.success('ImageAded!');
@@ -39,10 +47,11 @@ export class AppComponent {
   }
   setSize(size) {
     this.size = size;
-    this.isActive = false;
+    this.isSizeActive = false;
   }
-  save() {
-    this.whiteboardService.save();
+  save(type: formatTypes) {
+    this.whiteboardService.save(type);
+    this.isSaveActive = false;
   }
   undo() {
     this.whiteboardService.undo();

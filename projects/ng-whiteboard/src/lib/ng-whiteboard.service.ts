@@ -24,7 +24,7 @@ export class NgWhiteboardService {
   public erase(): void {
     this.eraseSvgMethodCallSource.next();
   }
-  public save(format: formatTypes = FormatType.Png, name: string = 'New image'): void {
+  public save(format: formatTypes = FormatType.Base64, name: string = 'New board'): void {
     this.saveSvgMethodCallSource.next({ name, format });
   }
   public undo(): void {
