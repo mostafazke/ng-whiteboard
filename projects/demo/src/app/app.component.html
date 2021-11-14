@@ -103,7 +103,7 @@
   <button (click)="undo()">Undo</button>
   <button (click)="redo()">Redo</button>
 
-  <input id="colorInput" class="color-input" type="color" [value]="color" (change)="color = $event.target.value" />
+  <input id="colorInput" class="color-input" type="color" [value]="color" (input)="color = $event.target.value" />
   <label for="colorInput" class="color-label" [ngStyle]="{ 'background-color': color }"></label>
 
   <input
@@ -111,7 +111,7 @@
     class="color-input"
     type="color"
     [value]="backgroundColor"
-    (change)="backgroundColor = $event.target.value"
+    (input)="backgroundColor = $event.target.value"
   />
   <label for="backgroundInput" class="color-label" [ngStyle]="{ 'background-color': backgroundColor }"></label>
 
