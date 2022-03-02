@@ -1,24 +1,40 @@
-import { async, ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { NgWhiteboardService } from './ng-whiteboard.service';
 import { NgWhiteboardComponent } from './ng-whiteboard.component';
+import { autoSpy } from 'autoSpy';
 
 describe('NgWhiteboardComponent', () => {
-  let component: NgWhiteboardComponent;
-  let fixture: ComponentFixture<NgWhiteboardComponent>;
-
-  beforeEach(async(() => {
-    TestBed.configureTestingModule({
-      declarations: [NgWhiteboardComponent],
-    }).compileComponents();
-  }));
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(NgWhiteboardComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+  it('when ngAfterViewInit is called it should', () => {
+    // arrange
+    const { build } = setup().default();
+    const c = build();
+    // act
+    c.ngAfterViewInit();
+    // assert
+    // expect(c).toEqual
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('when ngOnDestroy is called it should', () => {
+    // arrange
+    const { build } = setup().default();
+    const c = build();
+    // act
+    c.ngOnDestroy();
+    // assert
+    // expect(c).toEqual
   });
 });
+
+function setup() {
+  const whiteboardService = autoSpy(NgWhiteboardService);
+  const builder = {
+    whiteboardService,
+    default() {
+      return builder;
+    },
+    build() {
+      return new NgWhiteboardComponent(whiteboardService);
+    },
+  };
+
+  return builder;
+}

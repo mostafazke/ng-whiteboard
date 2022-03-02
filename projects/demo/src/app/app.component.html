@@ -51,15 +51,18 @@
 </style>
 <div class="white-board">
   <ng-whiteboard
-    [color]="color"
+    [(data)]="data"
+    [strokeColor]="color"
     [backgroundColor]="backgroundColor"
     [size]="size"
+    [selectedTool]="selectedTool"
     (init)="onInit()"
     (clear)="onClear()"
     (imageAdded)="onImageAded()"
     (redo)="onRedo()"
     (undo)="onUndo()"
     (save)="onSave($event)"
+    (onClick)="handleClick($event)"
   ></ng-whiteboard>
 </div>
 <div class="tools">
@@ -76,22 +79,22 @@
   <div class="size-dropdown">
     <button (click)="$event.preventDefault(); $event.stopPropagation(); isSizeActive = !isSizeActive">Size</button>
     <ul class="dropdown" [ngClass]="{ active: isSizeActive }">
-      <li class="dropdown-item" (click)="setSize('2.5px')" [class.selected]="size === '2.5px'">
+      <li class="dropdown-item" (click)="setSize(2)" [class.selected]="size === 2">
         <svg height="100%" width="100%">
           <line x1="0" y1="50%" x2="100" y2="50%" style="stroke-width: 2.5px;" [ngStyle]="{ stroke: color }" />
         </svg>
       </li>
-      <li class="dropdown-item" (click)="setSize('5px')" [class.selected]="size === '5px'">
+      <li class="dropdown-item" (click)="setSize(5)" [class.selected]="size === 5">
         <svg height="100%" width="100%">
           <line x1="0" y1="50%" x2="100" y2="50%" style="stroke-width: 5px;" [ngStyle]="{ stroke: color }" />
         </svg>
       </li>
-      <li class="dropdown-item" (click)="setSize('10px')" [class.selected]="size === '10px'">
+      <li class="dropdown-item" (click)="setSize(10)" [class.selected]="size === 10">
         <svg height="100%" width="100%">
           <line x1="0" y1="50%" x2="100" y2="50%" style="stroke-width: 10px;" [ngStyle]="{ stroke: color }" />
         </svg>
       </li>
-      <li class="dropdown-item" (click)="setSize('15px')" [class.selected]="size === '15px'">
+      <li class="dropdown-item" (click)="setSize(15)" [class.selected]="size === 15">
         <svg height="100%" width="100%">
           <line x1="0" y1="50%" x2="100" y2="50%" style="stroke-width: 15px;" [ngStyle]="{ stroke: color }" />
         </svg>
@@ -102,6 +105,21 @@
   <button (click)="erase()">Erase</button>
   <button (click)="undo()">Undo</button>
   <button (click)="redo()">Redo</button>
+  <div class="size-dropdown">
+    <button (click)="$event.preventDefault(); $event.stopPropagation(); isToolsActive = !isToolsActive">
+      {{ selectedTool }}
+    </button>
+    <ul class="dropdown" [ngClass]="{ active: isToolsActive }">
+      <li class="dropdown-item" (click)="toggle(toolsEnum.BRUSH)">BRUSH</li>
+      <li class="dropdown-item" (click)="toggle(toolsEnum.SELECT)">SELECT</li>
+      <li class="dropdown-item" (click)="toggle(toolsEnum.TEXT)">TEXT</li>
+      <li class="dropdown-item" (click)="toggle(toolsEnum.HAND)">HAND</li>
+      <li class="dropdown-item" (click)="toggle(toolsEnum.IMAGE)">IMAGE</li>
+      <li class="dropdown-item" (click)="toggle(toolsEnum.SHAPE)">SHAPE</li>
+      <li class="dropdown-item" (click)="toggle(toolsEnum.ERASER)">ERASER</li>
+    </ul>
+  </div>
+  <button (click)="addText('Hello World!')">Add Text</button>
 
   <input id="colorInput" class="color-input" type="color" [value]="color" (change)="color = $event.target.value" />
   <label for="colorInput" class="color-label" [ngStyle]="{ 'background-color': color }"></label>
@@ -115,7 +133,7 @@
   />
   <label for="backgroundInput" class="color-label" [ngStyle]="{ 'background-color': backgroundColor }"></label>
 
-  <input type="file" class="color-input" id="photoInput" (change)="addImage($event.target)" />
+  <input #fileInput type="file" class="color-input" id="photoInput" (change)="addImage($event.target)" />
   <label
     for="photoInput"
     class="color-label"
@@ -127,4 +145,8 @@
       'box-shadow': 'none'
     }"
   ></label>
+</div>
+
+<div>
+  {{ data | json }}
 </div>

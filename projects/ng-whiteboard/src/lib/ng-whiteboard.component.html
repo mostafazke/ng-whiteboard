@@ -1,0 +1,211 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  #svgContainer
+  id="svgContainer"
+  preserveAspectRatio="xMinYMin slice"
+  [style.background-color]="backgroundColor"
+  [class]="selectedTool"
+>
+  <g *ngFor="let item of _data">
+    <g
+      class="wb_element"
+      [id]="item.id"
+      [ngSwitch]="item.elementName"
+      [attr.transform]="'translate(' + item.x + ',' + item.y + ')'"
+      (click)="handleSelect(item.id)"
+    >
+      <g *ngSwitchCase="types.FREE_HAND">
+        <path
+          class="line"
+          [style]="
+            'fill: none; ' +
+            'stroke:' +
+            item.elementOptions.stroke +
+            ';' +
+            'stroke-width:' +
+            item.elementOptions.size +
+            ';' +
+            'stroke-linejoin:' +
+            item.elementOptions.lineJoin +
+            ';' +
+            'stroke-linecap:' +
+            item.elementOptions.lineCap +
+            ';'
+          "
+          [attr.d]="item.value"
+        ></path>
+      </g>
+      <g *ngSwitchCase="types.IMAGE">
+        <g>
+          <image
+            [attr.height]="item.height"
+            [attr.width]="item.width"
+            preserveAspectRatio="none"
+            [attr.xlink:href]="item.value"
+          ></image>
+          <g class="handlers">
+            <ellipse rx="9" ry="9" cx="0" cy="0" fill="#29b6f2" pointer-events="all"></ellipse>
+            <ellipse rx="9" ry="9" [attr.cx]="item.width" cy="0" fill="#29b6f2" pointer-events="all"></ellipse>
+            <ellipse rx="9" ry="9" cx="0" [attr.cy]="item.height" fill="#29b6f2" pointer-events="all"></ellipse>
+            <ellipse
+              rx="9"
+              ry="9"
+              [attr.cx]="item.width"
+              [attr.cy]="item.height"
+              fill="#29b6f2"
+              pointer-events="all"
+            ></ellipse>
+
+            <!-- <rect x="0" y="0" width="9" height="9" fill="#cccccc" style="opacity: 0;"></rect> -->
+          </g>
+        </g>
+      </g>
+      <g *ngSwitchCase="types.TEXT">
+        <g>
+          <text
+            class="text"
+            [attr.fill]="item.elementOptions.color"
+            [attr.font-size]="item.elementOptions.size + 10 + 'px'"
+            font-family=""
+            [contentEditable]
+          >
+            {{ item.value }}
+          </text>
+          <g>
+            <!-- <ellipse rx="9" ry="9" cx="0" cy="0" fill="#29b6f2" pointer-events="all"></ellipse> -->
+            <!-- <ellipse rx="9" ry="9" [attr.cx]="item.shape.width" cy="0" fill="#29b6f2" pointer-events="all"></ellipse> -->
+            <!-- <ellipse rx="9" ry="9" cx="0" [attr.cy]="item.shape.height" fill="#29b6f2" pointer-events="all"></ellipse> -->
+            <!-- <ellipse rx="9" ry="9" [attr.cx]="item.shape.width" [attr.cy]="item.shape.height" fill="#29b6f2" pointer-events="all"></ellipse> -->
+          </g>
+        </g>
+      </g>
+      <g *ngSwitchDefault>output2</g>
+    </g>
+    <!-- <g class="wb_resizer" *ngIf="item.id === selectedElementId" x="10" y="10">
+      <line x1="0" y1="0" x2="100%" y2="0" stroke="#808080" stroke-width="1" stroke-dasharray="5,5" />
+      <line x1="0" y1="100%" x2="100%" y2="100%" stroke="#808080" stroke-width="1" stroke-dasharray="5,5" />
+      <line x1="0" y1="0" x2="0" y2="100%" stroke="#808080" stroke-width="1" stroke-dasharray="5,5" />
+      <line x1="100%" y1="0" x2="100%" y2="100%" stroke="#808080" stroke-width="1" stroke-dasharray="5,5" />
+      <circle cx="0" cy="0" r="3" stroke="#0000FF" stroke-width="1" fill="#CCCCFF" />
+      <circle cx="100%" cy="0" r="3" stroke="#0000FF" stroke-width="1" fill="#CCCCFF" />
+      <circle cx="0" cy="100%" r="3" stroke="#0000FF" stroke-width="1" fill="#CCCCFF" />
+      <circle cx="100%" cy="100%" r="3" stroke="#0000FF" stroke-width="1" fill="#CCCCFF" />
+
+      <line x1="0" y1="0" x2="100%" y2="0" stroke="#000" stroke-width="5" opacity="0" />
+      <line x1="0" y1="100%" x2="100%" y2="100%" stroke="#000" stroke-width="5" opacity="0" />
+      <line x1="0" y1="0" x2="0" y2="100%" stroke="#000" stroke-width="5" opacity="0" />
+      <line x1="100%" y1="0" x2="100%" y2="100%" stroke="#000" stroke-width="5" opacity="0" />
+      <circle cx="0" cy="0" r="8" stroke="#000" stroke-width="0" fill="#000" opacity="0" />
+      <circle cx="100%" cy="0" r="8" stroke="#000" stroke-width="0" fill="#000" opacity="0" />
+      <circle cx="0" cy="100%" r="8" stroke="#000" stroke-width="0" fill="#000" opacity="0" />
+      <circle cx="100%" cy="100%" r="8" stroke="#000" stroke-width="0" fill="#000" opacity="0" />
+
+      <rect x="0" y="0" width="100%" height="100%" fill-opacity="0.5" opacity="0" />
+    </g> -->
+  </g>
+
+  <!-- <g class="temp-line">
+    <path
+      class="line"
+      [style]="
+        'fill: none;' +
+        'stroke:' +
+        color +
+        ';' +
+        'stroke-width:' +
+        size +
+        ';' +
+        'stroke-linejoin:' +
+        lineJoin +
+        ';' +
+        'stroke-linecap:' +
+        lineCap +
+        ';'
+      "
+      style="fill: none; stroke: rgb(51, 51, 51); stroke-linecap: round; stroke-linejoin: round; stroke-width: 5;"
+      [attr.d]="tempLine"
+    ></path>
+  </g> -->
+</svg>
+
+<!-- <svg
+
+  #svgElement
+
+  [ngClass]="{ draw: true }"
+>
+  <ng-container *ngFor="let el of elements">
+    <ng-container [ngSwitch]="el.type">
+      <ng-container *ngSwitchCase="tool.Pin">
+        <svg:path
+          class="line"
+          [style]="
+            'fill: none; ' +
+            'stroke:' +
+            el.color +
+            ';' +
+            'stroke-width:' +
+            el.lineSize +
+            ';' +
+            'stroke-linejoin:' +
+            el.linejoin +
+            ';' +
+            ' stroke-linecap:' +
+            el.linecap +
+            ';'
+          "
+          [attr.d]="el.data"
+        ></svg:path>
+      </ng-container>
+    </ng-container>
+  </ng-container>
+
+  <ng-container [ngTemplateOutlet]="line" *ngIf="templine"></ng-container>
+
+  <rect *ngIf="withGrid" width="100%" height="100%" fill="url(#grid)" />
+
+
+  <defs>
+    <pattern id="smallGrid" width="10" height="10" patternUnits="userSpaceOnUse">
+      <path d="M 10 0 L 0 0 0 10" fill="none" stroke="gray" stroke-width="0.5"/>
+    </pattern>
+    <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
+      <rect width="100" height="100" fill="url(#smallGrid)"/>
+      <path d="M 100 0 L 0 0 0 100" fill="none" stroke="gray" stroke-width="1"/>
+    </pattern>
+  </defs>
+</svg> -->
+<!-- [attr.viewBox]="'' +viewBoxX + ' ' + viewBoxY + ' ' + width * zoomLevels[zoom] + ' ' + (width * zoomLevels[zoom]) / 2" -->
+
+<!--
+  on:mousedown|preventDefault={mouseDown}
+on:touchstart|preventDefault={mouseDown}
+on:mousemove|preventDefault={drag}
+on:tounchmove|preventDefault={drag}
+on:mouseup|preventDefault={mouseUp}
+on:mouseleave|preventDefault={mouseUp}
+on:touchend|preventDefault={mouseUp}
+
+ -->
+
+<!-- <ng-template #line let-line="line">
+  <svg:path
+    class="line"
+    [style]="
+      'fill: none; ' +
+      'stroke:' +
+      line.color +
+      ';' +
+      'stroke-width:' +
+      line.lineSize +
+      ';' +
+      'stroke-linejoin:' +
+      line.linejoin +
+      ';' +
+      ' stroke-linecap:' +
+      line.linecap +
+      ';'
+    "
+    [attr.d]="line.src"
+  ></svg:path>
+</ng-template> -->
