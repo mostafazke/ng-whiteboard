@@ -19,6 +19,7 @@ export class AppComponent {
   formatType = FormatType;
   size = 5;
   isActive = false;
+  drawingEnabled = false;
 
   data = [];
 
@@ -40,7 +41,7 @@ export class AppComponent {
   onRedo() {
     this.toastr.success('Redo!');
   }
-  onSave(img: string) {
+  onSave(img: any) {
     this.toastr.success('Save!');
 
     // Copy to clipboard

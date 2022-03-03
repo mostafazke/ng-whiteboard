@@ -51,7 +51,7 @@
 </style>
 <div class="white-board">
   <ng-whiteboard
-    [(data)]="data"
+    [data]="data"
     [strokeColor]="color"
     [backgroundColor]="backgroundColor"
     [size]="size"
@@ -62,7 +62,6 @@
     (redo)="onRedo()"
     (undo)="onUndo()"
     (save)="onSave($event)"
-    (onClick)="handleClick($event)"
   ></ng-whiteboard>
 </div>
 <div class="tools">

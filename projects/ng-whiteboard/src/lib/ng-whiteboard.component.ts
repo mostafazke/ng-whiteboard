@@ -36,16 +36,16 @@ const d3Line = line().curve(curveBasis);
 })
 export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
   @ViewChild('svgContainer', { static: false }) private svgContainer: ElementRef<ContainerElement>;
-
-  _data: WhiteboardData[] = [];
-  @Input() set data(data: WhiteboardData[]) {
-    this._data = data || [];
-    this.undoStack = [];
-    this.redoStack = [];
-  }
-  @Output() dataChange = new EventEmitter<WhiteboardData[]>();
-
   @Input() options: WhiteboardOptions;
+
+  private _data: WhiteboardData[];
+  @Input() set data(data: WhiteboardData[]) {
+    this._data = data;
+  }
+
+  get data(): WhiteboardData[] {
+    return this._data;
+  }
 
   @Input() selectedTool: ToolsEnum = ToolsEnum.BRUSH;
   @Input() aspectRatio: number;
@@ -63,14 +63,12 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   @Input() showShapeSelector = false;
   @Input() fillColor = '#333';
 
-  @Output() init = new EventEmitter();
-  @Output() clear = new EventEmitter();
-  @Output() undo = new EventEmitter();
-  @Output() redo = new EventEmitter();
-  @Output() save = new EventEmitter<string>();
-  @Output() onClick = new EventEmitter<PointerEvent>();
-
-  @Output() imageAdded = new EventEmitter();
+  @Output() onInit = new EventEmitter<any>();
+  @Output() onClear = new EventEmitter<any>();
+  @Output() onUndo = new EventEmitter<any>();
+  @Output() onRedo = new EventEmitter<any>();
+  @Output() onImageAdded = new EventEmitter<any>();
+  @Output() onSave = new EventEmitter<string>();
 
   private selection: Selection<any, unknown, null, undefined> = undefined;
 
@@ -186,7 +184,8 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
         this.tempElement = this._freeHandElFactory(this.tempDraw);
         console.log(this.tempElement);
 
-        this._data.push(this.tempElement);
+        this.data.push(this.tempElement);
+        this.pushToUndo();
         break;
       case ToolsEnum.SELECT:
         // const x =  subjx(`#${this.selectedElementId}`).drag()
@@ -197,7 +196,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
 
         const [x, y] = mouse(this.selection.node());
         const textEl = this._textElFactory(x, y);
-        this._data.push(textEl);
+        this.data.push(textEl);
 
         console.log(textEl);
         break;
@@ -261,39 +260,6 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     tempImg.src = obj.image.toString();
   }
 
-  // private saveSvg(name, format: formatTypes) {
-  //   const svgString = this.saveAsSvg(this.selection.clone(true).node());
-  //   switch (format) {
-  //     case FormatType.Base64:
-  //       this.svgString2Image(
-  //         svgString,
-  //         Number(this.selection.style('width').replace('px', '')),
-  //         Number(this.selection.style('height').replace('px', '')),
-  //         format,
-  //         (img) => {
-  //           this.save.emit(img);
-  //         }
-  //       );
-  //       break;
-  //     case FormatType.Svg:
-  //       const imgSrc = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
-  //       this.download(imgSrc, name);
-  //       this.save.emit(imgSrc);
-  //       break;
-  //     default:
-  //       this.svgString2Image(
-  //         svgString,
-  //         Number(this.selection.style('width').replace('px', '')),
-  //         Number(this.selection.style('height').replace('px', '')),
-  //         format,
-  //         (img) => {
-  //           this.download(img, name);
-  //           this.save.emit(img);
-  //         }
-  //       );
-  //       break;
-  //   }
-  // }
   addText(obj: IAddText) {
     const text = new TextShape(obj.text, this.color, this.size, obj.x, obj.y);
     // const element = new ElementType(text);
@@ -307,8 +273,8 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     }
     const currentState = this.undoStack.pop();
     this.redoStack.push(currentState);
-    // this._dataType = this.undoStack[this.undoStack.length - 1] || [];
-    this.undo.emit();
+    this.data = this.undoStack[this.undoStack.length - 1] || [];
+    this.onUndo.emit();
   }
 
   private redoDraw() {
@@ -317,15 +283,14 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     }
     const currentState = this.redoStack.pop();
     this.undoStack.push(currentState);
-    // this._dataType = currentState;
-    this.redo.emit();
+    this.data = currentState;
+    this.onRedo.emit();
   }
 
   clearSvg() {
     this._data = [];
     this.pushToUndo();
-    this.clear.emit();
-    this.dataChange.emit(this._data);
+    this.onClear.emit();
   }
 
   saveSvg(name: string, format?: formatTypes) {
@@ -344,18 +309,13 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
       );
     }
 
-    this.save.emit();
+    // this.data.push(element);
+    // this.pushToUndo();
   }
 
   pushToUndo() {
-    // this.undoStack.push(JSON.parse(JSON.stringify(this._dataType)));
+    this.undoStack.push(this.data);
     this.redoStack = [];
-  }
-
-  handleSvgClick() {
-    this.selection.on('click', (e) => {
-      this.onClick.emit(event);
-    });
   }
 
   move(item: any) {
@@ -391,63 +351,78 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     // console.log({ element });
   }
 
-  // private initSvg(selector: ContainerElement) {
-  //   const d3Line = line().curve(curveBasis);
-  //   const svg = select(selector)
-  //     .attr('class', '')
-  //     .call(
-  //       drag()
-  //         .container(selector)
-  //         .subject(() => {
-  //           const p = [event.x, event.y];
-  //           return [p, p];
-  //         })
-  //         .on('start', () => {
-  //           const d = event.subject;
-  //           const active = svg
-  //             .append('path')
-  //             .datum(d)
-  //             .attr('class', 'line')
-  //             .attr(
-  //               'style',
-  //               `
-  //          fill: none;
-  //          stroke: ${this.color || this.whiteboardOptions.color};
-  //          stroke-width: ${this.size || this.whiteboardOptions.size};
-  //          stroke-linejoin: ${this.linejoin || this.whiteboardOptions.linejoin};
-  //          stroke-linecap: ${this.linecap || this.whiteboardOptions.linecap};
-  //          `
-  //             );
-  //           active.attr('d', d3Line);
-  //           event.on('drag', function () {
-  //             active.datum().push(mouse(this));
-  //             active.attr('d', d3Line);
-  //           });
-  //           event.on('end', () => {
-  //             active.attr('d', d3Line);
-  //             if (this.undoStack.length < 1) {
-  //               this.redoStack = [];
-  //             }
-  //             this.undoStack.push({ type: ActionType.Line, line: active.node() });
+  //  Important
+  // generateCanvasDataUrl(returnedDataType: string = 'image/png', returnedDataQuality: number = 1): string {
+  //   return this.context.canvas.toDataURL(returnedDataType, returnedDataQuality);
+  // }
+  //  Important
+  // generateCanvasBlob(callbackFn: any, returnedDataType: string = 'image/png', returnedDataQuality: number = 1): void {
+  //   let toBlobMethod: Function;
 
-  //             console.log(active.attr('d'));
+  //   if (typeof this.context.canvas.toBlob !== 'undefined') {
+  //     toBlobMethod = this.context.canvas.toBlob.bind(this.context.canvas);
+  //   } else if (typeof (this.context.canvas as any).msToBlob !== 'undefined') {
+  //     // For IE
+  //     toBlobMethod = (callback) => {
+  //       callback && callback((this.context.canvas as any).msToBlob());
+  //     };
+  //   }
 
-  //             this.data.push(
-  //               new Line(
-  //                 ActionType.Line,
-  //                 active.attr('d'),
-  //                 this.color || this.whiteboardOptions.color,
-  //                 this.size || this.whiteboardOptions.size,
-  //                 this.linejoin || this.whiteboardOptions.linejoin,
-  //                 this.linecap || this.whiteboardOptions.linecap
-  //               )
-  //             );
-  //             this.dataChange.emit(this.data);
-  //           });
-  //         })
-  //     );
-  //   this.init.emit();
-  //   return svg;
+  //   toBlobMethod && toBlobMethod((blob: Blob) => {
+  //     callbackFn && callbackFn(blob, returnedDataType);
+  //   }, returnedDataType, returnedDataQuality);
+  // }
+
+  //  Important
+  // downloadCanvasImage(returnedDataType: string = 'image/png', downloadData?: string | Blob, customFileName?: string): void {
+  //   if (window.navigator.msSaveOrOpenBlob === undefined) {
+  //     const downloadLink = document.createElement('a');
+  //     downloadLink.setAttribute('href', downloadData ? downloadData as string : this.generateCanvasDataUrl(returnedDataType));
+
+  //     const fileName = customFileName ? customFileName
+  //       : (this.downloadedFileName ? this.downloadedFileName : 'canvas_drawing_' + new Date().valueOf());
+
+  //     downloadLink.setAttribute('download', fileName + this._generateDataTypeString(returnedDataType));
+  //     document.body.appendChild(downloadLink);
+  //     downloadLink.click();
+  //     document.body.removeChild(downloadLink);
+  //   } else {
+  //     // IE-specific code
+  //     if (downloadData) {
+  //       this._saveCanvasBlob(downloadData as Blob, returnedDataType);
+  //     } else {
+  //       this.generateCanvasBlob(this._saveCanvasBlob.bind(this), returnedDataType);
+  //     }
+  //   }
+  // }
+  //  Important
+  // private _saveCanvasBlob(blob: Blob, returnedDataType: string = 'image/png'): void {
+  //   window.navigator.msSaveOrOpenBlob(blob, 'canvas_drawing_' +
+  //     new Date().valueOf() + this._generateDataTypeString(returnedDataType));
+  // }
+
+  // generateCanvasData(callback: any, returnedDataType: string = 'image/png', returnedDataQuality: number = 1): void {
+  //   if (window.navigator.msSaveOrOpenBlob === undefined) {
+  //     callback && callback(this.generateCanvasDataUrl(returnedDataType, returnedDataQuality));
+  //   } else {
+  //     this.generateCanvasBlob(callback, returnedDataType, returnedDataQuality);
+  //   }
+  // }
+
+  /**
+   * Local method to invoke saving of the canvas data when clicked on the canvas Save button
+   * This method will emit the generated data with the specified Event Emitter
+   *
+   * @param returnedDataType
+   */
+  //  saveLocal(returnedDataType: string = 'image/png'): void {
+  //   this.generateCanvasData((generatedData: string | Blob) => {
+  //     this.onSave.emit(generatedData);
+
+  //     if (this.shouldDownloadDrawing) {
+  //       this.downloadCanvasImage(returnedDataType, generatedData);
+  //     }
+  //   });
   // }
 
   // private startWriting() {
@@ -816,6 +791,307 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     document.body.appendChild(link);
     link.click();
   }
+  // private undoDraw() {
+  //   if (!this.undoStack.length) {
+  //     return;
+  //   }
+  //   const currentState = this.undoStack.pop();
+  //   this.redoStack.push(currentState);
+  //   this._dataType = this.undoStack[this.undoStack.length - 1] || [];
+  //   this.undo.emit();
+  // }
+
+  // private redoDraw() {
+  //   if (!this.redoStack.length) {
+  //     return;
+  //   }
+  //   const currentState = this.redoStack.pop();
+  //   this.undoStack.push(currentState);
+  //   this._dataType = currentState;
+  //   this.redo.emit();
+  // }
+
+  // clearSvg() {
+  //   this.data = [];
+  //   this.pushToUndo();
+  //   this.clear.emit();
+  // }
+
+  // saveSvg() {}
+
+  // pushToUndo() {
+  //   this.undoStack.push(JSON.parse(JSON.stringify(this._dataType)));
+  //   this.redoStack = [];
+  // }
+
+  // handleSvgClick() {
+  //   this.selection.on('click', (e) => {
+  //     this.onClick.emit(event);
+  //   });
+  // }
+
+  // move(item: ElementType<LineShape | ImageShape | TextShape>) {
+  //   const element = select(`#${item.id}`);
+  //   element.attr('class', 'onMove')
+  //   let x = 0;
+  //   let y = 0;
+  //   element.call(
+  //     drag()
+  //       .on('start', (e) => {
+  //         x = event.x;
+  //         y = event.y;
+  //       })
+  //       .on('drag', function () {
+  //         const translateX = item.shape.x + (event.x - x);
+  //         const translateY = item.shape.y + (event.y - y);
+  //         select(this).attr('transform', () => {
+  //           return `translate(${translateX}, ${translateY})`;
+  //         });
+  //       })
+  //       .on('end', (e) => {
+  //         item.shape.x = item.shape.x + (event.x - x);
+  //         item.shape.y = item.shape.y + (event.y - y);
+  //       })
+  //   );
+  // }
+
+  // clearMove(item: ElementType<LineShape | ImageShape | TextShape>) {
+  //   const element = select(`#${item.id}`);
+  //   element.on('mousedown.drag', null);
+  //   element.attr('class', '')
+
+  // console.log({ element });
+  // }
+
+  // draw(): void {
+  //   const d3Line = line().curve(curveBasis);
+  //   let tempDraw: [number, number][];
+
+  //   this.selection.call(
+  //     drag()
+  //       .container(this.svgContainer.nativeElement)
+  //       .subject(() => {
+  //         const p = [event.x, event.y];
+  //         return [p, p];
+  //       })
+  //       .on('start', (e) => {
+  //         if (!this.drawingEnabled) {
+  //           return;
+  //         }
+  //         tempDraw = event.subject;
+  //         // this.tempLine = d3Line(tempDraw);
+  //       })
+  //       .on('drag', () => {
+  //         if (!this.drawingEnabled) {
+  //           return;
+  //         }
+
+  //         tempDraw.push(mouse(this.selection.node()));
+  //         // this.tempLine = d3Line(tempDraw);
+  //       })
+  //       .on('end', () => {
+  //         if (!this.drawingEnabled) {
+  //           return;
+  //         }
+  //         tempDraw.push(mouse(this.selection.node()));
+  //         // this.tempLine = d3Line(tempDraw);
+  //         // const line = new LineShape(this.tempLine, this.color, this.size, this.lineJoin, this.lineCap);
+  //         // this.tempLine = '';
+  //         this.pushToUndo();
+  //       })
+  //   );
+  // }
+  // private initSvg(selector: ContainerElement) {
+  //   const d3Line = line().curve(curveBasis);
+  //   const svg = select(selector)
+  //     .attr('class', '')
+  //     .call(
+  //       drag()
+  //         .container(selector)
+  //         .subject(() => {
+  //           const p = [event.x, event.y];
+  //           return [p, p];
+  //         })
+  //         .on('start', () => {
+  //           const d = event.subject;
+  //           const active = svg
+  //             .append('path')
+  //             .datum(d)
+  //             .attr('class', 'line')
+  //             .attr(
+  //               'style',
+  //               `
+  //          fill: none;
+  //          stroke: ${this.color || this.whiteboardOptions.color};
+  //          stroke-width: ${this.size || this.whiteboardOptions.size};
+  //          stroke-linejoin: ${this.linejoin || this.whiteboardOptions.linejoin};
+  //          stroke-linecap: ${this.linecap || this.whiteboardOptions.linecap};
+  //          `
+  //             );
+  //           active.attr('d', d3Line);
+  //           event.on('drag', function () {
+  //             active.datum().push(mouse(this));
+  //             active.attr('d', d3Line);
+  //           });
+  //           event.on('end', () => {
+  //             active.attr('d', d3Line);
+  //             if (this.undoStack.length < 1) {
+  //               this.redoStack = [];
+  //             }
+  //             this.undoStack.push({ type: ActionType.Line, line: active.node() });
+
+  //             console.log(active.attr('d'));
+
+  //             this.data.push(
+  //               new Line(
+  //                 ActionType.Line,
+  //                 active.attr('d'),
+  //                 this.color || this.whiteboardOptions.color,
+  //                 this.size || this.whiteboardOptions.size,
+  //                 this.linejoin || this.whiteboardOptions.linejoin,
+  //                 this.linecap || this.whiteboardOptions.linecap
+  //               )
+  //             );
+  //             this.dataChange.emit(this.data);
+  //           });
+  //         })
+  //     );
+  //   this.init.emit();
+  //   return svg;
+  // }
+
+  // private startWriting() {
+  //   this.selection.on('mousedown.drag', null);
+  //   this.selection.attr('class', `mo`).on('click', function () {
+  //     select(this).append('dev').text('fdfsdfsdfs');
+  //     const coord = mouse(this);
+  //     console.log(mouse(this));
+  //     addTextInput(this, coord);
+  //   });
+
+  //   // this.selection = this.initSvg(this.svgContainer.nativeElement);
+
+  //   function addTextInput(svg, coord) {
+  //     const myforeign = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+  //     const textdiv = document.createElement('input');
+  //     textdiv.setAttribute('autofocus', '');
+  //     textdiv.setAttribute('width', 'auto');
+  //     myforeign.setAttribute('width', '100%');
+  //     myforeign.setAttribute('height', '100%');
+  //     myforeign.classList.add('foreign'); // to make div fit text
+  //     textdiv.classList.add('insideforeign'); // to make div fit text
+  //     // textdiv.addEventListener("mousedown", elementMousedown, false);
+  //     myforeign.setAttributeNS(null, 'transform', 'translate(' + coord[0] + ' ' + coord[1] + ')');
+  //     svg.appendChild(myforeign);
+  //     myforeign.appendChild(textdiv);
+  //   }
+  // }
+
+  // private addImage(image: string | ArrayBuffer) {
+  //   this.drawImage(image);
+  // }
+
+  // private saveSvg(name: string, format: 'png' | 'jpeg' | 'svg') {
+  //   const svgString = this.saveAsSvg(this.selection.clone(true).node());
+  //   if (format === 'svg') {
+  //     this.download('data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString))), name);
+  //   } else {
+  //     this.svgString2Image(
+  //       svgString,
+  //       Number(this.selection.style('width').replace('px', '')),
+  //       Number(this.selection.style('height').replace('px', '')),
+  //       format,
+  //       (img) => {
+  //         this.download(img, name);
+  //       }
+  //     );
+  //   }
+
+  //   this.save.emit();
+  // }
+
+  // private drawLine(pathNode: SVGPathElement | SVGGElement) {
+  //   this.selection.node().appendChild(pathNode);
+  // }
+
+  // private drawImage(
+  //   image: string | ArrayBuffer,
+  //   x = 0,
+  //   y = 0,
+  //   r = 1,
+  //   scale = 1,
+  //   width?: undefined,
+  //   height?: undefined
+  // ) {
+  //   const group = this.selection
+  //     .append('g')
+  //     .data([{ x, y, r, scale }])
+  //     .attr('x', x)
+  //     .attr('y', y)
+  //     .attr('transform', 'translate(0,0)');
+
+  //   const tempImg = new Image();
+  //   tempImg.onload = () => {
+  //     const aspectRatio = tempImg.width / tempImg.height;
+  //     const height =
+  //       tempImg.height > Number(this.selection.style('height').replace('px', ''))
+  //         ? Number(this.selection.style('height').replace('px', '')) - 40
+  //         : tempImg.height;
+  //     const width =
+  //       height === Number(this.selection.style('height').replace('px', '')) - 40
+  //         ? (Number(this.selection.style('height').replace('px', '')) - 40) * aspectRatio
+  //         : tempImg.width;
+  //     group
+  //       .append('image')
+  //       .attr('x', 0)
+  //       .attr('y', 0)
+  //       .attr('height', height)
+  //       .attr('width', width)
+  //       .attr('preserveAspectRatio', 'none')
+  //       .attr('xlink:href', image.toString());
+
+  //     group
+  //       .append('rect')
+  //       .attr('x', 0)
+  //       .attr('y', 0)
+  //       .attr('width', 20)
+  //       .attr('height', 20)
+  //       .style('opacity', 0)
+  //       .attr('fill', (d) => {
+  //         return '#cccccc';
+  //       })
+  //       .call(
+  //         drag()
+  //           .subject(() => {
+  //             const p = [event.x, event.y];
+  //             return [p, p];
+  //           })
+  //           .on('start', () => {
+  //             event.on('drag', function (d: { x: number; y: number; scale: string }) {
+  //               const cursor = select(this);
+  //               const cord = mouse(this);
+
+  //               d.x += cord[0] - Number(cursor.attr('width')) / 2;
+  //               d.y += cord[1] - Number(cursor.attr('height')) / 2;
+  //               select(this.parentNode).attr('transform', () => {
+  //                 return (
+  //                   'translate(' + [d.x, d.y] + '),rotate(' + 0 + ',160, 160),scale(' + d.scale + ',' + d.scale + ')'
+  //                 );
+  //               });
+  //             });
+  //           })
+  //       );
+  //     group
+  //       .on('mouseover', function () {
+  //         select(this).select('rect').style('opacity', 1.0);
+  //       })
+  //       .on('mouseout', function () {
+  //         select(this).select('rect').style('opacity', 0);
+  //       });
+  //     // this.undoStack.push({ type: ActionType.Image, image: group.node() });
+  //   };
+  //   tempImg.src = image.toString();
+  // }
 
   private svgString2Image(
     svgString: string,
@@ -853,48 +1129,49 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     image.src = svgData;
   }
 
+  // private saveAsSvg(svgNode): string {
+  //   svgNode.setAttribute('xlink', 'http://www.w3.org/1999/xlink');
+
+  //   // Set width and height for svg element
+  //   svgNode.setAttribute('width', Number(this.selection.style('width').replace('px', '')));
+  //   svgNode.setAttribute('height', Number(this.selection.style('height').replace('px', '')));
+
+  //   const serializer = new XMLSerializer();
+  //   let svgString = serializer.serializeToString(svgNode);
+  //   svgString = svgString.replace(/(\w+)?:?xlink=/g, 'xmlns:xlink='); // Fix root xlink without namespace
+  //   svgString = svgString.replace(/NS\d+:href/g, 'xlink:href');
+  //   return svgString;
+  // }
+
+  // private download(url: string, name: string): void {
+  //   const link = document.createElement('a');
+  //   link.href = url;
+  //   link.setAttribute('visibility', 'hidden');
+  //   link.download = name || 'new white-board';
+  //   document.body.appendChild(link);
+  //   link.click();
+  // }
+
+  private _handleKeyDown(event: any): void {
+    if (event.ctrlKey || event.metaKey) {
+      if (event.keyCode === 90) {
+        event.preventDefault();
+        this.undoDraw();
+      }
+      if (event.keyCode === 89) {
+        event.preventDefault();
+        this.redoDraw();
+      }
+      if (event.keyCode === 83 || event.keyCode === 115) {
+        event.preventDefault();
+        // this.saveSvg();
+      }
+    }
+  }
+
   private _unsubscribe(subscription: Subscription): void {
     if (subscription) {
       subscription.unsubscribe();
     }
   }
 }
-
-// draw(): void {
-//   const d3Line = line().curve(curveBasis);
-//   let tempDraw: [number, number][];
-
-//   this.selection.call(
-//     drag()
-//       .container(this.svgContainer.nativeElement)
-//       .subject(() => {
-//         const p = [event.x, event.y];
-//         return [p, p];
-//       })
-//       .on('start', (e) => {
-//         if (!this.drawingEnabled) {
-//           return;
-//         }
-//         tempDraw = event.subject;
-//         // this.tempLine = d3Line(tempDraw);
-//       })
-//       .on('drag', () => {
-//         if (!this.drawingEnabled) {
-//           return;
-//         }
-
-//         tempDraw.push(mouse(this.selection.node()));
-//         // this.tempLine = d3Line(tempDraw);
-//       })
-//       .on('end', () => {
-//         if (!this.drawingEnabled) {
-//           return;
-//         }
-//         tempDraw.push(mouse(this.selection.node()));
-//         // this.tempLine = d3Line(tempDraw);
-//         // const line = new LineShape(this.tempLine, this.color, this.size, this.lineJoin, this.lineCap);
-//         // this.tempLine = '';
-//         this.pushToUndo();
-//       })
-//   );
-// }
