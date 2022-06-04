@@ -864,7 +864,13 @@ data-mode="eyedropper"
         <path d="M 3 1 L 26 24 L 24 26 L 1 3 L 3 1 Z"></path>
       </svg>
     </div>
-    <div class="tool_button" id="tool_rect" title="Square/Rect Tool [R]">
+    <div
+      class="tool_button"
+      id="tool_rect"
+      title="Square/Rect Tool [R]"
+      [class.active]="whiteboard.selectedTool === toolsEnum.RECT"
+      (click)="setSelectedTool(toolsEnum.RECT)"
+    >
       <svg viewBox="0 0 27 27" xmlns="http://www.w3.org/2000/svg" width="24" height="24">
         <path d="M 0 8 L 0 24 L 24 24 L 25 8 L 0 8 Z" />
       </svg>

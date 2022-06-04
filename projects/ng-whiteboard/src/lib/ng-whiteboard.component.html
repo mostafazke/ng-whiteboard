@@ -84,6 +84,26 @@
               [attr.y2]="item.y2"
             ></line>
           </g>
+          <g *ngSwitchCase="types.RECT">
+            <rect
+              class="rect"
+              [style]="
+                'fill:' +
+                item.elementOptions.fill +
+                ';' +
+                'stroke:' +
+                item.elementOptions.stroke +
+                ';' +
+                'stroke-width:' +
+                item.elementOptions.size +
+                ';'
+              "
+              [attr.x]="item.x2"
+              [attr.y]="item.y2"
+              [attr.width]="item.width"
+              [attr.height]="item.height"
+            ></rect>
+          </g>
           <g *ngSwitchCase="types.IMAGE">
             <g>
               <image

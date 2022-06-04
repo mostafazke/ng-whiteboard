@@ -95,6 +95,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   types = ElementTypeEnum;
   tempElement: WhiteboardData;
   tempLineElement: WhiteboardData;
+  tempRectElement: WhiteboardData;
   tempDraw: [number, number][];
   tempTextElement: WhiteboardData;
 
@@ -255,6 +256,9 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
       case ToolsEnum.LINE:
         this.handleStartLine();
         break;
+      case ToolsEnum.RECT:
+        this.handleStartRect();
+        break;
       case ToolsEnum.TEXT:
         this.handleTextTool();
         break;
@@ -273,6 +277,9 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
       case ToolsEnum.LINE:
         this.handleDragLine();
         break;
+      case ToolsEnum.RECT:
+        this.handleDragRect();
+        break;
       case ToolsEnum.SELECT:
         break;
       case ToolsEnum.TEXT:
@@ -288,6 +295,9 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
         break;
       case ToolsEnum.LINE:
         this.handleEndLine();
+        break;
+      case ToolsEnum.RECT:
+        this.handleEndRect();
         break;
       case ToolsEnum.SELECT:
         break;
@@ -349,6 +359,63 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     if (this.tempLineElement.x1 != this.tempLineElement.x2 || this.tempLineElement.y1 != this.tempLineElement.y2) {
       this._pushToUndo();
       this.tempLineElement = null;
+      return;
+    }
+    this.data.pop();
+  }
+  // Handle Rect tool
+  handleStartRect() {
+    const element = this._generateNewElement(ElementTypeEnum.RECT);
+    const [x, y] = this._calculateXAndY(mouse(this.selection.node()));
+    element.x1 = x;
+    element.y1 = y;
+    element.x2 = x;
+    element.y2 = y;
+    element.width = 1;
+    element.height = 1;
+    this.tempRectElement = element;
+    this._pushToData(this.tempRectElement);
+  }
+  handleDragRect() {
+    let [x, y] = this._calculateXAndY(mouse(this.selection.node()));
+    const start_x = this.tempRectElement.x1;
+    const start_y = this.tempRectElement.y1;
+    let w = Math.abs(x - start_x);
+    let h = Math.abs(y - start_y);
+    let new_x = null;
+    let new_y = null;
+
+    if (event.sourceEvent.shiftKey) {
+      w = h = Math.max(w, h);
+      new_x = start_x < x ? start_x : start_x - w;
+      new_y = start_y < y ? start_y : start_y - h;
+    } else {
+      new_x = Math.min(start_x, x);
+      new_y = Math.min(start_y, y);
+    }
+    if (event.sourceEvent.altKey) {
+      w *= 2;
+      h *= 2;
+      new_x = start_x - w / 2;
+      new_y = start_y - h / 2;
+    }
+
+    // if (gridSnapping) {
+    //   w = snapToGrid(w);
+    //   h = snapToGrid(h);
+    //   new_x = snapToGrid(new_x);
+    //   new_y = snapToGrid(new_y);
+    // }
+
+    this.tempRectElement.width = w;
+    this.tempRectElement.height = h;
+    this.tempRectElement.x2 = new_x;
+    this.tempRectElement.y2 = new_y;
+  }
+  handleEndRect() {
+    if (this.tempRectElement.width != 0 || this.tempRectElement.height != 0) {
+      this._pushToUndo();
+      this.tempRectElement = null;
       return;
     }
     this.data.pop();
