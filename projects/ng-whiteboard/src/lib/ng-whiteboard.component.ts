@@ -94,6 +94,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   drawingEnabled = true;
   types = ElementTypeEnum;
   tempElement: WhiteboardData;
+  tempLineElement: WhiteboardData;
   tempDraw: [number, number][];
   tempTextElement: WhiteboardData;
 
@@ -251,6 +252,9 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
       case ToolsEnum.BRUSH:
         this.handleStartBrush();
         break;
+      case ToolsEnum.LINE:
+        this.handleStartLine();
+        break;
       case ToolsEnum.TEXT:
         this.handleTextTool();
         break;
@@ -266,6 +270,9 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
       case ToolsEnum.BRUSH:
         this.handleDragBrush();
         break;
+      case ToolsEnum.LINE:
+        this.handleDragLine();
+        break;
       case ToolsEnum.SELECT:
         break;
       case ToolsEnum.TEXT:
@@ -278,6 +285,9 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     switch (this.selectedTool) {
       case ToolsEnum.BRUSH:
         this.handleEndBrush();
+        break;
+      case ToolsEnum.LINE:
+        this.handleEndLine();
         break;
       case ToolsEnum.SELECT:
         break;
@@ -306,6 +316,44 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     this.tempDraw = null;
     this.tempElement = null;
   }
+  // Handle Line tool
+  handleStartLine() {
+    const element = this._generateNewElement(ElementTypeEnum.LINE);
+    const [x, y] = this._calculateXAndY(mouse(this.selection.node()));
+    element.x1 = x;
+    element.y1 = y;
+    element.x2 = x;
+    element.y2 = y;
+    this.tempLineElement = element;
+    this._pushToData(this.tempLineElement);
+  }
+  handleDragLine() {
+    let [x2, y2] = this._calculateXAndY(mouse(this.selection.node()));
+
+    // if(curConfig.gridSnapping){
+    //   x = snapToGrid(x);
+    //   y = snapToGrid(y);
+    // }
+
+    if (event.sourceEvent.shiftKey) {
+      const x1 = this.tempLineElement.x1;
+      const y1 = this.tempLineElement.y1;
+      let { x, y } = this._snapToAngle(x1, y1, x2, y2);
+      [x2, y2] = [x, y];
+    }
+
+    this.tempLineElement.x2 = x2;
+    this.tempLineElement.y2 = y2;
+  }
+  handleEndLine() {
+    if (this.tempLineElement.x1 != this.tempLineElement.x2 || this.tempLineElement.y1 != this.tempLineElement.y2) {
+      this._pushToUndo();
+      this.tempLineElement = null;
+      return;
+    }
+    this.data.pop();
+  }
+
   // Handle Draw Image
   handleDrawImage(imageSrc: IAddImage) {
     try {
@@ -503,5 +551,18 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     if (subscription) {
       subscription.unsubscribe();
     }
+  }
+
+  private _snapToAngle(x1: number, y1: number, x2: number, y2: number) {
+    var snap = Math.PI / 4; // 45 degrees
+    var dx = x2 - x1;
+    var dy = y2 - y1;
+    var angle = Math.atan2(dy, dx);
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    var snapangle = Math.round(angle / snap) * snap;
+    var x = x1 + dist * Math.cos(snapangle);
+    var y = y1 + dist * Math.sin(snapangle);
+    //console.log(x1,y1,x2,y2,x,y,angle)
+    return { x: x, y: y, a: snapangle };
   }
 }

@@ -12,6 +12,12 @@ export class WhiteboardData {
   // order: number;
   value: string;
 
+  // for Line shape
+  x1?: number;
+  y1?: number;
+  x2?: number;
+  y2?: number;
+
   constructor(
     elementName?: ElementTypeEnum,
     value?: string,
@@ -29,5 +35,11 @@ export class WhiteboardData {
     this.height = height;
     this.x = x || 0;
     this.y = y || 0;
+    if (elementName === ElementTypeEnum.LINE) {
+      this.x1 = this.x1;
+      this.y1 = this.y1;
+      this.x2 = this.x2;
+      this.y2 = this.y2;
+    }
   }
 }

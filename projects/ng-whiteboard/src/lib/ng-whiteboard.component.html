@@ -37,11 +37,11 @@
           [id]="'item_' + item.id"
           [attr.data-wb-id]="item.id"
           [ngSwitch]="item.elementName"
-          [attr.transform]="'translate(' + (item.x) + ',' + (item.y) + ')'"
+          [attr.transform]="'translate(' + item.x + ',' + item.y + ')'"
         >
           <g *ngSwitchCase="types.BRUSH">
             <path
-              class="line"
+              class="brush"
               [style]="
                 'fill: none; ' +
                 'stroke:' +
@@ -59,6 +59,30 @@
               "
               [attr.d]="item.value"
             ></path>
+          </g>
+          <g *ngSwitchCase="types.LINE">
+            <line
+              class="line"
+              [style]="
+                'stroke:' +
+                item.elementOptions.stroke +
+                ';' +
+                'stroke-width:' +
+                item.elementOptions.size +
+                ';' +
+                'stroke-linejoin:' +
+                item.elementOptions.lineJoin +
+                ';' +
+                'stroke-linecap:' +
+                item.elementOptions.lineCap +
+                ';'
+              "
+              style="pointer-events: inherit;"
+              [attr.x1]="item.x1"
+              [attr.y1]="item.y1"
+              [attr.x2]="item.x2"
+              [attr.y2]="item.y2"
+            ></line>
           </g>
           <g *ngSwitchCase="types.IMAGE">
             <g>

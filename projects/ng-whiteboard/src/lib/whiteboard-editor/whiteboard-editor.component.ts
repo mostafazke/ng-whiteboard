@@ -131,7 +131,7 @@ export class WhiteboardEditorComponent implements OnInit, AfterViewInit {
     if (e.altKey || e.ctrlKey) {
       e.preventDefault();
       const zoom = this.whiteboard.getZoom() * 100;
-      this.setZoom(zoom - (e.deltaY / 100) * (e.altKey ? 10 : 5));
+      this.setZoom(Math.trunc(zoom - (e.deltaY / 100) * (e.altKey ? 10 : 5)));
     }
   }
 
