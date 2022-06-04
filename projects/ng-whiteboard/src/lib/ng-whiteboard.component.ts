@@ -36,6 +36,7 @@ const d3Line = line().curve(curveBasis);
 })
 export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
   @ViewChild('svgContainer', { static: false }) private svgContainer: ElementRef<ContainerElement>;
+  @ViewChild('textInput', { static: false }) private textInput: ElementRef<HTMLInputElement>;
   @Input() options: WhiteboardOptions;
 
   private _data: WhiteboardData[];
@@ -49,6 +50,9 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
 
   @Input() selectedTool: ToolsEnum = ToolsEnum.BRUSH;
   @Input() aspectRatio: number;
+  @Input() canvasWidth = 800;
+  @Input() canvasHeight = 600;
+  @Input() zoom = 1;
   @Input() size = 2;
   @Input() color = '#000';
   @Input() strokeColor = '#000';
@@ -63,10 +67,20 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   @Input() showShapeSelector = false;
   @Input() fillColor = '#333';
 
+  // show_outside_canvas: true,
+  // selectNew: true,
+  // dimensions: [800, 600],
+  // initFill: {color: 'fff', opacity: 1},
+  // initStroke: {width: 1, color: '000', opacity: 1},
+  // imgPath: 'images/',
+  // baseUnit: 'px',
+  // defaultFont: "Noto Sans JP"
+
   @Output() onInit = new EventEmitter<any>();
   @Output() onClear = new EventEmitter<any>();
   @Output() onUndo = new EventEmitter<any>();
   @Output() onRedo = new EventEmitter<any>();
+  @Output() zoomChanged = new EventEmitter<any>();
   @Output() onImageAdded = new EventEmitter<any>();
   @Output() onSave = new EventEmitter<string>();
 
@@ -77,12 +91,22 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   private undoStack: WhiteboardData[][] = [];
   private redoStack: WhiteboardData[][] = [];
 
-  drawingEnabled = false;
+  drawingEnabled = true;
   types = ElementTypeEnum;
   tempElement: WhiteboardData;
   tempDraw: [number, number][];
+  tempTextElement: WhiteboardData;
 
-  selectedElementId: string;
+  selectedElement: WhiteboardData;
+  selectedElements: WhiteboardData[];
+  currentBBox: { x: number; y: number; width: number; height: number };
+
+  x: number = 0;
+  y: number = 0;
+
+  width = 800;
+  height = 600;
+
   constructor(private whiteboardService: NgWhiteboardService) {}
 
   ngOnInit(): void {
@@ -99,6 +123,11 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
 
   ngAfterViewInit() {
     this.selection = select(this.svgContainer.nativeElement);
+    setTimeout(() => {
+      // const { x, y } = this._calculateXAndY();
+      // this.x = x;
+      // this.y = y;
+    }, 0);
     this.initalizeEvents(this.selection);
   }
 
@@ -108,9 +137,6 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
 
   private _initInputsFromOptions(options: WhiteboardOptions): void {
     if (options) {
-      // if (!this._isNullOrUndefined(options.imageUrl)) {
-      //   this.imageUrl = options.imageUrl;
-      // }
       if (!this._isNullOrUndefined(options.drawingEnabled)) {
         this.drawingEnabled = options.drawingEnabled;
       }
@@ -155,119 +181,19 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   }
 
   private _initObservables(): void {
+    // this._subscriptionList.push(
+    //   this.whiteboardService.saveSvgMethodCalled$.subscribe(({ name, format }) => this.saveSvg(name, format))
+    // );
+    this._subscriptionList.push(this.whiteboardService.eraseSvgMethodCalled$.subscribe(() => this.clear()));
+    this._subscriptionList.push(this.whiteboardService.undoSvgMethodCalled$.subscribe(() => this.undo()));
+    this._subscriptionList.push(this.whiteboardService.redoSvgMethodCalled$.subscribe(() => this.redo()));
     this._subscriptionList.push(
-      this.whiteboardService.saveSvgMethodCalled$.subscribe(({ name, format }) => this.saveSvg(name, format))
+      this.whiteboardService.addImageMethodCalled$.subscribe((image) => this.handleDrawImage(image))
     );
-    this._subscriptionList.push(this.whiteboardService.eraseSvgMethodCalled$.subscribe(() => this.clearSvg()));
-    this._subscriptionList.push(this.whiteboardService.undoSvgMethodCalled$.subscribe(() => this.undoDraw()));
-    this._subscriptionList.push(this.whiteboardService.redoSvgMethodCalled$.subscribe(() => this.redoDraw()));
-    this._subscriptionList.push(
-      this.whiteboardService.addImageMethodCalled$.subscribe((image) => this.addImage(image))
-    );
-    this._subscriptionList.push(this.whiteboardService.addTextMethodCalled$.subscribe((text) => this.addText(text)));
+    // this._subscriptionList.push(this.whiteboardService.addTextMethodCalled$.subscribe((text) => this.addText(text)));
   }
 
-  initalizeEvents(selection: Selection<any, unknown, null, undefined>) {
-    selection.call(
-      drag()
-        .on('start', () => this.handleMouseDown())
-        .on('drag', () => this.handleMouseDrag())
-        .on('end', () => this.handleMouseUp())
-    );
-  }
-
-  handleMouseDown() {
-    switch (this.selectedTool) {
-      case ToolsEnum.BRUSH:
-        this.drawingEnabled = true;
-        this.tempDraw = [mouse(this.selection.node())];
-        this.tempElement = this._freeHandElFactory(this.tempDraw);
-        console.log(this.tempElement);
-
-        this.data.push(this.tempElement);
-        this.pushToUndo();
-        break;
-      case ToolsEnum.SELECT:
-        // const x =  subjx(`#${this.selectedElementId}`).drag()
-        // console.log(this.selectedElementId)
-        break;
-      case ToolsEnum.TEXT:
-        console.log('here');
-
-        const [x, y] = mouse(this.selection.node());
-        const textEl = this._textElFactory(x, y);
-        this.data.push(textEl);
-
-        console.log(textEl);
-        break;
-      default:
-        break;
-    }
-  }
-
-  handleMouseDrag() {
-    switch (this.selectedTool) {
-      case ToolsEnum.BRUSH:
-        if (!this.drawingEnabled) {
-          return;
-        }
-        this.tempDraw.push(mouse(this.selection.node()));
-        this.tempElement.value = d3Line(this.tempDraw);
-        break;
-
-      default:
-        break;
-    }
-  }
-  handleMouseUp() {
-    switch (this.selectedTool) {
-      case ToolsEnum.BRUSH:
-        this.drawingEnabled = false;
-        this.tempElement = null;
-        this.tempDraw = null;
-        break;
-
-      default:
-        break;
-    }
-  }
-
-  handleSelect(elementId: string) {
-    if (this.selectedTool === ToolsEnum.SELECT) {
-      this.selectedElementId = elementId;
-      console.log(this.selectedElementId);
-    }
-  }
-
-  addImage(obj: IAddImage): void {
-    const tempImg = new Image();
-    tempImg.onload = () => {
-      const aspectRatio = tempImg.width / tempImg.height;
-      const height =
-        tempImg.height > Number(this.selection.style('height').replace('px', ''))
-          ? Number(this.selection.style('height').replace('px', '')) - 40
-          : tempImg.height;
-      const width =
-        height === Number(this.selection.style('height').replace('px', '')) - 40
-          ? (Number(this.selection.style('height').replace('px', '')) - 40) * aspectRatio
-          : tempImg.width;
-
-      const newImage = new ImageShape(obj.image, width, height, obj.x, obj.y);
-      // const element = new ElementType(newImage);
-
-      this.pushToUndo();
-    };
-    tempImg.src = obj.image.toString();
-  }
-
-  addText(obj: IAddText) {
-    const text = new TextShape(obj.text, this.color, this.size, obj.x, obj.y);
-    // const element = new ElementType(text);
-
-    this.pushToUndo();
-  }
-
-  private undoDraw() {
+  undo(): void {
     if (!this.undoStack.length) {
       return;
     }
@@ -277,7 +203,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     this.onUndo.emit();
   }
 
-  private redoDraw() {
+  redo(): void {
     if (!this.redoStack.length) {
       return;
     }
@@ -287,886 +213,290 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     this.onRedo.emit();
   }
 
-  clearSvg() {
-    this._data = [];
-    this.pushToUndo();
+  clear() {
+    this.data = [];
+    this._pushToUndo();
     this.onClear.emit();
   }
 
-  saveSvg(name: string, format?: formatTypes) {
-    const svgString = this.saveAsSvg(this.selection.clone(true).node());
-    if (format === 'svg') {
-      this.download('data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString))), name);
-    } else {
-      this.svgString2Image(
-        svgString,
-        Number(this.selection.style('width').replace('px', '')),
-        Number(this.selection.style('height').replace('px', '')),
-        format,
-        (img) => {
-          this.download(img, name);
-        }
-      );
+  initalizeEvents(selection: Selection<any, unknown, null, undefined>): void {
+    if (!this.drawingEnabled) {
+      return;
     }
+    let dragging = false;
+    console.log(selection);
 
-    // this.data.push(element);
-    // this.pushToUndo();
-  }
-
-  pushToUndo() {
-    this.undoStack.push(this.data);
-    this.redoStack = [];
-  }
-
-  move(item: any) {
-    const element = select(`#${item.id}`);
-    element.attr('class', 'onMove');
-    let x = 0;
-    let y = 0;
-    element.call(
+    selection.call(
       drag()
-        .on('start', (e) => {
-          x = event.x;
-          y = event.y;
+        .on('start', () => {
+          dragging = true;
+          this.redoStack = [];
+          this.handleStartEvent();
         })
-        .on('drag', function () {
-          const translateX = item.shape.x + (event.x - x);
-          const translateY = item.shape.y + (event.y - y);
-          select(this).attr('transform', () => {
-            return `translate(${translateX}, ${translateY})`;
-          });
+        .on('drag', () => {
+          if (!dragging) {
+            return;
+          }
+          this.handleDragEvent();
         })
-        .on('end', (e) => {
-          item.shape.x = item.shape.x + (event.x - x);
-          item.shape.y = item.shape.y + (event.y - y);
+        .on('end', () => {
+          dragging = false;
+          this.handleEndEvent();
         })
     );
   }
 
-  clearMove(item: any) {
-    const element = select(`#${item.id}`);
-    element.on('mousedown.drag', null);
-    element.attr('class', '');
-
-    // console.log({ element });
+  handleStartEvent() {
+    switch (this.selectedTool) {
+      case ToolsEnum.BRUSH:
+        this.handleStartBrush();
+        break;
+      case ToolsEnum.TEXT:
+        this.handleTextTool();
+        break;
+      case ToolsEnum.SELECT:
+        this.handleStartSelect();
+        break;
+      default:
+        break;
+    }
   }
-
-  //  Important
-  // generateCanvasDataUrl(returnedDataType: string = 'image/png', returnedDataQuality: number = 1): string {
-  //   return this.context.canvas.toDataURL(returnedDataType, returnedDataQuality);
-  // }
-  //  Important
-  // generateCanvasBlob(callbackFn: any, returnedDataType: string = 'image/png', returnedDataQuality: number = 1): void {
-  //   let toBlobMethod: Function;
-
-  //   if (typeof this.context.canvas.toBlob !== 'undefined') {
-  //     toBlobMethod = this.context.canvas.toBlob.bind(this.context.canvas);
-  //   } else if (typeof (this.context.canvas as any).msToBlob !== 'undefined') {
-  //     // For IE
-  //     toBlobMethod = (callback) => {
-  //       callback && callback((this.context.canvas as any).msToBlob());
-  //     };
-  //   }
-
-  //   toBlobMethod && toBlobMethod((blob: Blob) => {
-  //     callbackFn && callbackFn(blob, returnedDataType);
-  //   }, returnedDataType, returnedDataQuality);
-  // }
-
-  //  Important
-  // downloadCanvasImage(returnedDataType: string = 'image/png', downloadData?: string | Blob, customFileName?: string): void {
-  //   if (window.navigator.msSaveOrOpenBlob === undefined) {
-  //     const downloadLink = document.createElement('a');
-  //     downloadLink.setAttribute('href', downloadData ? downloadData as string : this.generateCanvasDataUrl(returnedDataType));
-
-  //     const fileName = customFileName ? customFileName
-  //       : (this.downloadedFileName ? this.downloadedFileName : 'canvas_drawing_' + new Date().valueOf());
-
-  //     downloadLink.setAttribute('download', fileName + this._generateDataTypeString(returnedDataType));
-  //     document.body.appendChild(downloadLink);
-  //     downloadLink.click();
-  //     document.body.removeChild(downloadLink);
-  //   } else {
-  //     // IE-specific code
-  //     if (downloadData) {
-  //       this._saveCanvasBlob(downloadData as Blob, returnedDataType);
-  //     } else {
-  //       this.generateCanvasBlob(this._saveCanvasBlob.bind(this), returnedDataType);
-  //     }
-  //   }
-  // }
-  //  Important
-  // private _saveCanvasBlob(blob: Blob, returnedDataType: string = 'image/png'): void {
-  //   window.navigator.msSaveOrOpenBlob(blob, 'canvas_drawing_' +
-  //     new Date().valueOf() + this._generateDataTypeString(returnedDataType));
-  // }
-
-  // generateCanvasData(callback: any, returnedDataType: string = 'image/png', returnedDataQuality: number = 1): void {
-  //   if (window.navigator.msSaveOrOpenBlob === undefined) {
-  //     callback && callback(this.generateCanvasDataUrl(returnedDataType, returnedDataQuality));
-  //   } else {
-  //     this.generateCanvasBlob(callback, returnedDataType, returnedDataQuality);
-  //   }
-  // }
-
-  /**
-   * Local method to invoke saving of the canvas data when clicked on the canvas Save button
-   * This method will emit the generated data with the specified Event Emitter
-   *
-   * @param returnedDataType
-   */
-  //  saveLocal(returnedDataType: string = 'image/png'): void {
-  //   this.generateCanvasData((generatedData: string | Blob) => {
-  //     this.onSave.emit(generatedData);
-
-  //     if (this.shouldDownloadDrawing) {
-  //       this.downloadCanvasImage(returnedDataType, generatedData);
-  //     }
-  //   });
-  // }
-
-  // private startWriting() {
-  //   this.selection.on('mousedown.drag', null);
-  //   this.selection.attr('class', `mo`).on('click', function () {
-  //     select(this).append('dev').text('fdfsdfsdfs');
-  //     const coord = mouse(this);
-  //     console.log(mouse(this));
-  //     addTextInput(this, coord);
-  //   });
-
-  //   // this.selection = this.initSvg(this.svgContainer.nativeElement);
-
-  //   function addTextInput(svg, coord) {
-  //     const myforeign = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
-  //     const textdiv = document.createElement('input');
-  //     textdiv.setAttribute('autofocus', '');
-  //     textdiv.setAttribute('width', 'auto');
-  //     myforeign.setAttribute('width', '100%');
-  //     myforeign.setAttribute('height', '100%');
-  //     myforeign.classList.add('foreign'); // to make div fit text
-  //     textdiv.classList.add('insideforeign'); // to make div fit text
-  //     // textdiv.addEventListener("mousedown", elementMousedown, false);
-  //     myforeign.setAttributeNS(null, 'transform', 'translate(' + coord[0] + ' ' + coord[1] + ')');
-  //     svg.appendChild(myforeign);
-  //     myforeign.appendChild(textdiv);
-  //   }
-  // }
-
-  // private addImage(image: string | ArrayBuffer) {
-  //   this.drawImage(image);
-  // }
-
-  // private saveSvg(name: string, format: 'png' | 'jpeg' | 'svg') {
-  //   const svgString = this.saveAsSvg(this.selection.clone(true).node());
-  //   if (format === 'svg') {
-  //     this.download('data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString))), name);
-  //   } else {
-  //     this.svgString2Image(
-  //       svgString,
-  //       Number(this.selection.style('width').replace('px', '')),
-  //       Number(this.selection.style('height').replace('px', '')),
-  //       format,
-  //       (img) => {
-  //         this.download(img, name);
-  //       }
-  //     );
-  //   }
-
-  //   this.save.emit();
-  // }
-
-  // private drawLine(pathNode: SVGPathElement | SVGGElement) {
-  //   this.selection.node().appendChild(pathNode);
-  // }
-
-  // private drawImage(
-  //   image: string | ArrayBuffer,
-  //   x = 0,
-  //   y = 0,
-  //   r = 1,
-  //   scale = 1,
-  //   width?: undefined,
-  //   height?: undefined
-  // ) {
-  //   const group = this.selection
-  //     .append('g')
-  //     .data([{ x, y, r, scale }])
-  //     .attr('x', x)
-  //     .attr('y', y)
-  //     .attr('transform', 'translate(0,0)');
-
-  //   const tempImg = new Image();
-  //   tempImg.onload = () => {
-  //     const aspectRatio = tempImg.width / tempImg.height;
-  //     const height =
-  //       tempImg.height > Number(this.selection.style('height').replace('px', ''))
-  //         ? Number(this.selection.style('height').replace('px', '')) - 40
-  //         : tempImg.height;
-  //     const width =
-  //       height === Number(this.selection.style('height').replace('px', '')) - 40
-  //         ? (Number(this.selection.style('height').replace('px', '')) - 40) * aspectRatio
-  //         : tempImg.width;
-  //     group
-  //       .append('image')
-  //       .attr('x', 0)
-  //       .attr('y', 0)
-  //       .attr('height', height)
-  //       .attr('width', width)
-  //       .attr('preserveAspectRatio', 'none')
-  //       .attr('xlink:href', image.toString());
-
-  //     group
-  //       .append('rect')
-  //       .attr('x', 0)
-  //       .attr('y', 0)
-  //       .attr('width', 20)
-  //       .attr('height', 20)
-  //       .style('opacity', 0)
-  //       .attr('fill', (d) => {
-  //         return '#cccccc';
-  //       })
-  //       .call(
-  //         drag()
-  //           .subject(() => {
-  //             const p = [event.x, event.y];
-  //             return [p, p];
-  //           })
-  //           .on('start', () => {
-  //             event.on('drag', function (d: { x: number; y: number; scale: string }) {
-  //               const cursor = select(this);
-  //               const cord = mouse(this);
-
-  //               d.x += cord[0] - Number(cursor.attr('width')) / 2;
-  //               d.y += cord[1] - Number(cursor.attr('height')) / 2;
-  //               select(this.parentNode).attr('transform', () => {
-  //                 return (
-  //                   'translate(' + [d.x, d.y] + '),rotate(' + 0 + ',160, 160),scale(' + d.scale + ',' + d.scale + ')'
-  //                 );
-  //               });
-  //             });
-  //           })
-  //       );
-  //     group
-  //       .on('mouseover', function () {
-  //         select(this).select('rect').style('opacity', 1.0);
-  //       })
-  //       .on('mouseout', function () {
-  //         select(this).select('rect').style('opacity', 0);
-  //       });
-  //     // this.undoStack.push({ type: ActionType.Image, image: group.node() });
-  //   };
-  //   tempImg.src = image.toString();
-  // }
-
-  //  addResizer(itemId: string) {
-  //    const el = select(`#${itemId}`);
-  //    let width =  500;
-  //    let height = 100;
-  //    let x = 0;
-  //    let y = 0;
-
-  //    let w  = 0;
-  //    let h  = 0;
-  //   let isXChecked = true;
-  //   let isYChecked = false;
-  //   const dragbarw = 5;
-  //   const group = el.append('g')
-  //     .data([{ x, y }]);
-
-  //   const dragrect = group.append('rect')
-  //     .attr('id', 'active')
-  //     .attr('x', function (d) { return d.x; })
-  //     .attr('y', function (d) { return d.y; })
-  //     .attr('height', height)
-  //     .attr('width', width)
-  //     .attr('fill-opacity', .5)
-  //     .attr('cursor', 'move')
-  //     .call(drag().on("drag", dragmove));
-
-  //   const dragbarleft = group.append('rect')
-  //     .attr('x', function (d) { return d.x - (dragbarw / 2); })
-  //     .attr('y', function (d) { return d.y + (dragbarw / 2); })
-  //     .attr('height', height - dragbarw)
-  //     .attr('id', 'dragleft')
-  //     .attr('width', dragbarw)
-  //     .attr('fill', 'lightblue')
-  //     .attr('fill-opacity', .5)
-  //     .attr('cursor', 'ew-resize')
-  //     .call(drag().on("drag", ldragresize));
-
-  //   const dragbarright = group.append('rect')
-  //     .attr('x', function (d) { return d.x + width - (dragbarw / 2); })
-  //     .attr('y', function (d) { return d.y + (dragbarw / 2); })
-  //     .attr('id', 'dragright')
-  //     .attr('height', height - dragbarw)
-  //     .attr('width', dragbarw)
-  //     .attr('fill', 'lightblue')
-  //     .attr('fill-opacity', .5)
-  //     .attr('cursor', 'ew-resize')
-  //     .call(drag().on("drag", rdragresize));
-
-  //   const dragbartop = group.append('rect')
-  //     .attr('x', function (d) { return d.x + (dragbarw / 2); })
-  //     .attr('y', function (d) { return d.y - (dragbarw / 2); })
-  //     .attr('height', dragbarw)
-  //     .attr('id', 'dragleft')
-  //     .attr('width', width - dragbarw)
-  //     .attr('fill', 'lightgreen')
-  //     .attr('fill-opacity', .5)
-  //     .attr('cursor', 'ns-resize')
-  //     .call(drag().on("drag", tdragresize));
-
-  //   const dragbarbottom = group.append('rect')
-  //     .attr('x', function (d) { return d.x + (dragbarw / 2); })
-  //     .attr('y', function (d) { return d.y + height - (dragbarw / 2); })
-  //     .attr('id', 'dragright')
-  //     .attr('height', dragbarw)
-  //     .attr('width', width - dragbarw)
-  //     .attr('fill', 'lightgreen')
-  //     .attr('fill-opacity', .5)
-  //     .attr('cursor', 'ns-resize')
-  //     .call(drag().on("drag", function bdragresize(d) {
-  //       var dragy = Math.max(d.y + (dragbarw / 2), Math.min(h, d.y + height + event.dy));
-
-  //       //recalculate width
-  //       height = dragy - d.y;
-
-  //       //move the right drag handle
-  //       dragbarbottom
-  //         .attr("y", function (d) { return dragy - (dragbarw / 2) });
-
-  //       //resize the drag rectangle
-  //       //as we are only resizing from the right, the x coordinate does not need to change
-  //       dragrect
-  //         .attr("height", height);
-  //       dragbarleft
-  //         .attr("height", height - dragbarw);
-  //       dragbarright
-  //         .attr("height", height - dragbarw);
-  //     }));
-
-  //     function dragmove(d) {
-  //       if (isXChecked) {
-  //         dragrect
-  //           .attr("x", d.x = Math.max(0, Math.min(w - width, event.x)))
-  //         dragbarleft
-  //           .attr("x", function (d) { return d.x - (dragbarw / 2); })
-  //         dragbarright
-  //           .attr("x", function (d) { return d.x + width - (dragbarw / 2); })
-  //         dragbartop
-  //           .attr("x", function (d) { return d.x + (dragbarw / 2); })
-  //         dragbarbottom
-  //           .attr("x", function (d) { return d.x + (dragbarw / 2); })
-  //       }
-  //       if (isYChecked) {
-  //         dragrect
-  //           .attr("y", d.y = Math.max(0, Math.min(h - height, event.y)));
-  //         dragbarleft
-  //           .attr("y", function (d) { return d.y + (dragbarw / 2); });
-  //         dragbarright
-  //           .attr("y", function (d) { return d.y + (dragbarw / 2); });
-  //         dragbartop
-  //           .attr("y", function (d) { return d.y - (dragbarw / 2); });
-  //         dragbarbottom
-  //           .attr("y", function (d) { return d.y + height - (dragbarw / 2); });
-  //       }
-  //     }
-
-  //     function ldragresize(d) {
-  //       if (isXChecked) {
-  //         var oldx = d.x;
-  //         //Max x on the right is x + width - dragbarw
-  //         //Max x on the left is 0 - (dragbarw/2)
-  //         d.x = Math.max(0, Math.min(d.x + width - (dragbarw / 2), event.x));
-  //         width = width + (oldx - d.x);
-  //         dragbarleft
-  //           .attr("x", function (d) { return d.x - (dragbarw / 2); });
-
-  //         dragrect
-  //           .attr("x", function (d) { return d.x; })
-  //           .attr("width", width);
-
-  //         dragbartop
-  //           .attr("x", function (d) { return d.x + (dragbarw / 2); })
-  //           .attr("width", width - dragbarw)
-  //         dragbarbottom
-  //           .attr("x", function (d) { return d.x + (dragbarw / 2); })
-  //           .attr("width", width - dragbarw)
-  //       }
-  //     }
-
-  //     function rdragresize(d) {
-  //       if (isXChecked) {
-  //         //Max x on the left is x - width
-  //         //Max x on the right is width of screen + (dragbarw/2)
-  //         var dragx = Math.max(d.x + (dragbarw / 2), Math.min(w, d.x + width + event.dx));
-
-  //         //recalculate width
-  //         width = dragx - d.x;
-
-  //         //move the right drag handle
-  //         dragbarright
-  //           .attr("x", function (d) { return dragx - (dragbarw / 2) });
-
-  //         //resize the drag rectangle
-  //         //as we are only resizing from the right, the x coordinate does not need to change
-  //         dragrect
-  //           .attr("width", width);
-  //         dragbartop
-  //           .attr("width", width - dragbarw)
-  //         dragbarbottom
-  //           .attr("width", width - dragbarw)
-  //       }
-  //     }
-
-  //     function tdragresize(d) {
-
-  //       if (isYChecked) {
-  //         var oldy = d.y;
-  //         //Max x on the right is x + width - dragbarw
-  //         //Max x on the left is 0 - (dragbarw/2)
-  //         d.y = Math.max(0, Math.min(d.y + height - (dragbarw / 2), event.y));
-  //         height = height + (oldy - d.y);
-  //         dragbartop
-  //           .attr("y", function (d) { return d.y - (dragbarw / 2); });
-
-  //         dragrect
-  //           .attr("y", function (d) { return d.y; })
-  //           .attr("height", height);
-
-  //         dragbarleft
-  //           .attr("y", function (d) { return d.y + (dragbarw / 2); })
-  //           .attr("height", height - dragbarw);
-  //         dragbarright
-  //           .attr("y", function (d) { return d.y + (dragbarw / 2); })
-  //           .attr("height", height - dragbarw);
-  //       }
-  //     }
-  // }
-
-  private _freeHandElFactory(tempDraw: [number, number][]): WhiteboardData {
-    console.log(this.strokeColor);
-
-    return new WhiteboardData(
-      ElementTypeEnum.FREE_HAND,
-      d3Line(tempDraw),
-      new ElementOptions(this.fillColor, this.strokeColor, this.size, this.lineJoin, this.lineCap),
-      0,
-      0,
-      0,
-      0
-    );
+  handleDragEvent() {
+    switch (this.selectedTool) {
+      case ToolsEnum.BRUSH:
+        this.handleDragBrush();
+        break;
+      case ToolsEnum.SELECT:
+        break;
+      case ToolsEnum.TEXT:
+        break;
+      default:
+        break;
+    }
   }
-  private _textElFactory(x: number, y: number): WhiteboardData {
-    return new WhiteboardData(
-      ElementTypeEnum.TEXT,
-      'Mostafa',
-      new ElementOptions(this.fillColor, this.strokeColor, this.size, this.lineJoin, this.lineCap),
-      x,
-      y,
-      0,
-      0
-    );
+  handleEndEvent() {
+    switch (this.selectedTool) {
+      case ToolsEnum.BRUSH:
+        this.handleEndBrush();
+        break;
+      case ToolsEnum.SELECT:
+        break;
+      case ToolsEnum.TEXT:
+        break;
+      default:
+        break;
+    }
   }
-
-  private saveAsSvg(svgNode): string {
-    svgNode.setAttribute('xlink', 'http://www.w3.org/1999/xlink');
-
-    // Set width and height for svg element
-    svgNode.setAttribute('width', Number(this.selection.style('width').replace('px', '')));
-    svgNode.setAttribute('height', Number(this.selection.style('height').replace('px', '')));
-
-    const serializer = new XMLSerializer();
-    let svgString = serializer.serializeToString(svgNode);
-    svgString = svgString.replace(/(\w+)?:?xlink=/g, 'xmlns:xlink='); // Fix root xlink without namespace
-    svgString = svgString.replace(/NS\d+:href/g, 'xlink:href');
-    return svgString;
+  // Handle Brush tool
+  handleStartBrush() {
+    const element = this._generateNewElement(ElementTypeEnum.BRUSH);
+    this.tempDraw = [this._calculateXAndY(mouse(this.selection.node()))];
+    element.value = d3Line(this.tempDraw);
+    this.tempElement = element;
   }
-
-  private download(url: string, name: string): void {
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('visibility', 'hidden');
-    link.download = name || 'new white-board';
-    document.body.appendChild(link);
-    link.click();
+  handleDragBrush() {
+    this.tempDraw.push(this._calculateXAndY(mouse(this.selection.node())));
+    this.tempElement.value = d3Line(this.tempDraw);
   }
-  // private undoDraw() {
-  //   if (!this.undoStack.length) {
-  //     return;
-  //   }
-  //   const currentState = this.undoStack.pop();
-  //   this.redoStack.push(currentState);
-  //   this._dataType = this.undoStack[this.undoStack.length - 1] || [];
-  //   this.undo.emit();
-  // }
-
-  // private redoDraw() {
-  //   if (!this.redoStack.length) {
-  //     return;
-  //   }
-  //   const currentState = this.redoStack.pop();
-  //   this.undoStack.push(currentState);
-  //   this._dataType = currentState;
-  //   this.redo.emit();
-  // }
-
-  // clearSvg() {
-  //   this.data = [];
-  //   this.pushToUndo();
-  //   this.clear.emit();
-  // }
-
-  // saveSvg() {}
-
-  // pushToUndo() {
-  //   this.undoStack.push(JSON.parse(JSON.stringify(this._dataType)));
-  //   this.redoStack = [];
-  // }
-
-  // handleSvgClick() {
-  //   this.selection.on('click', (e) => {
-  //     this.onClick.emit(event);
-  //   });
-  // }
-
-  // move(item: ElementType<LineShape | ImageShape | TextShape>) {
-  //   const element = select(`#${item.id}`);
-  //   element.attr('class', 'onMove')
-  //   let x = 0;
-  //   let y = 0;
-  //   element.call(
-  //     drag()
-  //       .on('start', (e) => {
-  //         x = event.x;
-  //         y = event.y;
-  //       })
-  //       .on('drag', function () {
-  //         const translateX = item.shape.x + (event.x - x);
-  //         const translateY = item.shape.y + (event.y - y);
-  //         select(this).attr('transform', () => {
-  //           return `translate(${translateX}, ${translateY})`;
-  //         });
-  //       })
-  //       .on('end', (e) => {
-  //         item.shape.x = item.shape.x + (event.x - x);
-  //         item.shape.y = item.shape.y + (event.y - y);
-  //       })
-  //   );
-  // }
-
-  // clearMove(item: ElementType<LineShape | ImageShape | TextShape>) {
-  //   const element = select(`#${item.id}`);
-  //   element.on('mousedown.drag', null);
-  //   element.attr('class', '')
-
-  // console.log({ element });
-  // }
-
-  // draw(): void {
-  //   const d3Line = line().curve(curveBasis);
-  //   let tempDraw: [number, number][];
-
-  //   this.selection.call(
-  //     drag()
-  //       .container(this.svgContainer.nativeElement)
-  //       .subject(() => {
-  //         const p = [event.x, event.y];
-  //         return [p, p];
-  //       })
-  //       .on('start', (e) => {
-  //         if (!this.drawingEnabled) {
-  //           return;
-  //         }
-  //         tempDraw = event.subject;
-  //         // this.tempLine = d3Line(tempDraw);
-  //       })
-  //       .on('drag', () => {
-  //         if (!this.drawingEnabled) {
-  //           return;
-  //         }
-
-  //         tempDraw.push(mouse(this.selection.node()));
-  //         // this.tempLine = d3Line(tempDraw);
-  //       })
-  //       .on('end', () => {
-  //         if (!this.drawingEnabled) {
-  //           return;
-  //         }
-  //         tempDraw.push(mouse(this.selection.node()));
-  //         // this.tempLine = d3Line(tempDraw);
-  //         // const line = new LineShape(this.tempLine, this.color, this.size, this.lineJoin, this.lineCap);
-  //         // this.tempLine = '';
-  //         this.pushToUndo();
-  //       })
-  //   );
-  // }
-  // private initSvg(selector: ContainerElement) {
-  //   const d3Line = line().curve(curveBasis);
-  //   const svg = select(selector)
-  //     .attr('class', '')
-  //     .call(
-  //       drag()
-  //         .container(selector)
-  //         .subject(() => {
-  //           const p = [event.x, event.y];
-  //           return [p, p];
-  //         })
-  //         .on('start', () => {
-  //           const d = event.subject;
-  //           const active = svg
-  //             .append('path')
-  //             .datum(d)
-  //             .attr('class', 'line')
-  //             .attr(
-  //               'style',
-  //               `
-  //          fill: none;
-  //          stroke: ${this.color || this.whiteboardOptions.color};
-  //          stroke-width: ${this.size || this.whiteboardOptions.size};
-  //          stroke-linejoin: ${this.linejoin || this.whiteboardOptions.linejoin};
-  //          stroke-linecap: ${this.linecap || this.whiteboardOptions.linecap};
-  //          `
-  //             );
-  //           active.attr('d', d3Line);
-  //           event.on('drag', function () {
-  //             active.datum().push(mouse(this));
-  //             active.attr('d', d3Line);
-  //           });
-  //           event.on('end', () => {
-  //             active.attr('d', d3Line);
-  //             if (this.undoStack.length < 1) {
-  //               this.redoStack = [];
-  //             }
-  //             this.undoStack.push({ type: ActionType.Line, line: active.node() });
-
-  //             console.log(active.attr('d'));
-
-  //             this.data.push(
-  //               new Line(
-  //                 ActionType.Line,
-  //                 active.attr('d'),
-  //                 this.color || this.whiteboardOptions.color,
-  //                 this.size || this.whiteboardOptions.size,
-  //                 this.linejoin || this.whiteboardOptions.linejoin,
-  //                 this.linecap || this.whiteboardOptions.linecap
-  //               )
-  //             );
-  //             this.dataChange.emit(this.data);
-  //           });
-  //         })
-  //     );
-  //   this.init.emit();
-  //   return svg;
-  // }
-
-  // private startWriting() {
-  //   this.selection.on('mousedown.drag', null);
-  //   this.selection.attr('class', `mo`).on('click', function () {
-  //     select(this).append('dev').text('fdfsdfsdfs');
-  //     const coord = mouse(this);
-  //     console.log(mouse(this));
-  //     addTextInput(this, coord);
-  //   });
-
-  //   // this.selection = this.initSvg(this.svgContainer.nativeElement);
-
-  //   function addTextInput(svg, coord) {
-  //     const myforeign = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
-  //     const textdiv = document.createElement('input');
-  //     textdiv.setAttribute('autofocus', '');
-  //     textdiv.setAttribute('width', 'auto');
-  //     myforeign.setAttribute('width', '100%');
-  //     myforeign.setAttribute('height', '100%');
-  //     myforeign.classList.add('foreign'); // to make div fit text
-  //     textdiv.classList.add('insideforeign'); // to make div fit text
-  //     // textdiv.addEventListener("mousedown", elementMousedown, false);
-  //     myforeign.setAttributeNS(null, 'transform', 'translate(' + coord[0] + ' ' + coord[1] + ')');
-  //     svg.appendChild(myforeign);
-  //     myforeign.appendChild(textdiv);
-  //   }
-  // }
-
-  // private addImage(image: string | ArrayBuffer) {
-  //   this.drawImage(image);
-  // }
-
-  // private saveSvg(name: string, format: 'png' | 'jpeg' | 'svg') {
-  //   const svgString = this.saveAsSvg(this.selection.clone(true).node());
-  //   if (format === 'svg') {
-  //     this.download('data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString))), name);
-  //   } else {
-  //     this.svgString2Image(
-  //       svgString,
-  //       Number(this.selection.style('width').replace('px', '')),
-  //       Number(this.selection.style('height').replace('px', '')),
-  //       format,
-  //       (img) => {
-  //         this.download(img, name);
-  //       }
-  //     );
-  //   }
-
-  //   this.save.emit();
-  // }
-
-  // private drawLine(pathNode: SVGPathElement | SVGGElement) {
-  //   this.selection.node().appendChild(pathNode);
-  // }
-
-  // private drawImage(
-  //   image: string | ArrayBuffer,
-  //   x = 0,
-  //   y = 0,
-  //   r = 1,
-  //   scale = 1,
-  //   width?: undefined,
-  //   height?: undefined
-  // ) {
-  //   const group = this.selection
-  //     .append('g')
-  //     .data([{ x, y, r, scale }])
-  //     .attr('x', x)
-  //     .attr('y', y)
-  //     .attr('transform', 'translate(0,0)');
-
-  //   const tempImg = new Image();
-  //   tempImg.onload = () => {
-  //     const aspectRatio = tempImg.width / tempImg.height;
-  //     const height =
-  //       tempImg.height > Number(this.selection.style('height').replace('px', ''))
-  //         ? Number(this.selection.style('height').replace('px', '')) - 40
-  //         : tempImg.height;
-  //     const width =
-  //       height === Number(this.selection.style('height').replace('px', '')) - 40
-  //         ? (Number(this.selection.style('height').replace('px', '')) - 40) * aspectRatio
-  //         : tempImg.width;
-  //     group
-  //       .append('image')
-  //       .attr('x', 0)
-  //       .attr('y', 0)
-  //       .attr('height', height)
-  //       .attr('width', width)
-  //       .attr('preserveAspectRatio', 'none')
-  //       .attr('xlink:href', image.toString());
-
-  //     group
-  //       .append('rect')
-  //       .attr('x', 0)
-  //       .attr('y', 0)
-  //       .attr('width', 20)
-  //       .attr('height', 20)
-  //       .style('opacity', 0)
-  //       .attr('fill', (d) => {
-  //         return '#cccccc';
-  //       })
-  //       .call(
-  //         drag()
-  //           .subject(() => {
-  //             const p = [event.x, event.y];
-  //             return [p, p];
-  //           })
-  //           .on('start', () => {
-  //             event.on('drag', function (d: { x: number; y: number; scale: string }) {
-  //               const cursor = select(this);
-  //               const cord = mouse(this);
-
-  //               d.x += cord[0] - Number(cursor.attr('width')) / 2;
-  //               d.y += cord[1] - Number(cursor.attr('height')) / 2;
-  //               select(this.parentNode).attr('transform', () => {
-  //                 return (
-  //                   'translate(' + [d.x, d.y] + '),rotate(' + 0 + ',160, 160),scale(' + d.scale + ',' + d.scale + ')'
-  //                 );
-  //               });
-  //             });
-  //           })
-  //       );
-  //     group
-  //       .on('mouseover', function () {
-  //         select(this).select('rect').style('opacity', 1.0);
-  //       })
-  //       .on('mouseout', function () {
-  //         select(this).select('rect').style('opacity', 0);
-  //       });
-  //     // this.undoStack.push({ type: ActionType.Image, image: group.node() });
-  //   };
-  //   tempImg.src = image.toString();
-  // }
-
-  private svgString2Image(
-    svgString: string,
-    width: number,
-    height: number,
-    format: string,
-    callback: (img: string) => void
-  ) {
-    // set default for format parameter
-    format = format || 'png';
-    // SVG data URL from SVG string
-    const svgData = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
-    // create canvas in memory(not in DOM)
-    const canvas = document.createElement('canvas');
-    // get canvas context for drawing on canvas
-    const context = canvas.getContext('2d');
-    // set canvas size
-    canvas.width = width;
-    canvas.height = height;
-    // create image in memory(not in DOM)
-    const image = new Image();
-    // later when image loads run this
-    image.onload = () => {
-      // async (happens later)
-      // clear canvas
-      context.clearRect(0, 0, width, height);
-      // draw image with SVG data to canvas
-      context.drawImage(image, 0, 0, width, height);
-      // snapshot canvas as png
-      const pngData = canvas.toDataURL('image/' + format);
-      // pass png data URL to callback
-      callback(pngData);
-    }; // end async
-    // start loading SVG data into in memory image
-    image.src = svgData;
+  handleEndBrush() {
+    this.tempDraw.push(this._calculateXAndY(mouse(this.selection.node())));
+    this.tempElement.value = d3Line(this.tempDraw);
+    this._pushToData(this.tempElement);
+    this._pushToUndo();
+    this.tempDraw = null;
+    this.tempElement = null;
   }
+  // Handle Draw Image
+  handleDrawImage(imageSrc: IAddImage) {
+    try {
+      const tempImg = new Image();
+      tempImg.onload = () => {
+        const { svgHeight } = this._getSvgWidthHeight();
+        const imageWidth = tempImg.width;
+        const imageHeight = tempImg.height;
+        const aspectRatio = tempImg.width / tempImg.height;
+        const height = imageHeight > svgHeight ? svgHeight - 40 : imageHeight;
+        const width = height === svgHeight - 40 ? (svgHeight - 40) * aspectRatio : imageWidth;
 
-  // private saveAsSvg(svgNode): string {
-  //   svgNode.setAttribute('xlink', 'http://www.w3.org/1999/xlink');
+        let x = (imageWidth - width) * (imageSrc.x || 0);
+        let y = (imageHeight - height) * (imageSrc.y || 0);
 
-  //   // Set width and height for svg element
-  //   svgNode.setAttribute('width', Number(this.selection.style('width').replace('px', '')));
-  //   svgNode.setAttribute('height', Number(this.selection.style('height').replace('px', '')));
+        if (x < 0) {
+          x = 0;
+        }
+        if (y < 0) {
+          y = 0;
+        }
 
-  //   const serializer = new XMLSerializer();
-  //   let svgString = serializer.serializeToString(svgNode);
-  //   svgString = svgString.replace(/(\w+)?:?xlink=/g, 'xmlns:xlink='); // Fix root xlink without namespace
-  //   svgString = svgString.replace(/NS\d+:href/g, 'xlink:href');
-  //   return svgString;
-  // }
-
-  // private download(url: string, name: string): void {
-  //   const link = document.createElement('a');
-  //   link.href = url;
-  //   link.setAttribute('visibility', 'hidden');
-  //   link.download = name || 'new white-board';
-  //   document.body.appendChild(link);
-  //   link.click();
-  // }
-
-  private _handleKeyDown(event: any): void {
-    if (event.ctrlKey || event.metaKey) {
-      if (event.keyCode === 90) {
-        event.preventDefault();
-        this.undoDraw();
+        const element = this._generateNewElement(ElementTypeEnum.IMAGE);
+        element.value = imageSrc.image as string;
+        element.width = width;
+        element.height = height;
+        element.x = x;
+        element.y = y;
+        this._pushToData(element);
+      };
+      tempImg.src = imageSrc.image as string;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  // Handle Text tool
+  handleTextTool() {
+    let target: SVGGraphicsElement = event.sourceEvent.target;
+    if (target instanceof SVGTextElement) {
+      // clicked on a previous text
+      if (this.tempTextElement) {
+        // finish the current one if needed
+        this.finishTextInput();
       }
-      if (event.keyCode === 89) {
-        event.preventDefault();
-        this.redoDraw();
+      while (!target.classList.contains('wb_element')) {
+        target = target.parentNode as SVGGraphicsElement;
       }
-      if (event.keyCode === 83 || event.keyCode === 115) {
-        event.preventDefault();
-        // this.saveSvg();
+      const selectedElementId = target.getAttribute('data-wb-id');
+      this.tempTextElement = this.data.find((el) => el.id === selectedElementId);
+      const value = this.tempTextElement.value;
+      this.tempTextElement.value = '';
+      const coords = [this.tempTextElement.x, this.tempTextElement.y];
+      this.openTextInput(coords, value);
+    } else {
+      // click was not on a previous text
+      if (!this.tempTextElement) {
+        // no active text input
+        const element = this._generateNewElement(ElementTypeEnum.TEXT);
+        const [x, y] = mouse(this.selection.node());
+        element.value = '';
+        element.x = x;
+        element.y = y;
+        this.tempTextElement = element;
+        this._pushToData(element);
+        this.openTextInput([x, y]);
+      } else {
+        // active text input
+        this.finishTextInput();
       }
     }
+  }
+  // Handle Select tool
+  handleStartSelect() {
+    const currentElement = this.getMouseTarget();
+    if (currentElement.tagName !== 'svg') {
+      const selectedElementId = currentElement.getAttribute('data-wb-id');
+      this.selectedElement = this.data.find((el) => el.id === selectedElementId);
+      console.log(this.selectedElement);
+      console.log(currentElement.getBoundingClientRect());
+      this.currentBBox = currentElement.getBoundingClientRect();
+      console.log(this.currentBBox);
+    }
+  }
+
+  openTextInput(coords, value = '') {
+    this.textInput.nativeElement.setAttribute('style', `left: ${coords[0]}px; top: ${coords[1]}px;`);
+    this.textInput.nativeElement.value = value;
+    this.textInput.nativeElement.focus();
+  }
+
+  dismissTextInput() {
+    // clear the input and hide it
+    this.textInput.nativeElement.value = '';
+    this.textInput.nativeElement.setAttribute('style', 'display: none;');
+  }
+
+  // convert the value of this.textInput.nativeElement to an SVG text node, unless it's empty,
+  // and then dismiss this.textInput.nativeElement
+  finishTextInput() {
+    var value = this.textInput.nativeElement.value;
+    if (value != '') {
+      this.tempTextElement.value = value;
+      this.tempTextElement = null;
+    }
+    this.dismissTextInput();
+  }
+
+  getMouseTarget(): SVGGraphicsElement {
+    let mouse_target = event.sourceEvent.target;
+    if (mouse_target == null) {
+      return null;
+    }
+    var svgns = 'http://www.w3.org/2000/svg',
+      xlinkns = 'http://www.w3.org/1999/xlink',
+      xmlns = 'http://www.w3.org/XML/1998/namespace',
+      xmlnsns = 'http://www.w3.org/2000/xmlns/', // see http://www.w3.org/TR/REC-xml-names/#xmlReserved
+      se_ns = 'http://svg-edit.googlecode.com',
+      htmlns = 'http://www.w3.org/1999/xhtml',
+      mathns = 'http://www.w3.org/1998/Math/MathML';
+
+    // if it was a <use>, Opera and WebKit return the SVGElementInstance
+    if (mouse_target.correspondingUseElement) mouse_target = mouse_target.correspondingUseElement;
+
+    // for foreign content, go up until we find the foreignObject
+    // WebKit browsers set the mouse target to the svgcanvas div
+    if ([mathns, htmlns].indexOf(mouse_target.namespaceURI) >= 0 && mouse_target.id != 'svgcanvas') {
+      while (mouse_target.nodeName != 'foreignObject') {
+        mouse_target = mouse_target.parentNode;
+        if (!mouse_target) return this.svgContainer.nativeElement as SVGGraphicsElement;
+      }
+    }
+
+    // If it's root-like, select the root
+    if (['svgroot', 'svgcontent', 'elementsGroup'].indexOf(mouse_target.id) >= 0) {
+      return this.svgContainer.nativeElement as SVGGraphicsElement;
+    }
+
+    while (mouse_target.parentNode && mouse_target.parentNode.id !== ('elementsGroup' || 'svgroot')) {
+      mouse_target = mouse_target.parentNode;
+    }
+
+    // go up until we hit a child of a layer
+    while (mouse_target.parentNode.parentNode.tagName == 'g') {
+      mouse_target = mouse_target.parentNode;
+    }
+    // Webkit bubbles the mouse event all the way up to the div, so we
+    // set the mouse_target to the svgroot like the other browsers
+    if (mouse_target.nodeName.toLowerCase() == 'div') {
+      mouse_target = this.svgContainer.nativeElement;
+    }
+
+    return mouse_target;
+  }
+
+  getZoom() {
+    return this.zoom;
+  }
+
+  setZoom(zoom: number) {
+    this.zoom = zoom;
+    this.zoomChanged.emit(zoom);
+  }
+
+  private _pushToData(element: WhiteboardData) {
+    this.data.push(element);
+  }
+  private _pushToUndo() {
+    this.undoStack.push(JSON.parse(JSON.stringify(this.data)));
+  }
+
+  private _generateNewElement(name: ElementTypeEnum): WhiteboardData {
+    const element = new WhiteboardData(name);
+    element.elementOptions = new ElementOptions(
+      this.fillColor,
+      this.strokeColor,
+      this.size,
+      this.lineJoin,
+      this.lineCap
+    );
+
+    return element;
+  }
+
+  private _calculateXAndY([x, y]: [number, number]): [number, number] {
+    return [(x - this.x) / this.zoom, (y - this.y) / this.zoom];
+  }
+
+  private _getSvgWidthHeight(): { svgWidth: number; svgHeight: number } {
+    const svgWidth = parseInt(this.selection.style('width'), 10);
+    const svgHeight = parseInt(this.selection.style('height'), 10);
+    return { svgWidth, svgHeight };
   }
 
   private _unsubscribe(subscription: Subscription): void {

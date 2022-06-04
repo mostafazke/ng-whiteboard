@@ -1,133 +1,258 @@
-<svg
-  xmlns="http://www.w3.org/2000/svg"
-  #svgContainer
-  id="svgContainer"
-  preserveAspectRatio="xMinYMin slice"
-  [style.background-color]="backgroundColor"
-  [class]="selectedTool"
->
-  <g *ngFor="let item of _data">
-    <g
-      class="wb_element"
-      [id]="item.id"
-      [ngSwitch]="item.elementName"
-      [attr.transform]="'translate(' + item.x + ',' + item.y + ')'"
-      (click)="handleSelect(item.id)"
-    >
-      <g *ngSwitchCase="types.FREE_HAND">
+<svg [class]="'svgroot ' + selectedTool" #svgContainer id="svgroot" xlinkns="http://www.w3.org/1999/xlink">
+  <svg
+    id="canvasBackground"
+    [attr.width]="canvasWidth * zoom"
+    [attr.height]="canvasHeight * zoom"
+    [attr.x]="x"
+    [attr.y]="y"
+    style="pointer-events: none;"
+  >
+    <defs id="placeholder_defs"></defs>
+    <rect
+      width="100%"
+      height="100%"
+      x="0"
+      y="0"
+      stroke-width="0"
+      stroke="transparent"
+      [attr.fill]="backgroundColor"
+      style="pointer-events: none;"
+    ></rect>
+  </svg>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    [attr.width]="canvasWidth * zoom"
+    [attr.height]="canvasHeight * zoom"
+    [attr.viewBox]="[0, 0, canvasWidth, canvasHeight]"
+    id="svgcontent"
+    [attr.x]="x"
+    [attr.y]="y"
+  >
+    <defs></defs>
+    <g style="pointer-events: all;">
+      <title style="pointer-events: inherit;">Layer 1</title>
+      <ng-container *ngFor="let item of data">
+        <g
+          class="wb_element"
+          [id]="'item_' + item.id"
+          [attr.data-wb-id]="item.id"
+          [ngSwitch]="item.elementName"
+          [attr.transform]="'translate(' + (item.x) + ',' + (item.y) + ')'"
+        >
+          <g *ngSwitchCase="types.BRUSH">
+            <path
+              class="line"
+              [style]="
+                'fill: none; ' +
+                'stroke:' +
+                item.elementOptions.stroke +
+                ';' +
+                'stroke-width:' +
+                item.elementOptions.size +
+                ';' +
+                'stroke-linejoin:' +
+                item.elementOptions.lineJoin +
+                ';' +
+                'stroke-linecap:' +
+                item.elementOptions.lineCap +
+                ';'
+              "
+              [attr.d]="item.value"
+            ></path>
+          </g>
+          <g *ngSwitchCase="types.IMAGE">
+            <g>
+              <image
+                [attr.height]="item.height"
+                [attr.width]="item.width"
+                preserveAspectRatio="none"
+                [attr.xlink:href]="item.value"
+              ></image>
+              <g class="handlers">
+                <ellipse rx="9" ry="9" cx="0" cy="0" fill="#29b6f2" pointer-events="all"></ellipse>
+                <ellipse rx="9" ry="9" [attr.cx]="item.width" cy="0" fill="#29b6f2" pointer-events="all"></ellipse>
+                <ellipse rx="9" ry="9" cx="0" [attr.cy]="item.height" fill="#29b6f2" pointer-events="all"></ellipse>
+                <ellipse
+                  rx="9"
+                  ry="9"
+                  [attr.cx]="item.width"
+                  [attr.cy]="item.height"
+                  fill="#29b6f2"
+                  pointer-events="all"
+                ></ellipse>
+
+                <!-- <rect x="0" y="0" width="9" height="9" fill="#cccccc" style="opacity: 0;"></rect> -->
+              </g>
+            </g>
+          </g>
+          <g *ngSwitchCase="types.TEXT">
+            <text
+              [attr.fill]="item.elementOptions.color"
+              class="text_element"
+              stroke="#000"
+              stroke-width="0"
+              [attr.font-size]="item.elementOptions.size + 10"
+              font-family="Noto Sans JP"
+              text-anchor="start"
+              xml:space="preserve"
+              style="cursor: text;"
+            >
+              {{ item.value }}
+            </text>
+          </g>
+          <g *ngSwitchDefault>output2</g>
+        </g>
+      </ng-container>
+      <g class="temp-line" *ngIf="tempElement">
         <path
           class="line"
           [style]="
             'fill: none; ' +
             'stroke:' +
-            item.elementOptions.stroke +
+            tempElement.elementOptions.stroke +
             ';' +
             'stroke-width:' +
-            item.elementOptions.size +
+            tempElement.elementOptions.size +
             ';' +
             'stroke-linejoin:' +
-            item.elementOptions.lineJoin +
+            tempElement.elementOptions.lineJoin +
             ';' +
             'stroke-linecap:' +
-            item.elementOptions.lineCap +
+            tempElement.elementOptions.lineCap +
             ';'
           "
-          [attr.d]="item.value"
+          [attr.d]="tempElement.value"
         ></path>
       </g>
-      <g *ngSwitchCase="types.IMAGE">
-        <g>
-          <image
-            [attr.height]="item.height"
-            [attr.width]="item.width"
-            preserveAspectRatio="none"
-            [attr.xlink:href]="item.value"
-          ></image>
-          <g class="handlers">
-            <ellipse rx="9" ry="9" cx="0" cy="0" fill="#29b6f2" pointer-events="all"></ellipse>
-            <ellipse rx="9" ry="9" [attr.cx]="item.width" cy="0" fill="#29b6f2" pointer-events="all"></ellipse>
-            <ellipse rx="9" ry="9" cx="0" [attr.cy]="item.height" fill="#29b6f2" pointer-events="all"></ellipse>
-            <ellipse
-              rx="9"
-              ry="9"
-              [attr.cx]="item.width"
-              [attr.cy]="item.height"
-              fill="#29b6f2"
-              pointer-events="all"
-            ></ellipse>
-
-            <!-- <rect x="0" y="0" width="9" height="9" fill="#cccccc" style="opacity: 0;"></rect> -->
-          </g>
-        </g>
-      </g>
-      <g *ngSwitchCase="types.TEXT">
-        <g>
-          <text
-            class="text"
-            [attr.fill]="item.elementOptions.color"
-            [attr.font-size]="item.elementOptions.size + 10 + 'px'"
-            font-family=""
-            [contentEditable]
-          >
-            {{ item.value }}
-          </text>
-          <g>
-            <!-- <ellipse rx="9" ry="9" cx="0" cy="0" fill="#29b6f2" pointer-events="all"></ellipse> -->
-            <!-- <ellipse rx="9" ry="9" [attr.cx]="item.shape.width" cy="0" fill="#29b6f2" pointer-events="all"></ellipse> -->
-            <!-- <ellipse rx="9" ry="9" cx="0" [attr.cy]="item.shape.height" fill="#29b6f2" pointer-events="all"></ellipse> -->
-            <!-- <ellipse rx="9" ry="9" [attr.cx]="item.shape.width" [attr.cy]="item.shape.height" fill="#29b6f2" pointer-events="all"></ellipse> -->
-          </g>
-        </g>
-      </g>
-      <g *ngSwitchDefault>output2</g>
     </g>
-    <!-- <g class="wb_resizer" *ngIf="item.id === selectedElementId" x="10" y="10">
-      <line x1="0" y1="0" x2="100%" y2="0" stroke="#808080" stroke-width="1" stroke-dasharray="5,5" />
-      <line x1="0" y1="100%" x2="100%" y2="100%" stroke="#808080" stroke-width="1" stroke-dasharray="5,5" />
-      <line x1="0" y1="0" x2="0" y2="100%" stroke="#808080" stroke-width="1" stroke-dasharray="5,5" />
-      <line x1="100%" y1="0" x2="100%" y2="100%" stroke="#808080" stroke-width="1" stroke-dasharray="5,5" />
-      <circle cx="0" cy="0" r="3" stroke="#0000FF" stroke-width="1" fill="#CCCCFF" />
-      <circle cx="100%" cy="0" r="3" stroke="#0000FF" stroke-width="1" fill="#CCCCFF" />
-      <circle cx="0" cy="100%" r="3" stroke="#0000FF" stroke-width="1" fill="#CCCCFF" />
-      <circle cx="100%" cy="100%" r="3" stroke="#0000FF" stroke-width="1" fill="#CCCCFF" />
-
-      <line x1="0" y1="0" x2="100%" y2="0" stroke="#000" stroke-width="5" opacity="0" />
-      <line x1="0" y1="100%" x2="100%" y2="100%" stroke="#000" stroke-width="5" opacity="0" />
-      <line x1="0" y1="0" x2="0" y2="100%" stroke="#000" stroke-width="5" opacity="0" />
-      <line x1="100%" y1="0" x2="100%" y2="100%" stroke="#000" stroke-width="5" opacity="0" />
-      <circle cx="0" cy="0" r="8" stroke="#000" stroke-width="0" fill="#000" opacity="0" />
-      <circle cx="100%" cy="0" r="8" stroke="#000" stroke-width="0" fill="#000" opacity="0" />
-      <circle cx="0" cy="100%" r="8" stroke="#000" stroke-width="0" fill="#000" opacity="0" />
-      <circle cx="100%" cy="100%" r="8" stroke="#000" stroke-width="0" fill="#000" opacity="0" />
-
-      <rect x="0" y="0" width="100%" height="100%" fill-opacity="0.5" opacity="0" />
-    </g> -->
+    <defs></defs>
+  </svg>
+  <g id="selectorParentGroup" transform="translate(444,300)">
+    <g display="none">
+      <circle
+        id="selectorGrip_rotate_nw"
+        fill="#000"
+        r="8"
+        stroke="#000"
+        fill-opacity="0"
+        stroke-opacity="0"
+        stroke-width="0"
+        style="cursor: url(images/rotate.png) 12 12, auto;"
+      ></circle>
+      <circle
+        id="selectorGrip_rotate_ne"
+        fill="#000"
+        r="8"
+        stroke="#000"
+        fill-opacity="0"
+        stroke-opacity="0"
+        stroke-width="0"
+        style="cursor: url(images/rotate.png) 12 12, auto;"
+      ></circle>
+      <circle
+        id="selectorGrip_rotate_se"
+        fill="#000"
+        r="8"
+        stroke="#000"
+        fill-opacity="0"
+        stroke-opacity="0"
+        stroke-width="0"
+        style="cursor: url(images/rotate.png) 12 12, auto;"
+      ></circle>
+      <circle
+        id="selectorGrip_rotate_sw"
+        fill="#000"
+        r="8"
+        stroke="#000"
+        fill-opacity="0"
+        stroke-opacity="0"
+        stroke-width="0"
+        style="cursor: url(images/rotate.png) 12 12, auto;"
+      ></circle>
+      <rect
+        id="selectorGrip_resize_nw"
+        width="8"
+        height="8"
+        fill="#4F80FF"
+        stroke="rgba(0,0,0,0)"
+        style="cursor: nw-resize;"
+        pointer-events="all"
+      ></rect>
+      <rect
+        id="selectorGrip_resize_n"
+        width="8"
+        height="8"
+        fill="#4F80FF"
+        stroke="rgba(0,0,0,0)"
+        style="cursor: n-resize;"
+        pointer-events="all"
+      ></rect>
+      <rect
+        id="selectorGrip_resize_ne"
+        width="8"
+        height="8"
+        fill="#4F80FF"
+        stroke="rgba(0,0,0,0)"
+        style="cursor: ne-resize;"
+        pointer-events="all"
+      ></rect>
+      <rect
+        id="selectorGrip_resize_e"
+        width="8"
+        height="8"
+        fill="#4F80FF"
+        stroke="rgba(0,0,0,0)"
+        style="cursor: e-resize;"
+        pointer-events="all"
+      ></rect>
+      <rect
+        id="selectorGrip_resize_se"
+        width="8"
+        height="8"
+        fill="#4F80FF"
+        stroke="rgba(0,0,0,0)"
+        style="cursor: se-resize;"
+        pointer-events="all"
+      ></rect>
+      <rect
+        id="selectorGrip_resize_s"
+        width="8"
+        height="8"
+        fill="#4F80FF"
+        stroke="rgba(0,0,0,0)"
+        style="cursor: s-resize;"
+        pointer-events="all"
+      ></rect>
+      <rect
+        id="selectorGrip_resize_sw"
+        width="8"
+        height="8"
+        fill="#4F80FF"
+        stroke="rgba(0,0,0,0)"
+        style="cursor: sw-resize;"
+        pointer-events="all"
+      ></rect>
+      <rect
+        id="selectorGrip_resize_w"
+        width="8"
+        height="8"
+        fill="#4F80FF"
+        stroke="rgba(0,0,0,0)"
+        style="cursor: w-resize;"
+        pointer-events="all"
+      ></rect>
+    </g>
+    <rect
+      id="selectorRubberBand"
+      fill="none"
+      stroke="#666"
+      stroke-dasharray="3,2"
+      display="none"
+      style="pointer-events: none;"
+    ></rect>
   </g>
-
-  <!-- <g class="temp-line">
-    <path
-      class="line"
-      [style]="
-        'fill: none;' +
-        'stroke:' +
-        color +
-        ';' +
-        'stroke-width:' +
-        size +
-        ';' +
-        'stroke-linejoin:' +
-        lineJoin +
-        ';' +
-        'stroke-linecap:' +
-        lineCap +
-        ';'
-      "
-      style="fill: none; stroke: rgb(51, 51, 51); stroke-linecap: round; stroke-linejoin: round; stroke-width: 5;"
-      [attr.d]="tempLine"
-    ></path>
-  </g> -->
 </svg>
-
+<input #textInput type="text" class="text-input" style="display: none;" />
 <!-- <svg
 
   #svgElement

@@ -1,4 +1,4 @@
-<a
+<!-- <a
   href="https://github.com/mostafazke/ng-whiteboard"
   target="_blank"
   class="github-corner"
@@ -48,23 +48,25 @@
       animation: octocat-wave 560ms ease-in-out;
     }
   }
-</style>
+</style> -->
 <div class="white-board">
-  <ng-whiteboard
-    [data]="data"
-    [strokeColor]="color"
-    [backgroundColor]="backgroundColor"
-    [size]="size"
-    [selectedTool]="selectedTool"
-    (init)="onInit()"
-    (clear)="onClear()"
-    (imageAdded)="onImageAded()"
-    (redo)="onRedo()"
-    (undo)="onUndo()"
-    (save)="onSave($event)"
-  ></ng-whiteboard>
+  <ng-whiteboard-editor>
+    <ng-whiteboard
+      [data]="data"
+      [strokeColor]="color"
+      [backgroundColor]="backgroundColor"
+      [size]="size"
+      [selectedTool]="selectedTool"
+      (init)="onInit()"
+      (clear)="onClear()"
+      (imageAdded)="onImageAded()"
+      (redo)="onRedo()"
+      (undo)="onUndo()"
+      (save)="onSave($event)"
+    ></ng-whiteboard>
+  </ng-whiteboard-editor>
 </div>
-<div class="tools">
+<!-- <div class="tools">
   <div class="size-dropdown">
     <button (click)="$event.preventDefault(); $event.stopPropagation(); isSaveActive = !isSaveActive">Save as</button>
     <ul class="dropdown" [ngClass]="{ active: isSaveActive }">
@@ -112,9 +114,9 @@
       <li class="dropdown-item" (click)="toggle(toolsEnum.BRUSH)">BRUSH</li>
       <li class="dropdown-item" (click)="toggle(toolsEnum.SELECT)">SELECT</li>
       <li class="dropdown-item" (click)="toggle(toolsEnum.TEXT)">TEXT</li>
-      <li class="dropdown-item" (click)="toggle(toolsEnum.HAND)">HAND</li>
-      <li class="dropdown-item" (click)="toggle(toolsEnum.IMAGE)">IMAGE</li>
-      <li class="dropdown-item" (click)="toggle(toolsEnum.SHAPE)">SHAPE</li>
+      <li class="dropdown-item" (click)="toggle(toolsEnum.HAND)">HAND</li> -->
+      <!-- <li class="dropdown-item" (click)="toggle(toolsEnum.IMAGE)">IMAGE</li> -->
+      <!-- <li class="dropdown-item" (click)="toggle(toolsEnum.SHAPE)">SHAPE</li>
       <li class="dropdown-item" (click)="toggle(toolsEnum.ERASER)">ERASER</li>
     </ul>
   </div>
@@ -147,5 +149,6 @@
 </div>
 
 <div>
-  {{ data | json }}
 </div>
+-->
+<!-- {{ data | json }} -->

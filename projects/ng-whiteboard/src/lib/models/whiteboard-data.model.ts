@@ -27,7 +27,7 @@ export class WhiteboardData {
     this.id = `element_${this.elementName}_${Math.floor(Math.random() * 100)}`;
     this.width = width;
     this.height = height;
-    this.x = x;
-    this.y = y;
+    this.x = x || 0;
+    this.y = y || 0;
   }
 }

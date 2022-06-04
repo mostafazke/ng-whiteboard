@@ -5,7 +5,7 @@
   min-height: inherit;
   max-width: inherit;
   max-height: inherit;
-  svg {
+  .svgroot {
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
@@ -83,4 +83,7 @@
 
 .insideforeign {
   display: inline-block;
+}
+.text-input {
+  position: absolute;
 }

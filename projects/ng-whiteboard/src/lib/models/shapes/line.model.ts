@@ -11,6 +11,6 @@ export class LineShape extends Shape {
     x?: number,
     y?: number
   ) {
-    super(ElementTypeEnum.FREE_HAND, src, x, y);
+    super(ElementTypeEnum.BRUSH, src, x, y);
   }
 }

@@ -1,5 +1,5 @@
 export enum ElementTypeEnum {
-  FREE_HAND = 'FREE_HAND',
+  BRUSH = 'BRUSH',
   IMAGE = 'IMAGE',
   TEXT = 'TEXT',
   SHAPE = 'SHAPE',
