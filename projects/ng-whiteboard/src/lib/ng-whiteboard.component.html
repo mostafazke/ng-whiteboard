@@ -131,15 +131,15 @@
           </g>
           <g *ngSwitchCase="types.TEXT">
             <text
-              [attr.fill]="item.elementOptions.color"
               class="text_element"
-              stroke="#000"
+              [attr.fill]="item.elementOptions.color"
+              stroke="#0f0f00"
               stroke-width="0"
+              stroke-dasharray="5,5"
               [attr.font-size]="item.elementOptions.size + 10"
-              font-family="Noto Sans JP"
+              [attr.font-family]="defaultFont"
               text-anchor="start"
               xml:space="preserve"
-              style="cursor: text;"
             >
               {{ item.value }}
             </text>
@@ -171,210 +171,33 @@
     </g>
     <defs></defs>
   </svg>
-  <g id="selectorParentGroup" transform="translate(444,300)">
-    <g display="none">
-      <circle
-        id="selectorGrip_rotate_nw"
-        fill="#000"
-        r="8"
-        stroke="#000"
-        fill-opacity="0"
-        stroke-opacity="0"
-        stroke-width="0"
-        style="cursor: url(images/rotate.png) 12 12, auto;"
-      ></circle>
-      <circle
-        id="selectorGrip_rotate_ne"
-        fill="#000"
-        r="8"
-        stroke="#000"
-        fill-opacity="0"
-        stroke-opacity="0"
-        stroke-width="0"
-        style="cursor: url(images/rotate.png) 12 12, auto;"
-      ></circle>
-      <circle
-        id="selectorGrip_rotate_se"
-        fill="#000"
-        r="8"
-        stroke="#000"
-        fill-opacity="0"
-        stroke-opacity="0"
-        stroke-width="0"
-        style="cursor: url(images/rotate.png) 12 12, auto;"
-      ></circle>
-      <circle
-        id="selectorGrip_rotate_sw"
-        fill="#000"
-        r="8"
-        stroke="#000"
-        fill-opacity="0"
-        stroke-opacity="0"
-        stroke-width="0"
-        style="cursor: url(images/rotate.png) 12 12, auto;"
-      ></circle>
-      <rect
-        id="selectorGrip_resize_nw"
-        width="8"
-        height="8"
-        fill="#4F80FF"
-        stroke="rgba(0,0,0,0)"
-        style="cursor: nw-resize;"
-        pointer-events="all"
-      ></rect>
-      <rect
-        id="selectorGrip_resize_n"
-        width="8"
-        height="8"
-        fill="#4F80FF"
-        stroke="rgba(0,0,0,0)"
-        style="cursor: n-resize;"
-        pointer-events="all"
-      ></rect>
-      <rect
-        id="selectorGrip_resize_ne"
-        width="8"
-        height="8"
-        fill="#4F80FF"
-        stroke="rgba(0,0,0,0)"
-        style="cursor: ne-resize;"
-        pointer-events="all"
-      ></rect>
-      <rect
-        id="selectorGrip_resize_e"
-        width="8"
-        height="8"
-        fill="#4F80FF"
-        stroke="rgba(0,0,0,0)"
-        style="cursor: e-resize;"
-        pointer-events="all"
-      ></rect>
-      <rect
-        id="selectorGrip_resize_se"
-        width="8"
-        height="8"
-        fill="#4F80FF"
-        stroke="rgba(0,0,0,0)"
-        style="cursor: se-resize;"
-        pointer-events="all"
-      ></rect>
-      <rect
-        id="selectorGrip_resize_s"
-        width="8"
-        height="8"
-        fill="#4F80FF"
-        stroke="rgba(0,0,0,0)"
-        style="cursor: s-resize;"
-        pointer-events="all"
-      ></rect>
-      <rect
-        id="selectorGrip_resize_sw"
-        width="8"
-        height="8"
-        fill="#4F80FF"
-        stroke="rgba(0,0,0,0)"
-        style="cursor: sw-resize;"
-        pointer-events="all"
-      ></rect>
-      <rect
-        id="selectorGrip_resize_w"
-        width="8"
-        height="8"
-        fill="#4F80FF"
-        stroke="rgba(0,0,0,0)"
-        style="cursor: w-resize;"
-        pointer-events="all"
-      ></rect>
+  <g id="selectorParentGroup" [attr.transform]="'translate(' + x + ',' + y + ')'">
+    <rect id="selectorRubberBand" fill="none" stroke="#666" stroke-dasharray="3,2" display="none" style="pointer-events:none" x="-134" y="14" width="820" height="654"></rect>
+    <g id="selectorGroup0" transform="" [style.display]="rubberBox.display">
+      <rect id="selectedBox0" fill="none" stroke="#4F80FF" shape-rendering="crispEdges" style="pointer-events:none" [attr.x]="rubberBox.x" [attr.y]="rubberBox.y" [attr.width]="rubberBox.width" [attr.height]="rubberBox.height"></rect>
+      <g display="inline">
+        <circle class="selector_rotate" id="selectorGrip_rotate_nw" fill="#000" r="8" stroke="#000" fill-opacity="0" stroke-opacity="0" stroke-width="0" [attr.cx]="rubberBox.x - 4" [attr.cy]="rubberBox.y - 4"></circle>
+        <circle class="selector_rotate" id="selectorGrip_rotate_ne" fill="#000" r="8" stroke="#000" fill-opacity="0" stroke-opacity="0" stroke-width="0" [attr.cx]="rubberBox.x + rubberBox.width + 4" [attr.cy]="rubberBox.y - 4"></circle>
+        <circle class="selector_rotate" id="selectorGrip_rotate_se" fill="#000" r="8" stroke="#000" fill-opacity="0" stroke-opacity="0" stroke-width="0" [attr.cx]="rubberBox.x + rubberBox.width + 4" [attr.cy]="rubberBox.y + rubberBox.height + 4"></circle>
+        <circle class="selector_rotate" id="selectorGrip_rotate_sw" fill="#000" r="8" stroke="#000" fill-opacity="0" stroke-opacity="0" stroke-width="0" [attr.cx]="rubberBox.x - 4" [attr.cy]="rubberBox.y + rubberBox.height + 4"></circle>
+        <rect id="selectorGrip_resize_nw" width="8" height="8" fill="#4F80FF" stroke="rgba(0,0,0,0)" style="cursor:nw-resize" pointer-events="all" [attr.x]="rubberBox.x - 4" [attr.y]="rubberBox.y- 4"></rect>
+        <rect id="selectorGrip_resize_n" width="8" height="8" fill="#4F80FF" stroke="rgba(0,0,0,0)" style="cursor:n-resize" pointer-events="all" [attr.x]="rubberBox.x + (rubberBox.width / 2) - 4" [attr.y]="rubberBox.y - 4"></rect>
+        <rect id="selectorGrip_resize_ne" width="8" height="8" fill="#4F80FF" stroke="rgba(0,0,0,0)" style="cursor:ne-resize" pointer-events="all" [attr.x]="rubberBox.x + rubberBox.width - 4" [attr.y]="rubberBox.y - 4"></rect>
+        <rect id="selectorGrip_resize_e" width="8" height="8" fill="#4F80FF" stroke="rgba(0,0,0,0)" style="cursor:e-resize" pointer-events="all" [attr.x]="rubberBox.x + rubberBox.width - 4" [attr.y]="rubberBox.y + (rubberBox.height / 2) - 4"></rect>
+        <rect id="selectorGrip_resize_se" width="8" height="8" fill="#4F80FF" stroke="rgba(0,0,0,0)" style="cursor:se-resize" pointer-events="all" [attr.x]="rubberBox.x + rubberBox.width - 4" [attr.y]="rubberBox.y + rubberBox.height - 4"></rect>
+        <rect id="selectorGrip_resize_s" width="8" height="8" fill="#4F80FF" stroke="rgba(0,0,0,0)" style="cursor:s-resize" pointer-events="all" [attr.x]="rubberBox.x + (rubberBox.width / 2) - 4" [attr.y]="rubberBox.y + rubberBox.height - 4"></rect>
+        <rect id="selectorGrip_resize_sw" width="8" height="8" fill="#4F80FF" stroke="rgba(0,0,0,0)" style="cursor:sw-resize" pointer-events="all" [attr.x]="rubberBox.x - 4" [attr.y]="rubberBox.y + rubberBox.height - 4"></rect>
+        <rect id="selectorGrip_resize_w" width="8" height="8" fill="#4F80FF" stroke="rgba(0,0,0,0)" style="cursor:w-resize" pointer-events="all" [attr.x]="rubberBox.x - 4" [attr.y]="rubberBox.y + (rubberBox.height / 2) - 4"></rect>
+      </g>
     </g>
-    <rect
-      id="selectorRubberBand"
-      fill="none"
-      stroke="#666"
-      stroke-dasharray="3,2"
-      display="none"
-      style="pointer-events: none;"
-    ></rect>
-  </g>
+    <g id="selectorGroup1" transform="" display="none">
+      <path id="selectedBox1" fill="none" stroke="#4F80FF" shape-rendering="crispEdges" style="pointer-events:none" d="M508,282 L625.984375,282 625.984375,314 508,314z"></path>
+    </g>
+    <g id="selectorGroup2" transform="" display="none">
+        <path id="selectedBox2" fill="none" stroke="#4F80FF" shape-rendering="crispEdges" style="pointer-events:none" d="M205,269 L243.3046875,269 243.3046875,301 205,301z"></path>
+      </g>
+    </g>
 </svg>
-<input #textInput type="text" class="text-input" style="display: none;" />
-<!-- <svg
-
-  #svgElement
-
-  [ngClass]="{ draw: true }"
->
-  <ng-container *ngFor="let el of elements">
-    <ng-container [ngSwitch]="el.type">
-      <ng-container *ngSwitchCase="tool.Pin">
-        <svg:path
-          class="line"
-          [style]="
-            'fill: none; ' +
-            'stroke:' +
-            el.color +
-            ';' +
-            'stroke-width:' +
-            el.lineSize +
-            ';' +
-            'stroke-linejoin:' +
-            el.linejoin +
-            ';' +
-            ' stroke-linecap:' +
-            el.linecap +
-            ';'
-          "
-          [attr.d]="el.data"
-        ></svg:path>
-      </ng-container>
-    </ng-container>
-  </ng-container>
-
-  <ng-container [ngTemplateOutlet]="line" *ngIf="templine"></ng-container>
-
-  <rect *ngIf="withGrid" width="100%" height="100%" fill="url(#grid)" />
-
-
-  <defs>
-    <pattern id="smallGrid" width="10" height="10" patternUnits="userSpaceOnUse">
-      <path d="M 10 0 L 0 0 0 10" fill="none" stroke="gray" stroke-width="0.5"/>
-    </pattern>
-    <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
-      <rect width="100" height="100" fill="url(#smallGrid)"/>
-      <path d="M 100 0 L 0 0 0 100" fill="none" stroke="gray" stroke-width="1"/>
-    </pattern>
-  </defs>
-</svg> -->
-<!-- [attr.viewBox]="'' +viewBoxX + ' ' + viewBoxY + ' ' + width * zoomLevels[zoom] + ' ' + (width * zoomLevels[zoom]) / 2" -->
-
-<!--
-  on:mousedown|preventDefault={mouseDown}
-on:touchstart|preventDefault={mouseDown}
-on:mousemove|preventDefault={drag}
-on:tounchmove|preventDefault={drag}
-on:mouseup|preventDefault={mouseUp}
-on:mouseleave|preventDefault={mouseUp}
-on:touchend|preventDefault={mouseUp}
-
- -->
-
-<!-- <ng-template #line let-line="line">
-  <svg:path
-    class="line"
-    [style]="
-      'fill: none; ' +
-      'stroke:' +
-      line.color +
-      ';' +
-      'stroke-width:' +
-      line.lineSize +
-      ';' +
-      'stroke-linejoin:' +
-      line.linejoin +
-      ';' +
-      ' stroke-linecap:' +
-      line.linecap +
-      ';'
-    "
-    [attr.d]="line.src"
-  ></svg:path>
-</ng-template> -->
+<div [style]="'font-family:' + defaultFont + ';' + 'font-size:' + (size + 10) + 'px;'">
+  <input #textInput type="text" class="text-input" style="display: none;" />
+</div>

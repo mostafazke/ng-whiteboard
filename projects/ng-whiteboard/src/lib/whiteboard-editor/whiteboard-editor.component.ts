@@ -95,7 +95,7 @@ export class WhiteboardEditorComponent implements OnInit, AfterViewInit {
     let h = workarea.clientHeight;
     const w_orig = w,
       h_orig = h;
-    const zoom = this.whiteboard.getZoom();
+    const zoom = this.whiteboard.zoom;
 
     const multi = 2;
     w = Math.max(w_orig, dim.w * zoom * multi);
@@ -116,7 +116,7 @@ export class WhiteboardEditorComponent implements OnInit, AfterViewInit {
   updateSize(w: number, h: number) {
     this.whiteboard.canvasWidth = w;
     this.whiteboard.canvasHeight = h;
-    const current_zoom = this.whiteboard.getZoom();
+    const current_zoom = this.whiteboard.zoom;
     const contentW = this.outerWidth;
     const contentH = this.outerHeight;
     let x = contentW / 2 - (w * current_zoom) / 2;
@@ -130,13 +130,13 @@ export class WhiteboardEditorComponent implements OnInit, AfterViewInit {
   zoomWheel(e: WheelEvent) {
     if (e.altKey || e.ctrlKey) {
       e.preventDefault();
-      const zoom = this.whiteboard.getZoom() * 100;
+      const zoom = this.whiteboard.zoom * 100;
       this.setZoom(Math.trunc(zoom - (e.deltaY / 100) * (e.altKey ? 10 : 5)));
     }
   }
 
   setZoom(new_zoom: number) {
-    const old_zoom = this.whiteboard.getZoom();
+    const old_zoom = this.whiteboard.zoom;
     let zoomlevel = new_zoom / 100;
     if (zoomlevel < 0.001) {
       zoomlevel = 0.1;
@@ -155,13 +155,13 @@ export class WhiteboardEditorComponent implements OnInit, AfterViewInit {
       let progress = Date.now() - start;
       let tick = progress / duration;
       tick = Math.pow(tick - 1, 3) + 1;
-      this.whiteboard.setZoom(old_zoom + diff * tick);
+      this.whiteboard.zoom = old_zoom + diff * tick;
       this.updateSize(dim.w, dim.h);
 
       if (tick < 1 && tick > -0.9) {
         animatedZoom = requestAnimationFrame(animateZoom);
       } else {
-        this.whiteboard.setZoom(zoomlevel);
+        this.whiteboard.zoom = zoomlevel;
         this.updateSize(dim.w, dim.h);
       }
     };

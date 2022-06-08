@@ -35,7 +35,7 @@ const d3Line = line().curve(curveBasis);
   styleUrls: ['ng-whiteboard.component.scss'],
 })
 export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
-  @ViewChild('svgContainer', { static: false }) private svgContainer: ElementRef<ContainerElement>;
+  @ViewChild('svgContainer', { static: false }) private svgContainer: ElementRef<SVGGraphicsElement>;
   @ViewChild('textInput', { static: false }) private textInput: ElementRef<HTMLInputElement>;
   @Input() options: WhiteboardOptions;
 
@@ -48,11 +48,17 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     return this._data;
   }
 
+  private _zoom = 1;
+  @Input() set zoom(zoom: number) {
+    this._zoom = zoom;
+  }
+  get zoom(): number {
+    return this._zoom;
+  }
   @Input() selectedTool: ToolsEnum = ToolsEnum.BRUSH;
   @Input() aspectRatio: number;
   @Input() canvasWidth = 800;
   @Input() canvasHeight = 600;
-  @Input() zoom = 1;
   @Input() size = 2;
   @Input() color = '#000';
   @Input() strokeColor = '#000';
@@ -74,7 +80,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   // initStroke: {width: 1, color: '000', opacity: 1},
   // imgPath: 'images/',
   // baseUnit: 'px',
-  // defaultFont: "Noto Sans JP"
+  defaultFont = 'Noto Sans JP';
 
   @Output() onInit = new EventEmitter<any>();
   @Output() onClear = new EventEmitter<any>();
@@ -100,7 +106,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   tempTextElement: WhiteboardData;
 
   selectedElement: WhiteboardData;
-  selectedElements: WhiteboardData[];
+  selectedElements: WhiteboardData[] = [];
   currentBBox: { x: number; y: number; width: number; height: number };
 
   x: number = 0;
@@ -109,6 +115,13 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   width = 800;
   height = 600;
 
+  rubberBox = {
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+    display: 'none',
+  };
   constructor(private whiteboardService: NgWhiteboardService) {}
 
   ngOnInit(): void {
@@ -280,9 +293,11 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
       case ToolsEnum.RECT:
         this.handleDragRect();
         break;
-      case ToolsEnum.SELECT:
-        break;
       case ToolsEnum.TEXT:
+        this.handleTextDrag();
+        break;
+      case ToolsEnum.SELECT:
+        this.handleDragSelect();
         break;
       default:
         break;
@@ -299,9 +314,11 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
       case ToolsEnum.RECT:
         this.handleEndRect();
         break;
-      case ToolsEnum.SELECT:
-        break;
       case ToolsEnum.TEXT:
+        this.handleTextEnd();
+        break;
+      case ToolsEnum.SELECT:
+        this.handleEndSelect();
         break;
       default:
         break;
@@ -458,55 +475,77 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   }
   // Handle Text tool
   handleTextTool() {
-    let target: SVGGraphicsElement = event.sourceEvent.target;
-    if (target instanceof SVGTextElement) {
-      // clicked on a previous text
-      if (this.tempTextElement) {
-        // finish the current one if needed
-        this.finishTextInput();
-      }
-      while (!target.classList.contains('wb_element')) {
-        target = target.parentNode as SVGGraphicsElement;
-      }
-      const selectedElementId = target.getAttribute('data-wb-id');
-      this.tempTextElement = this.data.find((el) => el.id === selectedElementId);
-      const value = this.tempTextElement.value;
-      this.tempTextElement.value = '';
-      const coords = [this.tempTextElement.x, this.tempTextElement.y];
-      this.openTextInput(coords, value);
-    } else {
-      // click was not on a previous text
-      if (!this.tempTextElement) {
-        // no active text input
-        const element = this._generateNewElement(ElementTypeEnum.TEXT);
-        const [x, y] = mouse(this.selection.node());
-        element.value = '';
-        element.x = x;
-        element.y = y;
-        this.tempTextElement = element;
-        this._pushToData(element);
-        this.openTextInput([x, y]);
-      } else {
-        // active text input
-        this.finishTextInput();
-      }
+    if (this.tempTextElement) {
+      // finish the current one if needed
+      this.finishTextInput();
+      return;
     }
+    const element = this._generateNewElement(ElementTypeEnum.TEXT);
+    const [x, y] = this._calculateXAndY(mouse(this.selection.node()));
+    element.x = x;
+    element.y = y;
+    this.tempTextElement = element;
+    this._pushToData(this.tempTextElement);
+  }
+  handleTextDrag() {
+    const [x, y] = this._calculateXAndY(mouse(this.selection.node()));
+    this.tempTextElement.x = x;
+    this.tempTextElement.y = y;
+  }
+  handleTextEnd() {
+    if (!this.tempTextElement) {
+      return;
+    }
+    const [x, y] = mouse(this.selection.node());
+    this.openTextInput([x + 1, y - 19]);
+    this._pushToUndo();
   }
   // Handle Select tool
   handleStartSelect() {
-    const currentElement = this.getMouseTarget();
-    if (currentElement.tagName !== 'svg') {
-      const selectedElementId = currentElement.getAttribute('data-wb-id');
-      this.selectedElement = this.data.find((el) => el.id === selectedElementId);
-      console.log(this.selectedElement);
-      console.log(currentElement.getBoundingClientRect());
-      this.currentBBox = currentElement.getBoundingClientRect();
-      console.log(this.currentBBox);
+    const mouse_target = this.getMouseTarget();
+    if (mouse_target) {
+      const id = mouse_target.getAttribute('data-wb-id');
+      this.selectedElement = this.data.find((el) => el.id === id);
+      // if this element is not yet selected, clear selection and select it
+      // if (this.selectedElements.indexOf(this.selectedElement) == -1) {
+      //   // only clear selection if shift is not pressed (otherwise, add
+      //   // element to selection)
+      //   if (!event.sourceEvent.shiftKey) {
+      //     // No need to do the call here as it will be done on addToSelection
+      //     this._clearSelection();
+      //   }
+      //   this._addToSelection([this.selectedElement]);
+      // }
+
+      const currentBBox = mouse_target.getBBox();
+
+      currentBBox.width += this.selectedElement.elementOptions.size;
+      currentBBox.height += this.selectedElement.elementOptions.size;
+      currentBBox.x -= this.selectedElement.elementOptions.size * 0.5;
+      currentBBox.y -= this.selectedElement.elementOptions.size * 0.5;
+
+      this._showGrips(currentBBox);
+    } else {
+      this.selectedElement = null;
+      this.rubberBox.display = 'none';
     }
   }
+  handleDragSelect() {
+    // const [x, y] = this._calculateXAndY(mouse(this.selection.node()));
+    // this.tempRectElement.x2 = x;
+    // this.tempRectElement.y2 = y;
+  }
+  handleEndSelect() {
+    // if (this.tempRectElement.width != 0 || this.tempRectElement.height != 0) {
+    //   this._pushToUndo();
+    //   this.tempRectElement = null;
+    //   return;
+    // }
+    // this.data.pop();
+  }
 
-  openTextInput(coords, value = '') {
-    this.textInput.nativeElement.setAttribute('style', `left: ${coords[0]}px; top: ${coords[1]}px;`);
+  openTextInput([x, y]: [number, number], value = ''): void {
+    this.textInput.nativeElement.setAttribute('style', `left: ${x}px; top: ${y}px;`);
     this.textInput.nativeElement.value = value;
     this.textInput.nativeElement.focus();
   }
@@ -521,68 +560,42 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   // and then dismiss this.textInput.nativeElement
   finishTextInput() {
     var value = this.textInput.nativeElement.value;
-    if (value != '') {
-      this.tempTextElement.value = value;
-      this.tempTextElement = null;
-    }
+    this.tempTextElement.value = value;
     this.dismissTextInput();
+    if (this.tempTextElement.value) {
+      this._pushToUndo();
+    } else {
+      this.data.pop();
+    }
+    this.tempTextElement = null;
   }
 
   getMouseTarget(): SVGGraphicsElement {
-    let mouse_target = event.sourceEvent.target;
-    if (mouse_target == null) {
+    let evt: Event = event.sourceEvent;
+    if (evt == null || evt.target == null) {
       return null;
     }
-    var svgns = 'http://www.w3.org/2000/svg',
-      xlinkns = 'http://www.w3.org/1999/xlink',
-      xmlns = 'http://www.w3.org/XML/1998/namespace',
-      xmlnsns = 'http://www.w3.org/2000/xmlns/', // see http://www.w3.org/TR/REC-xml-names/#xmlReserved
-      se_ns = 'http://svg-edit.googlecode.com',
-      htmlns = 'http://www.w3.org/1999/xhtml',
-      mathns = 'http://www.w3.org/1998/Math/MathML';
+    var mouse_target = evt.target as SVGGraphicsElement;
 
-    // if it was a <use>, Opera and WebKit return the SVGElementInstance
-    if (mouse_target.correspondingUseElement) mouse_target = mouse_target.correspondingUseElement;
-
-    // for foreign content, go up until we find the foreignObject
-    // WebKit browsers set the mouse target to the svgcanvas div
-    if ([mathns, htmlns].indexOf(mouse_target.namespaceURI) >= 0 && mouse_target.id != 'svgcanvas') {
-      while (mouse_target.nodeName != 'foreignObject') {
-        mouse_target = mouse_target.parentNode;
-        if (!mouse_target) return this.svgContainer.nativeElement as SVGGraphicsElement;
+    if (mouse_target.parentNode) {
+      while (!mouse_target.id.includes('item_')) {
+        if (mouse_target.id === 'svgroot') {
+          return null;
+        }
+        mouse_target = mouse_target.parentNode as SVGGraphicsElement;
       }
     }
-
-    // If it's root-like, select the root
-    if (['svgroot', 'svgcontent', 'elementsGroup'].indexOf(mouse_target.id) >= 0) {
-      return this.svgContainer.nativeElement as SVGGraphicsElement;
-    }
-
-    while (mouse_target.parentNode && mouse_target.parentNode.id !== ('elementsGroup' || 'svgroot')) {
-      mouse_target = mouse_target.parentNode;
-    }
-
-    // go up until we hit a child of a layer
-    while (mouse_target.parentNode.parentNode.tagName == 'g') {
-      mouse_target = mouse_target.parentNode;
-    }
-    // Webkit bubbles the mouse event all the way up to the div, so we
-    // set the mouse_target to the svgroot like the other browsers
-    if (mouse_target.nodeName.toLowerCase() == 'div') {
-      mouse_target = this.svgContainer.nativeElement;
-    }
-
     return mouse_target;
   }
 
-  getZoom() {
-    return this.zoom;
-  }
+  // getZoom() {
+  //   return this.zoom;
+  // }
 
-  setZoom(zoom: number) {
-    this.zoom = zoom;
-    this.zoomChanged.emit(zoom);
-  }
+  // setZoom(zoom: number) {
+  //   this.zoom = zoom;
+  //   this.zoomChanged.emit(zoom);
+  // }
 
   private _pushToData(element: WhiteboardData) {
     this.data.push(element);
@@ -631,5 +644,35 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     var y = y1 + dist * Math.sin(snapangle);
     //console.log(x1,y1,x2,y2,x,y,angle)
     return { x: x, y: y, a: snapangle };
+  }
+  private _clearSelection() {
+    this.selectedElements = [];
+  }
+  private _addToSelection(elemsToAdd) {
+    if (elemsToAdd.length === 0) return false;
+    // find the first null in our selectedElements array
+
+    // now add each element consecutively
+    var i = elemsToAdd.length;
+    while (i--) {
+      var elem = elemsToAdd[i];
+      if (!elem) continue;
+
+      // if it's not already there, add it
+      if (this.selectedElements.indexOf(elem) == -1) {
+        this.selectedElements.push(elem);
+      }
+    }
+  }
+
+  private _showGrips(bbox: DOMRect) {
+    console.log(bbox);
+    this.rubberBox = {
+      x: bbox.x,
+      y: bbox.y,
+      width: bbox.width,
+      height: bbox.height,
+      display: 'block',
+    };
   }
 }
