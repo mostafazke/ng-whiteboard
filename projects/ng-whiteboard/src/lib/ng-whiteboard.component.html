@@ -104,6 +104,9 @@
               [attr.height]="item.height"
             ></rect>
           </g>
+          <g *ngSwitchCase="types.ELLIPSE">
+            <ellipse [attr.fill]="item.elementOptions.fill" [attr.stroke]="item.elementOptions.stroke" [attr.stroke-width]="item.elementOptions.size" style="pointer-events:inherit" [attr.cx]="item.cx" [attr.cy]="item.cy" [attr.rx]="item.rx" [attr.ry]="item.ry"></ellipse>
+          </g>
           <g *ngSwitchCase="types.IMAGE">
             <g>
               <image

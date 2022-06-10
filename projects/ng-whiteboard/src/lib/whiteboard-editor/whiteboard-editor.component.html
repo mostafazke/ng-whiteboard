@@ -875,7 +875,9 @@ data-mode="eyedropper"
         <path d="M 0 8 L 0 24 L 24 24 L 25 8 L 0 8 Z" />
       </svg>
     </div>
-    <div class="tool_button" id="tool_ellipse" title="Ellipse/Circle Tool [C]">
+    <div class="tool_button" id="tool_ellipse" title="Ellipse/Circle Tool [C]"
+    [class.active]="whiteboard.selectedTool === toolsEnum.ELLIPSE"
+      (click)="setSelectedTool(toolsEnum.ELLIPSE)" [accessKey]="'C'">
       <svg viewBox="0 0 27 27" xmlns="http://www.w3.org/2000/svg" width="24" height="24">
         <ellipse cx="13" cy="13" rx="13" ry="9"></ellipse>
       </svg>

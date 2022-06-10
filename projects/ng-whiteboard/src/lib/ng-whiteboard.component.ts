@@ -102,6 +102,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   tempElement: WhiteboardData;
   tempLineElement: WhiteboardData;
   tempRectElement: WhiteboardData;
+  tempEllipseElement: WhiteboardData;
   tempDraw: [number, number][];
   tempTextElement: WhiteboardData;
 
@@ -274,6 +275,9 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
       case ToolsEnum.RECT:
         this.handleStartRect();
         break;
+      case ToolsEnum.ELLIPSE:
+        this.handleStartEllipse();
+        break;
       case ToolsEnum.TEXT:
         this.handleTextTool();
         break;
@@ -295,6 +299,9 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
       case ToolsEnum.RECT:
         this.handleDragRect();
         break;
+      case ToolsEnum.ELLIPSE:
+        this.handleDragEllipse();
+        break;
       case ToolsEnum.TEXT:
         this.handleTextDrag();
         break;
@@ -315,6 +322,9 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
         break;
       case ToolsEnum.RECT:
         this.handleEndRect();
+        break;
+      case ToolsEnum.ELLIPSE:
+        this.handleEndEllipse();
         break;
       case ToolsEnum.TEXT:
         this.handleTextEnd();
@@ -435,6 +445,60 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     if (this.tempRectElement.width != 0 || this.tempRectElement.height != 0) {
       this._pushToUndo();
       this.tempRectElement = null;
+      return;
+    }
+    this.data.pop();
+  }
+  // Handle Ellipse tool
+  handleStartEllipse() {
+    const element = this._generateNewElement(ElementTypeEnum.ELLIPSE);
+    const [x, y] = this._calculateXAndY(mouse(this.selection.node()));
+
+    // workaround
+    element.x1 = x;
+    element.y1 = y;
+
+    element.cx = x;
+    element.cy = y;
+    this.tempEllipseElement = element;
+    this._pushToData(this.tempEllipseElement);
+  }
+  handleDragEllipse() {
+    const [x, y] = this._calculateXAndY(mouse(this.selection.node()));
+    const start_x = this.tempEllipseElement.x1;
+    const start_y = this.tempEllipseElement.y1;
+    let cx = Math.abs(start_x + (x - start_x) / 2);
+    let cy = Math.abs(start_y + (y - start_y) / 2);
+    let rx = Math.abs(start_x - cx);
+    let ry = Math.abs(start_y - cy);
+
+    // if(curConfig.gridSnapping){
+    //   x = snapToGrid(x);
+    //   cx = snapToGrid(cx);
+    //   y = snapToGrid(y);
+    //   cy = snapToGrid(cy);
+    // }
+
+    if (event.sourceEvent.shiftKey) {
+      ry = rx;
+      cy = y > start_y ? start_y + rx : start_y - rx;
+    }
+    if (event.sourceEvent.altKey) {
+      cx = start_x;
+      cy = start_y;
+      rx = Math.abs(x - cx);
+      ry = event.sourceEvent.shiftKey ? rx : Math.abs(y - cy);
+    }
+
+    this.tempEllipseElement.rx = rx;
+    this.tempEllipseElement.ry = ry;
+    this.tempEllipseElement.cx = cx;
+    this.tempEllipseElement.cy = cy;
+  }
+  handleEndEllipse() {
+    if (this.tempEllipseElement.rx != 0 || this.tempEllipseElement.ry != 0) {
+      this._pushToUndo();
+      this.tempEllipseElement = null;
       return;
     }
     this.data.pop();

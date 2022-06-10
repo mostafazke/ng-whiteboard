@@ -18,6 +18,12 @@ export class WhiteboardData {
   x2?: number;
   y2?: number;
 
+  // for Ellipse shape
+  cx?: number;
+  cy?: number;
+  rx?: number;
+  ry?: number;
+
   // for Text
   top?: number;
   left?: number;
@@ -39,5 +45,19 @@ export class WhiteboardData {
     this.height = height;
     this.x = x || 0;
     this.y = y || 0;
+
+    if (this.elementName === ElementTypeEnum.LINE) {
+      this.x1 = 0;
+      this.y1 = 0;
+      this.x2 = 0;
+      this.y2 = 0;
+    }
+
+    if (this.elementName === ElementTypeEnum.ELLIPSE) {
+      this.cx = 0;
+      this.cy = 0;
+      this.rx = 0;
+      this.ry = 0;
+    }
   }
 }
