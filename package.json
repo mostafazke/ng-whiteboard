@@ -106,7 +106,7 @@
     "prettier": "^2.0.5",
     "protractor": "^7.0.0",
     "replace-json-property": "^1.4.3",
-    "semantic-release": "^17.4.4",
+    "semantic-release": "^19.0.3",
     "ts-node": "~8.3.0",
     "tsickle": "^0.38.1",
     "tslint": "~6.1.0",
