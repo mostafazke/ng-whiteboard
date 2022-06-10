@@ -122,6 +122,8 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     height: 0,
     display: 'none',
   };
+
+  math = Math;
   constructor(private whiteboardService: NgWhiteboardService) {}
 
   ngOnInit(): void {
@@ -482,24 +484,32 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     }
     const element = this._generateNewElement(ElementTypeEnum.TEXT);
     const [x, y] = this._calculateXAndY(mouse(this.selection.node()));
-    element.x = x;
-    element.y = y;
+    element.top = y;
+    element.left = x;
     this.tempTextElement = element;
-    this._pushToData(this.tempTextElement);
+    setTimeout(() => {
+      this.textInput.nativeElement.focus();
+    }, 0);
   }
   handleTextDrag() {
+    if (!this.tempTextElement) {
+      return;
+    }
     const [x, y] = this._calculateXAndY(mouse(this.selection.node()));
-    this.tempTextElement.x = x;
-    this.tempTextElement.y = y;
+    this.tempTextElement.top = y;
+    this.tempTextElement.left = x;
   }
   handleTextEnd() {
     if (!this.tempTextElement) {
       return;
     }
-    const [x, y] = mouse(this.selection.node());
-    this.openTextInput([x + 1, y - 19]);
     this._pushToUndo();
   }
+  // Handle Text Input
+  updateTextItem(value: string) {
+    this.tempTextElement.value = value;
+  }
+
   // Handle Select tool
   handleStartSelect() {
     const mouse_target = this.getMouseTarget();
@@ -544,28 +554,14 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     // this.data.pop();
   }
 
-  openTextInput([x, y]: [number, number], value = ''): void {
-    this.textInput.nativeElement.setAttribute('style', `left: ${x}px; top: ${y}px;`);
-    this.textInput.nativeElement.value = value;
-    this.textInput.nativeElement.focus();
-  }
-
-  dismissTextInput() {
-    // clear the input and hide it
-    this.textInput.nativeElement.value = '';
-    this.textInput.nativeElement.setAttribute('style', 'display: none;');
-  }
-
   // convert the value of this.textInput.nativeElement to an SVG text node, unless it's empty,
   // and then dismiss this.textInput.nativeElement
   finishTextInput() {
     var value = this.textInput.nativeElement.value;
     this.tempTextElement.value = value;
-    this.dismissTextInput();
     if (this.tempTextElement.value) {
+      this._pushToData(this.tempTextElement);
       this._pushToUndo();
-    } else {
-      this.data.pop();
     }
     this.tempTextElement = null;
   }
@@ -587,15 +583,6 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     }
     return mouse_target;
   }
-
-  // getZoom() {
-  //   return this.zoom;
-  // }
-
-  // setZoom(zoom: number) {
-  //   this.zoom = zoom;
-  //   this.zoomChanged.emit(zoom);
-  // }
 
   private _pushToData(element: WhiteboardData) {
     this.data.push(element);

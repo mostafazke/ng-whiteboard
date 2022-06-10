@@ -101,4 +101,9 @@
   height: 25px;
   font-size: inherit;
   font-family: inherit;
+  min-width: 5ch;
+  height: 2ch;
+  padding: 5px 0;
+  pointer-events: auto;
+  z-index: 5;
 }

@@ -140,6 +140,10 @@
               [attr.font-family]="defaultFont"
               text-anchor="start"
               xml:space="preserve"
+              [attr.x]="item.left"
+              [attr.y]="item.top"
+              [attr.width]="item.width"
+              [attr.height]="item.height"
             >
               {{ item.value }}
             </text>
@@ -168,36 +172,70 @@
           [attr.d]="tempElement.value"
         ></path>
       </g>
+      <g id="selectorParentGroup">
+        <rect id="selectorRubberBand" fill="none" stroke="#666" stroke-dasharray="3,2" display="none"
+          style="pointer-events: none;" x="-134" y="14" width="820" height="654"></rect>
+        <g id="selectorGroup0" transform="" [style.display]="rubberBox.display">
+          <rect id="selectedBox0" fill="none" stroke="#4F80FF" shape-rendering="crispEdges" style="pointer-events: none;"
+            [attr.x]="rubberBox.x" [attr.y]="rubberBox.y" [attr.width]="rubberBox.width" [attr.height]="rubberBox.height">
+          </rect>
+          <g display="inline">
+            <circle class="selector_rotate" id="selectorGrip_rotate_nw" fill="#000" r="8" stroke="#000" fill-opacity="0"
+              stroke-opacity="0" stroke-width="0" [attr.cx]="rubberBox.x - 4" [attr.cy]="rubberBox.y - 4"></circle>
+            <circle class="selector_rotate" id="selectorGrip_rotate_ne" fill="#000" r="8" stroke="#000" fill-opacity="0"
+              stroke-opacity="0" stroke-width="0" [attr.cx]="rubberBox.x + rubberBox.width + 4" [attr.cy]="rubberBox.y - 4">
+            </circle>
+            <circle class="selector_rotate" id="selectorGrip_rotate_se" fill="#000" r="8" stroke="#000" fill-opacity="0"
+              stroke-opacity="0" stroke-width="0" [attr.cx]="rubberBox.x + rubberBox.width + 4"
+              [attr.cy]="rubberBox.y + rubberBox.height + 4"></circle>
+            <circle class="selector_rotate" id="selectorGrip_rotate_sw" fill="#000" r="8" stroke="#000" fill-opacity="0"
+              stroke-opacity="0" stroke-width="0" [attr.cx]="rubberBox.x - 4" [attr.cy]="rubberBox.y + rubberBox.height + 4">
+            </circle>
+            <rect id="selectorGrip_resize_nw" width="8" height="8" fill="#4F80FF" stroke="rgba(0,0,0,0)"
+              style="cursor: nw-resize;" pointer-events="all" [attr.x]="rubberBox.x - 4" [attr.y]="rubberBox.y - 4"></rect>
+            <rect id="selectorGrip_resize_n" width="8" height="8" fill="#4F80FF" stroke="rgba(0,0,0,0)"
+              style="cursor: n-resize;" pointer-events="all" [attr.x]="rubberBox.x + rubberBox.width / 2 - 4"
+              [attr.y]="rubberBox.y - 4"></rect>
+            <rect id="selectorGrip_resize_ne" width="8" height="8" fill="#4F80FF" stroke="rgba(0,0,0,0)"
+              style="cursor: ne-resize;" pointer-events="all" [attr.x]="rubberBox.x + rubberBox.width - 4"
+              [attr.y]="rubberBox.y - 4"></rect>
+            <rect id="selectorGrip_resize_e" width="8" height="8" fill="#4F80FF" stroke="rgba(0,0,0,0)"
+              style="cursor: e-resize;" pointer-events="all" [attr.x]="rubberBox.x + rubberBox.width - 4"
+              [attr.y]="rubberBox.y + rubberBox.height / 2 - 4"></rect>
+            <rect id="selectorGrip_resize_se" width="8" height="8" fill="#4F80FF" stroke="rgba(0,0,0,0)"
+              style="cursor: se-resize;" pointer-events="all" [attr.x]="rubberBox.x + rubberBox.width - 4"
+              [attr.y]="rubberBox.y + rubberBox.height - 4"></rect>
+            <rect id="selectorGrip_resize_s" width="8" height="8" fill="#4F80FF" stroke="rgba(0,0,0,0)"
+              style="cursor: s-resize;" pointer-events="all" [attr.x]="rubberBox.x + rubberBox.width / 2 - 4"
+              [attr.y]="rubberBox.y + rubberBox.height - 4"></rect>
+            <rect id="selectorGrip_resize_sw" width="8" height="8" fill="#4F80FF" stroke="rgba(0,0,0,0)"
+              style="cursor: sw-resize;" pointer-events="all" [attr.x]="rubberBox.x - 4"
+              [attr.y]="rubberBox.y + rubberBox.height - 4"></rect>
+            <rect id="selectorGrip_resize_w" width="8" height="8" fill="#4F80FF" stroke="rgba(0,0,0,0)"
+              style="cursor: w-resize;" pointer-events="all" [attr.x]="rubberBox.x - 4"
+              [attr.y]="rubberBox.y + rubberBox.height / 2 - 4"></rect>
+          </g>
+        </g>
+        <g id="selectorGroup1" transform="" display="none">
+          <path id="selectedBox1" fill="none" stroke="#4F80FF" shape-rendering="crispEdges" style="pointer-events: none;"
+            d="M508,282 L625.984375,282 625.984375,314 508,314z"></path>
+        </g>
+        <g id="selectorGroup2" transform="" display="none">
+          <path id="selectedBox2" fill="none" stroke="#4F80FF" shape-rendering="crispEdges" style="pointer-events: none;"
+            d="M205,269 L243.3046875,269 243.3046875,301 205,301z"></path>
+        </g>
+      </g>
     </g>
     <defs></defs>
   </svg>
-  <g id="selectorParentGroup" [attr.transform]="'translate(' + x + ',' + y + ')'">
-    <rect id="selectorRubberBand" fill="none" stroke="#666" stroke-dasharray="3,2" display="none" style="pointer-events:none" x="-134" y="14" width="820" height="654"></rect>
-    <g id="selectorGroup0" transform="" [style.display]="rubberBox.display">
-      <rect id="selectedBox0" fill="none" stroke="#4F80FF" shape-rendering="crispEdges" style="pointer-events:none" [attr.x]="rubberBox.x" [attr.y]="rubberBox.y" [attr.width]="rubberBox.width" [attr.height]="rubberBox.height"></rect>
-      <g display="inline">
-        <circle class="selector_rotate" id="selectorGrip_rotate_nw" fill="#000" r="8" stroke="#000" fill-opacity="0" stroke-opacity="0" stroke-width="0" [attr.cx]="rubberBox.x - 4" [attr.cy]="rubberBox.y - 4"></circle>
-        <circle class="selector_rotate" id="selectorGrip_rotate_ne" fill="#000" r="8" stroke="#000" fill-opacity="0" stroke-opacity="0" stroke-width="0" [attr.cx]="rubberBox.x + rubberBox.width + 4" [attr.cy]="rubberBox.y - 4"></circle>
-        <circle class="selector_rotate" id="selectorGrip_rotate_se" fill="#000" r="8" stroke="#000" fill-opacity="0" stroke-opacity="0" stroke-width="0" [attr.cx]="rubberBox.x + rubberBox.width + 4" [attr.cy]="rubberBox.y + rubberBox.height + 4"></circle>
-        <circle class="selector_rotate" id="selectorGrip_rotate_sw" fill="#000" r="8" stroke="#000" fill-opacity="0" stroke-opacity="0" stroke-width="0" [attr.cx]="rubberBox.x - 4" [attr.cy]="rubberBox.y + rubberBox.height + 4"></circle>
-        <rect id="selectorGrip_resize_nw" width="8" height="8" fill="#4F80FF" stroke="rgba(0,0,0,0)" style="cursor:nw-resize" pointer-events="all" [attr.x]="rubberBox.x - 4" [attr.y]="rubberBox.y- 4"></rect>
-        <rect id="selectorGrip_resize_n" width="8" height="8" fill="#4F80FF" stroke="rgba(0,0,0,0)" style="cursor:n-resize" pointer-events="all" [attr.x]="rubberBox.x + (rubberBox.width / 2) - 4" [attr.y]="rubberBox.y - 4"></rect>
-        <rect id="selectorGrip_resize_ne" width="8" height="8" fill="#4F80FF" stroke="rgba(0,0,0,0)" style="cursor:ne-resize" pointer-events="all" [attr.x]="rubberBox.x + rubberBox.width - 4" [attr.y]="rubberBox.y - 4"></rect>
-        <rect id="selectorGrip_resize_e" width="8" height="8" fill="#4F80FF" stroke="rgba(0,0,0,0)" style="cursor:e-resize" pointer-events="all" [attr.x]="rubberBox.x + rubberBox.width - 4" [attr.y]="rubberBox.y + (rubberBox.height / 2) - 4"></rect>
-        <rect id="selectorGrip_resize_se" width="8" height="8" fill="#4F80FF" stroke="rgba(0,0,0,0)" style="cursor:se-resize" pointer-events="all" [attr.x]="rubberBox.x + rubberBox.width - 4" [attr.y]="rubberBox.y + rubberBox.height - 4"></rect>
-        <rect id="selectorGrip_resize_s" width="8" height="8" fill="#4F80FF" stroke="rgba(0,0,0,0)" style="cursor:s-resize" pointer-events="all" [attr.x]="rubberBox.x + (rubberBox.width / 2) - 4" [attr.y]="rubberBox.y + rubberBox.height - 4"></rect>
-        <rect id="selectorGrip_resize_sw" width="8" height="8" fill="#4F80FF" stroke="rgba(0,0,0,0)" style="cursor:sw-resize" pointer-events="all" [attr.x]="rubberBox.x - 4" [attr.y]="rubberBox.y + rubberBox.height - 4"></rect>
-        <rect id="selectorGrip_resize_w" width="8" height="8" fill="#4F80FF" stroke="rgba(0,0,0,0)" style="cursor:w-resize" pointer-events="all" [attr.x]="rubberBox.x - 4" [attr.y]="rubberBox.y + (rubberBox.height / 2) - 4"></rect>
-      </g>
-    </g>
-    <g id="selectorGroup1" transform="" display="none">
-      <path id="selectedBox1" fill="none" stroke="#4F80FF" shape-rendering="crispEdges" style="pointer-events:none" d="M508,282 L625.984375,282 625.984375,314 508,314z"></path>
-    </g>
-    <g id="selectorGroup2" transform="" display="none">
-        <path id="selectedBox2" fill="none" stroke="#4F80FF" shape-rendering="crispEdges" style="pointer-events:none" d="M205,269 L243.3046875,269 243.3046875,301 205,301z"></path>
-      </g>
-    </g>
 </svg>
-<div [style]="'font-family:' + defaultFont + ';' + 'font-size:' + (size + 10) + 'px;'">
-  <input #textInput type="text" class="text-input" style="display: none;" />
+<div [style]="'font-family:' + defaultFont + ';' + 'font-size:' + (size + 10) * zoom + 'px;'+
+'pointer-events: none; width: ' + canvasWidth * zoom + 'px; '+
+  'height: ' + canvasHeight * zoom + 'px;' +
+  'position: absolute; top: ' + y + 'px; left: ' + x + 'px;'" *ngIf="tempTextElement">
+  <input #textInput type="text" class="text-input" [style]="'width: ' + textInput.value.length + 'ch; '+
+    'height: ' + (2 * zoom) + 'ch;'+
+    'top: ' + ((tempTextElement.top - 18)* zoom) + 'px;' +
+    'left: ' + ((tempTextElement.left+3)* zoom) + 'px;'
+    " (input)="updateTextItem(textInput.value)" autofocus />
 </div>
