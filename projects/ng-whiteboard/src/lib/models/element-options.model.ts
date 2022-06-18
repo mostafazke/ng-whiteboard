@@ -10,6 +10,12 @@ export class ElementOptions {
   lineJoin?: LineJoinEnum;
   lineCap?: LineCapEnum;
 
+  strokeWidth: number;
+  dasharray: string;
+  strokeOpacity: number;
+  rotation: number;
+  opacity: number;
+
   constructor(
     fill?: string,
     stroke?: string,
@@ -17,7 +23,12 @@ export class ElementOptions {
     lineJoin?: LineJoinEnum,
     lineCap?: LineCapEnum,
     color?: string,
-    fontFamily?: string
+    fontFamily?: string,
+    strokeWidth?: number,
+    dasharray?: string,
+    strokeOpacity?: number,
+    rotation?: number,
+    opacity?: number
   ) {
     this.fill = fill || null;
     this.stroke = stroke || '#333333';
@@ -26,5 +37,10 @@ export class ElementOptions {
     this.fontFamily = fontFamily || 'arial';
     this.lineJoin = lineJoin || LineJoinEnum.ROUND;
     this.lineCap = lineCap || LineCapEnum.ROUND;
+    this.strokeWidth = strokeWidth || 2;
+    this.dasharray = dasharray || 'none';
+    this.strokeOpacity = strokeOpacity || 100;
+    this.rotation = rotation || 0;
+    this.opacity = opacity || 100;
   }
 }

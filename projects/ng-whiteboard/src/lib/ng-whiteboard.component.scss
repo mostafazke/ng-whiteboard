@@ -31,6 +31,10 @@
     background-position: 50%;
     background-repeat: no-repeat;
 
+    .wb_element {
+      transform-box: fill-box;
+      transform-origin: center;
+    }
     .text {
       font-family: Arial, Helvetica, sans-serif;
     }
@@ -51,12 +55,9 @@
 
   .SELECT {
     cursor: crosshair;
-    .wb_element:hover {
-      // transform: scale(1.01);
-    }
   }
   .selector_rotate {
-    cursor:url(./images/rotate.png) 12 12, auto;
+    cursor: url(./images/rotate.png) 12 12, auto;
   }
   // cursors
   .BRUSH {

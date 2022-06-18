@@ -696,25 +696,6 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     //console.log(x1,y1,x2,y2,x,y,angle)
     return { x: x, y: y, a: snapangle };
   }
-  private _clearSelection() {
-    this.selectedElements = [];
-  }
-  private _addToSelection(elemsToAdd) {
-    if (elemsToAdd.length === 0) return false;
-    // find the first null in our selectedElements array
-
-    // now add each element consecutively
-    var i = elemsToAdd.length;
-    while (i--) {
-      var elem = elemsToAdd[i];
-      if (!elem) continue;
-
-      // if it's not already there, add it
-      if (this.selectedElements.indexOf(elem) == -1) {
-        this.selectedElements.push(elem);
-      }
-    }
-  }
 
   private _showGrips(bbox: DOMRect) {
     console.log(bbox);

@@ -21,12 +21,40 @@ export class AppComponent {
   isActive = false;
   drawingEnabled = false;
 
-  data = [];
+  data = [
+    {
+      elementName: 'RECT',
+      elementOptions: {
+        fill: '#333',
+        stroke: '#333',
+        size: 5,
+        color: '#333333',
+        fontFamily: 'arial',
+        lineJoin: 'round',
+        lineCap: 'round',
+        strokeWidth: 2,
+        dasharray: 'none',
+        strokeOpacity: 100,
+        rotation: 0,
+        opacity: 100,
+      },
+      id: 'element_RECT_439',
+      width: 232,
+      height: 115,
+      x: 0,
+      y: 0,
+      rx: 0,
+      x1: 107,
+      y1: 138,
+      x2: 107,
+      y2: 138,
+    },
+  ];
 
   event: PointerEvent;
 
   toolsEnum = ToolsEnum;
-  selectedTool = ToolsEnum.BRUSH;
+  selectedTool = ToolsEnum.SELECT;
   constructor(private toastr: ToastrService, private whiteboardService: NgWhiteboardService) {}
 
   onInit() {

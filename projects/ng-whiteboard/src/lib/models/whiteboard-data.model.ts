@@ -3,14 +3,16 @@ import { ElementTypeEnum } from './element-type.enum';
 
 export class WhiteboardData {
   elementName: ElementTypeEnum;
-  elementOptions: ElementOptions;
   id: string;
-  width: number;
-  height: number;
+  value: string;
   x: number;
   y: number;
+
+  elementOptions: ElementOptions;
+  width: number;
+  height: number;
+
   // order: number;
-  value: string;
 
   // for Line shape
   x1?: number;
@@ -40,7 +42,7 @@ export class WhiteboardData {
     this.elementName = elementName;
     this.elementOptions = elementOptions;
     this.value = value;
-    this.id = `element_${this.elementName}_${Math.floor(Math.random() * 100)}`;
+    this.id = `element_${this.elementName}_${Math.floor(Math.random() * 1000)}`;
     this.width = width;
     this.height = height;
     this.x = x || 0;
@@ -58,6 +60,10 @@ export class WhiteboardData {
       this.cy = 0;
       this.rx = 0;
       this.ry = 0;
+    }
+
+    if (this.elementName === ElementTypeEnum.RECT) {
+      this.rx = 0;
     }
   }
 }

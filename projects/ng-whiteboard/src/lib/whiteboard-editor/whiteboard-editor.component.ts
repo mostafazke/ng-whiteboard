@@ -1,5 +1,7 @@
 import { AfterViewInit, Component, ContentChild, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { ElementTypeEnum } from '../models/element-type.enum';
 import { ToolsEnum } from '../models/tools.enum';
+import { WhiteboardData } from '../models/whiteboard-data.model';
 import { NgWhiteboardComponent } from '../ng-whiteboard.component';
 
 @Component({
@@ -10,31 +12,19 @@ import { NgWhiteboardComponent } from '../ng-whiteboard.component';
 export class WhiteboardEditorComponent implements OnInit, AfterViewInit {
   @ContentChild(NgWhiteboardComponent) whiteboardComponent: NgWhiteboardComponent;
   @ViewChild('workarea', { static: false }) private workarea: ElementRef<HTMLElement>;
-  @ViewChild('canvas_width', { static: false }) private canvasWidth: ElementRef<HTMLElement>;
-  @ViewChild('canvas_height', { static: false }) private canvasHeight: ElementRef<HTMLElement>;
 
   toolsEnum = ToolsEnum;
+  elementTypeEnum = ElementTypeEnum;
 
   outerWidth = 1200;
   outerHeight = 750;
-
+  dragging = false;
+  dragObj: { min?: number; max?: number; step?: number; scale?: number; lastY?: number; value?: number };
   constructor() {}
 
   ngOnInit(): void {}
 
   ngAfterViewInit(): void {
-    const dim = {
-      w: this.whiteboard.canvasWidth,
-      h: this.whiteboard.canvasHeight,
-    };
-    this.dragInput(this.canvasWidth.nativeElement, (value) => {
-      dim.w = value;
-      this.updateSize(value, dim.h);
-    });
-    this.dragInput(this.canvasHeight.nativeElement, (value) => {
-      dim.h = value;
-      this.updateSize(dim.w, value);
-    });
     setTimeout(() => {
       this.calculateSize();
     }, 0);
@@ -44,45 +34,19 @@ export class WhiteboardEditorComponent implements OnInit, AfterViewInit {
     return this.whiteboardComponent;
   }
 
-  setSelectedTool(tool: ToolsEnum) {
-    this.whiteboardComponent.selectedTool = tool;
+  get selectedElement(): WhiteboardData {
+    return this.whiteboard.selectedElement;
+  }
+  set selectedElement(selectedElement: WhiteboardData) {
+    this.whiteboard.selectedElement = selectedElement;
   }
 
-  dragInput(dragger: HTMLElement, cb: (value: number) => void) {
-    const input = dragger.querySelector('input') as HTMLInputElement;
-    const min = input.min ? parseInt(input.min, 10) : null;
-    const max = input.max ? parseInt(input.max, 10) : null;
-    const step = parseInt(input.step, 10);
-    let area = max - min > 0 ? (max - min) / step : 200;
-    let scale = (area / 70) * step;
+  get selectedTool() {
+    return this.whiteboardComponent.selectedTool;
+  }
 
-    dragger.addEventListener('mousedown', (e) => {
-      let lastY = 0;
-      let value = parseInt(input.value, 10);
-
-      const onMouseMove = (e: MouseEvent) => {
-        if (lastY === 0) {
-          lastY = e.pageY;
-        }
-        let deltaY = (e.pageY - lastY) * -1;
-        lastY = e.pageY;
-        let val = deltaY * scale * 1;
-        let fixed = step < 1 ? 1 : 0;
-        val.toFixed(fixed);
-        val = Math.floor(Number(value) + Number(val));
-
-        if (max !== null) value = Math.min(val, max);
-        if (min !== null) value = Math.max(val, min);
-        input.value = value.toString();
-        cb(value);
-      };
-      const onMouseUp = () => {
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-      };
-      document.addEventListener('mousemove', onMouseMove);
-      document.addEventListener('mouseup', onMouseUp);
-    });
+  set selectedTool(tool: ToolsEnum) {
+    this.whiteboardComponent.selectedTool = tool;
   }
 
   calculateSize() {
@@ -127,17 +91,19 @@ export class WhiteboardEditorComponent implements OnInit, AfterViewInit {
     }, 0);
   }
 
-  zoomWheel(e: WheelEvent) {
-    if (e.altKey || e.ctrlKey) {
+  zoomWheel(e: Event) {
+    const ev = e as WheelEvent;
+
+    if (ev.altKey || ev.ctrlKey) {
       e.preventDefault();
       const zoom = this.whiteboard.zoom * 100;
-      this.setZoom(Math.trunc(zoom - (e.deltaY / 100) * (e.altKey ? 10 : 5)));
+      this.setZoom(Math.trunc(zoom - (ev.deltaY / 100) * (ev.altKey ? 10 : 5)));
     }
   }
 
-  setZoom(new_zoom: number) {
+  setZoom(new_zoom: string | number) {
     const old_zoom = this.whiteboard.zoom;
-    let zoomlevel = new_zoom / 100;
+    let zoomlevel = +new_zoom / 100;
     if (zoomlevel < 0.001) {
       zoomlevel = 0.1;
     }
@@ -203,5 +169,46 @@ export class WhiteboardEditorComponent implements OnInit, AfterViewInit {
       }
     };
     animateCanvasSize();
+  }
+
+  onDragDown(input: HTMLInputElement, selectedElement, prop) {
+    const min = input.min ? parseInt(input.min, 10) : null;
+    const max = input.max ? parseInt(input.max, 10) : null;
+    const step = parseInt(input.step, 10);
+    let area = max - min > 0 ? (max - min) / step : 200;
+    let scale = (area / 70) * step;
+    let lastY = 0;
+    let value = parseInt(input.value, 10);
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (lastY === 0) {
+        lastY = e.pageY;
+      }
+      let deltaY = (e.pageY - lastY) * -1;
+      lastY = e.pageY;
+      let val = deltaY * scale * 1;
+      let fixed = step < 1 ? 1 : 0;
+      val.toFixed(fixed);
+      val = Math.floor(Number(value) + Number(val));
+
+      if (max !== null) val = Math.min(val, max);
+      if (min !== null) val = Math.max(val, min);
+      value = val;
+
+      selectedElement[prop] = value;
+      input.value = value.toString();
+    };
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  }
+
+  setNumberValue(obj, prop: string, value: number): void {
+    if (!isNaN(value)) {
+      obj[prop] = value;
+    }
   }
 }
