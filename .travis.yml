@@ -3,7 +3,7 @@ addons:
   chrome: stable
 language: node_js
 node_js:
-  - '14.x'
+  - '14.19.3'
 dist: trusty
 
 cache:
