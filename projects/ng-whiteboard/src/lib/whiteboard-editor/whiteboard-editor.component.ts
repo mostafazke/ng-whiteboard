@@ -211,4 +211,27 @@ export class WhiteboardEditorComponent implements OnInit, AfterViewInit {
       obj[prop] = value;
     }
   }
+
+  alignTo(type: string): void {
+    switch (type) {
+      case 'left':
+        this.selectedElement.x = 0;
+        break;
+      case 'center':
+        this.selectedElement.x = this.outerWidth / 2 - this.whiteboard.canvasWidth / 2;
+        break;
+      case 'right':
+        this.selectedElement.x = this.whiteboard.canvasWidth + this.whiteboard.x;
+        break;
+      case 'top':
+        this.selectedElement.y = 0;
+        break;
+      case 'middle':
+        this.selectedElement.y = this.outerHeight / 2 - this.whiteboard.canvasHeight / 2;
+        break;
+      case 'bottom':
+        this.selectedElement.y = this.outerHeight - this.whiteboard.canvasHeight;
+        break;
+    }
+  }
 }
