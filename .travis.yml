@@ -3,7 +3,7 @@ addons:
   chrome: stable
 language: node_js
 node_js:
-  - 'stable'
+  - '14.x'
 dist: trusty
 
 cache:
@@ -21,14 +21,14 @@ jobs:
   include:
     - stage: lint
       script:
-        - npm run lint:lib
+        - yarn lint:lib
     - stage: test
       script:
-        - npm run test:lib-coverage
-        - npm run report-coverage:lib
+        - yarn test:lib-coverage
+        - yarn report-coverage:lib
     - stage: build & publish showcase
       script:
-        - npm run build:demo
+        - yarn build:demo
       deploy:
         provider: pages
         skip_cleanup: true
@@ -38,6 +38,6 @@ jobs:
       if: branch = master
     - stage: build & publish lib
       script:
-        - npm run build:lib
-        - npm run publish:lib
+        - yarn build:lib
+        - yarn publish:lib
       if: branch = master
