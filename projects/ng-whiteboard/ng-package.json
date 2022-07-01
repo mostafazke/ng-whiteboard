@@ -3,10 +3,6 @@
   "dest": "../../dist/ng-whiteboard",
   "deleteDestPath": false,
   "lib": {
-    "entryFile": "src/public-api.ts",
-    "umdModuleIds": {
-      "d3": "d3"
-    }
-  },
-  "whitelistedNonPeerDependencies": ["d3"]
+    "entryFile": "src/public-api.ts"
+  }
 }

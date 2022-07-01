@@ -25,10 +25,12 @@
           }
         },
         "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
+          "builder": "@angular-eslint/builder:lint",
           "options": {
-            "tsConfig": ["projects/ng-whiteboard/tsconfig.lib.json", "projects/ng-whiteboard/tsconfig.spec.json"],
-            "exclude": ["**/node_modules/**"]
+            "lintFilePatterns": [
+              "projects/ng-whiteboard/**/*.ts",
+              "projects/ng-whiteboard/**/*.html"
+            ]
           }
         }
       }
@@ -53,8 +55,14 @@
             "polyfills": "projects/demo/src/polyfills.ts",
             "tsConfig": "projects/demo/tsconfig.app.json",
             "aot": false,
-            "assets": ["projects/demo/src/favicon.ico", "projects/demo/src/assets", "projects/demo/src/manifest.json"],
-            "styles": ["projects/demo/src/styles.scss"],
+            "assets": [
+              "projects/demo/src/favicon.ico",
+              "projects/demo/src/assets",
+              "projects/demo/src/manifest.json"
+            ],
+            "styles": [
+              "projects/demo/src/styles.scss"
+            ],
             "scripts": []
           },
           "configurations": {
@@ -126,20 +134,24 @@
             "polyfills": "projects/demo/src/polyfills.ts",
             "tsConfig": "projects/demo/tsconfig.spec.json",
             "karmaConfig": "projects/demo/karma.conf.js",
-            "assets": ["projects/demo/src/favicon.ico", "projects/demo/src/assets", "projects/demo/src/manifest.json"],
-            "styles": ["projects/demo/src/styles.scss"],
+            "assets": [
+              "projects/demo/src/favicon.ico",
+              "projects/demo/src/assets",
+              "projects/demo/src/manifest.json"
+            ],
+            "styles": [
+              "projects/demo/src/styles.scss"
+            ],
             "scripts": []
           }
         },
         "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
+          "builder": "@angular-eslint/builder:lint",
           "options": {
-            "tsConfig": [
-              "projects/demo/tsconfig.app.json",
-              "projects/demo/tsconfig.spec.json",
-              "projects/demo/e2e/tsconfig.json"
-            ],
-            "exclude": ["**/node_modules/**"]
+            "lintFilePatterns": [
+              "projects/demo/**/*.ts",
+              "projects/demo/**/*.html"
+            ]
           }
         },
         "e2e": {
@@ -157,5 +169,8 @@
       }
     }
   },
-  "defaultProject": "ng-whiteboard"
+  "defaultProject": "ng-whiteboard",
+  "cli": {
+    "defaultCollection": "@angular-eslint/schematics"
+  }
 }
