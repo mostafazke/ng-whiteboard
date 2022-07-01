@@ -5,7 +5,6 @@ import { WhiteboardOptions, ActionStack, ActionType, FormatType, formatTypes } f
 import { ContainerElement, curveBasis, select, drag, Selection, line, event, mouse } from 'd3';
 
 @Component({
-  // tslint:disable-next-line: component-selector
   selector: 'ng-whiteboard',
   template: `
     <svg #svgContainer [style.background-color]="this.backgroundColor || this.whiteboardOptions.backgroundColor"></svg>
