@@ -7,10 +7,13 @@ import { FormatType, formatTypes } from './ng-whiteboard.types';
 })
 export class NgWhiteboardService {
   // Observable string sources
-  private eraseSvgMethodCallSource = new Subject<any>();
-  private saveSvgMethodCallSource = new Subject<{ name: string; format: formatTypes }>();
-  private undoSvgMethodCallSource = new Subject<any>();
-  private redoSvgMethodCallSource = new Subject<any>();
+  private eraseSvgMethodCallSource = new Subject<void>();
+  private saveSvgMethodCallSource = new Subject<{
+    name: string;
+    format: formatTypes;
+  }>();
+  private undoSvgMethodCallSource = new Subject<void>();
+  private redoSvgMethodCallSource = new Subject<void>();
   private addImageMethodCallSource = new Subject<string | ArrayBuffer>();
 
   // Observable string streams

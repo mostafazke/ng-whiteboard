@@ -2,23 +2,22 @@ import { Component, AfterViewInit, ViewChild, Input, ElementRef, OnDestroy, Outp
 import { NgWhiteboardService } from './ng-whiteboard.service';
 import { Subscription } from 'rxjs';
 import { WhiteboardOptions, ActionStack, ActionType, FormatType, formatTypes } from './ng-whiteboard.types';
-import { ContainerElement, curveBasis, select, drag, Selection, line, event, mouse } from 'd3';
+import { ContainerElement, curveBasis, select, drag, Selection, line, event, mouse, BaseType } from 'd3';
 
 @Component({
   selector: 'ng-whiteboard',
-  template: `
-    <svg #svgContainer [style.background-color]="this.backgroundColor || this.whiteboardOptions.backgroundColor"></svg>
-  `,
-  styleUrls: ['ng-whiteboard.component.scss'],
+  templateUrl: './ng-whiteboard.component.html',
+  styleUrls: ['./ng-whiteboard.component.scss'],
 })
 export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
-  @ViewChild('svgContainer', { static: false }) private svgContainer: ElementRef<ContainerElement>;
+  @ViewChild('svgContainer', { static: false })
+  svgContainer!: ElementRef<ContainerElement>;
   @Input() whiteboardOptions: WhiteboardOptions = new WhiteboardOptions();
-  @Input() color: string;
-  @Input() backgroundColor: string;
-  @Input() size: string;
-  @Input() linejoin: 'miter' | 'round' | 'bevel' | 'miter-clip' | 'arcs';
-  @Input() linecap: 'butt' | 'square' | 'round';
+  @Input() color!: string;
+  @Input() backgroundColor!: string;
+  @Input() size!: string;
+  @Input() linejoin!: 'miter' | 'round' | 'bevel' | 'miter-clip' | 'arcs';
+  @Input() linecap!: 'butt' | 'square' | 'round';
 
   @Output() init = new EventEmitter();
   @Output() clear = new EventEmitter();
@@ -27,7 +26,7 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
   @Output() save = new EventEmitter<string>();
   @Output() imageAdded = new EventEmitter();
 
-  private selection: Selection<any, unknown, null, undefined> = undefined;
+  private selection!: Selection<Element, unknown, null, undefined>;
 
   private subscriptionList: Subscription[] = [];
 
@@ -55,13 +54,13 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
     this.subscriptionList.forEach((subscription) => this._unsubscribe(subscription));
   }
 
-  private initSvg(selector: ContainerElement) {
+  private initSvg(selector: Element) {
     const d3Line = line().curve(curveBasis);
     const svg = select(selector).call(
       drag()
-        .container(selector)
         .subject(() => {
-          const p = [event.x, event.y];
+          const { x, y } = event.sourceEvent;
+          const p = [x, y];
           return [p, p];
         })
         .on('start', () => {
@@ -81,7 +80,7 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
            `
             );
           active.attr('d', d3Line);
-          event.on('drag', function () {
+          event.on('drag', function (this: ContainerElement) {
             active.datum().push(mouse(this));
             active.attr('d', d3Line);
           });
@@ -90,14 +89,16 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
             if (this.undoStack.length < 1) {
               this.redoStack = [];
             }
-            this.undoStack.push({ type: ActionType.Line, line: active.node() });
+            this.undoStack.push({
+              type: ActionType.Line,
+              line: active.node() as SVGPathElement,
+            });
           });
         })
     );
     this.init.emit();
     return svg;
   }
-
   private addImage(image: string | ArrayBuffer) {
     this.drawImage(image);
   }
@@ -109,8 +110,8 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
     this.clear.emit();
   }
 
-  private saveSvg(name, format: formatTypes) {
-    const svgString = this.saveAsSvg(this.selection.clone(true).node());
+  private saveSvg(name: string, format: formatTypes) {
+    const svgString = this.saveAsSvg(this.selection.clone(true).node() as Element);
     switch (format) {
       case FormatType.Base64:
         this.svgString2Image(
@@ -123,11 +124,12 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
           }
         );
         break;
-      case FormatType.Svg:
+      case FormatType.Svg: {
         const imgSrc = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
         this.download(imgSrc, name);
         this.save.emit(imgSrc);
         break;
+      }
       default:
         this.svgString2Image(
           svgString,
@@ -147,13 +149,13 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
     if (!this.undoStack.length) {
       return;
     }
-    this.redoStack.push(this.undoStack.pop());
+    this.redoStack.push(this.undoStack.pop() as ActionStack);
     this.selection.selectAll('.line').remove();
     this.undoStack.forEach((action) => {
       if (action.type === ActionType.Line) {
-        this.drawLine(action.line);
+        this.drawLine(action.line as SVGPathElement);
       } else if (action.type === ActionType.Image) {
-        this.drawLine(action.image);
+        this.drawLine(action.image as SVGImageElement);
       }
     });
     this.undo.emit();
@@ -163,20 +165,23 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
     if (!this.redoStack.length) {
       return;
     }
-    this.undoStack.push(this.redoStack.pop());
+    this.undoStack.push(this.redoStack.pop() as ActionStack);
     this.selection.selectAll('.line').remove();
     this.undoStack.forEach((action) => {
       if (action.type === ActionType.Line) {
-        this.drawLine(action.line);
+        this.drawLine(action.line as SVGPathElement);
       } else if (action.type === ActionType.Image) {
-        this.drawLine(action.image);
+        this.drawLine(action.image as SVGImageElement);
       }
     });
     this.redo.emit();
   }
 
   private drawLine(pathNode: SVGPathElement | SVGGElement) {
-    this.selection.node().appendChild(pathNode);
+    const svgCanvas = this.selection.node();
+    if (svgCanvas) {
+      svgCanvas.appendChild(pathNode);
+    }
   }
 
   private drawImage(image: string | ArrayBuffer) {
@@ -209,6 +214,7 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
 
       group
         .append('rect')
+        .attr('class', 'handler')
         .attr('x', 0)
         .attr('y', 0)
         .attr('width', 20)
@@ -216,28 +222,30 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
         .style('opacity', 0)
         .attr('fill', (d) => {
           return '#cccccc';
-        })
-        .call(
-          drag()
-            .subject(() => {
-              const p = [event.x, event.y];
-              return [p, p];
-            })
-            .on('start', () => {
-              event.on('drag', function (d) {
-                const cursor = select(this);
-                const cord = mouse(this);
+        });
 
-                d.x += cord[0] - Number(cursor.attr('width')) / 2;
-                d.y += cord[1] - Number(cursor.attr('height')) / 2;
-                select(this.parentNode).attr('transform', () => {
-                  return (
-                    'translate(' + [d.x, d.y] + '),rotate(' + 0 + ',160, 160),scale(' + d.scale + ',' + d.scale + ')'
-                  );
-                });
+      const handler: Selection<Element, unknown, HTMLElement, undefined> = select('rect.handler');
+      handler.call(
+        drag()
+          .subject(() => {
+            const p = [event.x, event.y];
+            return [p, p];
+          })
+          .on('start', () => {
+            event.on('drag', function (this: ContainerElement, d: { x: number; y: number; scale: string }) {
+              const cursor = select(this);
+              const cord = mouse(this);
+
+              d.x += cord[0] - Number(cursor.attr('width')) / 2;
+              d.y += cord[1] - Number(cursor.attr('height')) / 2;
+              select(this.parentNode as BaseType).attr('transform', () => {
+                return (
+                  'translate(' + [d.x, d.y] + '),rotate(' + 0 + ',160, 160),scale(' + d.scale + ',' + d.scale + ')'
+                );
               });
-            })
-        );
+            });
+          })
+      );
       group
         .on('mouseover', function () {
           select(this).select('rect').style('opacity', 1.0);
@@ -270,7 +278,7 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
     // create canvas in memory(not in DOM)
     const canvas = document.createElement('canvas');
     // get canvas context for drawing on canvas
-    const context = canvas.getContext('2d');
+    const context = canvas.getContext('2d') as CanvasRenderingContext2D;
     // set canvas size
     canvas.width = width;
     canvas.height = height;
@@ -292,12 +300,12 @@ export class NgWhiteboardComponent implements AfterViewInit, OnDestroy {
     image.src = svgData;
   }
 
-  private saveAsSvg(svgNode): string {
+  private saveAsSvg(svgNode: Element): string {
     svgNode.setAttribute('xlink', 'http://www.w3.org/1999/xlink');
 
     // Set width and height for svg element
-    svgNode.setAttribute('width', Number(this.selection.style('width').replace('px', '')));
-    svgNode.setAttribute('height', Number(this.selection.style('height').replace('px', '')));
+    svgNode.setAttribute('width', this.selection.style('width').replace('px', ''));
+    svgNode.setAttribute('height', this.selection.style('height').replace('px', ''));
 
     const serializer = new XMLSerializer();
     let svgString = serializer.serializeToString(svgNode);

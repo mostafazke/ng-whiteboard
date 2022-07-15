@@ -6,6 +6,7 @@
     "@semantic-release/changelog",
     "@semantic-release/npm",
     ["@semantic-release/exec", {
+      "prepareCmd": "VERSION=${nextRelease.version} yarn adjust-version"
     }],
     ["@semantic-release/git", {
       "assets": ["package.json", "projects/ng-whiteboard/package.json", "CHANGELOG.md"],

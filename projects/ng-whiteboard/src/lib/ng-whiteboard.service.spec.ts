@@ -1,12 +1,15 @@
 import { TestBed } from '@angular/core/testing';
-
 import { NgWhiteboardService } from './ng-whiteboard.service';
 
 describe('NgWhiteboardService', () => {
-  beforeEach(() => TestBed.configureTestingModule({}));
+  let service: NgWhiteboardService;
 
-  it('should be created', () => {
-    const service: NgWhiteboardService = TestBed.inject(NgWhiteboardService);
+  beforeEach(() => {
+    TestBed.configureTestingModule({ providers: [NgWhiteboardService] });
+    service = TestBed.inject(NgWhiteboardService);
+  });
+
+  it('can load instance', () => {
     expect(service).toBeTruthy();
   });
 });

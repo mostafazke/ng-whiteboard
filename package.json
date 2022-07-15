@@ -1,128 +1,110 @@
 {
   "name": "ng-whiteboard",
   "version": "0.0.0-semantically-released",
+  "license": "MIT",
   "scripts": {
-    "ng": "ng",
-    "start": "ng serve",
+    "ng": "nx",
+    "start": "nx serve demo",
     "copy:readme": "copyfiles ./README.md ./projects/ng-whiteboard",
     "build": "npm run build:lib && npm run build:demo",
-    "build:lib": "npm run copy:readme && ng build ng-whiteboard",
-    "build:demo": "ng build --configuration production demo --base-href='https://mostafazke.github.io/ng-whiteboard/'",
-    "format:check": "prettier --list-different \"projects/**/*.ts\"",
-    "format:write": "prettier --write \"projects/**/*.ts\"",
-    "format-package-json": "npm-run-all format-package-json:*",
-    "format-package-json:lib": "prettier --write \"projects/ng-whiteboard/package.json\"",
-    "format-package-json:main": "prettier --write \"package.json\"",
-    "test": "ng test",
-    "test:lib": "ng test ng-whiteboard",
-    "test:lib-coverage": "ng test ng-whiteboard --code-coverage --watch=false --browsers=ChromeHeadless",
+    "build:lib": "yarn copy:readme && nx build ng-whiteboard --prod",
+    "build:demo": "nx build demo --prod --base-href='https://mostafazke.github.io/ng-whiteboard/'",
+    "format:check": "nx format:check",
+    "format:write": "nx format:write",
+    "test": "yarn test:lib && yarn test:demo",
+    "test:lib": "nx test ng-whiteboard",
+    "test:lib-coverage": "nx test ng-whiteboard --codeCoverage --watch=false",
     "report-coverage:lib": "cat ./coverage/ng-whiteboard/lcov.info | codecov",
     "publish:demo": "npx angular-cli-ghpages --dir=./dist/demo",
     "publish:lib": "npx semantic-release",
     "adjust-version": "npm-run-all adjust-version:*",
     "adjust-version:lib": "rjp projects/ng-whiteboard/package.json version $VERSION",
     "adjust-version:main": "rjp package.json version $VERSION",
-    "lint": "ng lint",
-    "lint:lib": "ng lint ng-whiteboard",
-    "e2e": "ng e2e",
     "semantic-release": "semantic-release",
-    "postinstall": "ngcc",
-    "commit": "git-cz"
+    "postinstall": "node ./decorate-angular-cli.js && ngcc --properties es2015 browser module main --first-only --create-ivy-entry-points",
+    "cm": "cz",
+    "prepare": "husky install"
   },
-  "private": false,
-  "release": {
-    "pkgRoot": "dist/ng-whiteboard"
+  "private": "false",
+  "dependencies": {
+    "@angular/animations": "~14.0.0",
+    "@angular/common": "~14.0.0",
+    "@angular/compiler": "~14.0.0",
+    "@angular/core": "~14.0.0",
+    "@angular/forms": "~14.0.0",
+    "@angular/platform-browser": "~14.0.0",
+    "@angular/platform-browser-dynamic": "~14.0.0",
+    "@angular/router": "~14.0.0",
+    "@angular/service-worker": "~14.0.0",
+    "@nrwl/angular": "14.3.6",
+    "d3": "^5.16.0",
+    "ngx-toastr": "^15.0.0",
+    "rxjs": "~7.4.0",
+    "tslib": "^2.0.0",
+    "zone.js": "~0.11.4"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "~14.0.0",
+    "@angular-eslint/eslint-plugin": "~13.2.1",
+    "@angular-eslint/eslint-plugin-template": "~13.2.1",
+    "@angular-eslint/template-parser": "~13.2.1",
+    "@angular/cli": "~14.0.0",
+    "@angular/compiler-cli": "~14.0.0",
+    "@angular/language-service": "~14.0.0",
+    "@angular/pwa": "^14.0.6",
+    "@commitlint/cli": "^17.0.3",
+    "@commitlint/config-conventional": "^17.0.3",
+    "@nrwl/cli": "14.3.6",
+    "@nrwl/cypress": "14.3.6",
+    "@nrwl/eslint-plugin-nx": "14.3.6",
+    "@nrwl/jest": "14.3.6",
+    "@nrwl/linter": "14.3.6",
+    "@nrwl/nx-cloud": "latest",
+    "@nrwl/workspace": "14.3.6",
+    "@semantic-release/exec": "^6.0.3",
+    "@types/d3": "^5.16.0",
+    "@types/jest": "27.4.1",
+    "@types/node": "16.11.7",
+    "@typescript-eslint/eslint-plugin": "~5.24.0",
+    "@typescript-eslint/parser": "~5.24.0",
+    "codecov": "^3.8.3",
+    "copyfiles": "^2.4.1",
+    "cypress": "^9.1.0",
+    "eslint": "~8.15.0",
+    "eslint-config-prettier": "8.1.0",
+    "eslint-plugin-cypress": "^2.10.3",
+    "git-cz": "4.9.0",
+    "husky": "^8.0.0",
+    "jest": "27.5.1",
+    "jest-preset-angular": "~11.1.2",
+    "lint-staged": "^13.0.3",
+    "npm-run-all": "^4.1.5",
+    "nx": "14.3.6",
+    "prettier": "^2.6.2",
+    "replace-json-property": "^1.8.0",
+    "semantic-release": "^19.0.3",
+    "ts-jest": "27.1.4",
+    "ts-node": "~10.8.0",
+    "typescript": "~4.7.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mostafazke/ng-whiteboard.git"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/git-cz"
+    }
   },
   "commitlint": {
     "extends": [
       "@commitlint/config-conventional"
     ]
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged",
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
-    }
-  },
   "lint-staged": {
     "projects/**/*.ts": [
-      "prettier --write"
+      "yarn format:write",
+      "git add"
     ]
-  },
-  "config": {
-    "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
-    }
-  },
-  "dependencies": {
-    "@angular/animations": "~13.3.11",
-    "@angular/common": "~13.3.11",
-    "@angular/compiler": "~13.3.11",
-    "@angular/core": "~13.3.11",
-    "@angular/forms": "~13.3.11",
-    "@angular/platform-browser": "~13.3.11",
-    "@angular/platform-browser-dynamic": "~13.3.11",
-    "@angular/pwa": "^0.901.2",
-    "@angular/router": "~13.3.11",
-    "@angular/service-worker": "^13.3.11",
-    "d3": "^5.16.0",
-    "file-saver": "^2.0.2",
-    "ngx-toastr": "^12.0.1",
-    "rxjs": "~6.5.4",
-    "tslib": "^2.0.0",
-    "zone.js": "~0.11.6"
-  },
-  "devDependencies": {
-    "@angular-devkit/build-angular": "^13.3.8",
-    "@angular-devkit/build-ng-packagr": "~0.1002.4",
-    "@angular-eslint/builder": "13.5.0",
-    "@angular-eslint/eslint-plugin": "13.5.0",
-    "@angular-eslint/eslint-plugin-template": "13.5.0",
-    "@angular-eslint/schematics": "13.5.0",
-    "@angular-eslint/template-parser": "13.5.0",
-    "@angular/cli": "~13.3.8",
-    "@angular/compiler-cli": "~13.3.11",
-    "@angular/language-service": "~13.3.11",
-    "@commitlint/cli": "^13.0.0",
-    "@commitlint/config-conventional": "^13.0.0",
-    "@semantic-release/changelog": "^5.0.1",
-    "@semantic-release/exec": "^5.0.0",
-    "@semantic-release/git": "^9.0.0",
-    "@types/d3": "^5.16.0",
-    "@types/file-saver": "^2.0.1",
-    "@types/jasmine": "~3.5.0",
-    "@types/jasminewd2": "~2.0.3",
-    "@types/node": "^12.11.1",
-    "@typescript-eslint/eslint-plugin": "5.27.1",
-    "@typescript-eslint/parser": "5.27.1",
-    "codecov": "^3.6.5",
-    "copyfiles": "^2.2.0",
-    "cz-conventional-changelog": "^3.0.1",
-    "eslint": "^8.17.0",
-    "husky": "^4.2.5",
-    "jasmine-core": "~3.5.0",
-    "jasmine-spec-reporter": "~5.0.0",
-    "karma": "~6.4.0",
-    "karma-chrome-launcher": "~3.1.0",
-    "karma-coverage-istanbul-reporter": "~3.0.2",
-    "karma-jasmine": "~4.0.0",
-    "karma-jasmine-html-reporter": "^1.5.0",
-    "lint-staged": "^10.1.7",
-    "ng-packagr": "^13.3.1",
-    "npm-run-all": "^4.1.5",
-    "prettier": "^2.0.5",
-    "protractor": "~7.0.0",
-    "replace-json-property": "^1.4.3",
-    "semantic-release": "^19.0.3",
-    "ts-node": "~8.3.0",
-    "tsickle": "^0.39.1",
-    "typescript": "~4.6.4"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/mostafazke/ng-whiteboard.git"
-  },
-  "resolutions": {
-    "**/**/lodash": "^4.17.12"
   }
 }

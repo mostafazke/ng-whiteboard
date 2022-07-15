@@ -58,24 +58,24 @@
 
 ## Outputs
 
-| Name    | Description                     |
-| ------- | ------------------------------- |
-| (init)  | Fired on Component initialize   |
+| Name    | Description                      |
+| ------- | -------------------------------- |
+| (init)  | Fired on Component initialize    |
 | (save)  | Fired on Saving, "return base64" |
-| (clear) | Fired on clearing               |
-| (erase) | Fired on Cleaning               |
-| (undo)  | Fired on undoing last draw      |
-| (redo)  | Fired on Repainting last draw   |
+| (clear) | Fired on clearing                |
+| (erase) | Fired on Cleaning                |
+| (undo)  | Fired on undoing last draw       |
+| (redo)  | Fired on Repainting last draw    |
 
 ## Methods
 
-| Name     | ARGS                             | Defaults                             | Description             |
-| -------- | -------------------------------- | ------------------------------------ | ----------------------- |
+| Name     | ARGS                             | Defaults                                | Description             |
+| -------- | -------------------------------- | --------------------------------------- | ----------------------- |
 | save     | [format]: string, [name]: string | [format]: 'base64', [name]: 'New board' | Save current board      |
-| erase    | null                             | null                                 | Clean the whiteboard    |
-| undo     | null                             | null                                 | Undo last line          |
-| redo     | null                             | null                                 | Repaint last line       |
-| addImage | image: (string; ArrayBuffer)     | null                                 | add images to the board |
+| erase    | null                             | null                                    | Clean the whiteboard    |
+| undo     | null                             | null                                    | Undo last line          |
+| redo     | null                             | null                                    | Repaint last line       |
+| addImage | image: (string; ArrayBuffer)     | null                                    | add images to the board |
 
 to use these Methods inject NgWhiteboardService in your project
 
