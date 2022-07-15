@@ -25,11 +25,6 @@
     "url": "https://github.com/mostafazke/ng-whiteboard/issues"
   },
   "peerDependencies": {
-    "d3": "^5.9.7",
-    "@angular/common": "~13.3.11",
-    "@angular/core": "~13.3.11"
-  },
-  "dependencies": {
-    "tslib": "^2.0.0"
+    "d3": "^5.9.7"
   }
 }

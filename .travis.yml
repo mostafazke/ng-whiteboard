@@ -19,9 +19,6 @@ before_install:
 
 jobs:
   include:
-    - stage: lint
-      script:
-        - yarn lint:lib
     - stage: test
       script:
         - yarn test:lib-coverage

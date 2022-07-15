@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { NgWhiteboardService, FormatType, formatTypes } from 'projects/ng-whiteboard/src/public-api';
+import { FormatType, NgWhiteboardService, formatTypes } from 'ng-whiteboard';
 import { ToastrService } from 'ngx-toastr';
 
 @Component({
@@ -45,7 +45,7 @@ export class AppComponent {
   erase() {
     this.whiteboardService.erase();
   }
-  setSize(size) {
+  setSize(size: string) {
     this.size = size;
     this.isSizeActive = false;
   }
@@ -59,17 +59,28 @@ export class AppComponent {
   redo() {
     this.whiteboardService.redo();
   }
-  addImage(fileInput) {
-    const file = fileInput.files[0];
-    const reader = new FileReader();
 
-    reader.onloadend = () => {
-      this.whiteboardService.addImage(reader.result);
-      fileInput.value = '';
-    };
-
-    if (file) {
-      reader.readAsDataURL(file);
+  addImage(fileInput: EventTarget | null) {
+    if (fileInput) {
+      const files = (fileInput as HTMLInputElement).files;
+      if (files) {
+        const reader = new FileReader();
+        reader.onload = (e: ProgressEvent) => {
+          const image = (e.target as FileReader).result;
+          this.whiteboardService.addImage(image as string);
+        };
+        reader.readAsDataURL(files[0]);
+      }
     }
+  }
+
+  setColor(event: Event) {
+    const target = event.target as HTMLInputElement;
+    this.color = target.value;
+  }
+
+  setBackgroundColor(event: Event) {
+    const target = event.target as HTMLInputElement;
+    this.color = target.value;
   }
 }
