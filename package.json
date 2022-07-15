@@ -62,8 +62,12 @@
     "@nrwl/nx-cloud": "latest",
     "@nrwl/workspace": "14.3.6",
     "@semantic-release/changelog": "^6.0.1",
+    "@semantic-release/commit-analyzer": "^9.0.2",
     "@semantic-release/exec": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^8.0.5",
+    "@semantic-release/npm": "^9.0.1",
+    "@semantic-release/release-notes-generator": "^10.0.3",
     "@types/d3": "^5.16.0",
     "@types/jest": "27.4.1",
     "@types/node": "16.11.7",
@@ -105,8 +109,13 @@
   },
   "lint-staged": {
     "projects/**/*.ts": [
-      "yarn format:write",
-      "git add"
+      "yarn format:write"
     ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
   }
 }
