@@ -26,11 +26,10 @@ jobs:
       deploy:
         provider: pages
         skip_cleanup: true
-        github_token: $GH_TOKEN
+        token: $GH_TOKEN
         local_dir: dist/demo
         keep_history: true
-        on:
-          branch: master
+      if: branch = master
     - stage: build & publish lib
       script:
         - yarn build:lib

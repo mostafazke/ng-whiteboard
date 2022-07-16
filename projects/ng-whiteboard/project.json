@@ -7,7 +7,7 @@
       "executor": "@nrwl/js:tsc",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "dist/projects/ng-whiteboard",
+        "outputPath": "dist/ng-whiteboard",
         "main": "projects/ng-whiteboard/src/index.ts",
         "tsConfig": "projects/ng-whiteboard/tsconfig.lib.json",
         "assets": ["projects/ng-whiteboard/*.md"]
