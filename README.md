@@ -1,14 +1,22 @@
-[![Build Status](https://app.travis-ci.com/mostafazke/ng-whiteboard.svg?branch=master)](https://app.travis-ci.com/mostafazke/ng-whiteboard) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+<p align="center">
+  <img height="256px" width="256px" style="text-align: center;" src="https://cdn.jsdelivr.net/gh/mostafazke/ng-whiteboard@development/projects/demo/src/assets/icons/icon-512x512.png">
+</p>
 
-# ng-whiteboard
+# <center>ng-whiteboard</center>
+## <center>Lightweight angular whiteboard</center>
 
-## Lightweight angular whiteboard [Demo](https://mostafazke.github.io/ng-whiteboard/ 'ng-whiteboard Demo')
+[![Build Status](https://app.travis-ci.com/mostafazke/ng-whiteboard.svg?branch=master)](https://app.travis-ci.com/mostafazke/ng-whiteboard)
+[![npm version](https://badge.fury.io/js/ng-whiteboard.svg)](https://badge.fury.io/js/ng-whiteboard) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-**Features:**
+## Demo
+
+https://mostafazke.github.io/ng-whiteboard
+
+## Features
 
 - Supports touch.
 - Custom colors.
-- Custom background colors. **Thanks to [Nader Magdy](https://github.com/nader-magdy 'Nader Magdy')**
+- Custom background colors.
 - Custom background images.
 - Custom stroke size.
 - Save drawn as (svg | png | jpeg | base64) images.
@@ -16,7 +24,7 @@
 
 **_And more to come_...**
 
-# Install
+## Installation
 
 1. Install npm module:
 
