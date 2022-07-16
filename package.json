@@ -109,7 +109,8 @@
   },
   "lint-staged": {
     "projects/**/*.ts": [
-      "yarn format:write"
+      "yarn format:write",
+      "yarn copy:readme"
     ]
   },
   "husky": {

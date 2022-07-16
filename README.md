@@ -11,7 +11,7 @@
 
 ## Demo
 
-https://mostafazke.github.io/ng-whiteboard
+A demonstrative example at https://mostafazke.github.io/ng-whiteboard
 
 ## Features
 
