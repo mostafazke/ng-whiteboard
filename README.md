@@ -3,7 +3,8 @@
 </p>
 
 # <center>ng-whiteboard</center>
-## <center>Lightweight angular whiteboard</center>
+
+##   <center>Lightweight angular whiteboard</center>
 
 [![Build Status](https://app.travis-ci.com/mostafazke/ng-whiteboard.svg?branch=master)](https://app.travis-ci.com/mostafazke/ng-whiteboard)
 [![npm version](https://badge.fury.io/js/ng-whiteboard.svg)](https://badge.fury.io/js/ng-whiteboard) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
