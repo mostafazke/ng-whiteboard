@@ -26,8 +26,12 @@ https://mostafazke.github.io/ng-whiteboard
 
 ## Installation
 
-1. Install npm module:
+1. Install `ng-whiteboard` via:
 
+   ```bash
+   yarn add ng-whiteboard --save
+   ```
+   or
    ```bash
    npm install ng-whiteboard --save
    ```
