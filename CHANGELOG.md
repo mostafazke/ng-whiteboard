@@ -1,3 +1,11 @@
+## [1.5.3](https://github.com/mostafazke/ng-whiteboard/compare/v1.5.2...v1.5.3) (2022-07-23)
+
+
+### Bug Fixes
+
+* upgrade @nrwl/angular from 14.3.6 to 14.4.0 ([a4518bb](https://github.com/mostafazke/ng-whiteboard/commit/a4518bb73d6a5cbba8600323a13b72b3fd8394b9))
+* upgrade rxjs from 7.4.0 to 7.5.5 ([e86f418](https://github.com/mostafazke/ng-whiteboard/commit/e86f418ef45b3de715cac977eb95134b7f1fba83))
+
 ## [1.5.2](https://github.com/mostafazke/ng-whiteboard/compare/v1.5.1...v1.5.2) (2022-07-16)
 
 ## [1.5.1](https://github.com/mostafazke/ng-whiteboard/compare/v1.5.0...v1.5.1) (2022-07-16)
