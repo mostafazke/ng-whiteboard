@@ -36,7 +36,7 @@
     "@angular/platform-browser-dynamic": "~14.0.0",
     "@angular/router": "~14.0.0",
     "@angular/service-worker": "~14.0.0",
-    "@nrwl/angular": "14.3.6",
+    "@nrwl/angular": "14.4.0",
     "d3": "^5.16.0",
     "ngx-toastr": "^15.0.0",
     "rxjs": "~7.5.5",
