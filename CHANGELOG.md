@@ -1,3 +1,5 @@
+## [1.5.4](https://github.com/mostafazke/ng-whiteboard/compare/v1.5.3...v1.5.4) (2022-07-23)
+
 ## [1.5.3](https://github.com/mostafazke/ng-whiteboard/compare/v1.5.2...v1.5.3) (2022-07-23)
 
 
