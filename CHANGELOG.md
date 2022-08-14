@@ -1,3 +1,28 @@
+# [2.0.0](https://github.com/mostafazke/ng-whiteboard/compare/v1.5.7...v2.0.0) (2022-08-14)
+
+
+### Bug Fixes
+
+* upgrade @nrwl/angular from 14.4.0 to 14.4.1 ([d8cb847](https://github.com/mostafazke/ng-whiteboard/commit/d8cb847c8b822a0a84176cf0594291728a0ec85e))
+* upgrade multiple dependencies with Snyk ([f05a748](https://github.com/mostafazke/ng-whiteboard/commit/f05a7485f37af04ea18d310cf9db8e9f7dec332e))
+* upgrade zone.js from 0.11.6 to 0.11.7 ([cadb375](https://github.com/mostafazke/ng-whiteboard/commit/cadb3755ba0bfa1c772429b751446ed1dffb672e))
+
+
+### Documentation
+
+* **demo:** ✏️ Add new documentation ([ca8d2a7](https://github.com/mostafazke/ng-whiteboard/commit/ca8d2a742c06ac8e84f36a1731800beaff9c0ef0))
+
+
+### Features
+
+* **whiteboard:** 🎸 add elements types ([70358e2](https://github.com/mostafazke/ng-whiteboard/commit/70358e25010ab7b739bd4ef2a8fd8407ccbbbdff))
+
+
+### BREAKING CHANGES
+
+* **demo:** 🧨 Another version of documantation
+* **whiteboard:** 🧨 Add new options
+
 ## [1.5.7](https://github.com/mostafazke/ng-whiteboard/compare/v1.5.6...v1.5.7) (2022-07-23)
 
 ## [1.5.6](https://github.com/mostafazke/ng-whiteboard/compare/v1.5.5...v1.5.6) (2022-07-23)
