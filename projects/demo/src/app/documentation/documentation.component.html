@@ -1,0 +1,300 @@
+<app-header tagline="Documentation"></app-header>
+
+<section class="main-content">
+  <h2><a id="documentation" class="anchor" href="#documentation" aria-hidden="true"><span aria-hidden="true"
+        class="octicon octicon-link"></span></a>Documentation</h2>
+
+  <h3><a id="inputs" class="anchor" href="#configuration" aria-hidden="true"><span aria-hidden="true"
+        class="octicon octicon-link"></span></a>Component Inputs</h3>
+
+  <table>
+    <tr>
+      <th>Input</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Defaults</th>
+    </tr>
+    <tr>
+      <td>[data]</td>
+      <td><span class="highlight">[<a href="/projects/ng-whiteboard/src/lib/models/whiteboard-element.model.ts">WhiteboardElement</a>]</span></td>
+      <td>The whiteboard data</td>
+      <td><span class="highlight">[]</span></td>
+    </tr>
+    <tr>
+      <td>[options]</td>
+      <td><span class="highlight"><a href="/projects/ng-whiteboard/src/lib/models/whiteboard-options.model.ts">WhiteboardOptions</a></span></td>
+      <td>component configuration object, properties described below</td>
+      <td><span class="highlight">null</span></td>
+    </tr>
+    <tr>
+      <td>[drawingEnabled]</td>
+      <td><span class="highlight">boolean</span></td>
+      <td>Enable mouse/touch interactions</td>
+      <td><span class="highlight">true</span></td>
+    </tr>
+    <tr>
+      <td>[selectedTool]</td>
+      <td><span class="highlight"><a href="/projects/ng-whiteboard/src/lib/models/tools.enum.ts">ToolsEnum</a></span></td>
+      <td>The current selected tool</td>
+      <td><span class="highlight">ToolsEnum.BRUSH</span></td>
+    </tr>
+    <tr>
+      <td>[canvasWidth]</td>
+      <td><span class="highlight">number</span></td>
+      <td>The width of whiteboard canvas</td>
+      <td><span class="highlight">800</span></td>
+    </tr>
+    <tr>
+      <td>[canvasHeight]</td>
+      <td><span class="highlight">number</span></td>
+      <td>The height of whiteboard canvas</td>
+      <td><span class="highlight">600</span></td>
+    </tr>
+    <tr>
+      <td>[fullScreen]</td>
+      <td><span class="highlight">boolean</span></td>
+      <td>if true change (canvasWidth, canvasHeight) to fit the parent container</td>
+      <td><span class="highlight">true</span></td>
+    </tr>
+    <tr>
+      <td>[strokeColor]</td>
+      <td><span class="highlight">string</span></td>
+      <td>The default stroke color</td>
+      <td><span class="highlight">#000000</span></td>
+    </tr>
+    <tr>
+      <td>[backgroundColor]</td>
+      <td><span class="highlight">string</span></td>
+      <td>The default background color</td>
+      <td><span class="highlight">#FFFFFF</span></td>
+    </tr>
+    <tr>
+      <td>[fill]</td>
+      <td><span class="highlight">number</span></td>
+      <td>The default fill color</td>
+      <td><span class="highlight">#333333</span></td>
+    </tr>
+    <tr>
+      <td>[strokeWidth]</td>
+      <td><span class="highlight">number</span></td>
+      <td>The default stroke width</td>
+      <td><span class="highlight">2</span></td>
+    </tr>
+    <tr>
+      <td>[zoom]</td>
+      <td><span class="highlight">number</span></td>
+      <td>Zoom level</td>
+      <td><span class="highlight">1</span></td>
+    </tr>
+    <tr>
+      <td>[fontFamily]</td>
+      <td><span class="highlight">string</span></td>
+      <td>The default font family</td>
+      <td><span class="highlight">sans-serif</span></td>
+    </tr>
+    <tr>
+      <td>[fontSize]</td>
+      <td><span class="highlight">number</span></td>
+      <td>The default font size</td>
+      <td><span class="highlight">24</span></td>
+    </tr>
+    <tr>
+    <tr>
+      <td>[center]</td>
+      <td><span class="highlight">boolean</span></td>
+      <td>Center the canvas in parent component, works with fullScreen: false</td>
+      <td><span class="highlight">true</span></td>
+    </tr>
+    <tr>
+      <td>[x]</td>
+      <td><span class="highlight">number</span></td>
+      <td>if center is false, set the X axis</td>
+      <td><span class="highlight">0</span></td>
+    </tr>
+    <tr>
+      <td>[y]</td>
+      <td><span class="highlight">number</span></td>
+      <td>if center is false, set the Y axis</td>
+      <td><span class="highlight">0</span></td>
+    </tr>
+    <tr>
+      <td>[enableGrid]</td>
+      <td><span class="highlight">boolean</span></td>
+      <td>Enable the grid pattern</td>
+      <td><span class="highlight">false</span></td>
+    </tr>
+    <tr>
+      <td>[gridSize]</td>
+      <td><span class="highlight">number</span></td>
+      <td>Set the grid inner boxes size</td>
+      <td><span class="highlight">10</span></td>
+    </tr>
+    <tr>
+      <td>[snapToGrid]</td>
+      <td><span class="highlight">boolean</span></td>
+      <td>Enable snaping to grid</td>
+      <td><span class="highlight">false</span></td>
+    </tr>
+    <tr>
+      <td>[lineJoin]</td>
+      <td><span class="highlight"><a href="">LineJoinEnum</a></span></td>
+      <td>The default Line join</td>
+      <td><span class="highlight">LineJoinEnum.ROUND</span></td>
+    </tr>
+    <tr>
+      <td>[lineCap]</td>
+      <td><span class="highlight"><a href="">LineCapEnum</a></span></td>
+      <td>The default Line cap</td>
+      <td><span class="highlight">LineCapEnum.ROUND</span></td>
+    </tr>
+    <tr>
+      <td>[dasharray]</td>
+      <td><span class="highlight">string</span></td>
+      <td>The default dash-array</td>
+      <td><span class="highlight">''</span></td>
+    </tr>
+    <tr>
+      <td>[dashoffset]</td>
+      <td><span class="highlight">number</span></td>
+      <td>The default dash-offset</td>
+      <td><span class="highlight">0</span></td>
+    </tr>
+  </table>
+
+  <h3><a id="events" class="anchor" href="#events" aria-hidden="true"><span aria-hidden="true"
+        class="octicon octicon-link"></span></a>Component Outputs/Events</h3>
+
+  <table>
+    <tr>
+      <th>Event</th>
+      <th>Description</th>
+      <th>Arguments</th>
+    </tr>
+    <tr>
+      <td>(ready)</td>
+      <td>
+        <p>Emitted when the component is ready</p>
+      </td>
+      <td><span class="highlight">none</span></td>
+    </tr>
+    <tr>
+      <td>(dataChange)</td>
+      <td>
+        <p>Emitted when the data is changed</p>
+      </td>
+      <td><span class="highlight">data</span></td>
+    </tr>
+    <tr>
+      <td>(clear)</td>
+      <td>
+        <p>Emitted when the canvas is cleared</p>
+      </td>
+      <td><span class="highlight">none</span></td>
+    </tr>
+    <tr>
+      <td>(undo)</td>
+      <td>
+        <p>Emitted when the user undo an action</p>
+      </td>
+      <td><span class="highlight">none</span></td>
+    </tr>
+    <tr>
+      <td>(redo)</td>
+      <td>
+        <p>Emitted when the user redo an action</p>
+      </td>
+      <td><span class="highlight">none</span></td>
+    </tr>
+    <tr>
+      <td>(imageAdded)</td>
+      <td>
+        <p>Emitted when the user add an image to the canvas</p>
+      </td>
+      <td><span class="highlight">none</span></td>
+    </tr>
+    <tr>
+      <td>(save)</td>
+      <td>
+        <p>Emitted when the user save the canvas</p>
+      </td>
+      <td>
+        <p><span class="highlight">base64 image</span></p>
+      </td>
+    </tr>
+    <tr>
+      <td>(selectElement)</td>
+      <td>
+        <p>Emitted when the user select/deselect an element</p>
+      </td>
+      <td>
+        <p><span class="highlight">WhiteboardElement | null</span></p>
+      </td>
+    </tr>
+    <tr>
+      <td>(deleteElement)</td>
+      <td>
+        <p>Emitted when the user delete an element</p>
+      </td>
+      <td>
+        <p><span class="highlight">WhiteboardElement</span></p>
+      </td>
+    </tr>
+    <tr>
+      <td>(toolChanged)</td>
+      <td>
+        <p>Emitted when the user change the tool</p>
+      </td>
+      <td>
+        <p><span class="highlight">ToolsEnum</span></p>
+      </td>
+    </tr>
+  </table>
+
+  <h3><a id="events" class="anchor" href="#events" aria-hidden="true"><span aria-hidden="true"
+        class="octicon octicon-link"></span></a>Service Methods</h3>
+  <table>
+    <tr>
+      <th>Method</th>
+      <th>Description</th>
+      <th>Arguments</th>
+      <th>Defaults</th>
+    </tr>
+    <tr>
+      <td>save</td>
+      <td>Save the current board</td>
+      <td>
+        <p><span class="highlight">format</span>: string</p>
+        <p><span class="highlight">name</span>: string</p>
+      </td>
+      <td>
+        <p><span class="highlight">format</span>: 'base64'</p>
+        <p><span class="highlight">name</span>: 'New board'</p>
+      </td>
+    </tr>
+    <tr>
+      <td>erase</td>
+      <td>Clean the whiteboard</td>
+      <td><span class="highlight">none</span></td>
+      <td><span class="highlight">none</span></td>
+    </tr>
+    <tr>
+      <td>undo</td>
+      <td>Undo last action</td>
+      <td><span class="highlight">none</span></td>
+      <td><span class="highlight">none</span></td>
+    </tr>
+    <tr>
+      <td>redo</td>
+      <td>Redo last action</td>
+      <td><span class="highlight">none</span></td>
+      <td><span class="highlight">none</span></td>
+    </tr>
+    <tr>
+      <td>addImage</td>
+      <td>Add images to the board</td>
+      <td><span class="highlight">image</span>: (string; ArrayBuffer)</td>
+      <td><span class="highlight">none</span></td>
+    </tr>
+  </table>
+
+</section>
