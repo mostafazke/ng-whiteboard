@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
-import { FormatType, formatTypes } from './ng-whiteboard.types';
+import { FormatType, formatTypes, IAddImage } from './models';
 
 @Injectable({
   providedIn: 'root',
@@ -8,13 +8,10 @@ import { FormatType, formatTypes } from './ng-whiteboard.types';
 export class NgWhiteboardService {
   // Observable string sources
   private eraseSvgMethodCallSource = new Subject<void>();
-  private saveSvgMethodCallSource = new Subject<{
-    name: string;
-    format: formatTypes;
-  }>();
+  private saveSvgMethodCallSource = new Subject<{ name: string; format: formatTypes }>();
   private undoSvgMethodCallSource = new Subject<void>();
   private redoSvgMethodCallSource = new Subject<void>();
-  private addImageMethodCallSource = new Subject<string | ArrayBuffer>();
+  private addImageMethodCallSource = new Subject<IAddImage>();
 
   // Observable string streams
   eraseSvgMethodCalled$ = this.eraseSvgMethodCallSource.asObservable();
@@ -36,7 +33,7 @@ export class NgWhiteboardService {
   public redo(): void {
     this.redoSvgMethodCallSource.next();
   }
-  public addImage(image: string | ArrayBuffer): void {
-    this.addImageMethodCallSource.next(image);
+  public addImage(image: string | ArrayBuffer, x?: number, y?: number): void {
+    this.addImageMethodCallSource.next({ image, x, y });
   }
 }

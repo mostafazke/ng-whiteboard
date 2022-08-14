@@ -1,0 +1,66 @@
+<div class="demo">
+    <ng-whiteboard [data]="data" [strokeColor]="color" [fill]="color" [backgroundColor]="backgroundColor"
+        [strokeWidth]="size" (save)="onSave($event)"></ng-whiteboard>
+    <div class="tools">
+        <div class="size-dropdown">
+            <button (click)="$event.preventDefault(); $event.stopPropagation(); isSaveActive = !isSaveActive">Save
+                as</button>
+            <ul class="dropdown" [ngClass]="{ active: isSaveActive }">
+                <li class="dropdown-item" (click)="save(formatType.Svg)">Svg</li>
+                <li class="dropdown-item" (click)="save(formatType.Png)">Png</li>
+                <li class="dropdown-item" (click)="save(formatType.Jpeg)">Jpeg</li>
+                <li class="dropdown-item" (click)="save(formatType.Base64)">Base 64</li>
+            </ul>
+        </div>
+        <div class="size-dropdown">
+            <button
+                (click)="$event.preventDefault(); $event.stopPropagation(); isSizeActive = !isSizeActive">Size</button>
+            <ul class="dropdown" [ngClass]="{ active: isSizeActive }">
+                <li class="dropdown-item" (click)="setSize(2)" [class.selected]="size === 2">
+                    <svg height="100%" width="100%">
+                        <line x1="0" y1="50%" x2="100" y2="50%" style="stroke-width: 2.5px"
+                            [ngStyle]="{ stroke: color }" />
+                    </svg>
+                </li>
+                <li class="dropdown-item" (click)="setSize(5)" [class.selected]="size === 5">
+                    <svg height="100%" width="100%">
+                        <line x1="0" y1="50%" x2="100" y2="50%" style="stroke-width: 5px"
+                            [ngStyle]="{ stroke: color }" />
+                    </svg>
+                </li>
+                <li class="dropdown-item" (click)="setSize(10)" [class.selected]="size === 10">
+                    <svg height="100%" width="100%">
+                        <line x1="0" y1="50%" x2="100" y2="50%" style="stroke-width: 10px"
+                            [ngStyle]="{ stroke: color }" />
+                    </svg>
+                </li>
+                <li class="dropdown-item" (click)="setSize(15)" [class.selected]="size === 15">
+                    <svg height="100%" width="100%">
+                        <line x1="0" y1="50%" x2="100" y2="50%" style="stroke-width: 15px"
+                            [ngStyle]="{ stroke: color }" />
+                    </svg>
+                </li>
+            </ul>
+        </div>
+
+        <button (click)="erase()">Erase</button>
+        <button (click)="undo()">Undo</button>
+        <button (click)="redo()">Redo</button>
+
+        <input id="colorInput" class="color-input" type="color" [value]="color" (input)="setColor($event)" />
+        <label for="colorInput" class="color-label" [ngStyle]="{ 'background-color': color }"></label>
+
+        <input id="backgroundInput" class="color-input" type="color" [value]="backgroundColor"
+            (input)="setBackgroundColor($event)" />
+        <label for="backgroundInput" class="color-label" [ngStyle]="{ 'background-color': backgroundColor }"></label>
+
+        <input type="file" class="color-input" id="photoInput" (change)="addImage($event.target)" />
+        <label for="photoInput" class="color-label" [ngStyle]="{
+            'background-image':
+              'url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAACHElEQVRYhe3XsWtUQRAG8N+G45ADJUUIFiHYaCESTArTWKRSSSVpRSvxL5A0VuJ/YorUFmlsxUKTYCVGhRRBEMHYJKjJmTyLN6fv4uVuDy+JhXMMj7f77czH7De771KhcJI2dKLZ/wUCtVxgkk7hAsYdTnwfG3hXKL5nBS4yf3iETRQ9fBMPs+NmJp/JSHzQr+bE7ljKJA0lqRbewK2scrbb7SQ1KnE65mrTQJJquINpNGK4HhXo125iGLvx/jVJL/C4UPz4haqU+SyW9F/qfn0Jo39oAPNoHgOBJuY7aeC6PtryL6wWudDez8OZAdbxAJM4HT4ZY+uZMX7nqmzBqu6l21Pu30QQP4NzyoOpEWMTgdnrEWu1kwZ6EXiO8cq58ARv8RoLuBhz44EdKIEmpgJ3AzsdMJsVElO6C7pvAstR4lE864JbqGzHcg6B3NtwpVDsB4HLXXBTGAnsSk7gXALbFXy3Vq1VYm53wfVNYCyeX7DWBbcWmOqa7papgY/KO2EI9w7B7GAmYtVjzUDbcB61wN7FK3zDllKYszFXC+zAz4FPyhuutc9jyoPnkrhcYm4usAMn0CJxH/UOHy31mOuVvI1AisXirr4izz7gKd7H+3lckys8XhaKabRVYDGD+aB8sdMWzCoFddTJt4RgDxJoCeiNo/kwaUbsOdFNbRpoWZLGMaIU1SBtF58LxUZbvoMEjttO/K/ZfwI/AfTgP/XC4sIdAAAAAElFTkSuQmCC)',
+            'background-position': 'center',
+            'background-size': 'cover',
+            'box-shadow': 'none'
+          }"></label>
+    </div>
+</div>

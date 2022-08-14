@@ -1,0 +1,659 @@
+<div class="demo">
+    <div class="editor">
+        <div id="rulers">
+            <div id="ruler_corner"></div>
+            <div id="ruler_x"></div>
+            <div id="ruler_y"></div>
+        </div>
+
+        <div #workarea id="workarea" class="select" style="overflow: scroll;" (mousewheel)="zoomWheel($event)">
+            <div id="svgcanvas" [style.width.px]="outerWidth" [style.height.px]="outerHeight">
+                <ng-whiteboard #whiteboard [selectedTool]="selectedTool" [options]="options"
+                    (selectElement)="selectedElement = $event" [strokeWidth]="options.strokeWidth"
+                    (toolChanged)="selectedTool = $event" [zoom]="zoom" [canvasHeight]="options.canvasHeight"
+                    [canvasWidth]="options.canvasWidth" [x]="x" [y]="y" [fullScreen]="false"
+                    [strokeColor]="options.strokeColor" [fill]="options.fill"
+                    [backgroundColor]="options.backgroundColor">
+                </ng-whiteboard>
+            </div>
+        </div>
+
+        <div id="menu_bar" class="active">
+            <div class="menu">
+                <div class="menu_title" (click)="newDocument()" title="New document">
+                    <svg viewBox="0 0 16 16" width="20" height="20">
+                        <path fill="#565a66"
+                            d="m9.5 1.1l3.4 3.5l.1.4v2h-1V6H8V2H3v11h4v1H2.5l-.5-.5v-12l.5-.5h6.7l.3.1zM9 2v3h2.9L9 2zm4 14h-1v-3H9v-1h3V9h1v3h3v1h-3v3z">
+                        </path>
+                    </svg>
+                </div>
+            </div>
+            <div class="menu">
+                <div class="menu_title" title="Save Board">
+                    <svg viewBox="0 0 20 20" width="20" height="20">
+                        <path
+                            d="M12.984 12.656l2.625-2.578 1.406 1.406-5.016 5.016-5.016-5.016 1.406-1.406 2.625 2.578v-9.656h1.969v9.656zM18.984 12h2.016v6.984q0 0.797-0.609 1.406t-1.406 0.609h-13.969q-0.797 0-1.406-0.609t-0.609-1.406v-6.984h2.016v6.984h13.969v-6.984z"
+                            fill="#565a66"></path>
+                    </svg>
+                </div>
+                <div class="menu_list inverted-undo" id="file_menu">
+                    <div class="menu_item" (click)="saveAs(formatTypes.Png)">Save as PNG</div>
+                    <div class="menu_item" (click)="saveAs(formatTypes.Jpeg)">Save as JPEG</div>
+                    <div class="menu_item" (click)="saveAs(formatTypes.Svg)">Save as SVG</div>
+                    <div class="menu_item" (click)="saveAs(formatTypes.Base64)">Copy Base-64</div>
+                </div>
+            </div>
+
+
+            <div class="menu">
+                <label class="menu_title" title="Add image">
+                    <svg viewBox="0 0 20 20" width="20" height="20">
+                        <path fill="#565a66"
+                            d="M4 5h13v7h2V5c0-1.103-.897-2-2-2H4c-1.103 0-2 .897-2 2v12c0 1.103.897 2 2 2h8v-2H4V5z">
+                        </path>
+                        <path fill="#565a66" d="m8 11l-3 4h11l-4-6l-3 4z"></path>
+                        <path fill="#565a66" d="M19 14h-2v3h-3v2h3v3h2v-3h3v-2h-3z"></path>
+                    </svg>
+                    <input type="file" class="file-input" (change)="addImage($event.target)" />
+                </label>
+            </div>
+            <div class="menu">
+                <div class="menu_title" (click)="undo()" title="Undo">
+                    <svg viewBox="0 0 20 20" width="20" height="20">
+                        <path fill="#565a66"
+                            d="M9 10h6c1.654 0 3 1.346 3 3s-1.346 3-3 3h-3v2h3c2.757 0 5-2.243 5-5s-2.243-5-5-5H9V5L4 9l5 4v-3z">
+                        </path>
+                    </svg>
+                </div>
+            </div>
+            <div class="menu">
+                <div class="menu_title" (click)="redo()" title="Redo">
+                    <svg viewBox="0 0 20 20" width="20" height="20">
+                        <path fill="#565a66"
+                            d="M9 18h3v-2H9c-1.654 0-3-1.346-3-3s1.346-3 3-3h6v3l5-4l-5-4v3H9c-2.757 0-5 2.243-5 5s2.243 5 5 5z">
+                        </path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div id="panels" class="tools_panel">
+            <ng-container *ngIf="selectedElement">
+                <ng-container [ngSwitch]="selectedElement.type">
+                    <ng-container *ngSwitchCase="elementTypeEnum.BRUSH">
+                        <div id="path_panel" class="context_panel clearfix" style="display: block;">
+                            <h4>Path</h4>
+                            <div class="draginputs">
+                                <label class="draginput" (mousedown)="onDragDown(path_x, selectedElement, 'x')">
+                                    <input #path_x class="attr_changer" type="text" min="" max="" step="1"
+                                        [value]="selectedElement.x"
+                                        (input)="setNumberValue(selectedElement, 'x', +path_x.value)">
+                                    <span>X</span>
+                                </label>
+                                <label class="draginput" (mousedown)="onDragDown(path_y, selectedElement, 'y')">
+                                    <input #path_y class="attr_changer" type="text" min="" max="" step="1"
+                                        [value]="selectedElement.y"
+                                        (input)="setNumberValue(selectedElement, 'y', +path_y.value)">
+                                    <span>Y</span>
+                                </label>
+                            </div>
+                        </div>
+                    </ng-container>
+                    <ng-container *ngSwitchCase="elementTypeEnum.RECT">
+                        <div id="rect_panel" class="context_panel" style="display: block;">
+                            <h4>Rectangle</h4>
+                            <div class="draginputs">
+                                <label class="draginput" (mousedown)="onDragDown(rect_x, selectedElement, 'x')">
+                                    <input #rect_x class="attr_changer" type="text" min="" max="" step="1"
+                                        [value]="selectedElement.x"
+                                        (input)="setNumberValue(selectedElement, 'x', +rect_x.value)" />
+                                    <span>X</span>
+                                </label>
+                                <label class="draginput" (mousedown)="onDragDown(rect_y, selectedElement, 'y')">
+                                    <input #rect_y class="attr_changer" type="text" min="" max="" step="1"
+                                        [value]="selectedElement.y"
+                                        (input)="setNumberValue(selectedElement, 'y', +rect_y.value)" />
+                                    <span>Y</span>
+                                </label>
+                                <label class="draginput"
+                                    (mousedown)="onDragDown(rect_width, selectedElement.options, 'width')">
+                                    <input #rect_width class="attr_changer" type="text" min="" max="" step="1"
+                                        [value]="selectedElement.options.width"
+                                        (input)="setNumberValue(selectedElement.options, 'width', +rect_width.value)" />
+                                    <span class="icon_label">Width</span>
+                                </label>
+                                <label class="draginput"
+                                    (mousedown)="onDragDown(rect_height, selectedElement.options, 'height')">
+                                    <input #rect_height class="attr_changer" type="text" min="" max="" step="1"
+                                        [value]="selectedElement.options.height"
+                                        (input)="setNumberValue(selectedElement.options, 'height', +rect_height.value)" />
+                                    <span class="icon_label">Height</span>
+                                </label>
+                            </div>
+                        </div>
+                    </ng-container>
+                    <ng-container *ngSwitchCase="elementTypeEnum.IMAGE">
+                        <div id="image_panel" class="context_panel clearfix" style="display: block;">
+                            <h4>Image</h4>
+                            <div class="draginputs">
+                                <label class="draginput" (mousedown)="onDragDown(image_x, selectedElement, 'x')">
+                                    <input #image_x class="attr_changer" title="Change X coordinate" type="text" min=""
+                                        max="" step="1" [value]="selectedElement.x"
+                                        (input)="setNumberValue(selectedElement, 'x', +image_x.value)" />
+                                    <span>X</span>
+                                </label>
+                                <label class="draginput" (mousedown)="onDragDown(image_y, selectedElement, 'y')">
+                                    <input #image_y class="attr_changer" title="Change Y coordinate" type="text" min=""
+                                        max="" step="1" [value]="selectedElement.y"
+                                        (input)="setNumberValue(selectedElement, 'y', +image_y.value)" />
+                                    <span>Y</span>
+                                </label>
+                                <label class="draginput"
+                                    (mousedown)="onDragDown(image_width, selectedElement.options, 'width')">
+                                    <input #image_width class="attr_changer" type="text" min="" max="" step="1"
+                                        [value]="selectedElement.options.width"
+                                        (input)="setNumberValue(selectedElement.options, 'width', +image_width.value)" />
+                                    <span class="icon_label">Width</span>
+                                </label>
+                                <label class="draginput"
+                                    (mousedown)="onDragDown(image_height, selectedElement.options, 'height')">
+                                    <input #image_height class="attr_changer" type="text" min="" max="" step="1"
+                                        [value]="selectedElement.options.height"
+                                        (input)="setNumberValue(selectedElement.options, 'height', +image_height.value)" />
+                                    <span class="icon_label">Height</span>
+                                </label>
+                            </div>
+                        </div>
+                    </ng-container>
+                    <ng-container *ngSwitchCase="elementTypeEnum.ELLIPSE">
+
+                        <div id="ellipse_panel" class="context_panel" style="display: block;">
+                            <h4>Ellipse</h4>
+                            <div class="draginputs">
+                                <label class="draginput" id="tool_ellipse_cx"
+                                    (mousedown)="onDragDown(ellipse_cx, selectedElement.options, 'cx')">
+                                    <input #ellipse_cx class="attr_changer" title="Change ellipse's cx coordinate"
+                                        type="text" min="" max="" step="1" [value]="selectedElement.options.cx"
+                                        (input)="setNumberValue(selectedElement.options, 'cx', +ellipse_cx.value)" />
+                                    <span>X</span>
+                                </label>
+                                <label class="draginput"
+                                    (mousedown)="onDragDown(ellipse_cy, selectedElement.options, 'cy')">
+                                    <input #ellipse_cy class="attr_changer" title="Change ellipse's cy coordinate"
+                                        type="text" min="" max="" step="1" [value]="selectedElement.options.cy"
+                                        (input)="setNumberValue(selectedElement.options, 'cy', +ellipse_cy.value)" />
+                                    <span>Y</span>
+                                </label>
+                                <label class="draginput"
+                                    (mousedown)="onDragDown(ellipse_rx, selectedElement.options, 'rx')">
+                                    <input #ellipse_rx class="attr_changer" title="Change ellipse's x radius"
+                                        type="text" min="" max="" step="1" [value]="selectedElement.options.rx"
+                                        (input)="setNumberValue(selectedElement.options, 'rx', +ellipse_rx.value)" />
+                                    <span>Radius X</span>
+                                </label>
+                                <label class="draginput"
+                                    (mousedown)="onDragDown(ellipse_ry, selectedElement.options, 'ry')">
+                                    <input #ellipse_ry class="attr_changer" title="Change ellipse's y radius"
+                                        type="text" min="" max="" step="1" [value]="selectedElement.options.ry"
+                                        (input)="setNumberValue(selectedElement.options, 'ry', +ellipse_ry.value)" />
+                                    <span>Radius Y</span>
+                                </label>
+                            </div>
+                        </div>
+                    </ng-container>
+                    <ng-container *ngSwitchCase="elementTypeEnum.LINE">
+                        <div id="line_panel" class="context_panel clearfix" style="display: block;">
+                            <h4>Line</h4>
+                            <div class="draginputs">
+                                <label class="draginput"
+                                    (mousedown)="onDragDown(line_x1, selectedElement.options, 'x1')">
+                                    <input #line_x1 class="attr_changer" type="text" min="" max="" step="1"
+                                        title="Change line's starting x coordinate" [value]="selectedElement.options.x1"
+                                        (input)="setNumberValue(selectedElement.options, 'x1', +line_x1.value)">
+                                    <span>Start X</span>
+                                </label>
+                                <label class="draginput"
+                                    (mousedown)="onDragDown(line_y1, selectedElement.options, 'y1')">
+                                    <input #line_y1 class="attr_changer" type="text" min="" max="" step="1"
+                                        title="Change line's starting y coordinate" [value]="selectedElement.options.y1"
+                                        (input)="setNumberValue(selectedElement.options, 'y1', +line_y1.value)">
+                                    <span>Start Y</span>
+                                </label>
+                                <label class="draginput"
+                                    (mousedown)="onDragDown(line_x2, selectedElement.options, 'x2')">
+                                    <input #line_x2 class="attr_changer" type="text" min="" max="" step="1"
+                                        title="Change line's ending x coordinate" [value]="selectedElement.options.x2"
+                                        (input)="setNumberValue(selectedElement.options, 'x2', +line_x2.value)">
+                                    <span>End X</span>
+                                </label>
+                                <label class="draginput"
+                                    (mousedown)="onDragDown(line_y2, selectedElement.options, 'y2')">
+                                    <input #line_y2 class="attr_changer" type="text" min="" max="" step="1"
+                                        title="Change line's ending y coordinate" [value]="selectedElement.options.y2"
+                                        (input)="setNumberValue(selectedElement.options, 'y2', +line_y2.value)">
+                                    <span>End Y</span>
+                                </label>
+                            </div>
+                        </div>
+                    </ng-container>
+                    <ng-container *ngSwitchCase="elementTypeEnum.TEXT">
+                        <div id="text_panel" class="context_panel" style="display: block;">
+                            <h4>Text</h4>
+                            <div class="draginputs">
+                                <label class="draginput twocol textcontent" data-title="Change Content">
+                                    <input #text id="text" type="text" [value]="selectedElement.value"
+                                        (input)="selectedElement.value = text.value" />
+                                    <span>Content</span>
+                                </label>
+                                <label class="draginput" (mousedown)="onDragDown(text_x, selectedElement, 'x')">
+                                    <input #text_x class="attr_changer" type="text" min="" max="" step="1"
+                                        title="Change text x coordinate" [value]="selectedElement.x"
+                                        (input)="setNumberValue(selectedElement, 'x', +text_x.value)">
+                                    <span>X</span>
+                                </label>
+                                <label class="draginput" (mousedown)="onDragDown(text_y, selectedElement, 'y')">
+                                    <input #text_y class="attr_changer" type="text" min="" max="" step="1"
+                                        title="Change text y coordinate" [value]="selectedElement.y"
+                                        (input)="setNumberValue(selectedElement, 'y', +text_y.value)">
+                                    <span>Y</span>
+                                </label>
+                                <div class="toolset draginput twocol" id="tool_font_family">
+                                    <!-- Font family -->
+                                    <span>Font</span>
+                                    <div id="preview_font" [style.fontFamily]="selectedElement.options.fontFamily">
+                                        {{selectedElement.options.fontFamily}}</div>
+                                    <div class="caret"></div>
+                                    <input id="font_family" data-title="Change Font Family" size="12" type="hidden" />
+                                    <select #font_family id="font_family_dropdown"
+                                        [value]="selectedElement.options.fontFamily"
+                                        (change)="selectedElement.options.fontFamily = font_family.value">
+                                        <option value="Arial">Arial</option>
+                                        <option value="Arial Black">Arial Black</option>
+                                        <option value="Comic Sans MS">Comic Sans MS</option>
+                                        <option value="Courier New">Courier New</option>
+                                        <option value="Georgia">Georgia</option>
+                                        <option value="Impact">Impact</option>
+                                        <option value="Lucida Console">Lucida Console</option>
+                                        <option value="Lucida Sans Unicode">Lucida Sans Unicode</option>
+                                        <option value="monospace" selected="">Monospace</option>
+                                        <option value="Palatino Linotype">Palatino Linotype</option>
+                                        <option value="sans-serif" selected="">Sans-serif</option>
+                                        <option value="serif" selected="">Serif</option>
+                                        <option value="Tahoma">Tahoma</option>
+                                        <option value="Times New Roman">Times New Roman</option>
+                                        <option value="Trebuchet MS">Trebuchet MS</option>
+                                        <option value="Verdana">Verdana</option>
+                                    </select>
+                                </div>
+                                <div class="draginput font_style">
+                                    <span>Font Style</span>
+                                    <div id="tool_bold" data-title="Bold Text [B]"
+                                        [class.active]="selectedElement.options.fontWeight === 'bold'"
+                                        (click)="toggleFontWeight()">B</div>
+                                    <div id="tool_italic" data-title="Italic Text [I]"
+                                        [class.active]="selectedElement.options.fontStyle === 'italic'"
+                                        (click)="toggleFontStyle()">i
+                                    </div>
+                                </div>
+                                <label id="tool_font_size" data-title="Change Font Size" class="draginput"
+                                    (mousedown)="onDragDown(font_size, selectedElement.options, 'fontSize')">
+                                    <input #font_size class="attr_changer" type="text" min="0" max="" step="1"
+                                        title="Change text font size" [value]="selectedElement.options.fontSize"
+                                        (input)="setNumberValue(selectedElement.options, 'fontSize', +font_size.value)">
+                                    <span id="font_sizeLabel" class="icon_label">Font Size</span>
+                                </label>
+                            </div>
+                        </div>
+                    </ng-container>
+
+                    <!-- Buttons when a single element is selected -->
+                    <div id="selected_panel" class="context_panel" style="display: block;">
+                        <div class="draginputs">
+                            <label class="draginput" (mousedown)="onDragDown(angle, selectedElement, 'rotation')">
+                                <input #angle class="attr_changer" step="2" min="-180" max="180" type="text"
+                                    [value]="selectedElement.rotation"
+                                    (input)="setNumberValue(selectedElement, 'rotation', +angle.value)">
+                                <span class="icon_label">Rotation</span>
+                                <div id="tool_angle_indicator" class="angle"
+                                    [style]="'transform: rotate('+selectedElement.rotation+'deg);'">
+                                    <div id="tool_angle_indicator_cursor" class="angle-cursor"></div>
+                                </div>
+                            </label>
+
+                            <label class="draginput"
+                                (mousedown)="onDragDown(group_opacity, selectedElement, 'opacity')">
+                                <input #group_opacity class="attr_changer" step="5" min="0" max="100" type="text"
+                                    [value]="selectedElement.opacity"
+                                    (input)="setNumberValue(selectedElement, 'opacity', +group_opacity.value)">
+                                <span id="group_opacityLabel" class="icon_label">Opacity</span>
+                            </label>
+
+                            <ng-container *ngSwitchCase="elementTypeEnum.RECT">
+                                <label class="draginput"
+                                    (mousedown)="onDragDown(rect_rx, selectedElement.options, 'rx')">
+                                    <input #rect_rx class="attr_changer" type="text" step="5" min="0" max="100"
+                                        [value]="selectedElement.options.rx"
+                                        (input)="setNumberValue(selectedElement.options, 'rx', +rect_rx.value)">
+                                    <span class="icon_label">Roundness</span>
+                                    <div class="draginput_cursor" style="top: 70px;"></div>
+                                </label>
+                            </ng-container>
+                        </div>
+                    </div>
+                    <div id="stroke_panel" class="context_panel" style="display: block;">
+                        <h4>Stroke</h4>
+                        <div class="draginputs">
+                            <label class="draginput"
+                                (mousedown)="onDragDown(stroke_width, selectedElement.options, 'strokeWidth')">
+                                <input #stroke_width size="2" value="1" data-attr="stroke-width" min="0" max="99"
+                                    step="1" [value]="selectedElement.options.strokeWidth"
+                                    (input)="setNumberValue(selectedElement.options, 'strokeWidth', +stroke_width.value)">
+                                <span class="icon_label">Width</span>
+                                <div class="draginput_cursor" style="top: 68.9394px;"></div>
+                            </label>
+                            <div class="stroke_tool draginput">
+                                <span>Dash</span>
+                                <select #dasharray id="stroke_style" [value]="selectedElement.options.dasharray"
+                                    (change)="selectedElement.options.dasharray = dasharray.value">
+                                    <option selected="selected" value="none">—</option>
+                                    <option value="2,2">···</option>
+                                    <option value="5,5">- -</option>
+                                    <option value="5,2,2,2">-·-</option>
+                                    <option value="5,2,2,2,2,2">-··-</option>
+                                </select>
+                                <div class="caret"></div>
+                                <label id="stroke_style_label">
+                                    <ng-container [ngSwitch]="selectedElement.options.dasharray">
+                                        <ng-container *ngSwitchCase="'2,2'">···</ng-container>
+                                        <ng-container *ngSwitchCase="'5,5'">- -</ng-container>
+                                        <ng-container *ngSwitchCase="'5,2,2,2'">-·-</ng-container>
+                                        <ng-container *ngSwitchCase="'5,2,2,2,2,2'">-··-</ng-container>
+                                        <ng-container *ngSwitchDefault>—</ng-container>
+                                    </ng-container>
+                                </label>
+                            </div>
+
+                            <label style="display: none;">
+                                <span class="icon_label">Stroke Join</span>
+                            </label>
+
+                            <label style="display: none;">
+                                <span class="icon_label">Stroke Cap</span>
+                            </label>
+
+                        </div>
+                    </div>
+                    <ng-container *ngSwitchDefault>
+                        <ng-container *ngTemplateOutlet="main_context_panel"></ng-container>
+                    </ng-container>
+                </ng-container>
+            </ng-container>
+            <ng-container *ngIf="!selectedElement">
+                <ng-container *ngTemplateOutlet="main_context_panel"></ng-container>
+            </ng-container>
+            <ng-template #main_context_panel>
+                <div id="canvas_panel" class="context_panel">
+                    <h4>Whiteboard</h4>
+                    <div class="draginputs">
+                        <label class="draginput" (mousedown)="onDragDown(canvas_width, options, 'canvasWidth')">
+                            <input #canvas_width type="text" min="10" max="" step="1" pattern="[0-9]*"
+                                [value]="options.canvasWidth"
+                                (input)="setNumberValue(options, 'canvasWidth', +canvas_width.value);updateOptions()">
+                            <span class="icon_label">Width</span>
+                        </label>
+                        <label class="draginput" (mousedown)="onDragDown(canvas_height, options, 'canvasHeight')">
+                            <input #canvas_height type="text" min="10" max="" step="1" pattern="[0-9]*"
+                                [value]="options.canvasHeight"
+                                (input)="setNumberValue(options, 'canvasHeight', +canvas_height.value);updateOptions()">
+                            <span class="icon_label">Height</span>
+                        </label>
+                        <label data-title="Change canvas color" class="draginput">
+                            <span>Color</span>
+                            <div id="color_canvas_tools">
+                                <div class="color_tool active" id="tool_canvas" ngx-colors-trigger (change)="options.backgroundColor = $event
+                                    ">
+                                    <div class="color_block">
+                                        <div id="canvas_bg"></div>
+                                        <div id="canvas_color"><svg xmlns="http://www.w3.org/2000/svg" width="60.5">
+                                                <rect width="100%" height="100%" [attr.fill]="options.backgroundColor">
+                                                </rect>
+                                            </svg></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+
+                        <div class="draginput">
+                            <span>Sizes</span>
+                            <select #resolution (change)="setSizeResolution(resolution.value)">
+                                <option id="selectedPredefined" selected="selected">Custom</option>
+                                <option id="fitToContent" value="content">Fit to Content</option>
+
+                                <optgroup label="Social Media">
+                                    <option value="1012x506">Twitter Post (1012 × 506)</option>
+                                    <option value="1500x500">Twitter Header (1500 × 500)</option>
+                                    <option value="1200x630">Facebook Post (1200 × 630)</option>
+                                    <option value="820x312">Facebook Cover (820 × 312)</option>
+                                    <option value="1080x1080">Instagram Post (1080 × 1080)</option>
+                                    <option value="1080x1920">Instagram Story (1080 × 1920)</option>
+                                    <option value="400x300">Dribble Shot (400 × 300)</option>
+                                    <option value="800x600">Dribble Shot HD (800 × 600)</option>
+                                    <option value="1584x396">LinkedIn Cover (1584 × 396)</option>
+                                </optgroup>
+
+                                <optgroup label="Presentation">
+                                    <option value="1920x1080">16:9 (1920 × 1080)</option>
+                                    <option value="1024x768">4:3 (1024 × 768)</option>
+                                </optgroup>
+
+                                <optgroup label="Desktop">
+                                    <option value="1140x1024">Desktop (1140 × 1024)</option>
+                                    <option value="834x1194">MacBook (834 × 1194)</option>
+                                    <option value="1024x1366">MacBook Pro (1024 × 1366)</option>
+                                    <option value="1440x990">Surface Book (1440 × 990)</option>
+                                    <option value="1368x912">iMac (1368 × 912)</option>
+                                </optgroup>
+
+                                <optgroup label="Tablet">
+                                    <option value="768x1024">iPad Mini (768 × 1024)</option>
+                                    <option value="834x1194">iPad Pro 11" (834 × 1194)</option>
+                                    <option value="1024x1366">iPad Pro 12.9" (1024 × 1366)</option>
+                                    <option value="1440x990">Surface Pro 3 (1440 × 990)</option>
+                                    <option value="1368x912">Surface Pro 4 (1368 × 912)</option>
+                                </optgroup>
+
+                                <optgroup label="Phone">
+                                    <option value="414x896">iPhone 11 ProMax (414 × 896)</option>
+                                    <option value="375x812">iPhone 11 Pro / X (375 × 812)</option>
+                                    <option value="414x736">iPhone 8 Plus (414 × 736)</option>
+                                    <option value="375x667">iPhone 8 (375 × 667)</option>
+                                    <option value="411x731">Google Pixel 2 (411 × 731)</option>
+                                    <option value="411x823">Google Pixel XL (411 × 823)</option>
+                                    <option value="360x640">Android (360 × 640)</option>
+                                </optgroup>
+
+                                <optgroup label="Paper">
+                                    <option value="595x842">A4 (595 × 842)</option>
+                                    <option value="420x595">A5 (420 × 595)</option>
+                                    <option value="297x420">A6 (297 × 420)</option>
+                                    <option value="612x792">Letter (612 × 792) </option>
+                                    <option value="792x1224">Tabloid (792 × 1224)</option>
+                                </optgroup>
+                            </select>
+                            <div class="caret"></div>
+                            <label id="resolution_label">{{ resolution.value }}</label>
+                        </div>
+                    </div>
+                    <div id="stroke_panel" class="context_panel" style="display: block;">
+                        <h4>Stroke</h4>
+                        <div class="draginputs">
+                            <label class="draginput" (mousedown)="onDragDown(stroke_width, options, 'strokeWidth');">
+                                <input #stroke_width size="2" value="1" data-attr="stroke-width" min="0" max="99"
+                                    step="1" [value]="options.strokeWidth"
+                                    (input)="setNumberValue(options, 'strokeWidth', +stroke_width.value);">
+                                <span class="icon_label">Width</span>
+                                <div class="draginput_cursor" style="top: 68.9394px;"></div>
+                            </label>
+                            <div class="stroke_tool draginput">
+                                <span>Dash</span>
+                                <select #dasharray id="stroke_style" [value]="options.dasharray"
+                                    (change)="options.dasharray = dasharray.value;updateOptions()">
+                                    <option selected="selected" value="none">—</option>
+                                    <option value="2,2">···</option>
+                                    <option value="5,5">- -</option>
+                                    <option value="5,2,2,2">-·-</option>
+                                    <option value="5,2,2,2,2,2">-··-</option>
+                                </select>
+                                <div class="caret"></div>
+                                <label id="stroke_style_label">
+                                    <ng-container [ngSwitch]="options.dasharray">
+                                        <ng-container *ngSwitchCase="'2,2'">···</ng-container>
+                                        <ng-container *ngSwitchCase="'5,5'">- -</ng-container>
+                                        <ng-container *ngSwitchCase="'5,2,2,2'">-·-</ng-container>
+                                        <ng-container *ngSwitchCase="'5,2,2,2,2,2'">-··-</ng-container>
+                                        <ng-container *ngSwitchDefault>—</ng-container>
+                                    </ng-container>
+                                </label>
+                            </div>
+
+                            <label style="display: none;">
+                                <span class="icon_label">Stroke Join</span>
+                            </label>
+
+                            <label style="display: none;">
+                                <span class="icon_label">Stroke Cap</span>
+                            </label>
+
+                        </div>
+                    </div>
+                </div>
+            </ng-template>
+        </div>
+
+        <div id="tools_left" class="tools_panel">
+            <div class="tool_button" title="Select Tool" [class.active]="selectedTool === toolsEnum.SELECT"
+                (click)="selectedTool = toolsEnum.SELECT">
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path d="M17.15 20.76l-2.94 1.5-3.68-6-4.41 3V1.24l12.5 12.01-4.41 1.5 2.94 6z" />
+                </svg>
+            </div>
+
+            <div class="tool_button" title="Brush Tool" [class.active]="selectedTool === toolsEnum.BRUSH"
+                (click)="selectedTool = toolsEnum.BRUSH">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"
+                    style="transform: scale(-1, 1);">
+                    <path
+                        d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                </svg>
+            </div>
+
+            <div class="tool_button" title="Image Tool" [class.active]="selectedTool === toolsEnum.IMAGE"
+                (click)="selectedTool = toolsEnum.IMAGE">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+                    <path d="M0 0h24v24H0z" fill="none" />
+                    <path
+                        d="M17 7l-5 5 5 5V7zm-2 9.17L12.83 12 15 9.83 17.17 12 15 14.17zM3 3v18h18V3H3zm16 16H5V5h14v14z" />
+                </svg>
+            </div>
+            <div class="tool_button" title="Line Tool" [class.active]="selectedTool === toolsEnum.LINE"
+                (click)="selectedTool = toolsEnum.LINE">
+                <svg viewBox="0 0 27 27" xmlns="http://www.w3.org/2000/svg" width="24" height="24">
+                    <path d="M 3 1 L 26 24 L 24 26 L 1 3 L 3 1 Z"></path>
+                </svg>
+            </div>
+
+            <div class="tool_button" title="Square/Rect Tool" [class.active]="selectedTool === toolsEnum.RECT"
+                (click)="selectedTool = toolsEnum.RECT">
+                <svg viewBox="0 0 27 27" xmlns="http://www.w3.org/2000/svg" width="24" height="24">
+                    <path d="M 0 8 L 0 24 L 24 24 L 25 8 L 0 8 Z" />
+                </svg>
+            </div>
+
+            <div class="tool_button" title="Ellipse/Circle Tool" [class.active]="selectedTool === toolsEnum.ELLIPSE"
+                (click)="selectedTool = toolsEnum.ELLIPSE">
+                <svg viewBox="0 0 27 27" xmlns="http://www.w3.org/2000/svg" width="24" height="24">
+                    <ellipse cx="13" cy="13" rx="13" ry="9"></ellipse>
+                </svg>
+            </div>
+
+            <div class="tool_button" title="Text Tool" [class.active]="selectedTool === toolsEnum.TEXT"
+                (click)="selectedTool = toolsEnum.TEXT">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="2 2 20 20" width="27" height="27">
+                    <path d="M5 4v3h5.5v12h3V7H19V4z" />
+                </svg>
+            </div>
+
+            <div class="tool_button" title="Eraser Tool" [class.active]="selectedTool === toolsEnum.ERASER"
+                (click)="selectedTool = toolsEnum.ERASER">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+                    <path d="M0 0h24v24H0z" fill="none" />
+                    <path d="M19 13H5v-2h14v2z" />
+                </svg>
+            </div>
+
+            <div id="color_tools">
+                <div id="tool_switch" title="Switch stroke and fill colors [X]" (click)="swapColors()">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 11 11">
+                        <path d="M3.01 2A6 6 0 019 8h1.83l-2.91 2.91L5 8h2a4 4 0 00-3.99-4v1.93L.1 3.02 3.01.1V2z" />
+                    </svg>
+                </div>
+                <div class="color_tool active" id="tool_fill" ngx-colors-trigger (change)="colorChange('fill', $event)">
+                    <label class="icon_label" title="Change fill color">
+                    </label>
+                    <div class="color_block">
+                        <div id="fill_bg"></div>
+                        <div id="fill_color" class="color_block">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="100%">
+                                <rect width="100%" height="100%" [attr.fill]="options.fill" opacity="1"></rect>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="color_tool" id="tool_stroke" ngx-colors-trigger
+                    (change)="colorChange('strokeColor', $event)">
+                    <label class="icon_label" title="Change stroke color">
+                    </label>
+                    <div class="color_block">
+                        <div id="stroke_bg"></div>
+                        <div id="stroke_color" class="color_block" title="Change stroke color">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="100%">
+                                <rect width="100%" height="100%" [attr.fill]="options.strokeColor" opacity="1"></rect>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tools_bottom" class="tools_panel">
+            <!-- Zoom buttons -->
+            <select #zoomSelect id="zoom_select" (change)="setZoom(zoomSelect.value)">
+                <option value="6">6%</option>
+                <option value="12">12%</option>
+                <option value="16">16%</option>
+                <option value="25">25%</option>
+                <option value="50">50%</option>
+                <option value="75">75%</option>
+                <option value="100" selected="selected">100%</option>
+                <option value="150">150%</option>
+                <option value="200">200%</option>
+                <option value="300">300%</option>
+                <option value="400">400%</option>
+                <option value="600">600%</option>
+                <option value="800">800%</option>
+                <option value="1600">1600%</option>
+            </select>
+            <div id="zoom_panel" class="toolset" title="Change zoom level">
+                <div class="select-input" id="zoom_label">
+                    <span id="zoomLabel" class="zoom_tool icon_label">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="2 2 20 20" width="27">
+                            <path
+                                d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+                        </svg>
+                    </span>
+                    <input id="zoom" [value]="zoom * 100 + '%'" type="text" readonly="readonly" />
+                </div>
+            </div>
+        </div>
+    </div>
