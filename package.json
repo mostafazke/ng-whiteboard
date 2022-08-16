@@ -36,7 +36,7 @@
     "@angular/platform-browser-dynamic": "~14.0.0",
     "@angular/router": "~14.0.0",
     "@angular/service-worker": "~14.0.0",
-    "@nrwl/angular": "14.4.0",
+    "@nrwl/angular": "14.4.3",
     "d3": "^7.0.0",
     "firebase": "^9.9.2",
     "highlight.js": "^11.6.0",
