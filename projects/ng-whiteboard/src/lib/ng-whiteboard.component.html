@@ -191,7 +191,7 @@
   'position: absolute; top: ' + y + 'px; left: ' + x + 'px;'" *ngIf="tempElement && selectedTool === tools.TEXT">
   <input #textInput type="text" class="text-input" [style]="'width: ' + textInput.value.length + 'ch; '+
     'height: ' + (2 * zoom) + 'ch;'+
-    'top: ' + ((tempElement.options.top - 10)* zoom) + 'px;' +
-    'left: ' + ((tempElement.options.left+3)* zoom) + 'px;'
+    'top: ' + ((tempElement.options.top || 0 - 10) * zoom) + 'px;' +
+    'left: ' + ((tempElement.options.left || 0 + 3)* zoom) + 'px;'
     " (input)="updateTextItem(textInput.value)" autofocus />
 </div>

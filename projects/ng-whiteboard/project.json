@@ -1,23 +1,27 @@
 {
-  "$schema": "..\\..\\node_modules\\nx\\schemas\\project-schema.json",
   "sourceRoot": "projects/ng-whiteboard/src",
   "projectType": "library",
   "targets": {
     "build": {
-      "executor": "@nrwl/js:tsc",
-      "outputs": ["{options.outputPath}"],
+      "executor": "@nrwl/angular:package",
+      "outputs": ["dist/ng-whiteboard"],
       "options": {
-        "outputPath": "dist/ng-whiteboard",
-        "main": "projects/ng-whiteboard/src/index.ts",
-        "tsConfig": "projects/ng-whiteboard/tsconfig.lib.json",
-        "assets": ["projects/ng-whiteboard/*.md"]
-      }
+        "project": "projects/ng-whiteboard/ng-package.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "projects/ng-whiteboard/tsconfig.lib.prod.json"
+        },
+        "development": {
+          "tsConfig": "projects/ng-whiteboard/tsconfig.lib.json"
+        }
+      },
+      "defaultConfiguration": "production"
     },
     "lint": {
       "executor": "@nrwl/linter:eslint",
-      "outputs": ["{options.outputFile}"],
       "options": {
-        "lintFilePatterns": ["projects/ng-whiteboard/**/*.ts"]
+        "lintFilePatterns": ["projects/ng-whiteboard/**/*.ts", "projects/ng-whiteboard/**/*.html"]
       }
     },
     "test": {
