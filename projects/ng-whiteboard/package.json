@@ -24,13 +24,13 @@
   "bugs": {
     "url": "https://github.com/mostafazke/ng-whiteboard/issues"
   },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
   "peerDependencies": {
     "@angular/common": "^14.0.0",
     "@angular/core": "^14.0.0",
     "d3": "^5.16.0",
     "@types/d3": "^5.16.0"
-  },
-  "dependencies": {
-    "tslib": "^2.3.0"
   }
 }
