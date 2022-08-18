@@ -1,3 +1,10 @@
+## [2.0.2](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.1...v2.0.2) (2022-08-18)
+
+
+### Bug Fixes
+
+* **whiteboard:** 🐛 update peer dependencies ([65d064c](https://github.com/mostafazke/ng-whiteboard/commit/65d064cad3eb464b3506004f43625fd8a513f2e6))
+
 ## [2.0.1](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.0...v2.0.1) (2022-08-18)
 
 
