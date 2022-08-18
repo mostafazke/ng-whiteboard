@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.0...v2.0.1) (2022-08-18)
+
+
+### Bug Fixes
+
+* package.json & yarn.lock to reduce vulnerabilities ([3aed03f](https://github.com/mostafazke/ng-whiteboard/commit/3aed03f83c64e86135e6e8c7d76b58526a23bf85))
+
 # [2.0.0](https://github.com/mostafazke/ng-whiteboard/compare/v1.5.7...v2.0.0) (2022-08-14)
 
 
