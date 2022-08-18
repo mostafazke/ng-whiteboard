@@ -602,6 +602,12 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     }
     this.tempElement = null as never;
   }
+  // Handle Text Input
+  updateTextItem(value: string) {
+    if (this.tempElement && this.selectedTool == ToolsEnum.TEXT) {
+      this.tempElement.value = value;
+    }
+  }
   setSelectedElement(element: WhiteboardElement) {
     this.selectedTool = ToolsEnum.SELECT;
     const currentBBox = this._getElementBbox(element);

@@ -7,11 +7,14 @@
       "path": "./tsconfig.lib.json"
     },
     {
+      "path": "./tsconfig.lib.prod.json"
+    },
+    {
       "path": "./tsconfig.spec.json"
     }
   ],
   "compilerOptions": {
-    "module": "commonjs",
+    "target": "es2020",
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noImplicitOverride": true,
@@ -21,8 +24,8 @@
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
-    "strictInjectionParameters": false,
-    "strictInputAccessModifiers": false,
-    "strictTemplates": false
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
   }
 }
