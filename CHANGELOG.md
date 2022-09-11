@@ -1,3 +1,11 @@
+## [2.0.5](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.4...v2.0.5) (2022-09-11)
+
+
+### Bug Fixes
+
+* upgrade @nrwl/angular from 14.5.2 to 14.5.4 ([41627b8](https://github.com/mostafazke/ng-whiteboard/commit/41627b8e39aabf0fb7785d5532e3aa68a0a7372f))
+* upgrade firebase from 9.9.2 to 9.9.3 ([8401caa](https://github.com/mostafazke/ng-whiteboard/commit/8401caa56abcad1565dabba39b914e87fa7d7235))
+
 ## [2.0.4](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.3...v2.0.4) (2022-08-24)
 
 
