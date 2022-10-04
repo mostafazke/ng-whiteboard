@@ -718,7 +718,11 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     }
     const currentState = this.undoStack.pop();
     this.redoStack.push(currentState as WhiteboardElement[]);
-    this.data = this.undoStack[this.undoStack.length - 1] || JSON.parse(JSON.stringify(this._initialData));
+    if(this.undoStack.length){
+      this.data = JSON.parse(JSON.stringify(this.undoStack[this.undoStack.length-1]));
+    } else {
+      this.data = JSON.parse(JSON.stringify(this._initialData)) || [];
+    }
     this.undo.emit();
   }
   private redoDraw() {
