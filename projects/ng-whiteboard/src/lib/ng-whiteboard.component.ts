@@ -77,6 +77,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
 
   private _subscriptionList: Subscription[] = [];
 
+  private _initialData: WhiteboardElement[] = [];
   private undoStack: WhiteboardElement[][] = [];
   private redoStack: WhiteboardElement[][] = [];
   private _selectedTool: ToolsEnum = ToolsEnum.BRUSH;
@@ -101,6 +102,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   ngOnInit(): void {
     this._initInputsFromOptions(this.options);
     this._initObservables();
+    this._initialData = JSON.parse(JSON.stringify(this.data));
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -716,7 +718,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     }
     const currentState = this.undoStack.pop();
     this.redoStack.push(currentState as WhiteboardElement[]);
-    this.data = this.undoStack[this.undoStack.length - 1] || [];
+    this.data = this.undoStack[this.undoStack.length - 1] || JSON.parse(JSON.stringify(this._initialData));
     this.undo.emit();
   }
   private redoDraw() {
