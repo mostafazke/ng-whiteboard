@@ -16,7 +16,8 @@ jobs:
     steps:
       - browser-tools/install-chrome
       - checkout
-      - node/install-packages
+      - node/install-packages:
+          pkg-manager: yarn
       - run:
           name: test
           command: yarn test:lib
@@ -26,7 +27,8 @@ jobs:
       tag: 'current'
     steps:
       - checkout
-      - node/install-packages
+      - node/install-packages:
+          pkg-manager: yarn
       - run: yarn build:demo
       - run: npx angular-cli-ghpages --dir=./dist/demo --repo=https://github.com/mostafazke/ng-whiteboard.git --name="Mostafa Zaki" --email=mmostafazke@gmail.com
 
@@ -36,7 +38,8 @@ jobs:
       tag: 'current'
     steps:
       - checkout
-      - node/install-packages
+      - node/install-packages:
+          pkg-manager: yarn
       - run: yarn build:lib
       - run: yarn publish:lib
 
