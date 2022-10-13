@@ -47,7 +47,7 @@ workflows:
   test_and_release:
     jobs:
       - test
-      -demo
+      - demo
       - lib:
           filters:
             branches:
