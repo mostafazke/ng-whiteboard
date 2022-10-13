@@ -1,0 +1,57 @@
+version: 2.1
+orbs:
+  node: circleci/node@5
+  browser-tools: circleci/browser-tools@1
+
+before_install:
+  - npm install -g yarn
+  - yarn install
+
+jobs:
+  test:
+    docker:
+      - image: cimg/node:current-browsers
+        environment:
+          CHROME_BIN: '/usr/bin/google-chrome'
+    steps:
+      - browser-tools/install-chrome
+      - checkout
+      - node/install-packages
+      - run:
+          name: test
+          command: yarn test:lib
+  demo:
+    executor:
+      name: node/default
+      tag: 'current'
+    steps:
+      - checkout
+      - node/install-packages
+      - run: yarn build:demo
+      - run: npx angular-cli-ghpages --dir=./dist/demo --repo=https://github.com/mostafazke/ng-whiteboard.git --name="Mostafa Zaki" --email=mmostafazke@gmail.com
+
+  lib:
+    executor:
+      name: node/default
+      tag: 'current'
+    steps:
+      - checkout
+      - node/install-packages
+      - run: yarn build:lib
+      - run: yarn publish:lib
+
+workflows:
+  version: 2
+  test_and_release:
+    jobs:
+      - test
+      - demo
+      - lib:
+          filters:
+            branches:
+              only:
+                - master
+          context:
+            - yarn
+          requires:
+            - test
