@@ -2,7 +2,6 @@ version: 2.1
 orbs:
   node: circleci/node@5
   browser-tools: circleci/browser-tools@1
-  codecov: codecov/codecov@3.2.4
 
 before_install:
   - npm install -g yarn
@@ -21,7 +20,6 @@ jobs:
       - run:
           name: test
           command: yarn test:lib
-      - codecov/upload
   demo:
     executor:
       name: node/default
