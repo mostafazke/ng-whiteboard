@@ -12,10 +12,16 @@ jobs:
     steps:
       - browser-tools/install-chrome
       - checkout
-      - node/install-packages:
-          pkg-manager: yarn
-          override-ci-command: yarn
-          cache-version: v2
+      - restore_cache:
+          key: dependency-cache-{{ checksum "yarn.lock" }}
+      - run:
+          name: install-dependencies
+          command: yarn install
+      - save_cache:
+          key: dependency-cache-{{ checksum "yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
+            - ./node_modules
       - run:
           name: test
           command: yarn test:lib
@@ -25,10 +31,16 @@ jobs:
       tag: 'current'
     steps:
       - checkout
-      - node/install-packages:
-          pkg-manager: yarn
-          override-ci-command: yarn
-          cache-version: v2
+      - restore_cache:
+          key: dependency-cache-{{ checksum "yarn.lock" }}
+      - run:
+          name: install-dependencies
+          command: yarn install
+      - save_cache:
+          key: dependency-cache-{{ checksum "yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
+            - ./node_modules
       - run: yarn build:demo
       - run: npx angular-cli-ghpages --dir=./dist/demo --repo=https://github.com/mostafazke/ng-whiteboard.git --name="Mostafa Zaki" --email=mmostafazke@gmail.com
 
@@ -38,10 +50,16 @@ jobs:
       tag: 'current'
     steps:
       - checkout
-      - node/install-packages:
-          pkg-manager: yarn
-          override-ci-command: yarn
-          cache-version: v2
+      - restore_cache:
+          key: dependency-cache-{{ checksum "yarn.lock" }}
+      - run:
+          name: install-dependencies
+          command: yarn install
+      - save_cache:
+          key: dependency-cache-{{ checksum "yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
+            - ./node_modules
       - run: yarn build:lib
       - run: yarn publish:lib
 
