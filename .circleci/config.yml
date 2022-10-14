@@ -1,6 +1,5 @@
 version: 2.1
 orbs:
-  node: circleci/node@5
   browser-tools: circleci/browser-tools@1
 
 jobs:
@@ -12,54 +11,31 @@ jobs:
     steps:
       - browser-tools/install-chrome
       - checkout
-      - restore_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
       - run:
           name: install-dependencies
-          command: yarn install
-      - save_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
-          paths:
-            - ~/.cache/yarn
-            - ./node_modules
+          command: yarn
       - run:
           name: test
           command: yarn test:lib
   demo:
-    executor:
-      name: node/default
-      tag: 'current'
+    docker:
+      - image: cimg/node:current-browsers
     steps:
       - checkout
-      - restore_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
       - run:
           name: install-dependencies
-          command: yarn install
-      - save_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
-          paths:
-            - ~/.cache/yarn
-            - ./node_modules
+          command: yarn
       - run: yarn build:demo
       - run: npx angular-cli-ghpages --dir=./dist/demo --repo=https://github.com/mostafazke/ng-whiteboard.git --name="Mostafa Zaki" --email=mmostafazke@gmail.com
 
   lib:
-    executor:
-      name: node/default
-      tag: 'current'
+    docker:
+      - image: cimg/node:current-browsers
     steps:
       - checkout
-      - restore_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
       - run:
           name: install-dependencies
-          command: yarn install
-      - save_cache:
-          key: dependency-cache-{{ checksum "yarn.lock" }}
-          paths:
-            - ~/.cache/yarn
-            - ./node_modules
+          command: yarn
       - run: yarn build:lib
       - run: yarn publish:lib
 
