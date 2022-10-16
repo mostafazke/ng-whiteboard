@@ -354,7 +354,7 @@ ${error.stack}`;
             return cachedResponse;
           }
         }
-        const res = await this.fetchAndCacheOnce(this.adapter.newRequest(req.url));
+        const res = await this.fetchAndCacheOnce(this.newRequestWithMetadata(req.url, req));
         return res.clone();
       } else {
         return null;
@@ -451,7 +451,7 @@ ${error.stack}`;
         if (redirectLimit === 0) {
           throw new SwCriticalError(`Response hit redirect limit (fetchFromNetwork): request redirected too many times, next is ${res.url}`);
         }
-        return this.fetchFromNetwork(this.adapter.newRequest(res.url), redirectLimit - 1);
+        return this.fetchFromNetwork(this.newRequestWithMetadata(res.url, req), redirectLimit - 1);
       }
       return res;
     }
@@ -466,7 +466,7 @@ ${error.stack}`;
           makeCacheBustedRequest = fetchedHash !== canonicalHash;
         }
         if (makeCacheBustedRequest) {
-          const cacheBustReq = this.adapter.newRequest(this.cacheBust(req.url));
+          const cacheBustReq = this.newRequestWithMetadata(this.cacheBust(req.url), req);
           response = await this.safeFetch(cacheBustReq);
           if (response.ok) {
             const cacheBustedHash = sha1Binary(await response.clone().arrayBuffer());
@@ -494,6 +494,9 @@ ${error.stack}`;
         }
       }
       return false;
+    }
+    newRequestWithMetadata(url, options) {
+      return this.adapter.newRequest(url, { headers: options.headers });
     }
     cacheBust(url) {
       return url + (url.indexOf("?") === -1 ? "?" : "&") + "ngsw-cache-bust=" + Math.random();
@@ -947,7 +950,7 @@ ${error.stack}`;
       return null;
     }
     isNavigationRequest(req) {
-      if (req.mode !== "navigate") {
+      if (req.method !== "GET" || req.mode !== "navigate") {
         return false;
       }
       if (!this.acceptsTextHtml(req)) {
@@ -1014,7 +1017,7 @@ ${error.stack}`;
   };
 
   // bazel-out/k8-fastbuild-ST-2e5f3376adb5/bin/packages/service-worker/worker/src/debug.mjs
-  var SW_VERSION = "14.0.7";
+  var SW_VERSION = "14.2.6";
   var DEBUG_LOG_BUFFER_SIZE = 100;
   var DebugHandler = class {
     constructor(driver, adapter2) {
@@ -1368,6 +1371,10 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ "Content-Type": "text/plain" }
           } else {
             await this.scope.clients.openWindow(urlToOpen);
           }
+          break;
+        }
+        case "sendRequest": {
+          await this.scope.fetch(urlToOpen);
           break;
         }
         default:
