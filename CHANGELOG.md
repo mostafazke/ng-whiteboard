@@ -1,3 +1,14 @@
+## [2.0.6](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.5...v2.0.6) (2022-10-16)
+
+
+### Bug Fixes
+
+* upgrade @nrwl/angular from 14.5.4 to 14.7.5 ([612cfc5](https://github.com/mostafazke/ng-whiteboard/commit/612cfc5e9f31d7cd5bf83ec29958528bdeb95d34))
+* upgrade @nrwl/angular from 14.7.5 to 14.7.6 ([7847884](https://github.com/mostafazke/ng-whiteboard/commit/78478840d923c1118b23112b60c23e34582d8a4a))
+* upgrade @nrwl/angular from 14.7.6 to 14.7.8 ([b3c9386](https://github.com/mostafazke/ng-whiteboard/commit/b3c9386f8cb049451d0d108b7c52e067a8f3f275))
+* upgrade firebase from 9.9.4 to 9.10.0 ([1f72df8](https://github.com/mostafazke/ng-whiteboard/commit/1f72df84d5d48050429e8395ed5d40837368a599))
+* upgrade ngx-colors from 3.1.2 to 3.1.3 ([6d4969d](https://github.com/mostafazke/ng-whiteboard/commit/6d4969d85ce59dd7827e189c1a7bde2b662f8d22))
+
 ## [2.0.5](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.4...v2.0.5) (2022-09-11)
 
 
