@@ -1,4 +1,5 @@
 {
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
   "sourceRoot": "projects/demo/src",
   "prefix": "ng-whiteboard",
@@ -13,11 +14,7 @@
         "polyfills": "projects/demo/src/polyfills.ts",
         "tsConfig": "projects/demo/tsconfig.app.json",
         "inlineStyleLanguage": "scss",
-        "assets": [
-          "projects/demo/src/favicon.ico",
-          "projects/demo/src/assets",
-          "projects/demo/src/manifest.json"
-        ],
+        "assets": ["projects/demo/src/favicon.ico", "projects/demo/src/assets", "projects/demo/src/manifest.json"],
         "styles": ["projects/demo/src/styles.scss"],
         "scripts": [],
         "serviceWorker": true,
@@ -81,7 +78,7 @@
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/projects/demo"],
+      "outputs": ["{workspaceRoot}/coverage/projects/demo"],
       "options": {
         "jestConfig": "projects/demo/jest.config.ts",
         "passWithNoTests": true

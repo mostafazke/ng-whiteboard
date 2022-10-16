@@ -1,10 +1,11 @@
 {
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "projects/ng-whiteboard/src",
   "projectType": "library",
   "targets": {
     "build": {
       "executor": "@nrwl/angular:package",
-      "outputs": ["dist/ng-whiteboard"],
+      "outputs": ["{workspaceRoot}/dist/ng-whiteboard"],
       "options": {
         "project": "projects/ng-whiteboard/ng-package.json"
       },
@@ -26,7 +27,7 @@
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["coverage/projects/ng-whiteboard"],
+      "outputs": ["{workspaceRoot}/coverage/projects/ng-whiteboard"],
       "options": {
         "jestConfig": "projects/ng-whiteboard/jest.config.ts",
         "passWithNoTests": true
