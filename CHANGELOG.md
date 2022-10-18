@@ -1,3 +1,10 @@
+## [2.0.7](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.6...v2.0.7) (2022-10-18)
+
+
+### Bug Fixes
+
+* upgrade rxjs from 7.5.6 to 7.5.7 ([5e1d588](https://github.com/mostafazke/ng-whiteboard/commit/5e1d58800e3c253cbad4298b314825a5fbd2bacb))
+
 ## [2.0.6](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.5...v2.0.6) (2022-10-16)
 
 
