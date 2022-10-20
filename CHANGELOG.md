@@ -1,3 +1,10 @@
+## [2.0.8](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.7...v2.0.8) (2022-10-20)
+
+
+### Bug Fixes
+
+* upgrade ngx-toastr from 15.0.0 to 15.1.0 ([42c30aa](https://github.com/mostafazke/ng-whiteboard/commit/42c30aa413b36363738202ceb5680f793ec2dcb7))
+
 ## [2.0.7](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.6...v2.0.7) (2022-10-18)
 
 
