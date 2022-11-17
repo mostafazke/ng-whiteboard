@@ -1,3 +1,11 @@
+## [2.0.9](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.8...v2.0.9) (2022-11-17)
+
+
+### Bug Fixes
+
+* package.json & yarn.lock to reduce vulnerabilities ([7f28037](https://github.com/mostafazke/ng-whiteboard/commit/7f280377890b85e5eecbbf64f954285a95ca0fc3))
+* upgrade firebase from 9.11.0 to 9.12.1 ([adfe711](https://github.com/mostafazke/ng-whiteboard/commit/adfe711bff0d82efe32c9de6f05d3077b8ba287b))
+
 ## [2.0.8](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.7...v2.0.8) (2022-10-20)
 
 
