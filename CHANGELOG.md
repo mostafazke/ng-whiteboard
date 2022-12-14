@@ -1,3 +1,12 @@
+## [2.0.10](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.9...v2.0.10) (2022-12-14)
+
+
+### Bug Fixes
+
+* upgrade firebase from 9.13.0 to 9.14.0 ([5b3be9e](https://github.com/mostafazke/ng-whiteboard/commit/5b3be9e275488ce2fed8ee18e7bbfafba7544f60))
+* upgrade multiple dependencies with Snyk ([b2ce68a](https://github.com/mostafazke/ng-whiteboard/commit/b2ce68a37cbb03c6f2b699d623d132b7809eddf9))
+* upgrade tslib from 2.4.0 to 2.4.1 ([dbacca2](https://github.com/mostafazke/ng-whiteboard/commit/dbacca27d582b7f4bd3a7f87d1f99d2738835916))
+
 ## [2.0.9](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.8...v2.0.9) (2022-11-17)
 
 
