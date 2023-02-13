@@ -1,3 +1,12 @@
+## [2.0.11](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.10...v2.0.11) (2023-02-13)
+
+
+### Bug Fixes
+
+* upgrade @nrwl/angular from 15.0.11 to 15.2.1 ([ae047f7](https://github.com/mostafazke/ng-whiteboard/commit/ae047f7b21b5246eee5b1f0471fd319100f0e36e))
+* upgrade highlight.js from 11.6.0 to 11.7.0 ([85d2513](https://github.com/mostafazke/ng-whiteboard/commit/85d25130f8d80d6cd7b713a37fc3ca25b37b78a8))
+* upgrade ngx-toastr from 15.2.1 to 15.2.2 ([f6fa47a](https://github.com/mostafazke/ng-whiteboard/commit/f6fa47a88715144ff0fd56ca0b72d60718868863))
+
 ## [2.0.10](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.9...v2.0.10) (2022-12-14)
 
 
