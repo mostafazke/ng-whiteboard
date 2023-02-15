@@ -1,3 +1,11 @@
+## [2.0.12](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.11...v2.0.12) (2023-02-15)
+
+
+### Bug Fixes
+
+* upgrade firebase from 9.14.0 to 9.16.0 ([b729f23](https://github.com/mostafazke/ng-whiteboard/commit/b729f230d8b1079fd96f7a9d4652c1d0d913be9c))
+* upgrade rxjs from 7.5.7 to 7.8.0 ([4610c32](https://github.com/mostafazke/ng-whiteboard/commit/4610c32b55fa0ab8876156263d980f6f66482811))
+
 ## [2.0.11](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.10...v2.0.11) (2023-02-13)
 
 
