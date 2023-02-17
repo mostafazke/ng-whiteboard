@@ -1,3 +1,10 @@
+## [2.0.13](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.12...v2.0.13) (2023-02-17)
+
+
+### Bug Fixes
+
+* upgrade tslib from 2.4.1 to 2.5.0 ([e974f9f](https://github.com/mostafazke/ng-whiteboard/commit/e974f9fd1b44980d1f953e7fb4a7b0d74659378f))
+
 ## [2.0.12](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.11...v2.0.12) (2023-02-15)
 
 
