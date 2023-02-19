@@ -35,7 +35,7 @@
     "@angular/platform-browser-dynamic": "~14.2.8",
     "@angular/router": "~14.2.8",
     "@angular/service-worker": "~14.2.8",
-    "@nrwl/angular": "15.2.1",
+    "@nrwl/angular": "15.6.3",
     "d3": "^5.16.0",
     "firebase": "^9.16.0",
     "highlight.js": "^11.7.0",
