@@ -1,3 +1,10 @@
+## [2.0.14](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.13...v2.0.14) (2023-02-22)
+
+
+### Bug Fixes
+
+* upgrade ngx-colors from 3.1.4 to 3.2.0 ([32fbfa4](https://github.com/mostafazke/ng-whiteboard/commit/32fbfa473a6b4861a7fa9f2a2b2c7bbe9691d3d0))
+
 ## [2.0.13](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.12...v2.0.13) (2023-02-17)
 
 
