@@ -19,7 +19,7 @@ jobs:
           name: test
           command: yarn test:ci
       - codecov/upload:
-          file: '../coverage/ng-whiteboard/lcov.info'
+          file: 'coverage/ng-whiteboard/lcov.info'
 
   demo:
     docker:
