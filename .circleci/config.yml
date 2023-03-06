@@ -1,6 +1,7 @@
 version: 2.1
 orbs:
   browser-tools: circleci/browser-tools@1
+  codecov: codecov/codecov@3.2.2
 
 jobs:
   test:
@@ -16,7 +17,8 @@ jobs:
           command: yarn
       - run:
           name: test
-          command: yarn test:lib
+          command: yarn test:ci
+      - codecov/upload
   demo:
     docker:
       - image: cimg/node:current-browsers

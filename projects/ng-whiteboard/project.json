@@ -27,10 +27,17 @@
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/projects/ng-whiteboard"],
+      "outputs": ["{workspaceRoot}/coverage/ng-whiteboard"],
       "options": {
         "jestConfig": "projects/ng-whiteboard/jest.config.ts",
-        "passWithNoTests": true
+        "passWithNoTests": true,
+        "codeCoverage": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "coverageReporters": ["lcov"]
+        }
       }
     }
   },
