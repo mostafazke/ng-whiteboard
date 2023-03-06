@@ -3,10 +3,11 @@ import { NgWhiteboardService } from './ng-whiteboard.service';
 import { Subscription, fromEvent, skip, BehaviorSubject } from 'rxjs';
 import { ElementTypeEnum, FormatType, formatTypes, IAddImage, LineCapEnum, LineJoinEnum, ToolsEnum, WhiteboardElement, WhiteboardOptions } from './models';
 import { ContainerElement, curveBasis, drag, line, mouse, select, Selection, event } from 'd3';
+import Utils from './ng-whiteboard.utils';
 
 type BBox = { x: number; y: number; width: number; height: number };
-
 const d3Line = line().curve(curveBasis);
+
 @Component({
   selector: 'ng-whiteboard',
   templateUrl: './ng-whiteboard.component.html',
@@ -107,7 +108,6 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['options']) {
-      //&& !isEqual(changes.options.currentValue, changes.options.previousValue)
       this._initInputsFromOptions(changes['options'].currentValue);
     }
   }
@@ -115,9 +115,9 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   ngAfterViewInit() {
     this.selection = select<Element, unknown>(this.svgContainer.nativeElement);
     setTimeout(() => {
-      this.resizeScreen();
+      this._resizeScreen();
     }, 0);
-    this.initalizeEvents(this.selection);
+    this.initializeEvents(this.selection);
     this.ready.emit();
   }
 
@@ -198,15 +198,15 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
 
   private _initObservables(): void {
     this._subscriptionList.push(
-      this.whiteboardService.saveSvgMethodCalled$.subscribe(({ name, format }) => this.saveSvg(name, format))
+      this.whiteboardService.saveMethodCalled$.subscribe(({ name, format }) => this.saveDraw(name, format))
     );
     this._subscriptionList.push(
-      this.whiteboardService.addImageMethodCalled$.subscribe((image) => this.handleDrawImage(image))
+      this.whiteboardService.addImageMethodCalled$.subscribe((image) => this.addImage(image))
     );
-    this._subscriptionList.push(this.whiteboardService.eraseSvgMethodCalled$.subscribe(() => this._clearSvg()));
-    this._subscriptionList.push(this.whiteboardService.undoSvgMethodCalled$.subscribe(() => this.undoDraw()));
-    this._subscriptionList.push(this.whiteboardService.redoSvgMethodCalled$.subscribe(() => this.redoDraw()));
-    this._subscriptionList.push(fromEvent(window, 'resize').subscribe(() => this.resizeScreen()));
+    this._subscriptionList.push(this.whiteboardService.eraseMethodCalled$.subscribe(() => this.clearDraw()));
+    this._subscriptionList.push(this.whiteboardService.undoMethodCalled$.subscribe(() => this.undoDraw()));
+    this._subscriptionList.push(this.whiteboardService.redoMethodCalled$.subscribe(() => this.redoDraw()));
+    this._subscriptionList.push(fromEvent(window, 'resize').subscribe(() => this._resizeScreen()));
     this._subscriptionList.push(
       this._data.pipe(skip(1)).subscribe((data) => {
         this.dataChange.emit(data);
@@ -214,7 +214,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     );
   }
 
-  initalizeEvents(selection: Selection<Element, unknown, null, undefined>): void {
+  initializeEvents(selection: Selection<Element, unknown, null, undefined>): void {
     if (!this.drawingEnabled) {
       return;
     }
@@ -344,49 +344,12 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
         const reader = new FileReader();
         reader.onload = (e: ProgressEvent) => {
           const image = (e.target as FileReader).result as string;
-          this.handleDrawImage({ image, x, y });
+          this.addImage({ image, x, y });
         };
         reader.readAsDataURL(files[0]);
       }
     };
     input.click();
-  }
-  // Handle Draw Image
-  handleDrawImage(imageSrc: IAddImage) {
-    try {
-      const tempImg = new Image();
-      tempImg.onload = () => {
-        const svgHeight = this.canvasHeight;
-        const imageWidth = tempImg.width;
-        const imageHeight = tempImg.height;
-        const aspectRatio = tempImg.width / tempImg.height;
-        const height = imageHeight > svgHeight ? svgHeight - 40 : imageHeight;
-        const width = height === svgHeight - 40 ? (svgHeight - 40) * aspectRatio : imageWidth;
-
-        let x = imageSrc.x || (imageWidth - width) * (imageSrc.x || 0);
-        let y = imageSrc.y || (imageHeight - height) * (imageSrc.y || 0);
-
-        if (x < 0) {
-          x = 0;
-        }
-        if (y < 0) {
-          y = 0;
-        }
-
-        const element = this._generateNewElement(ElementTypeEnum.IMAGE);
-        element.value = imageSrc.image as string;
-        element.options.width = width;
-        element.options.height = height;
-        element.x = x;
-        element.y = y;
-        this._pushToData(element);
-        this.imageAdded.emit();
-        this._pushToUndo();
-      };
-      tempImg.src = imageSrc.image as string;
-    } catch (error) {
-      console.error(error);
-    }
   }
   // Handle Line tool
   handleStartLine() {
@@ -394,8 +357,8 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     let [x, y] = this._calculateXAndY(mouse(this.selection.node() as SVGSVGElement));
 
     if (this.snapToGrid) {
-      x = this._snapToGrid(x);
-      y = this._snapToGrid(y);
+      x = Utils.snapToGrid(x, this.gridSize);
+      y = Utils.snapToGrid(y, this.gridSize);
     }
 
     element.options.x1 = x;
@@ -408,8 +371,8 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     let [x2, y2] = this._calculateXAndY(mouse(this.selection.node() as SVGSVGElement));
 
     if (this.snapToGrid) {
-      x2 = this._snapToGrid(x2);
-      y2 = this._snapToGrid(y2);
+      x2 = Utils.snapToGrid(x2, this.gridSize);
+      y2 = Utils.snapToGrid(y2, this.gridSize);
     }
 
     if (event.sourceEvent.shiftKey) {
@@ -437,8 +400,8 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     const element = this._generateNewElement(ElementTypeEnum.RECT);
     let [x, y] = this._calculateXAndY(mouse(this.selection.node() as SVGSVGElement));
     if (this.snapToGrid) {
-      x = this._snapToGrid(x);
-      y = this._snapToGrid(y);
+      x = Utils.snapToGrid(x, this.gridSize);
+      y = Utils.snapToGrid(y, this.gridSize);
     }
     element.options.x1 = x;
     element.options.y1 = y;
@@ -472,10 +435,10 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
       new_y = start_y - h / 2;
     }
     if (this.snapToGrid) {
-      w = this._snapToGrid(w);
-      h = this._snapToGrid(h);
-      new_x = this._snapToGrid(new_x);
-      new_y = this._snapToGrid(new_y);
+      w = Utils.snapToGrid(w, this.gridSize);
+      h = Utils.snapToGrid(h, this.gridSize);
+      new_x = Utils.snapToGrid(new_x, this.gridSize);
+      new_y = Utils.snapToGrid(new_y, this.gridSize);
     }
 
     this.tempElement.options.width = w;
@@ -622,7 +585,39 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     this.rubberBox.display = 'none';
     this.selectElement.emit(null);
   }
-  private saveSvg(name: string, format: formatTypes) {
+  addImage(imageSrc: IAddImage) {
+    const tempImg = new Image();
+    tempImg.onload = () => {
+      const svgHeight = this.canvasHeight;
+      const imageWidth = tempImg.width;
+      const imageHeight = tempImg.height;
+      const aspectRatio = tempImg.width / tempImg.height;
+      const height = imageHeight > svgHeight ? svgHeight - 40 : imageHeight;
+      const width = height === svgHeight - 40 ? (svgHeight - 40) * aspectRatio : imageWidth;
+
+      let x = imageSrc.x || (imageWidth - width) * (imageSrc.x || 0);
+      let y = imageSrc.y || (imageHeight - height) * (imageSrc.y || 0);
+
+      if (x < 0) {
+        x = 0;
+      }
+      if (y < 0) {
+        y = 0;
+      }
+
+      const element = this._generateNewElement(ElementTypeEnum.IMAGE);
+      element.value = imageSrc.image as string;
+      element.options.width = width;
+      element.options.height = height;
+      element.x = x;
+      element.y = y;
+      this._pushToData(element);
+      this.imageAdded.emit();
+      this._pushToUndo();
+    };
+    tempImg.src = imageSrc.image as string;
+  }
+  async saveDraw(name: string, format: formatTypes) {
     const svgCanvas = this.selection.select('#svgcontent').clone(true);
     svgCanvas.select('#selectorParentGroup').remove();
     (svgCanvas.select('#contentBackground').node() as SVGSVGElement).removeAttribute('opacity');
@@ -630,102 +625,45 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     svg.setAttribute('x', '0');
     svg.setAttribute('y', '0');
 
-    const svgString = this.saveAsSvg(svg as Element);
+    const svgString = Utils.toSvgString(svg);
+    const imageString = await Utils.svgToBase64(svgString, this.canvasWidth, this.canvasHeight, format);
     switch (format) {
       case FormatType.Base64:
-        this.svgString2Image(svgString, this.canvasWidth, this.canvasHeight, format, (img) => {
-          this.save.emit(img);
-        });
+        this.save.emit(imageString);
         break;
       case FormatType.Svg: {
         const imgSrc = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
-        this.download(imgSrc, name);
+        Utils.downloadFile(imgSrc, name);
         this.save.emit(imgSrc);
         break;
       }
       default:
-        this.svgString2Image(svgString, this.canvasWidth, this.canvasHeight, format, (img) => {
-          this.download(img, name);
-          this.save.emit(img);
-        });
+        Utils.downloadFile(imageString, name);
+        this.save.emit(imageString);
         break;
     }
     svgCanvas.remove();
   }
-  private svgString2Image(
-    svgString: string,
-    width: number,
-    height: number,
-    format: string,
-    callback: (img: string) => void
-  ) {
-    // set default for format parameter
-    format = format || 'png';
-    // SVG data URL from SVG string
-    const svgData = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
-    // create canvas in memory(not in DOM)
-    const canvas = document.createElement('canvas');
-    // get canvas context for drawing on canvas
-    const context = canvas.getContext('2d') as CanvasRenderingContext2D;
-    // set canvas size
-    canvas.width = width;
-    canvas.height = height;
-    // create image in memory(not in DOM)
-    const image = new Image();
-    // later when image loads run this
-    image.onload = () => {
-      // async (happens later)
-      // clear canvas
-      context.clearRect(0, 0, width, height);
-      // draw image with SVG data to canvas
-      context.drawImage(image, 0, 0, width, height);
-      // snapshot canvas as png
-      const pngData = canvas.toDataURL('image/' + format);
-      // pass png data URL to callback
-      callback(pngData);
-    }; // end async
-    // start loading SVG data into in memory image
-    image.src = svgData;
-  }
-  private saveAsSvg(svgNode: Element): string {
-    const serializer = new XMLSerializer();
-    let svgString = serializer.serializeToString(svgNode);
-    svgString = svgString.replace(/(\w+)?:?xlink=/g, 'xmlns:xlink='); // Fix root xlink without namespace
-    svgString = svgString.replace(/NS\d+:href/g, 'xlink:href');
-    return svgString;
-  }
-  private download(url: string, name: string): void {
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('visibility', 'hidden');
-    link.download = name || 'new white-board';
-    document.body.appendChild(link);
-    link.click();
-  }
-  private _pushToData(element: WhiteboardElement) {
-    this.data.push(element);
-    this._data.next(this.data);
-  }
-  private _clearSvg() {
+  clearDraw() {
     this.data = [];
     this._data.next(this.data);
     this._pushToUndo();
     this.clear.emit();
   }
-  private undoDraw() {
+  undoDraw() {
     if (!this.undoStack.length) {
       return;
     }
     const currentState = this.undoStack.pop();
     this.redoStack.push(currentState as WhiteboardElement[]);
-    if(this.undoStack.length){
-      this.data = JSON.parse(JSON.stringify(this.undoStack[this.undoStack.length-1]));
+    if (this.undoStack.length) {
+      this.data = JSON.parse(JSON.stringify(this.undoStack[this.undoStack.length - 1]));
     } else {
       this.data = JSON.parse(JSON.stringify(this._initialData)) || [];
     }
     this.undo.emit();
   }
-  private redoDraw() {
+  redoDraw() {
     if (!this.redoStack.length) {
       return;
     }
@@ -736,6 +674,10 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   }
   private _pushToUndo() {
     this.undoStack.push(JSON.parse(JSON.stringify(this.data)));
+  }
+  private _pushToData(element: WhiteboardElement) {
+    this.data.push(element);
+    this._data.next(this.data);
   }
   private _generateNewElement(name: ElementTypeEnum): WhiteboardElement {
     const element = new WhiteboardElement(name, {
@@ -754,7 +696,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   private _calculateXAndY([x, y]: [number, number]): [number, number] {
     return [(x - this.x) / this.zoom, (y - this.y) / this.zoom];
   }
-  private resizeScreen() {
+  private _resizeScreen() {
     const svgContainer = this.svgContainer.nativeElement;
     if (this.fullScreen) {
       this.canvasWidth = svgContainer.clientWidth;
@@ -775,11 +717,6 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     const x = x1 + dist * Math.cos(snapangle);
     const y = y1 + dist * Math.sin(snapangle);
     return { x: x, y: y, a: snapangle };
-  }
-  private _snapToGrid(n: number) {
-    const snap = this.gridSize;
-    const n1 = Math.round(n / snap) * snap;
-    return n1;
   }
   private _getElementBbox(element: WhiteboardElement): DOMRect {
     const el = this.selection.select(`#item_${element.id}`).node() as SVGGraphicsElement;
@@ -974,7 +911,6 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
         break;
     }
   }
-
   private _unsubscribe(subscription: Subscription): void {
     if (subscription) {
       subscription.unsubscribe();

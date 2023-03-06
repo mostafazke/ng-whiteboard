@@ -78,10 +78,17 @@
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/projects/demo"],
+      "outputs": ["{workspaceRoot}/coverage/demo"],
       "options": {
         "jestConfig": "projects/demo/jest.config.ts",
-        "passWithNoTests": true
+        "passWithNoTests": true,
+        "codeCoverage": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "coverageReporters": ["lcov"]
+        }
       }
     }
   },

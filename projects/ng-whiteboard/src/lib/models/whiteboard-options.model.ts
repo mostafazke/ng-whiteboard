@@ -4,7 +4,7 @@ import { ToolsEnum } from './tools.enum';
 
 export interface WhiteboardOptions {
   drawingEnabled?: boolean;
-  selectedTool: ToolsEnum;
+  selectedTool?: ToolsEnum;
   canvasWidth?: number;
   canvasHeight?: number;
   fullScreen?: boolean;
@@ -12,8 +12,8 @@ export interface WhiteboardOptions {
   strokeColor?: string;
   strokeWidth?: number;
   backgroundColor?: string;
-  lineJoin: LineJoinEnum;
-  lineCap: LineCapEnum;
+  lineJoin?: LineJoinEnum;
+  lineCap?: LineCapEnum;
   fill?: string;
   zoom?: number;
   fontFamily?: string;
