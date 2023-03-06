@@ -7,31 +7,31 @@ import { FormatType, formatTypes, IAddImage } from './models';
 })
 export class NgWhiteboardService {
   // Observable string sources
-  private eraseSvgMethodCallSource = new Subject<void>();
-  private saveSvgMethodCallSource = new Subject<{ name: string; format: formatTypes }>();
-  private undoSvgMethodCallSource = new Subject<void>();
-  private redoSvgMethodCallSource = new Subject<void>();
+  private eraseMethodCallSource = new Subject<void>();
+  private saveMethodCallSource = new Subject<{ name: string; format: formatTypes }>();
+  private undoMethodCallSource = new Subject<void>();
+  private redoMethodCallSource = new Subject<void>();
   private addImageMethodCallSource = new Subject<IAddImage>();
 
   // Observable string streams
-  eraseSvgMethodCalled$ = this.eraseSvgMethodCallSource.asObservable();
-  saveSvgMethodCalled$ = this.saveSvgMethodCallSource.asObservable();
-  undoSvgMethodCalled$ = this.undoSvgMethodCallSource.asObservable();
-  redoSvgMethodCalled$ = this.redoSvgMethodCallSource.asObservable();
+  eraseMethodCalled$ = this.eraseMethodCallSource.asObservable();
+  saveMethodCalled$ = this.saveMethodCallSource.asObservable();
+  undoMethodCalled$ = this.undoMethodCallSource.asObservable();
+  redoMethodCalled$ = this.redoMethodCallSource.asObservable();
   addImageMethodCalled$ = this.addImageMethodCallSource.asObservable();
 
   // Service message commands
   public erase(): void {
-    this.eraseSvgMethodCallSource.next();
+    this.eraseMethodCallSource.next();
   }
   public save(format: formatTypes = FormatType.Base64, name: string = 'New board'): void {
-    this.saveSvgMethodCallSource.next({ name, format });
+    this.saveMethodCallSource.next({ name, format });
   }
   public undo(): void {
-    this.undoSvgMethodCallSource.next();
+    this.undoMethodCallSource.next();
   }
   public redo(): void {
-    this.redoSvgMethodCallSource.next();
+    this.redoMethodCallSource.next();
   }
   public addImage(image: string | ArrayBuffer, x?: number, y?: number): void {
     this.addImageMethodCallSource.next({ image, x, y });
