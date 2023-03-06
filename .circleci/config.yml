@@ -18,7 +18,9 @@ jobs:
       - run:
           name: test
           command: yarn test:ci
-      - codecov/upload
+      - codecov/upload:
+          file: 'coverage/ng-whiteboard/lcov.info'
+
   demo:
     docker:
       - image: cimg/node:current-browsers
