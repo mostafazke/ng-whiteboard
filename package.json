@@ -12,7 +12,7 @@
     "format:check": "nx format:check",
     "format:write": "nx format:write",
     "test": "yarn test:lib && yarn test:demo",
-    "test:ci": "nx affected --target=test --configuration=ci",
+    "test:ci": "nx test ng-whiteboard  --configuration=ci",
     "test:lib": "nx test ng-whiteboard --codeCoverage --watchAll",
     "test:demo": "nx test demo --codeCoverage --watchAll",
     "report-coverage:lib": "cat ./coverage/ng-whiteboard/lcov.info | codecov",
