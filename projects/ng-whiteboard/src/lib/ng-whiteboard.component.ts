@@ -564,12 +564,15 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     if (this.tempElement.value) {
       this._pushToData(this.tempElement);
       this._pushToUndo();
+       // eslint-disable-next-line no-debugger
+       debugger;
     }
     this.tempElement = null as never;
   }
   // Handle Text Input
   updateTextItem(value: string) {
     if (this.tempElement && this.selectedTool == ToolsEnum.TEXT) {
+     
       this.tempElement.value = value;
     }
   }
