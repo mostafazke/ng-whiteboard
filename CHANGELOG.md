@@ -1,3 +1,10 @@
+## [2.0.15](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.14...v2.0.15) (2023-03-15)
+
+
+### Bug Fixes
+
+* **whiteboard:** fix text input position ([28ef7b0](https://github.com/mostafazke/ng-whiteboard/commit/28ef7b04a6b984ec7c238cafcf9ab37ffa16f729))
+
 ## [2.0.14](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.13...v2.0.14) (2023-02-22)
 
 
