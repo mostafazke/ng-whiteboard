@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, ViewChild, Input, ElementRef, OnDestroy, Output, EventEmitter, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { Component, AfterViewInit, ViewChild, Input, ElementRef, OnDestroy, Output, EventEmitter, OnChanges, OnInit, SimpleChanges, ChangeDetectorRef } from '@angular/core';
 import { NgWhiteboardService } from './ng-whiteboard.service';
 import { Subscription, fromEvent, skip, BehaviorSubject } from 'rxjs';
 import { ElementTypeEnum, FormatType, formatTypes, IAddImage, LineCapEnum, LineJoinEnum, ToolsEnum, WhiteboardElement, WhiteboardOptions } from './models';
@@ -33,9 +33,13 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
 
   @Input() set selectedTool(tool: ToolsEnum) {
     if (this._selectedTool !== tool) {
+      if (this._selectedTool === ToolsEnum.TEXT && this.tempElement?.type === ElementTypeEnum.TEXT) {
+        this.finishTextInput();
+      }
       this._selectedTool = tool;
       this.toolChanged.emit(tool);
       this.clearSelectedElement();
+      this.tempElement = null as never;
     }
   }
   get selectedTool(): ToolsEnum {
@@ -98,7 +102,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     display: 'none',
   };
 
-  constructor(private whiteboardService: NgWhiteboardService) {}
+  constructor(private whiteboardService: NgWhiteboardService, private cd: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this._initInputsFromOptions(this.options);
@@ -505,12 +509,18 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
       this.finishTextInput();
       return;
     }
-    const element = this._generateNewElement(ElementTypeEnum.TEXT);
-    const [x, y] = this._calculateXAndY(mouse(this.selection.node() as SVGSVGElement));
-    element.options.top = y;
-    element.options.left = x;
-    element.options.strokeWidth = 0;
+    let element = this._getTargetElement();
+    if (element && element.type === ElementTypeEnum.TEXT) {
+      this._removeFromData(element);
+    } else {
+      element = this._generateNewElement(ElementTypeEnum.TEXT);
+      const [x, y] = this._calculateXAndY(mouse(this.selection.node() as SVGSVGElement));
+      element.options.top = y;
+      element.options.left = x;
+      element.options.strokeWidth = 0;
+    }
     this.tempElement = element;
+    this.cd.detectChanges();
     setTimeout(() => {
       this.textInput.nativeElement.focus();
     }, 0);
@@ -545,15 +555,12 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   }
   // Handle Eraser tool
   handleEraserTool() {
-    const mouse_target = this._getMouseTarget();
-    if (mouse_target) {
-      const id = mouse_target.getAttribute('data-wb-id');
-      const element = this.data.find((el) => el.id === id) as WhiteboardElement;
-      if (element) {
-        this.data = this.data.filter((el) => el.id !== id);
-        this._pushToUndo();
-        this.deleteElement.emit(element);
-      }
+    const element = this._getTargetElement();
+
+    if (element) {
+      this.data = this.data.filter((el) => el.id !== element.id);
+      this._pushToUndo();
+      this.deleteElement.emit(element);
     }
   }
   // convert the value of this.textInput.nativeElement to an SVG text node, unless it's empty,
@@ -679,6 +686,13 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     this.data.push(element);
     this._data.next(this.data);
   }
+  private _removeFromData(element: WhiteboardElement) {
+    const index = this.data.indexOf(element);
+    if (index > -1) {
+      this.data.splice(index, 1);
+      this._data.next(this.data);
+    }
+  }
   private _generateNewElement(name: ElementTypeEnum): WhiteboardElement {
     const element = new WhiteboardElement(name, {
       strokeWidth: this.strokeWidth,
@@ -745,6 +759,17 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
       }
     }
     return mouse_target;
+  }
+  private _getTargetElement(): WhiteboardElement | null {
+    const mouse_target = this._getMouseTarget();
+    if (mouse_target) {
+      if (mouse_target.id === 'selectorGroup') {
+        return null;
+      }
+      const id = mouse_target.getAttribute('data-wb-id');
+      return this.data.find((el) => el.id === id) as WhiteboardElement;
+    }
+    return null;
   }
   private _showGrips(bbox: DOMRect) {
     this.rubberBox = {

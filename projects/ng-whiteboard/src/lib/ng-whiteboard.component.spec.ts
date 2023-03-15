@@ -358,10 +358,10 @@ describe('NgWhiteboardComponent', () => {
     it('should create a new text element and set focus on text input', () => {
       // arrange
       jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [100, 200]));
+      component['_getTargetElement'] = jest.fn().mockReturnValue(null);
       const element = new WhiteboardElement(ElementTypeEnum.TEXT, {});
       component['_generateNewElement'] = jest.fn().mockReturnValue(element);
       const input = document.createElement('input');
-      jest.spyOn(input, 'focus');
       component['textInput'] = { nativeElement: input };
       // act
       component.handleTextTool();
@@ -371,10 +371,24 @@ describe('NgWhiteboardComponent', () => {
       expect(component.tempElement.type).toBe(element.type);
       expect(component.tempElement.options.top).toBe(200);
       expect(component.tempElement.options.left).toBe(100);
-      // expect(component['textInput'].nativeElement.focus).toHaveBeenCalled();
+    });
+    it('should update existing element if clicked on text element', () => {
+      // arrange
+      const element = new WhiteboardElement(ElementTypeEnum.TEXT, {}, 'new text');
+      jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [100, 200]));
+      component['_getTargetElement'] = jest.fn().mockReturnValue(element);
+      const input = document.createElement('input');
+      component['textInput'] = { nativeElement: input };
+      // act
+      component.handleTextTool();
+
+      // assert
+      expect(component.tempElement).not.toBeNull();
+      expect(component.tempElement.type).toBe(element.type);
+      expect(component.tempElement.value).toBe(element.value);
     });
 
-    it('updates the text element position when dragging', () => {
+    it('should updates the text element position when dragging', () => {
       // arrange
       const x = 10;
       const y = 20;
