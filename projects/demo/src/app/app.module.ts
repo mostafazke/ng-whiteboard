@@ -4,7 +4,6 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { NgWhiteboardModule } from 'ng-whiteboard';
-import { ToastrModule } from 'ngx-toastr';
 import { environment } from '../environments/environment';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -15,7 +14,6 @@ import { AppComponent } from './app.component';
     BrowserModule,
     BrowserAnimationsModule,
     NgWhiteboardModule,
-    ToastrModule.forRoot(),
     ServiceWorkerModule.register('ngsw-worker.js', {
       enabled: environment.production,
       // Register the ServiceWorker as soon as the application is stable
