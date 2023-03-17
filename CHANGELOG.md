@@ -1,3 +1,11 @@
+## [2.0.16](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.15...v2.0.16) (2023-03-17)
+
+
+### Bug Fixes
+
+* remove unused dependencies ([3610d59](https://github.com/mostafazke/ng-whiteboard/commit/3610d59bf780f8a42550aaa8a4a4346bc7654249))
+* upgrade @nrwl/angular from 15.2.1 to 15.7.2 ([0b7586a](https://github.com/mostafazke/ng-whiteboard/commit/0b7586a221ff4745f177eaec5e5fac8ff2053258))
+
 ## [2.0.15](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.14...v2.0.15) (2023-03-15)
 
 
