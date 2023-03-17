@@ -10,6 +10,14 @@ export default {
     },
   },
   coverageDirectory: '../../coverage/ng-whiteboard',
+  coverageThreshold: {
+    global: {
+      branches: 40,
+      functions: 60,
+      lines: 60,
+      statements: -250,
+    },
+  },
   transform: {
     '^.+\\.(ts|mjs|js|html)$': 'jest-preset-angular',
   },

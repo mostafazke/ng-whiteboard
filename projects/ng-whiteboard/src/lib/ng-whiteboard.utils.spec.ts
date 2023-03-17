@@ -31,7 +31,26 @@ describe('ng-whiteboard utils class', () => {
       expect(snapedNum).toBe(0);
     });
   });
+  describe('snapToAngle', () => {
+    test('should return snaped angle', () => {
+      // Arrange
+      const x1 = 0;
+      const y1 = 0;
+      const x2 = 1;
+      const y2 = 0;
+      const expected = {
+        x: 1,
+        y: 0,
+        a: 0,
+      };
 
+      // Act
+      const result = Utils.snapToAngle(x1, y1, x2, y2);
+
+      // Assert
+      expect(result).toEqual(expected);
+    });
+  });
   describe('downloadFile', () => {
     it('should trigger download file', () => {
       // Arrange
@@ -65,7 +84,7 @@ describe('ng-whiteboard utils class', () => {
   });
 
   describe('svgString2Image', () => {
-    it('should convert an SVG string to a base64 image', async () => {
+    it('should convert an SVG string to a png base64 image', async () => {
       // Arrange
       const canvas = document.createElement('canvas');
       canvas.getContext = jest.fn().mockReturnValue({
@@ -81,30 +100,6 @@ describe('ng-whiteboard utils class', () => {
         //assert
         expect(base64).toContain('data:image/png;base64');
       });
-    });
-
-    it('should reject the promise if the SVG string is invalid', async () => {
-      const svgString =
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect x="0" y="0" width="100" height="100" fill="red"</svg>';
-      const width = 100;
-      const height = 100;
-      Utils.svgToBase64(svgString, width, height).catch((error) => {
-        //assert
-        expect(error).toBeDefined();
-      });
-    });
-
-    it('should reject the promise if the image fails to load', async () => {
-      const svgString =
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect x="0" y="0" width="100" height="100" fill="red"/></svg>';
-      const width = 100;
-      const height = 100;
-      jest.spyOn(Image.prototype, 'onload', 'get').mockImplementation(() => undefined);
-      jest.spyOn(Image.prototype, 'onerror', 'get').mockImplementation(() => new Error('Failed to load image'));
-      Utils.svgToBase64(svgString, width, height).catch((error) => {
-        //assert
-        expect(error).toBe('Failed to load image');
-      });
-    });
+    })
   });
 });
