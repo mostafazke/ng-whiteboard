@@ -15,6 +15,18 @@ export default class Utils {
     return n1;
   }
 
+  static snapToAngle(x1: number, y1: number, x2: number, y2: number) {
+    const snap = Math.PI / 4; // 45 degrees
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const angle = Math.atan2(dy, dx);
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const snapangle = Math.round(angle / snap) * snap;
+    const x = x1 + dist * Math.cos(snapangle);
+    const y = y1 + dist * Math.sin(snapangle);
+    return { x: x, y: y, a: snapangle };
+  }
+
   static downloadFile(url: string, name?: string): void {
     const link = document.createElement('a');
     link.href = url;
@@ -25,35 +37,28 @@ export default class Utils {
     document.body.removeChild(link);
   }
 
-  static async svgToBase64(
+  static svgToBase64(
     svgString: string,
     width: number,
     height: number,
     format: formatTypes = FormatType.Png
   ): Promise<string> {
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 
-    const img = new Image();
-    img.src = `data:image/svg+xml;base64,${btoa(svgString)}`;
-
-    await new Promise((resolve, reject) => {
+      const img = new Image();
+      img.src = `data:image/svg+xml;base64,${btoa(svgString)}`;
       img.onload = () => {
-        try {
-          ctx.drawImage(img, 0, 0, width, height);
-          const base64 = canvas.toDataURL(`image/${format}`);
-          resolve(base64);
-        } catch (err) {
-          reject(err);
-        }
+        ctx.drawImage(img, 0, 0, width, height);
+        const base64 = canvas.toDataURL(`image/${format}`);
+        resolve(base64);
       };
       img.onerror = (err) => {
         reject(err);
       };
     });
-
-    return canvas.toDataURL(`image/${format}`);
   }
 }

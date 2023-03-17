@@ -31,7 +31,8 @@
       "options": {
         "jestConfig": "projects/ng-whiteboard/jest.config.ts",
         "passWithNoTests": true,
-        "codeCoverage": true
+        "codeCoverage": true,
+        "coverageReporters": ["html", "text-summary"]
       },
       "configurations": {
         "ci": {

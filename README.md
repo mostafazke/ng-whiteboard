@@ -9,7 +9,7 @@
 [![Build Status](https://dl.circleci.com/status-badge/img/gh/mostafazke/ng-whiteboard/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/mostafazke/ng-whiteboard/tree/master)
 [![npm version](https://badge.fury.io/js/ng-whiteboard.svg)](https://badge.fury.io/js/ng-whiteboard) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![Downloads](https://img.shields.io/npm/dm/ng-whiteboard.svg)](https://www.npmjs.com/package/ng-whiteboard)
-
+[![codecov](https://codecov.io/gh/mostafazke/ng-whiteboard/branch/master/graph/badge.svg?token=4VewQU6OZN)](https://codecov.io/gh/mostafazke/ng-whiteboard)
 ## Demo
 
 https://mostafazke.github.io/ng-whiteboard

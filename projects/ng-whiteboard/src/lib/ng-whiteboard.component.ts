@@ -382,7 +382,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     if (event.sourceEvent.shiftKey) {
       const x1 = this.tempElement.options.x1 as number;
       const y1 = this.tempElement.options.y1 as number;
-      const { x, y } = this._snapToAngle(x1, y1, x2, y2);
+      const { x, y } = Utils.snapToAngle(x1, y1, x2, y2);
       [x2, y2] = [x, y];
     }
 
@@ -721,17 +721,6 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
       this.y = svgContainer.clientHeight / 2 - this.canvasHeight / 2;
     }
   }
-  private _snapToAngle(x1: number, y1: number, x2: number, y2: number) {
-    const snap = Math.PI / 4; // 45 degrees
-    const dx = x2 - x1;
-    const dy = y2 - y1;
-    const angle = Math.atan2(dy, dx);
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    const snapangle = Math.round(angle / snap) * snap;
-    const x = x1 + dist * Math.cos(snapangle);
-    const y = y1 + dist * Math.sin(snapangle);
-    return { x: x, y: y, a: snapangle };
-  }
   private _getElementBbox(element: WhiteboardElement): DOMRect {
     const el = this.selection.select(`#item_${element.id}`).node() as SVGGraphicsElement;
     const bbox = el.getBBox();
@@ -786,8 +775,8 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     element.addEventListener('pointermove', (moveEvent) => {
       if (!isPointerDown) return;
       if (this.selectedElement) {
-        this.selectedElement.x += (moveEvent as PointerEvent).movementX;
-        this.selectedElement.y += (moveEvent as PointerEvent).movementY;
+        this.selectedElement.x += moveEvent.movementX;
+        this.selectedElement.y += moveEvent.movementY;
       }
     });
     element.addEventListener('pointerup', () => {

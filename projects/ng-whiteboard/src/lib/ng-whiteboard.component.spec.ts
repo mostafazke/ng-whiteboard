@@ -1,6 +1,6 @@
 import { ComponentFixture, fakeAsync, flush, TestBed, waitForAsync } from '@angular/core/testing';
-import * as d3 from 'd3-selection';
-import { select } from 'd3-selection';
+import * as d3 from 'd3';
+import { select } from 'd3';
 import {
   ElementTypeEnum,
   FormatType,
@@ -238,7 +238,7 @@ describe('NgWhiteboardComponent', () => {
           callback({ target: { files: [file] } });
         }
       });
-      const addImageSpy = jest.spyOn(component, 'addImage');
+      // const addImageSpy = jest.spyOn(component, 'addImage');
 
       // Act
       component.handleImageTool();
@@ -333,7 +333,18 @@ describe('NgWhiteboardComponent', () => {
       expect(emitSpy).toHaveBeenCalled();
     });
   });
-
+  describe('handleLineTool', () => {
+    it('should create Line element', () => {
+      // arrange
+      jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [100, 200]));
+      // act
+      component.handleStartLine();
+      // assert
+      expect(component.tempElement.type).toBe(ElementTypeEnum.LINE);
+      expect(component.tempElement.options.x1).toBe(100);
+      expect(component.tempElement.options.y1).toBe(200);
+    });
+  });
   describe('handleTextTool', () => {
     beforeEach(() => {
       component.selectedTool = ToolsEnum.TEXT;
@@ -402,6 +413,15 @@ describe('NgWhiteboardComponent', () => {
       expect(component.tempElement.options.top).toBe(y);
       expect(component.tempElement.options.left).toBe(x);
     });
+    it('should return if current text element undefiend', () => {
+      // arrange
+      jest.spyOn(component, 'handleTextDrag');
+      // act
+      component.handleTextDrag();
+
+      // assert
+      expect(component.handleTextDrag).toHaveReturned();
+    });
 
     it('should push the current element to undo', () => {
       // arrange
@@ -425,6 +445,18 @@ describe('NgWhiteboardComponent', () => {
       // assert
       expect(component['_pushToUndo']).not.toHaveBeenCalled();
     });
+    it('should update text element value if tempElement exist', () => {
+      // Arrange
+      const element = new WhiteboardElement(ElementTypeEnum.TEXT, {});
+      component.tempElement = element;
+      component.selectedTool = ToolsEnum.TEXT;
+
+      // Act
+      component.updateTextItem('new value');
+
+      // Assert
+      expect(component.tempElement.value).toEqual('new value');
+    });
   });
 
   describe('saveDraw', () => {
@@ -434,6 +466,28 @@ describe('NgWhiteboardComponent', () => {
       Utils.svgToBase64 = jest.fn().mockReturnValue('');
       // act
       component.saveDraw('image', FormatType.Base64);
+      flush();
+      // assert
+      expect(component.save.emit).toHaveBeenCalled();
+    }));
+    it('should save the board as Svg and emit save event', fakeAsync(() => {
+      // arrange
+      jest.spyOn(component.save, 'emit');
+      Utils.svgToBase64 = jest.fn().mockReturnValue('');
+      Utils.downloadFile = jest.fn();
+      // act
+      component.saveDraw('image', FormatType.Svg);
+      flush();
+      // assert
+      expect(component.save.emit).toHaveBeenCalled();
+    }));
+    it('should save the board as Png and emit save event', fakeAsync(() => {
+      // arrange
+      jest.spyOn(component.save, 'emit');
+      Utils.svgToBase64 = jest.fn().mockReturnValue('');
+      Utils.downloadFile = jest.fn();
+      // act
+      component.saveDraw('image', FormatType.Png);
       flush();
       // assert
       expect(component.save.emit).toHaveBeenCalled();
@@ -565,6 +619,225 @@ describe('NgWhiteboardComponent', () => {
       expect(component['undoStack'].length).toBe(1);
       expect(component['redoStack'].length).toBe(0);
       expect(spyRedoEmit).toHaveBeenCalled();
+    });
+  });
+  describe('getMouseTarget', () => {
+    it('should return null if event or event.target is null', () => {
+      // Arrange
+      Object.defineProperty(d3, 'event', {
+        value: {
+          sourceEvent: null,
+        },
+      });
+      // Act
+      const result = component['_getMouseTarget']();
+
+      // Assert
+      expect(result).toBeNull();
+    });
+    it('should return null if mouse target id is svgroot', () => {
+      // Arrange
+      Object.defineProperty(d3, 'event', {
+        value: {
+          sourceEvent: { target: { id: 'svgroot' } },
+        },
+      });
+      // Act
+      const result = component['_getMouseTarget']();
+
+      // Assert
+      expect(result).toBeNull();
+    });
+
+    it('should return target if parent node is selectorGroup', () => {
+      // Arrange
+      Object.defineProperty(d3, 'event', {
+        value: {
+          sourceEvent: { target: { id: 'mouse_target', parentNode: { parentNode: { id: 'selectorGroup' } } } },
+        },
+      });
+
+      // Act
+      const result = component['_getMouseTarget']();
+
+      // Assert
+      expect(result).toEqual(d3.event.sourceEvent.target.parentNode.parentNode);
+    });
+
+    it('should return mouse target', () => {
+      // Arrange
+      Object.defineProperty(d3, 'event', {
+        value: {
+          sourceEvent: { target: { id: 'mouse_target', parentNode: { parentNode: { id: 'item_123' } } } },
+        },
+      });
+      // Act
+      const result = component['_getMouseTarget']();
+
+      // Assert
+      expect(result).toEqual(d3.event.sourceEvent.target.parentNode.parentNode);
+    });
+    it('should return null if mouse target id after bubbling is svgroot', () => {
+      // Arrange
+      Object.defineProperty(d3, 'event', {
+        value: {
+          sourceEvent: {
+            target: { id: 'mouse_target', parentNode: { parentNode: { id: '123', parentNode: { id: 'svgroot' } } } },
+          },
+        },
+      });
+      // Act
+      const result = component['_getMouseTarget']();
+
+      // Assert
+      expect(result).toEqual(null);
+    });
+  });
+  describe('moveSelect', () => {
+    let mockSelectedElement: WhiteboardElement;
+    let mockElement: SVGGraphicsElement;
+    let mockDownEvent: PointerEvent;
+    let mockMoveEvent: MouseEvent;
+    let mockUpEvent: MouseEvent;
+
+    beforeEach(() => {
+      mockElement = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      mockSelectedElement = new WhiteboardElement(ElementTypeEnum.RECT, {});
+
+      mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+      mockMoveEvent = new MouseEvent('pointermove');
+      mockUpEvent = new MouseEvent('pointerup');
+
+      Object.defineProperty(mockDownEvent, 'target', {
+        writable: true,
+        value: mockElement,
+      });
+      Object.defineProperty(mockMoveEvent, 'movementX', {
+        writable: true,
+        value: 10,
+      });
+      Object.defineProperty(mockMoveEvent, 'movementY', {
+        writable: true,
+        value: 20,
+      });
+    });
+
+    it('should move selected element on pointermove event', () => {
+      // Arrange
+      mockSelectedElement.x = 45;
+      mockSelectedElement.y = 30;
+      component.selectedElement = mockSelectedElement;
+
+      // Act
+      component.moveSelect(mockDownEvent);
+      mockElement.dispatchEvent(mockMoveEvent);
+
+      // Assert
+      expect(component.selectedElement.x).toEqual(55);
+      expect(component.selectedElement.y).toEqual(50);
+    });
+
+    it('should not move selected element when pointer is not down', () => {
+      // Arrange
+      component.selectedElement = mockSelectedElement;
+
+      // Act
+      component.moveSelect(mockDownEvent);
+      mockElement.dispatchEvent(mockUpEvent); // pointer is up
+      mockElement.dispatchEvent(mockMoveEvent);
+
+      // Assert
+      expect(component.selectedElement.x).toEqual(0);
+      expect(component.selectedElement.y).toEqual(0);
+    });
+  });
+  describe('resizeSelect', () => {
+    let mockSelectedElement: WhiteboardElement;
+    let mockElement: SVGGraphicsElement;
+    let mockDownEvent: PointerEvent;
+    let mockMoveEvent: MouseEvent;
+    let mockUpEvent: MouseEvent;
+
+    beforeEach(() => {
+      mockSelectedElement = new WhiteboardElement(ElementTypeEnum.ELLIPSE, {});
+      mockElement = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+      mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+      mockMoveEvent = new MouseEvent('pointermove');
+      mockUpEvent = new MouseEvent('pointerup');
+
+      Object.defineProperty(mockDownEvent, 'target', {
+        writable: true,
+        value: mockElement,
+      });
+      Object.defineProperty(mockMoveEvent, 'movementX', {
+        writable: true,
+        value: 10,
+      });
+      Object.defineProperty(mockMoveEvent, 'movementY', {
+        writable: true,
+        value: 20,
+      });
+    });
+
+    it('should call _resizeElipse if selectedElement type is ELLIPSE', () => {
+      // Arrange
+      component['_resizeElipse'] = jest.fn();
+      component['_getElementBbox'] = jest.fn().mockReturnValue({});
+      mockSelectedElement = new WhiteboardElement(ElementTypeEnum.ELLIPSE, {});
+      component.selectedElement = mockSelectedElement;
+
+      // Act
+      component.resizeSelect(mockDownEvent);
+      document.dispatchEvent(mockMoveEvent);
+
+      // Assert
+      expect(component['_resizeElipse']).toHaveBeenCalled();
+    });
+
+    it('should call _resizeLine if selectedElement type is LINE', () => {
+      // Arrange
+      component['_resizeLine'] = jest.fn();
+      component['_getElementBbox'] = jest.fn().mockReturnValue({});
+      mockSelectedElement = new WhiteboardElement(ElementTypeEnum.LINE, {});
+      component.selectedElement = mockSelectedElement;
+
+      // Act
+      component.resizeSelect(mockDownEvent);
+      document.dispatchEvent(mockMoveEvent);
+
+      // Assert
+      expect(component['_resizeLine']).toHaveBeenCalled();
+    });
+
+    it('should call _resizeDefault if selectedElement type is RECT', () => {
+      // Arrange
+      component['_resizeDefault'] = jest.fn();
+      component['_getElementBbox'] = jest.fn().mockReturnValue({});
+      mockSelectedElement = new WhiteboardElement(ElementTypeEnum.RECT, {});
+      component.selectedElement = mockSelectedElement;
+
+      // Act
+      component.resizeSelect(mockDownEvent);
+      document.dispatchEvent(mockMoveEvent);
+
+      // Assert
+      expect(component['_resizeDefault']).toHaveBeenCalled();
+    });
+
+    it('should return if pointer is not down', () => {
+      // Arrange
+      component['_resizeElipse'] = jest.fn();
+      component['_getElementBbox'] = jest.fn().mockReturnValue({});
+      mockSelectedElement = new WhiteboardElement(ElementTypeEnum.ELLIPSE, {});
+      component.selectedElement = mockSelectedElement;
+
+      // Act
+      component.moveSelect(mockDownEvent);
+      document.dispatchEvent(mockUpEvent); // pointer is up
+      document.dispatchEvent(mockMoveEvent);
+
+      // Assert
+      expect(component['_resizeElipse']).not.toHaveBeenCalled();
     });
   });
 });
