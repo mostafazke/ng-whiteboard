@@ -333,7 +333,7 @@ describe('NgWhiteboardComponent', () => {
       expect(emitSpy).toHaveBeenCalled();
     });
   });
-  describe('handleLineTool', () => {
+  describe('handleLineShape', () => {
     describe('StartLine', () => {
       it('should create Line element', () => {
         // arrange
@@ -429,6 +429,230 @@ describe('NgWhiteboardComponent', () => {
         component.tempElement = element;
 
         component.handleEndLine();
+        expect(component.data.length).toBe(1);
+        expect(component.tempElement).toBeNull();
+      });
+    });
+  });
+  describe('handleRectShape', () => {
+    describe('StartRect', () => {
+      it('should create Rect element', () => {
+        // arrange
+        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [100, 200]));
+        // act
+        component.handleStartRect();
+        // assert
+        expect(component.tempElement.type).toBe(ElementTypeEnum.RECT);
+        expect(component.tempElement.options.x1).toBe(100);
+        expect(component.tempElement.options.y1).toBe(200);
+        expect(component.tempElement.options.x2).toBe(100);
+        expect(component.tempElement.options.y2).toBe(200);
+        expect(component.tempElement.options.width).toBe(1);
+        expect(component.tempElement.options.height).toBe(1);
+      });
+      it('should start from grid snap if snapToGrid is true', () => {
+        // arrange
+        component.gridSize = 10;
+        component.snapToGrid = true;
+        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [100, 200]));
+        // act
+        component.handleStartRect();
+        // assert
+        expect(component.tempElement.type).toBe(ElementTypeEnum.RECT);
+        expect(component.tempElement.options.x1).toBe(100);
+        expect(component.tempElement.options.y1).toBe(200);
+      });
+    });
+    describe('DragRect', () => {
+      it('should update Rect element width,height,x2,y2', () => {
+        // arrange
+        const element = new WhiteboardElement(ElementTypeEnum.RECT, {});
+        component.tempElement = element;
+        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [100, 200]));
+        Object.defineProperty(d3, 'event', {
+          value: {
+            sourceEvent: {
+              shiftKey: false,
+              altKey: false,
+            },
+          },
+        });
+        // act
+        component.handleDragRect();
+        // assert
+        const width = Math.abs(100 - 0);
+        const height = Math.abs(200 - 0);
+        expect(component.tempElement.options.width).toBe(width);
+        expect(component.tempElement.options.height).toBe(height);
+        expect(component.tempElement.options.x2).toBe(0);
+        expect(component.tempElement.options.y2).toBe(0);
+      });
+      it('should snap x2 and y2 to grid size if snapToGrid is true', () => {
+        // arrange
+        component.gridSize = 10;
+        component.snapToGrid = true;
+        const element = new WhiteboardElement(ElementTypeEnum.RECT, {});
+        element.options.x1 = 10;
+        element.options.y1 = 20;
+        component.tempElement = element;
+        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [98, 197]));
+        Object.defineProperty(d3, 'event', {
+          value: {
+            sourceEvent: {
+              shiftKey: false,
+            },
+          },
+        });
+        // act
+        component.handleDragRect();
+        // assert
+        expect(component.tempElement.options.width).toBe(90);
+        expect(component.tempElement.options.height).toBe(180);
+        expect(component.tempElement.options.x2).toBe(10);
+        expect(component.tempElement.options.y2).toBe(20);
+      });
+      it('should snap x2 and y2 to specified angle when shift key is pressed', () => {
+        // arrange
+        const element = new WhiteboardElement(ElementTypeEnum.RECT, {});
+        element.options.x1 = 10;
+        element.options.y1 = 20;
+        component.tempElement = element;
+        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [100, 200]));
+        Object.defineProperty(d3, 'event', {
+          value: {
+            sourceEvent: {
+              shiftKey: true,
+            },
+          },
+        });
+        // act
+        component.handleDragRect();
+        // assert
+        expect(component.tempElement.options.width).toBe(180);
+        expect(component.tempElement.options.height).toBe(180);
+        expect(component.tempElement.options.x2).toEqual(10);
+        expect(component.tempElement.options.y2).toEqual(20);
+      });
+      it('should multiply and snap x2 and y2 to specified angle when alt key is pressed', () => {
+        // arrange
+        const element = new WhiteboardElement(ElementTypeEnum.RECT, {});
+        element.options.x1 = 100;
+        element.options.y1 = 200;
+        component.tempElement = element;
+        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [10, 20]));
+        Object.defineProperty(d3, 'event', {
+          value: {
+            sourceEvent: {
+              altKey: true,
+            },
+          },
+        });
+        // act
+        component.handleDragRect();
+        // assert
+        expect(component.tempElement.options.width).toBe(180);
+        expect(component.tempElement.options.height).toBe(360);
+        expect(component.tempElement.options.x2).toEqual(10);
+        expect(component.tempElement.options.y2).toEqual(20);
+      });
+    });
+    describe('EndRect', () => {
+      it('should push Rect to data if width is not equal to 0 or height is not equal to 0', () => {
+        // arrange
+        const element = new WhiteboardElement(ElementTypeEnum.RECT, {});
+        element.options.width = 0;
+        element.options.height = 10;
+        component.tempElement = element;
+
+        component.handleEndRect();
+        expect(component.data.length).toBe(1);
+        expect(component.tempElement).toBeNull();
+      });
+    });
+  });
+  describe('handleEllipseShape', () => {
+    describe('StartEllipse', () => {
+      it('should create Ellipse element', () => {
+        // arrange
+        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [100, 200]));
+        // act
+        component.handleStartEllipse();
+        // assert
+        expect(component.tempElement.type).toBe(ElementTypeEnum.ELLIPSE);
+        expect(component.tempElement.options.x1).toBe(100);
+        expect(component.tempElement.options.y1).toBe(200);
+        expect(component.tempElement.options.cx).toBe(100);
+        expect(component.tempElement.options.cy).toBe(200);
+      });
+    });
+    describe('DragEllipse', () => {
+      it('should update Rect element width,height,x2,y2', () => {
+        // arrange
+        const element = new WhiteboardElement(ElementTypeEnum.ELLIPSE, {});
+        component.tempElement = element;
+        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [100, 200]));
+        Object.defineProperty(d3, 'event', {
+          value: {
+            sourceEvent: {
+              shiftKey: false,
+              altKey: false,
+            },
+          },
+        });
+        // act
+        component.handleDragEllipse();
+        // assert
+        expect(component.tempElement.options.rx).toBe(50);
+        expect(component.tempElement.options.ry).toBe(100);
+        expect(component.tempElement.options.cx).toBe(50);
+        expect(component.tempElement.options.cy).toBe(100);
+      });
+      it('should snap x2 and y2 to specified angle when shift key is pressed', () => {
+        // arrange
+        const element = new WhiteboardElement(ElementTypeEnum.ELLIPSE, {});
+        component.tempElement = element;
+        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [100, 200]));
+        Object.defineProperty(d3, 'event', {
+          value: {
+            sourceEvent: {
+              shiftKey: true,
+            },
+          },
+        });
+        // act
+        component.handleDragEllipse();
+        // assert
+        expect(component.tempElement.options.ry).toBe(50);
+        expect(component.tempElement.options.cy).toBe(50);
+      });
+      it('should multiply and snap x2 and y2 to specified angle when alt key is pressed', () => {
+        // arrange
+        const element = new WhiteboardElement(ElementTypeEnum.ELLIPSE, {});
+        component.tempElement = element;
+        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [10, 20]));
+        Object.defineProperty(d3, 'event', {
+          value: {
+            sourceEvent: {
+              altKey: true,
+            },
+          },
+        });
+        // act
+        component.handleDragEllipse();
+        // assert
+        expect(component.tempElement.options.rx).toBe(10);
+        expect(component.tempElement.options.ry).toBe(20);
+      });
+    });
+    describe('EndEllipse', () => {
+      it('should push Ellipse to data if rx is not equal to 0 or ry is not equal to 0', () => {
+        // arrange
+        const element = new WhiteboardElement(ElementTypeEnum.ELLIPSE, {});
+        element.options.rx = 0;
+        element.options.ry = 10;
+        component.tempElement = element;
+
+        component.handleEndEllipse();
         expect(component.data.length).toBe(1);
         expect(component.tempElement).toBeNull();
       });
