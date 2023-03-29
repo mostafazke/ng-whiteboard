@@ -890,6 +890,21 @@ describe('NgWhiteboardComponent', () => {
       // arrange
       const spyUndoEmit = jest.spyOn(component.undo, 'emit');
       const initialData: WhiteboardElement[] = [new WhiteboardElement(ElementTypeEnum.BRUSH, {})];
+      component['undoStack'] = [initialData, initialData];
+
+      // act
+      component.undoDraw();
+
+      // assert
+      expect(component['undoStack'].length).toBe(1);
+      expect(component['redoStack'].length).toBe(1);
+      expect(component['redoStack'][0]).toBe(initialData);
+      expect(spyUndoEmit).toHaveBeenCalled();
+    });
+    it('should undo to initial data if undoStack is empty', () => {
+      // arrange
+      const spyUndoEmit = jest.spyOn(component.undo, 'emit');
+      const initialData: WhiteboardElement[] = [new WhiteboardElement(ElementTypeEnum.BRUSH, {})];
       component['undoStack'] = [initialData];
 
       // act

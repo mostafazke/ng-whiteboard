@@ -666,7 +666,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     if (this.undoStack.length) {
       this.data = JSON.parse(JSON.stringify(this.undoStack[this.undoStack.length - 1]));
     } else {
-      this.data = JSON.parse(JSON.stringify(this._initialData)) || [];
+      this.data = JSON.parse(JSON.stringify(this._initialData));
     }
     this.undo.emit();
   }
