@@ -334,15 +334,104 @@ describe('NgWhiteboardComponent', () => {
     });
   });
   describe('handleLineTool', () => {
-    it('should create Line element', () => {
-      // arrange
-      jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [100, 200]));
-      // act
-      component.handleStartLine();
-      // assert
-      expect(component.tempElement.type).toBe(ElementTypeEnum.LINE);
-      expect(component.tempElement.options.x1).toBe(100);
-      expect(component.tempElement.options.y1).toBe(200);
+    describe('StartLine', () => {
+      it('should create Line element', () => {
+        // arrange
+        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [100, 200]));
+        // act
+        component.handleStartLine();
+        // assert
+        expect(component.tempElement.type).toBe(ElementTypeEnum.LINE);
+        expect(component.tempElement.options.x1).toBe(100);
+        expect(component.tempElement.options.y1).toBe(200);
+      });
+      it('should start from grid snap if snapToGrid is true', () => {
+        // arrange
+        component.gridSize = 10;
+        component.snapToGrid = true;
+        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [100, 200]));
+        // act
+        component.handleStartLine();
+        // assert
+        expect(component.tempElement.type).toBe(ElementTypeEnum.LINE);
+        expect(component.tempElement.options.x1).toBe(100);
+        expect(component.tempElement.options.y1).toBe(200);
+      });
+    });
+    describe('DragLine', () => {
+      it('should update Line element x2 y2', () => {
+        // arrange
+        const element = new WhiteboardElement(ElementTypeEnum.LINE, {});
+        component.tempElement = element;
+        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [100, 200]));
+        Object.defineProperty(d3, 'event', {
+          value: {
+            sourceEvent: {
+              shiftKey: false,
+            },
+          },
+        });
+        // act
+        component.handleDragLine();
+        // assert
+        expect(component.tempElement.options.x2).toBe(100);
+        expect(component.tempElement.options.y2).toBe(200);
+      });
+      it('should snap x2 and y2 to grid size if snapToGrid is true', () => {
+        // arrange
+        component.gridSize = 10;
+        component.snapToGrid = true;
+        const element = new WhiteboardElement(ElementTypeEnum.LINE, {});
+        component.tempElement = element;
+        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [98, 197]));
+        Object.defineProperty(d3, 'event', {
+          value: {
+            sourceEvent: {
+              shiftKey: false,
+            },
+          },
+        });
+        // act
+        component.handleDragLine();
+        // assert
+        expect(component.tempElement.options.x2).toBe(100);
+        expect(component.tempElement.options.y2).toBe(200);
+      });
+      it('should snap x2 and y2 to specified angle when shift key is pressed', () => {
+        // arrange
+        const element = new WhiteboardElement(ElementTypeEnum.LINE, {});
+        element.options.x1 = 1;
+        element.options.y1 = 1;
+        component.tempElement = element;
+        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [1, 0]));
+        Object.defineProperty(d3, 'event', {
+          value: {
+            sourceEvent: {
+              shiftKey: true,
+            },
+          },
+        });
+        // act
+        component.handleDragLine();
+        // assert
+        expect(component.tempElement.options.x2).toEqual(1);
+        expect(component.tempElement.options.y2).toEqual(0);
+      });
+    });
+    describe('EndLine', () => {
+      it('should push LINE to data if x1 is not equal to x2 or y1 is not equal to y2', () => {
+        // arrange
+        const element = new WhiteboardElement(ElementTypeEnum.LINE, {});
+        element.options.x1 = 0;
+        element.options.y1 = 0;
+        element.options.x2 = 0;
+        element.options.y2 = 10;
+        component.tempElement = element;
+
+        component.handleEndLine();
+        expect(component.data.length).toBe(1);
+        expect(component.tempElement).toBeNull();
+      });
     });
   });
   describe('handleTextTool', () => {
