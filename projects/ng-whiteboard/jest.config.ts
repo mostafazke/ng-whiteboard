@@ -12,10 +12,9 @@ export default {
   coverageDirectory: '../../coverage/ng-whiteboard',
   coverageThreshold: {
     global: {
-      branches: 40,
-      functions: 60,
-      lines: 60,
-      statements: -250,
+      branches: 80,
+      functions: 80,
+      lines: 80,
     },
   },
   transform: {
