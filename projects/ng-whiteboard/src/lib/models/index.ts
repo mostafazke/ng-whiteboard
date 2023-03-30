@@ -6,3 +6,4 @@ export * from './tools.enum';
 export * from './whiteboard-element.model';
 export * from './whiteboard-options.model';
 export * from './format.model';
+export * from './tool-handlers.model';

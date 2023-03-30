@@ -71,6 +71,23 @@ describe('NgWhiteboardComponent', () => {
       expect(component.handleStartEvent).toHaveBeenCalled();
       expect(component['redoStack'].length).toBe(0);
     });
+    it('should return if drawingEnabled is false', () => {
+      // arrange
+      jest.spyOn(component, 'handleStartEvent');
+      const element = document.createElement('svg');
+      document.body.appendChild(element);
+      component.drawingEnabled = false;
+      const selection = select<Element, unknown>(element);
+      // act
+      component.initializeEvents.call(component, selection);
+      element.dispatchEvent(
+        new MouseEvent('mousedown', {
+          view: window,
+        })
+      );
+      // assert
+      expect(component.handleStartEvent).not.toHaveBeenCalled();
+    });
 
     it('should trigger drag event', () => {
       // arrange
@@ -223,6 +240,75 @@ describe('NgWhiteboardComponent', () => {
     });
   });
 
+  describe('handleStartEvent', () => {
+    it('should call the correct handler based on the selected tool', () => {
+      // arrange
+      component.selectedTool = ToolsEnum.BRUSH;
+      component.handleStartBrush = jest.fn();
+      component.handleImageTool = jest.fn();
+      component.handleStartLine = jest.fn();
+      component.handleStartRect = jest.fn();
+      component.handleStartEllipse = jest.fn();
+      component.handleTextTool = jest.fn();
+      component.handleSelectTool = jest.fn();
+      component.handleEraserTool = jest.fn();
+
+      // act
+      component.handleStartEvent();
+
+      // assert
+      expect(component.handleStartBrush).toHaveBeenCalled();
+      expect(component.handleImageTool).not.toHaveBeenCalled();
+      expect(component.handleStartLine).not.toHaveBeenCalled();
+      expect(component.handleStartRect).not.toHaveBeenCalled();
+      expect(component.handleStartEllipse).not.toHaveBeenCalled();
+      expect(component.handleTextTool).not.toHaveBeenCalled();
+      expect(component.handleSelectTool).not.toHaveBeenCalled();
+      expect(component.handleEraserTool).not.toHaveBeenCalled();
+    });
+  });
+  describe('handleDragEvent', () => {
+    it('should call the correct handler based on the selected tool', () => {
+      // arrange
+      component.selectedTool = ToolsEnum.BRUSH;
+      component.handleDragBrush = jest.fn();
+      component.handleDragLine = jest.fn();
+      component.handleDragRect = jest.fn();
+      component.handleDragEllipse = jest.fn();
+      component.handleTextDrag = jest.fn();
+
+      // act
+      component.handleDragEvent();
+
+      // assert
+      expect(component.handleDragBrush).toHaveBeenCalled();
+      expect(component.handleDragLine).not.toHaveBeenCalled();
+      expect(component.handleDragRect).not.toHaveBeenCalled();
+      expect(component.handleDragEllipse).not.toHaveBeenCalled();
+      expect(component.handleTextDrag).not.toHaveBeenCalled();
+    });
+  });
+  describe('handleEndEvent', () => {
+    it('should call the correct handler based on the selected tool', () => {
+      // arrange
+      component.selectedTool = ToolsEnum.BRUSH;
+      component.handleEndBrush = jest.fn();
+      component.handleEndLine = jest.fn();
+      component.handleEndRect = jest.fn();
+      component.handleEndEllipse = jest.fn();
+      component.handleTextEnd = jest.fn();
+
+      // act
+      component.handleEndEvent();
+
+      // assert
+      expect(component.handleEndBrush).toHaveBeenCalled();
+      expect(component.handleEndLine).not.toHaveBeenCalled();
+      expect(component.handleEndRect).not.toHaveBeenCalled();
+      expect(component.handleEndEllipse).not.toHaveBeenCalled();
+      expect(component.handleTextEnd).not.toHaveBeenCalled();
+    });
+  });
   describe('handleImageTool', () => {
     it('should add image to component when file is uploaded', () => {
       // Arrange

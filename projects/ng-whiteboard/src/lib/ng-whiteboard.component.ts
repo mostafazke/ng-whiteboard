@@ -1,7 +1,31 @@
-import { Component, AfterViewInit, ViewChild, Input, ElementRef, OnDestroy, Output, EventEmitter, OnChanges, OnInit, SimpleChanges, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  AfterViewInit,
+  ViewChild,
+  Input,
+  ElementRef,
+  OnDestroy,
+  Output,
+  EventEmitter,
+  OnChanges,
+  OnInit,
+  SimpleChanges,
+  ChangeDetectorRef,
+} from '@angular/core';
 import { NgWhiteboardService } from './ng-whiteboard.service';
 import { Subscription, fromEvent, skip, BehaviorSubject } from 'rxjs';
-import { ElementTypeEnum, FormatType, formatTypes, IAddImage, LineCapEnum, LineJoinEnum, ToolsEnum, WhiteboardElement, WhiteboardOptions } from './models';
+import {
+  ElementTypeEnum,
+  FormatType,
+  formatTypes,
+  IAddImage,
+  LineCapEnum,
+  LineJoinEnum,
+  ToolHandlers,
+  ToolsEnum,
+  WhiteboardElement,
+  WhiteboardOptions,
+} from './models';
 import { ContainerElement, curveBasis, drag, line, mouse, select, Selection, event } from 'd3';
 import Utils from './ng-whiteboard.utils';
 
@@ -245,75 +269,45 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   }
 
   handleStartEvent() {
-    switch (this.selectedTool) {
-      case ToolsEnum.BRUSH:
-        this.handleStartBrush();
-        break;
-      case ToolsEnum.IMAGE:
-        this.handleImageTool();
-        break;
-      case ToolsEnum.LINE:
-        this.handleStartLine();
-        break;
-      case ToolsEnum.RECT:
-        this.handleStartRect();
-        break;
-      case ToolsEnum.ELLIPSE:
-        this.handleStartEllipse();
-        break;
-      case ToolsEnum.TEXT:
-        this.handleTextTool();
-        break;
-      case ToolsEnum.SELECT:
-        this.handleSelectTool();
-        break;
-      case ToolsEnum.ERASER:
-        this.handleEraserTool();
-        break;
-      default:
-        break;
+    const toolHandlers: ToolHandlers = {
+      [ToolsEnum.BRUSH]: this.handleStartBrush,
+      [ToolsEnum.IMAGE]: this.handleImageTool,
+      [ToolsEnum.LINE]: this.handleStartLine,
+      [ToolsEnum.RECT]: this.handleStartRect,
+      [ToolsEnum.ELLIPSE]: this.handleStartEllipse,
+      [ToolsEnum.TEXT]: this.handleTextTool,
+      [ToolsEnum.SELECT]: this.handleSelectTool,
+      [ToolsEnum.ERASER]: this.handleEraserTool,
+    };
+    const handler = toolHandlers[this.selectedTool];
+    if (handler) {
+      handler.apply(this);
     }
   }
   handleDragEvent() {
-    switch (this.selectedTool) {
-      case ToolsEnum.BRUSH:
-        this.handleDragBrush();
-        break;
-      case ToolsEnum.LINE:
-        this.handleDragLine();
-        break;
-      case ToolsEnum.RECT:
-        this.handleDragRect();
-        break;
-      case ToolsEnum.ELLIPSE:
-        this.handleDragEllipse();
-        break;
-      case ToolsEnum.TEXT:
-        this.handleTextDrag();
-        break;
-      default:
-        break;
+    const toolHandlers: ToolHandlers = {
+      [ToolsEnum.BRUSH]: this.handleDragBrush,
+      [ToolsEnum.LINE]: this.handleDragLine,
+      [ToolsEnum.RECT]: this.handleDragRect,
+      [ToolsEnum.ELLIPSE]: this.handleDragEllipse,
+      [ToolsEnum.TEXT]: this.handleTextDrag,
+    };
+    const handler = toolHandlers[this.selectedTool];
+    if (handler) {
+      handler.apply(this);
     }
   }
   handleEndEvent() {
-    switch (this.selectedTool) {
-      case ToolsEnum.BRUSH:
-        this.handleEndBrush();
-        break;
-      case ToolsEnum.LINE:
-        this.handleEndLine();
-        break;
-      case ToolsEnum.RECT:
-        this.handleEndRect();
-        break;
-      case ToolsEnum.ELLIPSE:
-        this.handleEndEllipse();
-        break;
-      case ToolsEnum.TEXT:
-        this.handleTextEnd();
-        break;
-      default:
-        break;
+    const toolHandlers: ToolHandlers = {
+      [ToolsEnum.BRUSH]: this.handleEndBrush,
+      [ToolsEnum.LINE]: this.handleEndLine,
+      [ToolsEnum.RECT]: this.handleEndRect,
+      [ToolsEnum.ELLIPSE]: this.handleEndEllipse,
+      [ToolsEnum.TEXT]: this.handleTextEnd,
+    };
+    const handler = toolHandlers[this.selectedTool];
+    if (handler) {
+      handler.apply(this);
     }
   }
   // Handle Brush tool
