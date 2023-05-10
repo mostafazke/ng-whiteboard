@@ -38,7 +38,7 @@
     "@angular/router": "~14.2.8",
     "@angular/service-worker": "~14.2.8",
     "@nrwl/angular": "15.2.1",
-    "d3": "^5.16.0",
+    "d3": "^7.0.0",
     "firebase": "^9.16.0",
     "highlight.js": "^11.7.0",
     "ngx-colors": "^3.2.0",
