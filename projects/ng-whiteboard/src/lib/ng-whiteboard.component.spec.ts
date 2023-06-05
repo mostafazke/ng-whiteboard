@@ -1,4 +1,4 @@
-import { ComponentFixture, fakeAsync, flush, TestBed, waitForAsync } from '@angular/core/testing';
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import * as d3 from 'd3';
 import { select } from 'd3';
 import {
@@ -859,38 +859,38 @@ describe('NgWhiteboardComponent', () => {
   });
 
   describe('saveDraw', () => {
-    it('should save the board as base64 and emit save event', fakeAsync(() => {
+    it('should save the board as base64 and emit save event', async () => {
       // arrange
-      jest.spyOn(component.save, 'emit');
+      const saveMock = jest.fn();
+      component.save.subscribe(saveMock);
       Utils.svgToBase64 = jest.fn().mockReturnValue('');
       // act
-      component.saveDraw('image', FormatType.Base64);
-      flush();
+      await component.saveDraw('image', FormatType.Base64);
       // assert
-      expect(component.save.emit).toHaveBeenCalled();
-    }));
-    it('should save the board as Svg and emit save event', fakeAsync(() => {
+      expect(saveMock).toHaveBeenCalled();
+    });
+    it('should save the board as Svg and emit save event', async () => {
       // arrange
-      jest.spyOn(component.save, 'emit');
-      Utils.svgToBase64 = jest.fn().mockReturnValue('');
-      Utils.downloadFile = jest.fn();
-      // act
-      component.saveDraw('image', FormatType.Svg);
-      flush();
-      // assert
-      expect(component.save.emit).toHaveBeenCalled();
-    }));
-    it('should save the board as Png and emit save event', fakeAsync(() => {
-      // arrange
-      jest.spyOn(component.save, 'emit');
+      const saveMock = jest.fn();
+      component.save.subscribe(saveMock);
       Utils.svgToBase64 = jest.fn().mockReturnValue('');
       Utils.downloadFile = jest.fn();
       // act
-      component.saveDraw('image', FormatType.Png);
-      flush();
+      await component.saveDraw('image', FormatType.Svg);
       // assert
-      expect(component.save.emit).toHaveBeenCalled();
-    }));
+      expect(saveMock).toHaveBeenCalled();
+    });
+    it('should save the board as Png and emit save event', async () => {
+      // arrange
+      const saveMock = jest.fn();
+      component.save.subscribe(saveMock);
+      Utils.svgToBase64 = jest.fn().mockReturnValue('');
+      Utils.downloadFile = jest.fn();
+      // act
+      await component.saveDraw('image', FormatType.Png);
+      // assert
+      expect(saveMock).toHaveBeenCalled();
+    });
   });
   describe('addImage', () => {
     let mockImage: IAddImage;
@@ -1178,6 +1178,7 @@ describe('NgWhiteboardComponent', () => {
       mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
       mockMoveEvent = new MouseEvent('pointermove');
       mockUpEvent = new MouseEvent('pointerup');
+      document.dispatchEvent(mockUpEvent);
 
       Object.defineProperty(mockDownEvent, 'target', {
         writable: true,
@@ -1246,7 +1247,7 @@ describe('NgWhiteboardComponent', () => {
       component.selectedElement = mockSelectedElement;
 
       // Act
-      component.moveSelect(mockDownEvent);
+      component.resizeSelect(mockDownEvent);
       document.dispatchEvent(mockUpEvent); // pointer is up
       document.dispatchEvent(mockMoveEvent);
 
