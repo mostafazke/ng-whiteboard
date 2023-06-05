@@ -13,9 +13,6 @@ jobs:
       - browser-tools/install-chrome
       - checkout
       - run:
-          name: Clear package cache
-          command: npm cache clean --force
-      - run:
           name: install-dependencies
           command: yarn
       - run:
