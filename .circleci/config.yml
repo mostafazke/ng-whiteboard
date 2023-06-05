@@ -37,6 +37,7 @@ jobs:
       - image: cimg/node:current-browsers
     steps:
       - checkout
+      - run: yarn cache clean --force
       - run:
           name: install-dependencies
           command: yarn
