@@ -3,11 +3,14 @@ export default {
   displayName: 'ng-whiteboard',
   preset: '../../jest.preset.js',
   setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
-  globals: {
-    'ts-jest': {
-      tsconfig: '<rootDir>/tsconfig.spec.json',
-      stringifyContentPathRegex: '\\.(html|svg)$',
-    },
+  transform: {
+    '^.+\\.(ts|mjs|js|html)$': [
+      'jest-preset-angular',
+      {
+        tsconfig: '<rootDir>/tsconfig.spec.json',
+        stringifyContentPathRegex: '\\.(html|svg)$',
+      },
+    ],
   },
   coverageDirectory: '../../coverage/ng-whiteboard',
   coverageThreshold: {
@@ -16,9 +19,6 @@ export default {
       functions: 80,
       lines: 80,
     },
-  },
-  transform: {
-    '^.+\\.(ts|mjs|js|html)$': 'jest-preset-angular',
   },
   transformIgnorePatterns: ['node_modules/(?!.*\\.mjs$)'],
   snapshotSerializers: [
