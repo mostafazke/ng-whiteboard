@@ -11,7 +11,7 @@
         "outputPath": "dist/demo",
         "index": "projects/demo/src/index.html",
         "main": "projects/demo/src/main.ts",
-        "polyfills": "projects/demo/src/polyfills.ts",
+        "polyfills": ["zone.js"],
         "tsConfig": "projects/demo/tsconfig.app.json",
         "inlineStyleLanguage": "scss",
         "assets": ["projects/demo/src/favicon.ico", "projects/demo/src/assets", "projects/demo/src/manifest.json"],
@@ -71,26 +71,31 @@
       }
     },
     "lint": {
-      "executor": "@nrwl/linter:eslint",
+      "executor": "@nx/linter:eslint",
+      "outputs": ["{options.outputFile}"],
       "options": {
         "lintFilePatterns": ["projects/demo/**/*.ts", "projects/demo/**/*.html"]
       }
     },
     "test": {
-      "executor": "@nrwl/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/demo"],
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
         "jestConfig": "projects/demo/jest.config.ts",
-        "passWithNoTests": true,
-        "codeCoverage": true
+        "passWithNoTests": true
       },
       "configurations": {
         "ci": {
           "ci": true,
-          "coverageReporters": ["lcov"]
+          "codeCoverage": true
         }
       }
+    },
+    "serve-static": {
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "demo:build"
+      }
     }
-  },
-  "tags": []
+  }
 }
