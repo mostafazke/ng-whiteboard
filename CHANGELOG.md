@@ -1,3 +1,11 @@
+## [2.0.19](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.18...v2.0.19) (2023-07-29)
+
+
+### Bug Fixes
+
+* upgrade @nx/angular from 16.3.2 to 16.5.0 ([8109339](https://github.com/mostafazke/ng-whiteboard/commit/8109339fd5bcdb9d4991c08307971300326c50dc))
+* upgrade firebase from 9.22.1 to 9.23.0 ([a55062d](https://github.com/mostafazke/ng-whiteboard/commit/a55062dc7d67080a224c4c049ef3126b0c91cdda))
+
 ## [2.0.18](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.17...v2.0.18) (2023-07-27)
 
 
