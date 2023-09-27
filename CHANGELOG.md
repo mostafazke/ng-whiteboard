@@ -1,3 +1,11 @@
+## [2.0.21](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.20...v2.0.21) (2023-09-27)
+
+
+### Bug Fixes
+
+* upgrade @nx/angular from 16.5.1 to 16.7.4 ([47addad](https://github.com/mostafazke/ng-whiteboard/commit/47addad49fc487142f7cd61a6a6d58e727dbe14c))
+* upgrade tslib from 2.6.1 to 2.6.2 ([5c7dc25](https://github.com/mostafazke/ng-whiteboard/commit/5c7dc250e95f72cf5fcc3cc69d12108adef4e074))
+
 ## [2.0.20](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.19...v2.0.20) (2023-09-21)
 
 
