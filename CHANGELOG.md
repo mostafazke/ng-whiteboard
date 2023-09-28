@@ -1,3 +1,10 @@
+## [2.0.22](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.21...v2.0.22) (2023-09-28)
+
+
+### Bug Fixes
+
+* upgrade multiple dependencies with Snyk ([be6134f](https://github.com/mostafazke/ng-whiteboard/commit/be6134f63bd8352dadbc3132e1125905a89b2841))
+
 ## [2.0.21](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.20...v2.0.21) (2023-09-27)
 
 
