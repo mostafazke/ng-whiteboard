@@ -1,53 +1,114 @@
 version: 2.1
 orbs:
-  browser-tools: circleci/browser-tools@1
+  nx: nrwl/nx@1.6.1
   codecov: codecov/codecov@3.2.2
 
 jobs:
+  agent:
+    docker:
+      - image: cimg/node:lts-browsers
+    parameters:
+      ordinal:
+        type: integer
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: yarn install --frozen-lockfile
+      - run:
+          name: Start the agent << parameters.ordinal >>
+          command: npx nx-cloud start-agent
+          no_output_timeout: 60m
   test:
     docker:
       - image: cimg/node:current-browsers
-        environment:
-          CHROME_BIN: '/usr/bin/google-chrome'
+    environment:
+      NX_CLOUD_DISTRIBUTED_EXECUTION: 'true'
     steps:
-      - browser-tools/install-chrome
       - checkout
       - run:
-          name: install-dependencies
-          command: yarn
+          name: Install dependencies
+          command: yarn install --frozen-lockfile
+      - nx/set-shas:
+          main-branch-name: 'master'
       - run:
-          name: test
-          command: yarn test:ci
+          name: Initialize the Nx Cloud distributed CI run
+          command: npx nx-cloud start-ci-run --stop-agents-after="test" --agent-count=3
+      - run:
+          name: Check format
+          command: npx nx-cloud record -- npx nx format:check --base=$NX_BASE --head=$NX_HEAD
+      - run:
+          name: Run lint
+          command: npx nx affected --base=$NX_BASE --head=$NX_HEAD --target=lint --parallel=3
+      - run:
+          name: Run test
+          command: npx nx affected --base=$NX_BASE --head=$NX_HEAD --target=test --parallel=3 --ci --code-coverage
       - codecov/upload:
           file: 'coverage/ng-whiteboard/lcov.info'
-
+      - run:
+          name: Stop all agents
+          command: npx nx-cloud stop-all-agents
+          when: always
   demo:
     docker:
-      - image: cimg/node:current-browsers
+      - image: cimg/node:lts-browsers
+    environment:
+      NX_CLOUD_DISTRIBUTED_EXECUTION: 'true'
     steps:
       - checkout
       - run:
-          name: install-dependencies
-          command: yarn
-      - run: yarn build:demo
-      - run: npx angular-cli-ghpages --dir=./dist/demo --repo=https://github.com/mostafazke/ng-whiteboard.git --name="Mostafa Zaki" --email=mmostafazke@gmail.com
-
+          name: Install dependencies
+          command: yarn install --frozen-lockfile
+      - nx/set-shas:
+          main-branch-name: 'master'
+      - run:
+          name: Initialize the Nx Cloud distributed CI run
+          command: npx nx-cloud start-ci-run --stop-agents-after="build" --agent-count=3
+      - run:
+          name: Run build
+          command: npx nx affected --base=$NX_BASE --head=$NX_HEAD --target=build --parallel=3
+      - run:
+          name: publish:demo
+          command: yarn publish:demo
+      - run:
+          name: Stop all agents
+          command: npx nx-cloud stop-all-agents
+          when: always
   lib:
     docker:
-      - image: cimg/node:current-browsers
+      - image: cimg/node:lts-browsers
+    environment:
+      NX_CLOUD_DISTRIBUTED_EXECUTION: 'true'
     steps:
       - checkout
-      - run: yarn cache clean --force
       - run:
-          name: install-dependencies
-          command: yarn
-      - run: yarn build:lib
-      - run: yarn publish:lib
+          name: Install dependencies
+          command: yarn install --frozen-lockfile
+      - nx/set-shas:
+          main-branch-name: 'master'
+      - run:
+          name: Initialize the Nx Cloud distributed CI run
+          command: npx nx-cloud start-ci-run --stop-agents-after="build" --agent-count=3
+      - run:
+          name: Run build
+          command: yarn build:lib
+      - run:
+          name: Run publish
+          command: yarn publish:lib
+      - run:
+          name: Stop all agents
+          command: npx nx-cloud stop-all-agents
+          when: always
 
 workflows:
   version: 2
   test_and_release:
     jobs:
+      - agent:
+          name: Nx Cloud Agent << matrix.ordinal >>
+          matrix:
+            parameters:
+              ordinal: [1, 2, 3]
       - test
       - demo
       - lib:

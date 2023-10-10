@@ -1,20 +1,19 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ComprehensiveComponent } from './comprehensive.component';
+import { MinimalComponent } from './minimal.component';
 import { NgWhiteboardModule } from 'ng-whiteboard';
 
-describe('ComprehensiveComponent', () => {
-  let component: ComprehensiveComponent;
-  let fixture: ComponentFixture<ComprehensiveComponent>;
+describe('MinimalComponent', () => {
+  let component: MinimalComponent;
+  let fixture: ComponentFixture<MinimalComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ComprehensiveComponent ],
+      declarations: [MinimalComponent],
       imports: [NgWhiteboardModule],
-    })
-    .compileComponents();
+    }).compileComponents();
 
-    fixture = TestBed.createComponent(ComprehensiveComponent);
+    fixture = TestBed.createComponent(MinimalComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

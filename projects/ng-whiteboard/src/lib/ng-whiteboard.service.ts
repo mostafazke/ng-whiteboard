@@ -24,7 +24,7 @@ export class NgWhiteboardService {
   public erase(): void {
     this.eraseMethodCallSource.next();
   }
-  public save(format: formatTypes = FormatType.Base64, name: string = 'New board'): void {
+  public save(format: formatTypes = FormatType.Base64, name = 'New board'): void {
     this.saveMethodCallSource.next({ name, format });
   }
   public undo(): void {

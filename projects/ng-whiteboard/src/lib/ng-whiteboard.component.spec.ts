@@ -1,6 +1,5 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import * as d3 from 'd3';
-import { select } from 'd3';
+import { StrokeOptions, getStroke } from 'perfect-freehand';
 import {
   ElementTypeEnum,
   FormatType,
@@ -10,7 +9,7 @@ import {
   NgWhiteboardComponent,
   NgWhiteboardService,
   WhiteboardElement,
-} from 'ng-whiteboard';
+} from '../';
 import { ToolsEnum } from './models/tools.enum';
 import Utils from './ng-whiteboard.utils';
 
@@ -49,37 +48,16 @@ describe('NgWhiteboardComponent', () => {
     });
 
     it('should initialize the service observables', () => {
-      expect(component['_subscriptionList'].length).toBe(7);
+      expect(component['_subscriptionList'].length).toBe(10);
     });
 
-    it('should trigger start event', () => {
-      // arrange
-      jest.spyOn(component, 'handleStartEvent');
-      const redoState: WhiteboardElement[] = [new WhiteboardElement(ElementTypeEnum.BRUSH, {})];
-      component['redoStack'] = [redoState];
-      const element = document.createElement('svg');
-      document.body.appendChild(element);
-      const selection = select<Element, unknown>(element);
-      // act
-      component.initializeEvents.call(component, selection);
-      element.dispatchEvent(
-        new MouseEvent('mousedown', {
-          view: window,
-        })
-      );
-      // assert
-      expect(component.handleStartEvent).toHaveBeenCalled();
-      expect(component['redoStack'].length).toBe(0);
-    });
     it('should return if drawingEnabled is false', () => {
       // arrange
       jest.spyOn(component, 'handleStartEvent');
       const element = document.createElement('svg');
       document.body.appendChild(element);
       component.drawingEnabled = false;
-      const selection = select<Element, unknown>(element);
       // act
-      component.initializeEvents.call(component, selection);
       element.dispatchEvent(
         new MouseEvent('mousedown', {
           view: window,
@@ -89,36 +67,12 @@ describe('NgWhiteboardComponent', () => {
       expect(component.handleStartEvent).not.toHaveBeenCalled();
     });
 
-    it('should trigger drag event', () => {
-      // arrange
-      jest.spyOn(component, 'handleDragEvent');
-      const element = document.createElement('svg');
-      document.body.appendChild(element);
-      const selection = select<Element, unknown>(element);
-      // act
-      component.initializeEvents.call(component, selection);
-      element.dispatchEvent(
-        new MouseEvent('mousedown', {
-          view: window,
-        })
-      );
-      element.dispatchEvent(
-        new MouseEvent('mousemove', {
-          view: window,
-        })
-      );
-      // assert
-      expect(component.handleDragEvent).toHaveBeenCalled();
-    });
-
     it('should not trigger drag event before start event', () => {
       // arrange
       jest.spyOn(component, 'handleDragEvent');
       const element = document.createElement('svg');
       document.body.appendChild(element);
-      const selection = select<Element, unknown>(element);
       // act
-      component.initializeEvents.call(component, selection);
       element.dispatchEvent(
         new MouseEvent('mousemove', {
           view: window,
@@ -127,30 +81,7 @@ describe('NgWhiteboardComponent', () => {
       // assert
       expect(component.handleDragEvent).not.toHaveBeenCalled();
     });
-
-    it('should trigger end event', () => {
-      // arrange
-      jest.spyOn(component, 'handleEndEvent');
-      const element = document.createElement('svg');
-      document.body.appendChild(element);
-      const selection = select<Element, unknown>(element);
-      // act
-      component.initializeEvents.call(component, selection);
-      element.dispatchEvent(
-        new MouseEvent('mousedown', {
-          view: window,
-        })
-      );
-      element.dispatchEvent(
-        new MouseEvent('mouseup', {
-          view: window,
-        })
-      );
-      // assert
-      expect(component.handleEndEvent).toHaveBeenCalled();
-    });
   });
-
   describe('ngOnChanges', () => {
     it('should update component options with provided values', () => {
       // arrange
@@ -214,11 +145,6 @@ describe('NgWhiteboardComponent', () => {
     });
   });
   describe('ngAfterViewInit', () => {
-    it('should calls initializeEvents method', () => {
-      jest.spyOn(component, 'initializeEvents');
-      component.ngAfterViewInit();
-      expect(component.initializeEvents).toHaveBeenCalled();
-    });
     it('should emit ready event', () => {
       // arrange
       jest.spyOn(component.ready, 'emit');
@@ -228,7 +154,6 @@ describe('NgWhiteboardComponent', () => {
       expect(component.ready.emit).toHaveBeenCalled();
     });
   });
-
   describe('ngOnDestroy', () => {
     it('should unsubscribe from events', () => {
       // arrange
@@ -239,7 +164,6 @@ describe('NgWhiteboardComponent', () => {
       expect(component['_subscriptionList'][0].unsubscribe).toHaveBeenCalled();
     });
   });
-
   describe('handleStartEvent', () => {
     it('should call the correct handler based on the selected tool', () => {
       // arrange
@@ -252,9 +176,10 @@ describe('NgWhiteboardComponent', () => {
       component.handleTextTool = jest.fn();
       component.handleSelectTool = jest.fn();
       component.handleEraserTool = jest.fn();
+      const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
 
       // act
-      component.handleStartEvent();
+      component.handleStartEvent(mockDownEvent);
 
       // assert
       expect(component.handleStartBrush).toHaveBeenCalled();
@@ -276,9 +201,10 @@ describe('NgWhiteboardComponent', () => {
       component.handleDragRect = jest.fn();
       component.handleDragEllipse = jest.fn();
       component.handleTextDrag = jest.fn();
+      const mockMoveEvent = new MouseEvent('pointermove') as PointerEvent;
 
       // act
-      component.handleDragEvent();
+      component.handleDragEvent(mockMoveEvent);
 
       // assert
       expect(component.handleDragBrush).toHaveBeenCalled();
@@ -297,9 +223,10 @@ describe('NgWhiteboardComponent', () => {
       component.handleEndRect = jest.fn();
       component.handleEndEllipse = jest.fn();
       component.handleTextEnd = jest.fn();
+      const mockUpEvent = new MouseEvent('pointerup') as PointerEvent;
 
       // act
-      component.handleEndEvent();
+      component.handleEndEvent(mockUpEvent);
 
       // assert
       expect(component.handleEndBrush).toHaveBeenCalled();
@@ -309,25 +236,89 @@ describe('NgWhiteboardComponent', () => {
       expect(component.handleTextEnd).not.toHaveBeenCalled();
     });
   });
+  describe('handleBrushShape', () => {
+    let getStrokeOptions: StrokeOptions;
+    beforeAll(() => {
+      getStrokeOptions = {
+        size: 1,
+        smoothing: 1,
+        thinning: 0,
+        streamline: 0.9,
+      };
+    });
+    describe('StartBrush', () => {
+      it('should create Brush element', () => {
+        // arrange
+        const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+        Object.defineProperty(mockDownEvent, 'offsetX', { value: 100 });
+        Object.defineProperty(mockDownEvent, 'offsetY', { value: 200 });
+        // act
+        component.handleStartBrush(mockDownEvent);
+        const outlinePoints = getStroke(component.tempDraw, getStrokeOptions);
+        const data = Utils.getSvgPathFromStroke(outlinePoints);
+        // assert
+        expect(component.tempElement.type).toBe(ElementTypeEnum.BRUSH);
+        expect(component.tempElement.value).toBe(data);
+      });
+    });
+    describe('DragBrush', () => {
+      it('should update Brush element value', () => {
+        // arrange
+        const element = new WhiteboardElement(ElementTypeEnum.BRUSH, {});
+        component.tempDraw = [[100, 200]];
+        component.tempElement = element;
+        const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+        Object.defineProperty(mockDownEvent, 'offsetX', { value: 100 });
+        Object.defineProperty(mockDownEvent, 'offsetY', { value: 200 });
+        // act
+        component.handleDragBrush(mockDownEvent);
+        const outlinePoints = getStroke(component.tempDraw, getStrokeOptions);
+        const data = Utils.getSvgPathFromStroke(outlinePoints);
+        // assert
+        expect(component.tempElement.value).toBe(data);
+      });
+    });
+    describe('EndBrush', () => {
+      it('should push Brush element to data', () => {
+        // arrange
+        const element = new WhiteboardElement(ElementTypeEnum.BRUSH, {});
+        component.tempDraw = [[100, 200]];
+        component.tempElement = element;
+        const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+        Object.defineProperty(mockDownEvent, 'offsetX', { value: 100 });
+        Object.defineProperty(mockDownEvent, 'offsetY', { value: 200 });
+
+        // act
+        component.handleEndBrush(mockDownEvent);
+
+        // assert
+        expect(component.data.length).toBe(1);
+        expect(component.tempElement).toBeNull();
+        expect(component.tempDraw).toBeNull();
+      });
+    });
+  });
   describe('handleImageTool', () => {
     it('should add image to component when file is uploaded', () => {
       // Arrange
-      jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [100, 200]));
-      const selectionNode = document.createElement('svg');
-      component['selection'] = select<Element, unknown>(selectionNode);
       const input = document.createElement('input');
       const file = new File(['image'], 'image.png', { type: 'image/png' });
       jest.spyOn(document, 'createElement').mockReturnValue(input);
       jest.spyOn(input, 'click');
-      jest.spyOn(input, 'addEventListener').mockImplementation((event, callback: any) => {
-        if (event === 'change') {
-          callback({ target: { files: [file] } });
+      jest.spyOn(input, 'addEventListener').mockImplementation((event, callback) => {
+        if (event === 'change' && typeof callback === 'function') {
+          const customEvent = new Event('change');
+          Object.defineProperty(customEvent, 'target', {
+            value: { files: [file] },
+            writable: false,
+          });
+          callback(customEvent);
         }
       });
-      // const addImageSpy = jest.spyOn(component, 'addImage');
+      const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
 
       // Act
-      component.handleImageTool();
+      component.handleImageTool(mockDownEvent);
 
       // Assert
       expect(input.click).toHaveBeenCalled();
@@ -352,6 +343,7 @@ describe('NgWhiteboardComponent', () => {
 
       component.data = initialData;
       Object.defineProperty(global.SVGElement.prototype, 'getBBox', {
+        configurable: true,
         writable: true,
         value: jest.fn().mockReturnValue({
           x: 0,
@@ -362,30 +354,35 @@ describe('NgWhiteboardComponent', () => {
     });
 
     it('should clear selected element if mouse target is null', () => {
+      const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
       component['_getMouseTarget'] = jest.fn().mockReturnValue(null);
-      component.handleSelectTool();
+
+      component.handleSelectTool(mockDownEvent);
       expect(component.selectedElement).toBeNull();
     });
 
     it('should clear selected element if mouse target is the "selectorGroup"', () => {
+      const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+
       const selectorGroup: SVGGraphicsElement = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       selectorGroup.setAttribute('id', 'selectorGroup');
       component['_getMouseTarget'] = jest.fn().mockReturnValue(selectorGroup);
 
-      component.handleSelectTool();
+      component.handleSelectTool(mockDownEvent);
 
       expect(component.selectedElement).toBeUndefined();
     });
 
     it('should select the clicked element', () => {
+      const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+
       const element = component.data[1];
       const elementNode = document.getElementById('item_' + element.id);
       component['_getMouseTarget'] = jest.fn().mockReturnValue(elementNode);
-      component.handleSelectTool();
+      component.handleSelectTool(mockDownEvent);
       expect(component.selectedElement).toEqual(element);
     });
   });
-
   describe('handleEraserTool', () => {
     beforeEach(() => {
       const initialData = [new WhiteboardElement(ElementTypeEnum.BRUSH, {})];
@@ -397,9 +394,11 @@ describe('NgWhiteboardComponent', () => {
     it('should not remove element if mouse_target not defined', () => {
       component['_getMouseTarget'] = jest.fn().mockReturnValue(null);
       const emitSpy = jest.spyOn(component.deleteElement, 'emit');
+      const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+
       expect(component.data.length).toEqual(1);
 
-      component.handleEraserTool();
+      component.handleEraserTool(mockDownEvent);
 
       expect(component.data.length).toEqual(1);
       expect(emitSpy).not.toHaveBeenCalled();
@@ -410,10 +409,11 @@ describe('NgWhiteboardComponent', () => {
       const elementNode = document.getElementById('item_' + element.id);
       component['_getMouseTarget'] = jest.fn().mockReturnValue(elementNode);
       const emitSpy = jest.spyOn(component.deleteElement, 'emit');
+      const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
 
       expect(component.data.length).toEqual(1);
 
-      component.handleEraserTool();
+      component.handleEraserTool(mockDownEvent);
 
       expect(component.data.length).toEqual(0);
       expect(emitSpy).toHaveBeenCalled();
@@ -423,9 +423,12 @@ describe('NgWhiteboardComponent', () => {
     describe('StartLine', () => {
       it('should create Line element', () => {
         // arrange
-        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [100, 200]));
+        const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+        Object.defineProperty(mockDownEvent, 'offsetX', { value: 100 });
+        Object.defineProperty(mockDownEvent, 'offsetY', { value: 200 });
+
         // act
-        component.handleStartLine();
+        component.handleStartLine(mockDownEvent);
         // assert
         expect(component.tempElement.type).toBe(ElementTypeEnum.LINE);
         expect(component.tempElement.options.x1).toBe(100);
@@ -435,9 +438,11 @@ describe('NgWhiteboardComponent', () => {
         // arrange
         component.gridSize = 10;
         component.snapToGrid = true;
-        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [100, 200]));
+        const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+        Object.defineProperty(mockDownEvent, 'offsetX', { value: 100 });
+        Object.defineProperty(mockDownEvent, 'offsetY', { value: 200 });
         // act
-        component.handleStartLine();
+        component.handleStartLine(mockDownEvent);
         // assert
         expect(component.tempElement.type).toBe(ElementTypeEnum.LINE);
         expect(component.tempElement.options.x1).toBe(100);
@@ -449,16 +454,11 @@ describe('NgWhiteboardComponent', () => {
         // arrange
         const element = new WhiteboardElement(ElementTypeEnum.LINE, {});
         component.tempElement = element;
-        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [100, 200]));
-        Object.defineProperty(d3, 'event', {
-          value: {
-            sourceEvent: {
-              shiftKey: false,
-            },
-          },
-        });
+        const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+        Object.defineProperty(mockDownEvent, 'offsetX', { value: 100 });
+        Object.defineProperty(mockDownEvent, 'offsetY', { value: 200 });
         // act
-        component.handleDragLine();
+        component.handleDragLine(mockDownEvent);
         // assert
         expect(component.tempElement.options.x2).toBe(100);
         expect(component.tempElement.options.y2).toBe(200);
@@ -469,16 +469,11 @@ describe('NgWhiteboardComponent', () => {
         component.snapToGrid = true;
         const element = new WhiteboardElement(ElementTypeEnum.LINE, {});
         component.tempElement = element;
-        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [98, 197]));
-        Object.defineProperty(d3, 'event', {
-          value: {
-            sourceEvent: {
-              shiftKey: false,
-            },
-          },
-        });
+        const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+        Object.defineProperty(mockDownEvent, 'offsetX', { value: 100 });
+        Object.defineProperty(mockDownEvent, 'offsetY', { value: 200 });
         // act
-        component.handleDragLine();
+        component.handleDragLine(mockDownEvent);
         // assert
         expect(component.tempElement.options.x2).toBe(100);
         expect(component.tempElement.options.y2).toBe(200);
@@ -489,16 +484,13 @@ describe('NgWhiteboardComponent', () => {
         element.options.x1 = 1;
         element.options.y1 = 1;
         component.tempElement = element;
-        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [1, 0]));
-        Object.defineProperty(d3, 'event', {
-          value: {
-            sourceEvent: {
-              shiftKey: true,
-            },
-          },
-        });
+        const mockDownEvent = new MouseEvent('pointerdown', {
+          shiftKey: true,
+        }) as PointerEvent;
+        Object.defineProperty(mockDownEvent, 'offsetX', { value: 1 });
+        Object.defineProperty(mockDownEvent, 'offsetY', { value: 0 });
         // act
-        component.handleDragLine();
+        component.handleDragLine(mockDownEvent);
         // assert
         expect(component.tempElement.options.x2).toEqual(1);
         expect(component.tempElement.options.y2).toEqual(0);
@@ -524,9 +516,11 @@ describe('NgWhiteboardComponent', () => {
     describe('StartRect', () => {
       it('should create Rect element', () => {
         // arrange
-        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [100, 200]));
+        const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+        Object.defineProperty(mockDownEvent, 'offsetX', { value: 100 });
+        Object.defineProperty(mockDownEvent, 'offsetY', { value: 200 });
         // act
-        component.handleStartRect();
+        component.handleStartRect(mockDownEvent);
         // assert
         expect(component.tempElement.type).toBe(ElementTypeEnum.RECT);
         expect(component.tempElement.options.x1).toBe(100);
@@ -540,9 +534,11 @@ describe('NgWhiteboardComponent', () => {
         // arrange
         component.gridSize = 10;
         component.snapToGrid = true;
-        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [100, 200]));
+        const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+        Object.defineProperty(mockDownEvent, 'offsetX', { value: 100 });
+        Object.defineProperty(mockDownEvent, 'offsetY', { value: 200 });
         // act
-        component.handleStartRect();
+        component.handleStartRect(mockDownEvent);
         // assert
         expect(component.tempElement.type).toBe(ElementTypeEnum.RECT);
         expect(component.tempElement.options.x1).toBe(100);
@@ -554,17 +550,11 @@ describe('NgWhiteboardComponent', () => {
         // arrange
         const element = new WhiteboardElement(ElementTypeEnum.RECT, {});
         component.tempElement = element;
-        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [100, 200]));
-        Object.defineProperty(d3, 'event', {
-          value: {
-            sourceEvent: {
-              shiftKey: false,
-              altKey: false,
-            },
-          },
-        });
+        const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+        Object.defineProperty(mockDownEvent, 'offsetX', { value: 100 });
+        Object.defineProperty(mockDownEvent, 'offsetY', { value: 200 });
         // act
-        component.handleDragRect();
+        component.handleDragRect(mockDownEvent);
         // assert
         const width = Math.abs(100 - 0);
         const height = Math.abs(200 - 0);
@@ -581,16 +571,11 @@ describe('NgWhiteboardComponent', () => {
         element.options.x1 = 10;
         element.options.y1 = 20;
         component.tempElement = element;
-        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [98, 197]));
-        Object.defineProperty(d3, 'event', {
-          value: {
-            sourceEvent: {
-              shiftKey: false,
-            },
-          },
-        });
+        const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+        Object.defineProperty(mockDownEvent, 'offsetX', { value: 98 });
+        Object.defineProperty(mockDownEvent, 'offsetY', { value: 197 });
         // act
-        component.handleDragRect();
+        component.handleDragRect(mockDownEvent);
         // assert
         expect(component.tempElement.options.width).toBe(90);
         expect(component.tempElement.options.height).toBe(180);
@@ -603,16 +588,13 @@ describe('NgWhiteboardComponent', () => {
         element.options.x1 = 10;
         element.options.y1 = 20;
         component.tempElement = element;
-        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [100, 200]));
-        Object.defineProperty(d3, 'event', {
-          value: {
-            sourceEvent: {
-              shiftKey: true,
-            },
-          },
-        });
+        const mockDownEvent = new MouseEvent('pointerdown', {
+          shiftKey: true,
+        }) as PointerEvent;
+        Object.defineProperty(mockDownEvent, 'offsetY', { value: 200 });
+        Object.defineProperty(mockDownEvent, 'offsetX', { value: 190 });
         // act
-        component.handleDragRect();
+        component.handleDragRect(mockDownEvent);
         // assert
         expect(component.tempElement.options.width).toBe(180);
         expect(component.tempElement.options.height).toBe(180);
@@ -625,16 +607,14 @@ describe('NgWhiteboardComponent', () => {
         element.options.x1 = 100;
         element.options.y1 = 200;
         component.tempElement = element;
-        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [10, 20]));
-        Object.defineProperty(d3, 'event', {
-          value: {
-            sourceEvent: {
-              altKey: true,
-            },
-          },
-        });
+        const mockDownEvent = new MouseEvent('pointerdown', {
+          altKey: true,
+        }) as PointerEvent;
+        Object.defineProperty(mockDownEvent, 'offsetX', { value: 10 });
+        Object.defineProperty(mockDownEvent, 'offsetY', { value: 20 });
+
         // act
-        component.handleDragRect();
+        component.handleDragRect(mockDownEvent);
         // assert
         expect(component.tempElement.options.width).toBe(180);
         expect(component.tempElement.options.height).toBe(360);
@@ -660,9 +640,11 @@ describe('NgWhiteboardComponent', () => {
     describe('StartEllipse', () => {
       it('should create Ellipse element', () => {
         // arrange
-        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [100, 200]));
+        const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+        Object.defineProperty(mockDownEvent, 'offsetX', { value: 100 });
+        Object.defineProperty(mockDownEvent, 'offsetY', { value: 200 });
         // act
-        component.handleStartEllipse();
+        component.handleStartEllipse(mockDownEvent);
         // assert
         expect(component.tempElement.type).toBe(ElementTypeEnum.ELLIPSE);
         expect(component.tempElement.options.x1).toBe(100);
@@ -676,17 +658,12 @@ describe('NgWhiteboardComponent', () => {
         // arrange
         const element = new WhiteboardElement(ElementTypeEnum.ELLIPSE, {});
         component.tempElement = element;
-        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [100, 200]));
-        Object.defineProperty(d3, 'event', {
-          value: {
-            sourceEvent: {
-              shiftKey: false,
-              altKey: false,
-            },
-          },
-        });
+        const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+        Object.defineProperty(mockDownEvent, 'offsetX', { value: 100 });
+        Object.defineProperty(mockDownEvent, 'offsetY', { value: 200 });
+
         // act
-        component.handleDragEllipse();
+        component.handleDragEllipse(mockDownEvent);
         // assert
         expect(component.tempElement.options.rx).toBe(50);
         expect(component.tempElement.options.ry).toBe(100);
@@ -697,34 +674,29 @@ describe('NgWhiteboardComponent', () => {
         // arrange
         const element = new WhiteboardElement(ElementTypeEnum.ELLIPSE, {});
         component.tempElement = element;
-        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [100, 200]));
-        Object.defineProperty(d3, 'event', {
-          value: {
-            sourceEvent: {
-              shiftKey: true,
-            },
-          },
-        });
+        const mockDownEvent = new MouseEvent('pointerdown', {
+          shiftKey: true,
+        }) as PointerEvent;
+        Object.defineProperty(mockDownEvent, 'offsetY', { value: 100 });
+        Object.defineProperty(mockDownEvent, 'offsetX', { value: 200 });
         // act
-        component.handleDragEllipse();
+        component.handleDragEllipse(mockDownEvent);
         // assert
-        expect(component.tempElement.options.ry).toBe(50);
-        expect(component.tempElement.options.cy).toBe(50);
+        expect(component.tempElement.options.ry).toBe(100);
+        expect(component.tempElement.options.cy).toBe(100);
       });
       it('should multiply and snap x2 and y2 to specified angle when alt key is pressed', () => {
         // arrange
         const element = new WhiteboardElement(ElementTypeEnum.ELLIPSE, {});
         component.tempElement = element;
-        jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [10, 20]));
-        Object.defineProperty(d3, 'event', {
-          value: {
-            sourceEvent: {
-              altKey: true,
-            },
-          },
-        });
+        const mockDownEvent = new MouseEvent('pointerdown', {
+          altKey: true,
+        }) as PointerEvent;
+        Object.defineProperty(mockDownEvent, 'offsetX', { value: 10 });
+        Object.defineProperty(mockDownEvent, 'offsetY', { value: 20 });
+
         // act
-        component.handleDragEllipse();
+        component.handleDragEllipse(mockDownEvent);
         // assert
         expect(component.tempElement.options.rx).toBe(10);
         expect(component.tempElement.options.ry).toBe(20);
@@ -757,9 +729,9 @@ describe('NgWhiteboardComponent', () => {
       jest.spyOn(component, 'finishTextInput');
       const input = document.createElement('input');
       component['textInput'] = { nativeElement: input };
-
+      const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
       // act
-      component.handleTextTool();
+      component.handleTextTool(mockDownEvent);
 
       // assert
       expect(component.tempElement).toBeNull();
@@ -767,30 +739,34 @@ describe('NgWhiteboardComponent', () => {
     });
     it('should create a new text element and set focus on text input', () => {
       // arrange
-      jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [100, 200]));
+      const x = 200;
+      const y = 100;
+      const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+      Object.defineProperty(mockDownEvent, 'offsetX', { value: x });
+      Object.defineProperty(mockDownEvent, 'offsetY', { value: y });
       component['_getTargetElement'] = jest.fn().mockReturnValue(null);
       const element = new WhiteboardElement(ElementTypeEnum.TEXT, {});
       component['_generateNewElement'] = jest.fn().mockReturnValue(element);
       const input = document.createElement('input');
       component['textInput'] = { nativeElement: input };
       // act
-      component.handleTextTool();
+      component.handleTextTool(mockDownEvent);
 
       // assert
       expect(component.tempElement).not.toBeNull();
       expect(component.tempElement.type).toBe(element.type);
-      expect(component.tempElement.options.top).toBe(200);
-      expect(component.tempElement.options.left).toBe(100);
+      expect(component.tempElement.options.top).toBe(y);
+      expect(component.tempElement.options.left).toBe(x);
     });
     it('should update existing element if clicked on text element', () => {
       // arrange
       const element = new WhiteboardElement(ElementTypeEnum.TEXT, {}, 'new text');
-      jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [100, 200]));
+      const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
       component['_getTargetElement'] = jest.fn().mockReturnValue(element);
       const input = document.createElement('input');
       component['textInput'] = { nativeElement: input };
       // act
-      component.handleTextTool();
+      component.handleTextTool(mockDownEvent);
 
       // assert
       expect(component.tempElement).not.toBeNull();
@@ -802,11 +778,16 @@ describe('NgWhiteboardComponent', () => {
       // arrange
       const x = 10;
       const y = 20;
-      jest.spyOn(d3, 'mouse').mockImplementation(jest.fn(() => [x, y]));
-      component.tempElement = { options: { top: 0, left: 0 } } as any;
+      const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+      Object.defineProperty(mockDownEvent, 'offsetX', { value: x });
+      Object.defineProperty(mockDownEvent, 'offsetY', { value: y });
+      component.tempElement = new WhiteboardElement(ElementTypeEnum.TEXT, {
+        top: 0,
+        left: 0,
+      });
 
       // act
-      component.handleTextDrag();
+      component.handleTextDrag(mockDownEvent);
 
       // assert
       expect(component.tempElement.options.top).toBe(y);
@@ -815,8 +796,9 @@ describe('NgWhiteboardComponent', () => {
     it('should return if current text element undefiend', () => {
       // arrange
       jest.spyOn(component, 'handleTextDrag');
+      const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
       // act
-      component.handleTextDrag();
+      component.handleTextDrag(mockDownEvent);
 
       // assert
       expect(component.handleTextDrag).toHaveReturned();
@@ -825,7 +807,7 @@ describe('NgWhiteboardComponent', () => {
     it('should push the current element to undo', () => {
       // arrange
       component['_pushToUndo'] = jest.fn();
-      component.tempElement = {} as any;
+      component.tempElement = new WhiteboardElement(ElementTypeEnum.TEXT, {});
 
       // act
       component.handleTextEnd();
@@ -857,13 +839,16 @@ describe('NgWhiteboardComponent', () => {
       expect(component.tempElement.value).toEqual('new value');
     });
   });
-
   describe('saveDraw', () => {
     it('should save the board as base64 and emit save event', async () => {
       // arrange
       const saveMock = jest.fn();
       component.save.subscribe(saveMock);
       Utils.svgToBase64 = jest.fn().mockReturnValue('');
+      const svgcontent = fixture.nativeElement.querySelector('#svgcontent') as SVGElement;
+      const selectorParentGroup = document.createElement('g');
+      selectorParentGroup.setAttribute('id', 'selectorParentGroup');
+      svgcontent.appendChild(selectorParentGroup);
       // act
       await component.saveDraw('image', FormatType.Base64);
       // assert
@@ -894,7 +879,7 @@ describe('NgWhiteboardComponent', () => {
   });
   describe('addImage', () => {
     let mockImage: IAddImage;
-    let imageOnload: any;
+    let imageOnload: () => void;
 
     beforeEach(() => {
       mockImage = {
@@ -903,6 +888,7 @@ describe('NgWhiteboardComponent', () => {
         y: 20,
       };
       Object.defineProperty(Image.prototype, 'onload', {
+        configurable: true,
         get() {
           return this._onload;
         },
@@ -943,7 +929,6 @@ describe('NgWhiteboardComponent', () => {
       expect(component.data[0].y).toBe(0);
     });
   });
-
   describe('clearDraw', () => {
     it('should clear drawing data and emit "clear" event', () => {
       // Arrange
@@ -1038,70 +1023,60 @@ describe('NgWhiteboardComponent', () => {
   describe('getMouseTarget', () => {
     it('should return null if event or event.target is null', () => {
       // Arrange
-      Object.defineProperty(d3, 'event', {
-        value: {
-          sourceEvent: null,
-        },
-      });
+      const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+
       // Act
-      const result = component['_getMouseTarget']();
+      const result = component['_getMouseTarget'](mockDownEvent);
 
       // Assert
       expect(result).toBeNull();
     });
     it('should return null if mouse target id is svgroot', () => {
       // Arrange
-      Object.defineProperty(d3, 'event', {
-        value: {
-          sourceEvent: { target: { id: 'svgroot' } },
-        },
-      });
+      const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+      Object.defineProperty(mockDownEvent, 'target', { value: { id: 'svgroot' } });
+
       // Act
-      const result = component['_getMouseTarget']();
+      const result = component['_getMouseTarget'](mockDownEvent);
 
       // Assert
       expect(result).toBeNull();
     });
-
     it('should return target if parent node is selectorGroup', () => {
       // Arrange
-      Object.defineProperty(d3, 'event', {
-        value: {
-          sourceEvent: { target: { id: 'mouse_target', parentNode: { parentNode: { id: 'selectorGroup' } } } },
-        },
+      const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+      Object.defineProperty(mockDownEvent, 'target', {
+        value: { id: 'mouse_target', parentNode: { parentNode: { id: 'selectorGroup' } } },
       });
 
       // Act
-      const result = component['_getMouseTarget']();
+      const result = component['_getMouseTarget'](mockDownEvent);
 
       // Assert
-      expect(result).toEqual(d3.event.sourceEvent.target.parentNode.parentNode);
+      expect(result).toEqual((<SVGSVGElement>mockDownEvent.target).parentNode?.parentNode);
     });
-
     it('should return mouse target', () => {
       // Arrange
-      Object.defineProperty(d3, 'event', {
-        value: {
-          sourceEvent: { target: { id: 'mouse_target', parentNode: { parentNode: { id: 'item_123' } } } },
-        },
+      const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+      Object.defineProperty(mockDownEvent, 'target', {
+        value: { id: 'mouse_target', parentNode: { parentNode: { id: 'item_123' } } },
       });
+
       // Act
-      const result = component['_getMouseTarget']();
+      const result = component['_getMouseTarget'](mockDownEvent);
 
       // Assert
-      expect(result).toEqual(d3.event.sourceEvent.target.parentNode.parentNode);
+      expect(result).toEqual((<SVGSVGElement>mockDownEvent.target).parentNode?.parentNode);
     });
     it('should return null if mouse target id after bubbling is svgroot', () => {
       // Arrange
-      Object.defineProperty(d3, 'event', {
-        value: {
-          sourceEvent: {
-            target: { id: 'mouse_target', parentNode: { parentNode: { id: '123', parentNode: { id: 'svgroot' } } } },
-          },
-        },
+      const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+      Object.defineProperty(mockDownEvent, 'target', {
+        value: { id: 'mouse_target', parentNode: { parentNode: { id: 'svgroot' } } },
       });
+
       // Act
-      const result = component['_getMouseTarget']();
+      const result = component['_getMouseTarget'](mockDownEvent);
 
       // Assert
       expect(result).toEqual(null);
@@ -1123,14 +1098,17 @@ describe('NgWhiteboardComponent', () => {
       mockUpEvent = new MouseEvent('pointerup');
 
       Object.defineProperty(mockDownEvent, 'target', {
+        configurable: true,
         writable: true,
         value: mockElement,
       });
       Object.defineProperty(mockMoveEvent, 'movementX', {
+        configurable: true,
         writable: true,
         value: 10,
       });
       Object.defineProperty(mockMoveEvent, 'movementY', {
+        configurable: true,
         writable: true,
         value: 20,
       });
@@ -1181,14 +1159,17 @@ describe('NgWhiteboardComponent', () => {
       document.dispatchEvent(mockUpEvent);
 
       Object.defineProperty(mockDownEvent, 'target', {
+        configurable: true,
         writable: true,
         value: mockElement,
       });
       Object.defineProperty(mockMoveEvent, 'movementX', {
+        configurable: true,
         writable: true,
         value: 10,
       });
       Object.defineProperty(mockMoveEvent, 'movementY', {
+        configurable: true,
         writable: true,
         value: 20,
       });
@@ -1253,6 +1234,231 @@ describe('NgWhiteboardComponent', () => {
 
       // Assert
       expect(component['_resizeElipse']).not.toHaveBeenCalled();
+    });
+  });
+  describe('resizeLine', () => {
+    beforeEach(() => {
+      component.selectedElement = new WhiteboardElement(ElementTypeEnum.LINE, {
+        x1: 0,
+        y1: 0,
+        x2: 0,
+        y2: 0,
+      });
+    });
+
+    it('should resize the line correctly for "nw" direction', () => {
+      const bbox = { x: 10, y: 20, width: 50, height: 50 };
+
+      component['_resizeLine']('nw', bbox);
+
+      expect(component.selectedElement.options.x1).toBe(10);
+      expect(component.selectedElement.options.y1).toBe(20);
+    });
+    it('should resize the line correctly for "n" direction', () => {
+      const bbox = { x: 10, y: 20, width: 50, height: 50 };
+
+      component['_resizeLine']('n', bbox);
+
+      expect(component.selectedElement.options.y1).toBe(20);
+    });
+    it('should resize the line correctly for "ne" direction', () => {
+      const bbox = { x: 10, y: 20, width: 50, height: 50 };
+
+      component['_resizeLine']('ne', bbox);
+
+      expect(component.selectedElement.options.x2).toBe(10);
+      expect(component.selectedElement.options.y1).toBe(20);
+    });
+    it('should resize the line correctly for "e" direction', () => {
+      const bbox = { x: 10, y: 20, width: 50, height: 50 };
+
+      component['_resizeLine']('e', bbox);
+
+      expect(component.selectedElement.options.x2).toBe(10);
+    });
+    it('should resize the line correctly for "se" direction', () => {
+      const bbox = { x: 10, y: 20, width: 50, height: 50 };
+
+      component['_resizeLine']('se', bbox);
+
+      expect(component.selectedElement.options.x2).toBe(10);
+      expect(component.selectedElement.options.y2).toBe(20);
+    });
+    it('should resize the line correctly for "s" direction', () => {
+      const bbox = { x: 10, y: 20, width: 50, height: 50 };
+
+      component['_resizeLine']('s', bbox);
+
+      expect(component.selectedElement.options.y2).toBe(20);
+    });
+    it('should resize the line correctly for "sw" direction', () => {
+      const bbox = { x: 10, y: 20, width: 50, height: 50 };
+
+      component['_resizeLine']('sw', bbox);
+
+      expect(component.selectedElement.options.x1).toBe(10);
+      expect(component.selectedElement.options.y2).toBe(20);
+    });
+    it('should resize the line correctly for "w" direction', () => {
+      const bbox = { x: 10, y: 20, width: 50, height: 50 };
+
+      component['_resizeLine']('w', bbox);
+
+      expect(component.selectedElement.options.x1).toBe(10);
+    });
+  });
+  describe('resizeElipse', () => {
+    beforeEach(() => {
+      component.selectedElement = new WhiteboardElement(ElementTypeEnum.ELLIPSE, {
+        cx: 0,
+        cy: 0,
+        rx: 0,
+        ry: 0,
+      });
+    });
+
+    it('should resize the elipse correctly for "nw" direction', () => {
+      const bbox = { x: 10, y: 20, width: 50, height: 50 };
+
+      component['_resizeElipse']('nw', bbox);
+
+      expect(component.selectedElement.x).toBe(5);
+      expect(component.selectedElement.y).toBe(10);
+      expect(component.selectedElement.options.rx).toBe(-5);
+      expect(component.selectedElement.options.ry).toBe(-10);
+    });
+    it('should resize the elipse correctly for "n" direction', () => {
+      const bbox = { x: 10, y: 20, width: 50, height: 50 };
+
+      component['_resizeElipse']('n', bbox);
+
+      expect(component.selectedElement.y).toBe(10);
+      expect(component.selectedElement.options.ry).toBe(-10);
+    });
+    it('should resize the elipse correctly for "ne" direction', () => {
+      const bbox = { x: 10, y: 20, width: 50, height: 50 };
+
+      component['_resizeElipse']('ne', bbox);
+
+      expect(component.selectedElement.x).toBe(5);
+      expect(component.selectedElement.y).toBe(10);
+      expect(component.selectedElement.options.rx).toBe(5);
+      expect(component.selectedElement.options.ry).toBe(-10);
+    });
+    it('should resize the elipse correctly for "e" direction', () => {
+      const bbox = { x: 10, y: 20, width: 50, height: 50 };
+
+      component['_resizeElipse']('e', bbox);
+
+      expect(component.selectedElement.x).toBe(5);
+      expect(component.selectedElement.options.rx).toBe(5);
+    });
+    it('should resize the elipse correctly for "se" direction', () => {
+      const bbox = { x: 10, y: 20, width: 50, height: 50 };
+
+      component['_resizeElipse']('se', bbox);
+
+      expect(component.selectedElement.x).toBe(5);
+      expect(component.selectedElement.y).toBe(10);
+      expect(component.selectedElement.options.rx).toBe(5);
+      expect(component.selectedElement.options.ry).toBe(10);
+    });
+    it('should resize the elipse correctly for "s" direction', () => {
+      const bbox = { x: 10, y: 20, width: 50, height: 50 };
+
+      component['_resizeElipse']('s', bbox);
+
+      expect(component.selectedElement.y).toBe(10);
+      expect(component.selectedElement.options.ry).toBe(10);
+    });
+    it('should resize the elipse correctly for "sw" direction', () => {
+      const bbox = { x: 10, y: 20, width: 50, height: 50 };
+
+      component['_resizeElipse']('sw', bbox);
+
+      expect(component.selectedElement.x).toBe(5);
+      expect(component.selectedElement.y).toBe(10);
+      expect(component.selectedElement.options.rx).toBe(-5);
+      expect(component.selectedElement.options.ry).toBe(10);
+    });
+    it('should resize the elipse correctly for "w" direction', () => {
+      const bbox = { x: 10, y: 20, width: 50, height: 50 };
+
+      component['_resizeElipse']('w', bbox);
+
+      expect(component.selectedElement.x).toBe(5);
+      expect(component.selectedElement.options.rx).toBe(-5);
+    });
+  });
+  describe('resizeDefault', () => {
+    beforeEach(() => {
+      component.selectedElement = new WhiteboardElement(ElementTypeEnum.RECT, {});
+    });
+    it('should resize the elipse correctly for "nw" direction', () => {
+      const bbox = { x: 10, y: 20, width: 50, height: 50 };
+
+      component['_resizeDefault']('nw', bbox);
+
+      expect(component.selectedElement.x).toBe(10);
+      expect(component.selectedElement.y).toBe(20);
+      expect(component.selectedElement.options.width).toBe(40);
+      expect(component.selectedElement.options.height).toBe(30);
+    });
+    it('should resize the elipse correctly for "n" direction', () => {
+      const bbox = { x: 10, y: 20, width: 50, height: 50 };
+
+      component['_resizeDefault']('n', bbox);
+
+      expect(component.selectedElement.y).toBe(20);
+      expect(component.selectedElement.options.height).toBe(30);
+    });
+    it('should resize the elipse correctly for "ne" direction', () => {
+      const bbox = { x: 10, y: 20, width: 50, height: 50 };
+
+      component['_resizeDefault']('ne', bbox);
+
+      expect(component.selectedElement.y).toBe(20);
+      expect(component.selectedElement.options.width).toBe(60);
+      expect(component.selectedElement.options.height).toBe(30);
+    });
+    it('should resize the elipse correctly for "e" direction', () => {
+      const bbox = { x: 10, y: 20, width: 50, height: 50 };
+
+      component['_resizeDefault']('e', bbox);
+
+      expect(component.selectedElement.options.width).toBe(60);
+    });
+    it('should resize the elipse correctly for "se" direction', () => {
+      const bbox = { x: 10, y: 20, width: 50, height: 50 };
+
+      component['_resizeDefault']('se', bbox);
+
+      expect(component.selectedElement.options.width).toBe(60);
+      expect(component.selectedElement.options.height).toBe(70);
+    });
+    it('should resize the elipse correctly for "s" direction', () => {
+      const bbox = { x: 10, y: 20, width: 50, height: 50 };
+
+      component['_resizeDefault']('s', bbox);
+
+      expect(component.selectedElement.options.height).toBe(70);
+    });
+    it('should resize the elipse correctly for "sw" direction', () => {
+      const bbox = { x: 10, y: 20, width: 50, height: 50 };
+
+      component['_resizeDefault']('sw', bbox);
+
+      expect(component.selectedElement.x).toBe(10);
+      expect(component.selectedElement.options.width).toBe(40);
+      expect(component.selectedElement.options.height).toBe(70);
+    });
+    it('should resize the elipse correctly for "w" direction', () => {
+      const bbox = { x: 10, y: 20, width: 50, height: 50 };
+
+      component['_resizeDefault']('w', bbox);
+
+      expect(component.selectedElement.x).toBe(10);
+      expect(component.selectedElement.options.width).toBe(40);
     });
   });
 });

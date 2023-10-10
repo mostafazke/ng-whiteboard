@@ -8,7 +8,7 @@
     <div #workarea id="workarea" class="select" style="overflow: scroll;" (mousewheel)="zoomWheel($event)">
         <div id="svgcanvas" [style.width.px]="outerWidth" [style.height.px]="outerHeight">
             <ng-whiteboard #whiteboard [data]="data" (dataChange)="onDataChange($event)" [selectedTool]="selectedTool" [options]="options"
-                (selectElement)="selectedElement = $event" [strokeWidth]="options.strokeWidth" (toolChanged)="selectedTool = $event" [zoom]="zoom"
+                (selectElement)="setSelectedElement($event)" [strokeWidth]="options.strokeWidth" (toolChanged)="selectedTool = $event" [zoom]="zoom"
                [canvasHeight]="options.canvasHeight" [canvasWidth]="options.canvasWidth" [x]="x" [y]="y" [fullScreen]="false"  [strokeColor]="options.strokeColor" [fill]="options.fill" [backgroundColor]="options.backgroundColor">
             </ng-whiteboard>
         </div>

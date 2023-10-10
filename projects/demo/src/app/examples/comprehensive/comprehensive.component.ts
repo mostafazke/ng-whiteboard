@@ -14,7 +14,7 @@ export class ComprehensiveComponent implements AfterViewInit {
   toolsEnum = ToolsEnum;
   elementTypeEnum = ElementTypeEnum;
   selectedTool: ToolsEnum = ToolsEnum.BRUSH;
-  selectedElement!: WhiteboardElement;
+  selectedElement: WhiteboardElement | null = null;
 
   options = {
     strokeColor: '#ff0',
@@ -23,6 +23,7 @@ export class ComprehensiveComponent implements AfterViewInit {
     backgroundColor: '#fff',
     canvasHeight: 600,
     canvasWidth: 800,
+    dasharray: '',
   };
 
   formatTypes = FormatType;
@@ -130,7 +131,6 @@ export class ComprehensiveComponent implements AfterViewInit {
   setSizeResolution(value: string) {
     let w = this.options.canvasWidth;
     let h = this.options.canvasHeight;
-    console.log(value);
     const dims: number[] = [];
     dims[0] = parseInt(value.split('x')[0]);
     dims[1] = parseInt(value.split('x')[1]);
@@ -166,7 +166,7 @@ export class ComprehensiveComponent implements AfterViewInit {
     animateCanvasSize();
   }
 
-  onDragDown(input: HTMLInputElement, selectedElement: { [x: string]: number }, prop: string | number) {
+  onDragDown(input: HTMLInputElement, selectedElement: Record<string, any>, prop: string | number) {
     const min = input.min ? parseInt(input.min, 10) : null;
     const max = input.max ? parseInt(input.max, 10) : null;
     const step = parseInt(input.step, 10);
@@ -204,13 +204,16 @@ export class ComprehensiveComponent implements AfterViewInit {
     document.addEventListener('mouseup', onMouseUp);
   }
 
-  setNumberValue(obj: { [x: string]: number }, prop: string, value: number): void {
+  setNumberValue(obj: Record<string, any>, prop: string, value: number): void {
     if (!isNaN(value)) {
       obj[prop] = value;
     }
   }
 
   toggleFontWeight() {
+    if (!this.selectedElement) {
+      return;
+    }
     if (this.selectedElement.options.fontWeight === 'normal') {
       this.selectedElement.options.fontWeight = 'bold';
     } else {
@@ -218,6 +221,9 @@ export class ComprehensiveComponent implements AfterViewInit {
     }
   }
   toggleFontStyle() {
+    if (!this.selectedElement) {
+      return;
+    }
     if (this.selectedElement.options.fontStyle === 'normal') {
       this.selectedElement.options.fontStyle = 'italic';
     } else {
@@ -269,5 +275,16 @@ export class ComprehensiveComponent implements AfterViewInit {
 
   updateOptions() {
     this.options = Object.assign({}, this.options);
+  }
+
+  setSelectedElement(element: WhiteboardElement | null) {
+    this.selectedElement = element;
+  }
+
+  onSave(img: string) {
+    const cb = navigator.clipboard;
+    if (cb) {
+      cb.writeText(img);
+    }
   }
 }
