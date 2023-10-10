@@ -7,16 +7,13 @@ jobs:
   agent:
     docker:
       - image: cimg/node:lts-browsers
-    parameters:
-      ordinal:
-        type: integer
     steps:
       - checkout
       - run:
           name: Install dependencies
           command: yarn install --frozen-lockfile
       - run:
-          name: Start the agent << parameters.ordinal >>
+          name: Start the agent
           command: npx nx-cloud start-agent
           no_output_timeout: 60m
   test:
@@ -105,10 +102,7 @@ workflows:
   test_and_release:
     jobs:
       - agent:
-          name: Nx Cloud Agent << matrix.ordinal >>
-          matrix:
-            parameters:
-              ordinal: [1, 2, 3]
+          name: Nx Cloud Agent
       - test
       - demo
       - lib:
