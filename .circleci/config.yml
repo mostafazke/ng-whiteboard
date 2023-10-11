@@ -34,7 +34,7 @@ jobs:
           command: yarn build:demo
       - run:
           name: publish:demo
-          command: yarn publish:demo
+          command: npx angular-cli-ghpages --dir=./dist/demo --repo=https://github.com/mostafazke/ng-whiteboard.git --name="Mostafa Zaki" --email=mmostafazke@gmail.com
   lib:
     docker:
       - image: cimg/node:lts-browsers
