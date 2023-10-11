@@ -5,7 +5,7 @@ import data from './data';
   selector: 'app-basic-component',
   templateUrl: './basic.component.html',
   styleUrls: ['./basic.component.scss'],
-  providers: [NgWhiteboardService]
+  providers: [NgWhiteboardService],
 })
 export class BasicComponent {
   data = data;

@@ -9,10 +9,9 @@ describe('ComprehensiveComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ComprehensiveComponent ],
+      declarations: [ComprehensiveComponent],
       imports: [NgWhiteboardModule],
-    })
-    .compileComponents();
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ComprehensiveComponent);
     component = fixture.componentInstance;

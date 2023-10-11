@@ -50,7 +50,7 @@ export class LiveAppComponent implements OnInit, AfterViewInit {
       messagingSenderId: environment.messagingSenderId,
       appId: environment.appId,
       measurementId: environment.measurementId,
-      databaseURL: environment.databaseURL
+      databaseURL: environment.databaseURL,
     });
     getAnalytics(app);
     const db = getDatabase(app);

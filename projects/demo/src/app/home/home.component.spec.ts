@@ -11,14 +11,9 @@ describe('HomeComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ HomeComponent ],
-      imports: [
-        RouterTestingModule,
-        SharedModule,
-        NgWhiteboardModule
-      ]
-    })
-    .compileComponents();
+      declarations: [HomeComponent],
+      imports: [RouterTestingModule, SharedModule, NgWhiteboardModule],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(HomeComponent);
     component = fixture.componentInstance;

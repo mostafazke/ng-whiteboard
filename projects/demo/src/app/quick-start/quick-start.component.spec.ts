@@ -11,14 +11,9 @@ describe('QuickStartComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ QuickStartComponent ],
-      imports: [
-        RouterTestingModule,
-        SharedModule,
-        NgWhiteboardModule
-      ]
-    })
-    .compileComponents();
+      declarations: [QuickStartComponent],
+      imports: [RouterTestingModule, SharedModule, NgWhiteboardModule],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(QuickStartComponent);
     component = fixture.componentInstance;

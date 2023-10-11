@@ -123,6 +123,7 @@
   },
   "lint-staged": {
     "projects/**/*.ts": [
+      "yarn format:check",
       "yarn format:write",
       "yarn copy:readme"
     ]
