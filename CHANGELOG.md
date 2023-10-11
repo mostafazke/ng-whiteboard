@@ -1,3 +1,20 @@
+# [3.0.0](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.22...v3.0.0) (2023-10-11)
+
+
+### Bug Fixes
+
+* upgrade @nx/angular from 16.7.4 to 16.8.1 ([b73f175](https://github.com/mostafazke/ng-whiteboard/commit/b73f175813ddc82a41f152f21092f1ca9a1580ec))
+
+
+### Features
+
+* **whiteboard:** 🎸 Update dependencies and enhance SVG handling ([ba25405](https://github.com/mostafazke/ng-whiteboard/commit/ba254053320a9e869e1b2803260b4c208437b757))
+
+
+### BREAKING CHANGES
+
+* **whiteboard:** 🧨Adjustments made to dependencies and SVG handling
+
 ## [2.0.22](https://github.com/mostafazke/ng-whiteboard/compare/v2.0.21...v2.0.22) (2023-09-28)
 
 
