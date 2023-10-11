@@ -1,5 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
+import { RouterTestingModule } from '@angular/router/testing';
+import { NgWhiteboardModule } from 'ng-whiteboard';
+import { SharedModule } from '../shared/shared.module';
 import { QuickStartComponent } from './quick-start.component';
 
 describe('QuickStartComponent', () => {
@@ -8,9 +11,9 @@ describe('QuickStartComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ QuickStartComponent ]
-    })
-    .compileComponents();
+      declarations: [QuickStartComponent],
+      imports: [RouterTestingModule, SharedModule, NgWhiteboardModule],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(QuickStartComponent);
     component = fixture.componentInstance;

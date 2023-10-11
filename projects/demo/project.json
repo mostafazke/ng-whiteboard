@@ -1,8 +1,10 @@
 {
+  "name": "demo",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
   "sourceRoot": "projects/demo/src",
   "prefix": "ng-whiteboard",
+  "tags": [],
   "targets": {
     "build": {
       "executor": "@angular-devkit/build-angular:browser",
@@ -22,32 +24,13 @@
       },
       "configurations": {
         "production": {
-          "budgets": [
-            {
-              "type": "initial",
-              "maximumWarning": "500kb",
-              "maximumError": "1mb"
-            },
-            {
-              "type": "anyComponentStyle",
-              "maximumWarning": "2kb"
-            }
-          ],
-          "fileReplacements": [
-            {
-              "replace": "projects/demo/src/environments/environment.ts",
-              "with": "projects/demo/src/environments/environment.prod.ts"
-            }
-          ],
           "outputHashing": "all"
         },
         "development": {
           "buildOptimizer": false,
           "optimization": false,
-          "vendorChunk": true,
           "extractLicenses": false,
-          "sourceMap": true,
-          "namedChunks": true
+          "sourceMap": true
         }
       },
       "defaultConfiguration": "production"

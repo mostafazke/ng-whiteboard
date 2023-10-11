@@ -100,6 +100,48 @@ describe('ng-whiteboard utils class', () => {
         //assert
         expect(base64).toContain('data:image/png;base64');
       });
-    })
+    });
+  });
+
+  describe('getSvgPathFromStroke', () => {
+    it('should return an empty string if less than 4 points are provided', () => {
+      // Arrange
+      const points = [
+        [1, 2],
+        [3, 4],
+        [5, 6],
+      ];
+      // Act
+      const result = Utils.getSvgPathFromStroke(points);
+      // Assert
+      expect(result).toBe('');
+    });
+    it('should return the correct SVG path string for open stroke', () => {
+      // Arrange
+      const points = [
+        [0, 0],
+        [2, 2],
+        [4, 4],
+        [6, 6],
+      ];
+      // Act
+      const result = Utils.getSvgPathFromStroke(points, false);
+      // Assert
+      expect(result).toBe('M0.00,0.00 Q2.00,2.00 3.00,3.00 T5.00,5.00 ');
+    });
+
+    it('should return the correct SVG path string for closed stroke', () => {
+      // Arrange
+      const points = [
+        [0, 0],
+        [2, 2],
+        [4, 4],
+        [6, 6],
+      ];
+      // Act
+      const result = Utils.getSvgPathFromStroke(points, true);
+      // Assert
+      expect(result).toBe('M0.00,0.00 Q2.00,2.00 3.00,3.00 T5.00,5.00 Z');
+    });
   });
 });

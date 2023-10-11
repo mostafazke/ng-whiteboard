@@ -1,3 +1,3 @@
 export interface ToolHandlers {
-  [key: string]: () => void;
+  [key: string]: (info: PointerEvent) => void;
 }

@@ -26,20 +26,26 @@ import {
   WhiteboardElement,
   WhiteboardOptions,
 } from './models';
-import { ContainerElement, curveBasis, drag, line, mouse, select, Selection, event } from 'd3';
 import Utils from './ng-whiteboard.utils';
+import { SvgService } from './core/svg/svg.service';
+import { getStroke } from 'perfect-freehand';
 
 type BBox = { x: number; y: number; width: number; height: number };
-const d3Line = line().curve(curveBasis);
-
+const getStrokeOptions = {
+  size: 1,
+  smoothing: 1,
+  thinning: 0,
+  streamline: 0.9,
+};
 @Component({
   selector: 'ng-whiteboard',
   templateUrl: './ng-whiteboard.component.html',
   styleUrls: ['./ng-whiteboard.component.scss'],
+  providers: [SvgService],
 })
 export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
   @ViewChild('svgContainer', { static: false })
-  svgContainer!: ElementRef<ContainerElement>;
+  svgContainer!: ElementRef<SVGSVGElement>;
   @ViewChild('textInput', { static: false }) private textInput!: ElementRef<HTMLInputElement>;
 
   private _data: BehaviorSubject<WhiteboardElement[]> = new BehaviorSubject<WhiteboardElement[]>([]);
@@ -102,8 +108,6 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   @Output() deleteElement = new EventEmitter<WhiteboardElement>();
   @Output() toolChanged = new EventEmitter<ToolsEnum>();
 
-  private selection!: Selection<Element, unknown, null, undefined>;
-
   private _subscriptionList: Subscription[] = [];
 
   private _initialData: WhiteboardElement[] = [];
@@ -126,7 +130,11 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     display: 'none',
   };
 
-  constructor(private whiteboardService: NgWhiteboardService, private cd: ChangeDetectorRef) {}
+  constructor(
+    private whiteboardService: NgWhiteboardService,
+    private _cd: ChangeDetectorRef,
+    private _svgService: SvgService
+  ) {}
 
   ngOnInit(): void {
     this._initInputsFromOptions(this.options);
@@ -141,11 +149,8 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   }
 
   ngAfterViewInit() {
-    this.selection = select<Element, unknown>(this.svgContainer.nativeElement);
-    setTimeout(() => {
-      this._resizeScreen();
-    }, 0);
-    this.initializeEvents(this.selection);
+    this._resizeScreen();
+    this._cd.detectChanges();
     this.ready.emit();
   }
 
@@ -225,6 +230,9 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   }
 
   private _initObservables(): void {
+    this._subscriptionList.push(this._svgService.getPointerDown$().subscribe(this.handleStartEvent.bind(this)));
+    this._subscriptionList.push(this._svgService.getPointerMove$().subscribe(this.handleDragEvent.bind(this)));
+    this._subscriptionList.push(this._svgService.getPointerUp$().subscribe(this.handleEndEvent.bind(this)));
     this._subscriptionList.push(
       this.whiteboardService.saveMethodCalled$.subscribe(({ name, format }) => this.saveDraw(name, format))
     );
@@ -242,33 +250,8 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     );
   }
 
-  initializeEvents(selection: Selection<Element, unknown, null, undefined>): void {
-    if (!this.drawingEnabled) {
-      return;
-    }
-    let dragging = false;
-
-    selection.call(
-      drag()
-        .on('start', () => {
-          dragging = true;
-          this.redoStack = [];
-          this.handleStartEvent();
-        })
-        .on('drag', () => {
-          if (!dragging) {
-            return;
-          }
-          this.handleDragEvent();
-        })
-        .on('end', () => {
-          dragging = false;
-          this.handleEndEvent();
-        })
-    );
-  }
-
-  handleStartEvent() {
+  handleStartEvent(info: PointerEvent) {
+    this.redoStack = [];
     const toolHandlers: ToolHandlers = {
       [ToolsEnum.BRUSH]: this.handleStartBrush,
       [ToolsEnum.IMAGE]: this.handleImageTool,
@@ -281,10 +264,10 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     };
     const handler = toolHandlers[this.selectedTool];
     if (handler) {
-      handler.apply(this);
+      handler.apply(this, [info]);
     }
   }
-  handleDragEvent() {
+  handleDragEvent(info: PointerEvent) {
     const toolHandlers: ToolHandlers = {
       [ToolsEnum.BRUSH]: this.handleDragBrush,
       [ToolsEnum.LINE]: this.handleDragLine,
@@ -294,10 +277,10 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     };
     const handler = toolHandlers[this.selectedTool];
     if (handler) {
-      handler.apply(this);
+      handler.apply(this, [info]);
     }
   }
-  handleEndEvent() {
+  handleEndEvent(info: PointerEvent) {
     const toolHandlers: ToolHandlers = {
       [ToolsEnum.BRUSH]: this.handleEndBrush,
       [ToolsEnum.LINE]: this.handleEndLine,
@@ -307,32 +290,38 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     };
     const handler = toolHandlers[this.selectedTool];
     if (handler) {
-      handler.apply(this);
+      handler.apply(this, [info]);
     }
   }
   // Handle Brush tool
-  handleStartBrush() {
+  handleStartBrush(info: PointerEvent) {
     const element = this._generateNewElement(ElementTypeEnum.BRUSH);
-    this.tempDraw = [this._calculateXAndY(mouse(this.selection.node() as SVGSVGElement))];
-    element.value = d3Line(this.tempDraw) as string;
+    this.tempDraw = [this._calculateXAndY([info.offsetX, info.offsetY])];
+    const outlinePoints = getStroke(this.tempDraw, getStrokeOptions);
+    const pathData = Utils.getSvgPathFromStroke(outlinePoints);
+    element.value = pathData;
     element.options.strokeWidth = this.strokeWidth;
     this.tempElement = element;
   }
-  handleDragBrush() {
-    this.tempDraw.push(this._calculateXAndY(mouse(this.selection.node() as SVGSVGElement)));
-    this.tempElement.value = d3Line(this.tempDraw) as string;
+  handleDragBrush(info: PointerEvent) {
+    this.tempDraw.push(this._calculateXAndY([info.offsetX, info.offsetY]));
+    const outlinePoints = getStroke(this.tempDraw, getStrokeOptions);
+    const pathData = Utils.getSvgPathFromStroke(outlinePoints);
+    this.tempElement.value = pathData;
   }
-  handleEndBrush() {
-    this.tempDraw.push(this._calculateXAndY(mouse(this.selection.node() as SVGSVGElement)));
-    this.tempElement.value = d3Line(this.tempDraw) as string;
+  handleEndBrush(info: PointerEvent) {
+    this.tempDraw.push(this._calculateXAndY([info.offsetX, info.offsetY]));
+    const outlinePoints = getStroke(this.tempDraw, getStrokeOptions);
+    const pathData = Utils.getSvgPathFromStroke(outlinePoints);
+    this.tempElement.value = pathData;
     this._pushToData(this.tempElement);
     this._pushToUndo();
     this.tempDraw = null as never;
     this.tempElement = null as never;
   }
   // Handle Image tool
-  handleImageTool() {
-    const [x, y] = this._calculateXAndY(mouse(this.selection.node() as SVGSVGElement));
+  handleImageTool(info: PointerEvent) {
+    const [x, y] = this._calculateXAndY([info.offsetX, info.offsetY]);
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
@@ -350,9 +339,9 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     input.click();
   }
   // Handle Line tool
-  handleStartLine() {
+  handleStartLine(info: PointerEvent) {
     const element = this._generateNewElement(ElementTypeEnum.LINE);
-    let [x, y] = this._calculateXAndY(mouse(this.selection.node() as SVGSVGElement));
+    let [x, y] = this._calculateXAndY([info.offsetX, info.offsetY]);
 
     if (this.snapToGrid) {
       x = Utils.snapToGrid(x, this.gridSize);
@@ -365,15 +354,15 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     element.options.y2 = y;
     this.tempElement = element;
   }
-  handleDragLine() {
-    let [x2, y2] = this._calculateXAndY(mouse(this.selection.node() as SVGSVGElement));
+  handleDragLine(info: PointerEvent) {
+    let [x2, y2] = this._calculateXAndY([info.offsetX, info.offsetY]);
 
     if (this.snapToGrid) {
       x2 = Utils.snapToGrid(x2, this.gridSize);
       y2 = Utils.snapToGrid(y2, this.gridSize);
     }
 
-    if (event.sourceEvent.shiftKey) {
+    if (info.shiftKey) {
       const x1 = this.tempElement.options.x1 as number;
       const y1 = this.tempElement.options.y1 as number;
       const { x, y } = Utils.snapToAngle(x1, y1, x2, y2);
@@ -394,9 +383,9 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     }
   }
   // Handle Rect tool
-  handleStartRect() {
+  handleStartRect(info: PointerEvent) {
     const element = this._generateNewElement(ElementTypeEnum.RECT);
-    let [x, y] = this._calculateXAndY(mouse(this.selection.node() as SVGSVGElement));
+    let [x, y] = this._calculateXAndY([info.offsetX, info.offsetY]);
     if (this.snapToGrid) {
       x = Utils.snapToGrid(x, this.gridSize);
       y = Utils.snapToGrid(y, this.gridSize);
@@ -409,8 +398,8 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     element.options.height = 1;
     this.tempElement = element;
   }
-  handleDragRect() {
-    const [x, y] = this._calculateXAndY(mouse(this.selection.node() as SVGSVGElement));
+  handleDragRect(info: PointerEvent) {
+    const [x, y] = this._calculateXAndY([info.offsetX, info.offsetY]);
     const start_x = this.tempElement.options.x1 || 0;
     const start_y = this.tempElement.options.y1 || 0;
     let w = Math.abs(x - start_x);
@@ -418,7 +407,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     let new_x = null;
     let new_y = null;
 
-    if (event.sourceEvent.shiftKey) {
+    if (info.shiftKey) {
       w = h = Math.max(w, h);
       new_x = start_x < x ? start_x : start_x - w;
       new_y = start_y < y ? start_y : start_y - h;
@@ -426,7 +415,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
       new_x = Math.min(start_x, x);
       new_y = Math.min(start_y, y);
     }
-    if (event.sourceEvent.altKey) {
+    if (info.altKey) {
       w *= 2;
       h *= 2;
       new_x = start_x - w / 2;
@@ -452,9 +441,9 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     }
   }
   // Handle Ellipse tool
-  handleStartEllipse() {
+  handleStartEllipse(info: PointerEvent) {
     const element = this._generateNewElement(ElementTypeEnum.ELLIPSE);
-    const [x, y] = this._calculateXAndY(mouse(this.selection.node() as SVGSVGElement));
+    const [x, y] = this._calculateXAndY([info.offsetX, info.offsetY]);
 
     // workaround
     element.options.x1 = x;
@@ -464,8 +453,8 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     element.options.cy = y;
     this.tempElement = element;
   }
-  handleDragEllipse() {
-    const [x, y] = this._calculateXAndY(mouse(this.selection.node() as SVGSVGElement));
+  handleDragEllipse(info: PointerEvent) {
+    const [x, y] = this._calculateXAndY([info.offsetX, info.offsetY]);
     const start_x = this.tempElement.options.x1 || 0;
     const start_y = this.tempElement.options.y1 || 0;
     let cx = Math.abs(start_x + (x - start_x) / 2);
@@ -473,15 +462,15 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     let rx = Math.abs(start_x - cx);
     let ry = Math.abs(start_y - cy);
 
-    if (event.sourceEvent.shiftKey) {
+    if (info.shiftKey) {
       ry = rx;
       cy = y > start_y ? start_y + rx : start_y - rx;
     }
-    if (event.sourceEvent.altKey) {
+    if (info.altKey) {
       cx = start_x;
       cy = start_y;
       rx = Math.abs(x - cx);
-      ry = event.sourceEvent.shiftKey ? rx : Math.abs(y - cy);
+      ry = info.shiftKey ? rx : Math.abs(y - cy);
     }
 
     this.tempElement.options.rx = rx;
@@ -497,33 +486,33 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     }
   }
   // Handle Text tool
-  handleTextTool() {
+  handleTextTool(info: PointerEvent) {
     if (this.tempElement) {
       // finish the current one if needed
       this.finishTextInput();
       return;
     }
-    let element = this._getTargetElement();
+    let element = this._getTargetElement(info);
     if (element && element.type === ElementTypeEnum.TEXT) {
       this._removeFromData(element);
     } else {
       element = this._generateNewElement(ElementTypeEnum.TEXT);
-      const [x, y] = this._calculateXAndY(mouse(this.selection.node() as SVGSVGElement));
+      const [x, y] = this._calculateXAndY([info.offsetX, info.offsetY]);
       element.options.top = y;
       element.options.left = x;
       element.options.strokeWidth = 0;
     }
     this.tempElement = element;
-    this.cd.detectChanges();
+    this._cd.detectChanges();
     setTimeout(() => {
       this.textInput.nativeElement.focus();
     }, 0);
   }
-  handleTextDrag() {
+  handleTextDrag(info: PointerEvent) {
     if (!this.tempElement) {
       return;
     }
-    const [x, y] = this._calculateXAndY(mouse(this.selection.node() as SVGSVGElement));
+    const [x, y] = this._calculateXAndY([info.offsetX, info.offsetY]);
     this.tempElement.options.top = y;
     this.tempElement.options.left = x;
   }
@@ -534,8 +523,8 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     this._pushToUndo();
   }
   // Handle Select tool
-  handleSelectTool() {
-    const mouse_target = this._getMouseTarget();
+  handleSelectTool(info: PointerEvent) {
+    const mouse_target = this._getMouseTarget(info);
     if (mouse_target) {
       if (mouse_target.id === 'selectorGroup') {
         return;
@@ -548,8 +537,8 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     }
   }
   // Handle Eraser tool
-  handleEraserTool() {
-    const element = this._getTargetElement();
+  handleEraserTool(info: PointerEvent) {
+    const element = this._getTargetElement(info);
 
     if (element) {
       this.data = this.data.filter((el) => el.id !== element.id);
@@ -619,14 +608,22 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     tempImg.src = imageSrc.image as string;
   }
   async saveDraw(name: string, format: formatTypes) {
-    const svgCanvas = this.selection.select('#svgcontent').clone(true);
-    svgCanvas.select('#selectorParentGroup').remove();
-    (svgCanvas.select('#contentBackground').node() as SVGSVGElement).removeAttribute('opacity');
-    const svg = svgCanvas.node() as SVGSVGElement;
-    svg.setAttribute('x', '0');
-    svg.setAttribute('y', '0');
+    const svgElement = this.svgContainer.nativeElement.getElementById('svgcontent') as SVGSVGElement;
+    const svgClone = svgElement.cloneNode(true) as SVGSVGElement;
 
-    const svgString = Utils.toSvgString(svg);
+    const selectorParentGroup = svgClone.getElementById('selectorParentGroup');
+    if (selectorParentGroup) {
+      selectorParentGroup.remove();
+    }
+    const contentBackground = svgClone.getElementById('contentBackground');
+    if (contentBackground) {
+      contentBackground.removeAttribute('opacity');
+    }
+
+    svgClone.setAttribute('x', '0');
+    svgClone.setAttribute('y', '0');
+
+    const svgString = new XMLSerializer().serializeToString(svgClone);
     const imageString = await Utils.svgToBase64(svgString, this.canvasWidth, this.canvasHeight, format);
     switch (format) {
       case FormatType.Base64:
@@ -643,7 +640,6 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
         this.save.emit(imageString);
         break;
     }
-    svgCanvas.remove();
   }
   clearDraw() {
     this.data = [];
@@ -668,9 +664,9 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     if (!this.redoStack.length) {
       return;
     }
-    const currentState = this.redoStack.pop();
-    this.undoStack.push(JSON.parse(JSON.stringify(currentState)) as WhiteboardElement[]);
-    this.data = currentState || [];
+    const currentState = this.redoStack.pop() as WhiteboardElement[];
+    this.undoStack.push(JSON.parse(JSON.stringify(currentState)));
+    this.data = currentState;
     this.redo.emit();
   }
   private _pushToUndo() {
@@ -716,16 +712,16 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     }
   }
   private _getElementBbox(element: WhiteboardElement): DOMRect {
-    const el = this.selection.select(`#item_${element.id}`).node() as SVGGraphicsElement;
+    const elementId = `item_${element.id}`;
+    const el = this.svgContainer.nativeElement.getElementById(elementId) as SVGGraphicsElement;
     const bbox = el.getBBox();
     return bbox;
   }
-  private _getMouseTarget(): SVGGraphicsElement | null {
-    const evt: Event = event.sourceEvent;
-    if (evt == null || evt.target == null) {
+  private _getMouseTarget(info: PointerEvent): SVGGraphicsElement | null {
+    if (info == null || info.target == null) {
       return null;
     }
-    let mouse_target = evt.target as SVGGraphicsElement;
+    let mouse_target = info.target as SVGGraphicsElement;
     if (mouse_target.id === 'svgroot') {
       return null;
     }
@@ -743,8 +739,8 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     }
     return mouse_target;
   }
-  private _getTargetElement(): WhiteboardElement | null {
-    const mouse_target = this._getMouseTarget();
+  private _getTargetElement(info: PointerEvent): WhiteboardElement | null {
+    const mouse_target = this._getMouseTarget(info);
     if (mouse_target) {
       if (mouse_target.id === 'selectorGroup') {
         return null;
@@ -765,6 +761,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   }
   moveSelect(downEvent: PointerEvent) {
     let isPointerDown = true;
+    downEvent.stopPropagation();
     const element = downEvent.target as SVGGraphicsElement;
     element.addEventListener('pointermove', (moveEvent) => {
       if (!isPointerDown) return;

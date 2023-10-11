@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { DocumentationComponent } from './documentation.component';
+import { SharedModule } from '../shared/shared.module';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('DocumentationComponent', () => {
   let component: DocumentationComponent;
@@ -8,9 +10,9 @@ describe('DocumentationComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ DocumentationComponent ]
-    })
-    .compileComponents();
+      declarations: [DocumentationComponent],
+      imports: [RouterTestingModule, SharedModule],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(DocumentationComponent);
     component = fixture.componentInstance;
