@@ -33,7 +33,7 @@ jobs:
           command: npx nx-cloud start-ci-run --stop-agents-after="test" --agent-count=3
       - run:
           name: Check format
-          command: npx nx-cloud record -- npx nx format:check --base=$NX_BASE --head=$NX_HEAD
+          command: npx nx-cloud record -- npx nx format:check
       - run:
           name: Run lint
           command: npx nx affected --base=$NX_BASE --head=$NX_HEAD --target=lint --parallel=3
