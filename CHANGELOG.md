@@ -1,3 +1,10 @@
+## [3.0.2](https://github.com/mostafazke/ng-whiteboard/compare/v3.0.1...v3.0.2) (2023-10-16)
+
+
+### Bug Fixes
+
+* upgrade @nx/angular from 16.8.1 to 16.9.0 ([6fb9728](https://github.com/mostafazke/ng-whiteboard/commit/6fb9728289c2d11fcad362c07e94625d1675c043))
+
 ## [3.0.1](https://github.com/mostafazke/ng-whiteboard/compare/v3.0.0...v3.0.1) (2023-10-12)
 
 
