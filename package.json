@@ -38,7 +38,7 @@
     "@angular/service-worker": "^16.2.4",
     "@nx/angular": "16.9.0",
     "firebase": "^9.23.0",
-    "highlight.js": "^11.8.0",
+    "highlight.js": "^11.9.0",
     "ngx-colors": "^3.5.2",
     "perfect-freehand": "^1.2.0",
     "rxjs": "~7.8.0",
