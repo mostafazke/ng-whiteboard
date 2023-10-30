@@ -523,12 +523,7 @@ ${error.stack}`;
       await this.urls.reduce(async (previous, url) => {
         await previous;
         const req = this.adapter.newRequest(url);
-        let alreadyCached = false;
-        try {
-          alreadyCached = await cache.match(req, this.config.cacheQueryOptions) !== void 0;
-        } catch (error) {
-          throw new SwCriticalError(`Cache is throwing while looking for a match in a PrefetchAssetGroup: ${error}`);
-        }
+        const alreadyCached = await cache.match(req, this.config.cacheQueryOptions) !== void 0;
         if (alreadyCached) {
           return;
         }
@@ -565,12 +560,7 @@ ${error.stack}`;
       await this.urls.reduce(async (previous, url) => {
         await previous;
         const req = this.adapter.newRequest(url);
-        let alreadyCached = false;
-        try {
-          alreadyCached = await cache.match(req, this.config.cacheQueryOptions) !== void 0;
-        } catch (error) {
-          throw new SwCriticalError(`Cache is throwing while looking for a match in a LazyAssetGroup: ${error}`);
-        }
+        const alreadyCached = await cache.match(req, this.config.cacheQueryOptions) !== void 0;
         if (alreadyCached) {
           return;
         }
@@ -1032,7 +1022,7 @@ ${error.stack}`;
   };
 
   // bazel-out/darwin-fastbuild-ST-2e5f3376adb5/bin/packages/service-worker/worker/src/debug.mjs
-  var SW_VERSION = "16.2.11";
+  var SW_VERSION = "16.2.7";
   var DEBUG_LOG_BUFFER_SIZE = 100;
   var DebugHandler = class {
     constructor(driver, adapter2) {
