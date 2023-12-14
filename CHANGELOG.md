@@ -1,3 +1,10 @@
+## [3.0.3](https://github.com/mostafazke/ng-whiteboard/compare/v3.0.2...v3.0.3) (2023-12-14)
+
+
+### Bug Fixes
+
+* **whiteboard:** prevent touch from scrolling ([d0d1ce5](https://github.com/mostafazke/ng-whiteboard/commit/d0d1ce516c69e9bc3fdd5463b9f4508766020455))
+
 ## [3.0.2](https://github.com/mostafazke/ng-whiteboard/compare/v3.0.1...v3.0.2) (2023-10-16)
 
 
