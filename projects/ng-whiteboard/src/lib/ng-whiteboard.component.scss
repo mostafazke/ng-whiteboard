@@ -6,9 +6,6 @@
   max-width: inherit;
   max-height: inherit;
   .svgroot {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
     user-select: none;
     width: inherit;
     height: inherit;
@@ -19,7 +16,8 @@
     background-size: cover;
     background-position: 50%;
     background-repeat: no-repeat;
-
+    touch-action: none;
+    
     .wb_element,
     .selectorGroup {
       transform-box: fill-box;
