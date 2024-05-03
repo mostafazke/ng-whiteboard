@@ -1,3 +1,10 @@
+## [3.0.4](https://github.com/mostafazke/ng-whiteboard/compare/v3.0.3...v3.0.4) (2024-05-03)
+
+
+### Bug Fixes
+
+* upgrade perfect-freehand from 1.2.0 to 1.2.2 ([7f63166](https://github.com/mostafazke/ng-whiteboard/commit/7f63166e87c2e89c23e4c372b6683b5ed9fce104))
+
 ## [3.0.3](https://github.com/mostafazke/ng-whiteboard/compare/v3.0.2...v3.0.3) (2023-12-14)
 
 
