@@ -1,3 +1,10 @@
+## [3.0.5](https://github.com/mostafazke/ng-whiteboard/compare/v3.0.4...v3.0.5) (2024-05-18)
+
+
+### Bug Fixes
+
+* upgrade zone.js from 0.14.0 to 0.14.4 ([71a8cf9](https://github.com/mostafazke/ng-whiteboard/commit/71a8cf9687b7bd23226960fe10963075ca89d412))
+
 ## [3.0.4](https://github.com/mostafazke/ng-whiteboard/compare/v3.0.3...v3.0.4) (2024-05-03)
 
 
