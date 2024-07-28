@@ -1,6 +1,6 @@
 {
   "configVersion": 1,
-  "timestamp": 1719383295428,
+  "timestamp": 1722149983751,
   "index": "https://mostafazke.github.io/ng-whiteboard/index.html",
   "assetGroups": [
     {
@@ -16,15 +16,15 @@
         "https://mostafazke.github.io/ng-whiteboard/595.7ed0ebdc72286f6f.js",
         "https://mostafazke.github.io/ng-whiteboard/720.75fcdfaccc6824f1.js",
         "https://mostafazke.github.io/ng-whiteboard/749.1c8e7527cc59b9e1.js",
-        "https://mostafazke.github.io/ng-whiteboard/916.a30799c40bb9c1b2.js",
+        "https://mostafazke.github.io/ng-whiteboard/916.736251e2c2bd04e2.js",
         "https://mostafazke.github.io/ng-whiteboard/common.e2712921c2ef1e24.js",
         "https://mostafazke.github.io/ng-whiteboard/favicon.ico",
         "https://mostafazke.github.io/ng-whiteboard/index.html",
-        "https://mostafazke.github.io/ng-whiteboard/main.46fc773176df49ea.js",
+        "https://mostafazke.github.io/ng-whiteboard/main.b6973c871fc61e11.js",
         "https://mostafazke.github.io/ng-whiteboard/manifest.json",
         "https://mostafazke.github.io/ng-whiteboard/polyfills.89014c6684f33d91.js",
-        "https://mostafazke.github.io/ng-whiteboard/runtime.26899490056b1f2b.js",
-        "https://mostafazke.github.io/ng-whiteboard/styles.547f589dfc560145.css"
+        "https://mostafazke.github.io/ng-whiteboard/runtime.a7519c37e84e4ec8.js",
+        "https://mostafazke.github.io/ng-whiteboard/styles.1483f972de054c22.css"
       ],
       "patterns": []
     },
@@ -62,7 +62,7 @@
     "https://mostafazke.github.io/ng-whiteboard/595.7ed0ebdc72286f6f.js": "61b933344b15449c07ed056dddb490ea7a94ea6f",
     "https://mostafazke.github.io/ng-whiteboard/720.75fcdfaccc6824f1.js": "a20b36ab5c23cfcb7ee24ddafc88dc6c7706f542",
     "https://mostafazke.github.io/ng-whiteboard/749.1c8e7527cc59b9e1.js": "d774b7be3f0d4b50e3d1888322189fca41d1ecc4",
-    "https://mostafazke.github.io/ng-whiteboard/916.a30799c40bb9c1b2.js": "1f5a15830d9ac42a25ed268d84c41147fa841c93",
+    "https://mostafazke.github.io/ng-whiteboard/916.736251e2c2bd04e2.js": "7ba021b5c3d7b88c00f478ca49f5bbb2cdaf1010",
     "https://mostafazke.github.io/ng-whiteboard/assets/icons/icon-128x128.png": "6acc83b99a4fec9522a82c02aa4640f7908d71c3",
     "https://mostafazke.github.io/ng-whiteboard/assets/icons/icon-144x144.png": "dd8c2562d49579fc14284145a26b004ff4a1655c",
     "https://mostafazke.github.io/ng-whiteboard/assets/icons/icon-152x152.png": "32c40b4d168e5e71c11765ccdfa731f09a04c945",
@@ -79,13 +79,13 @@
     "https://mostafazke.github.io/ng-whiteboard/cursor.2cb01084080421f1.svg": "9670945e93fc66371d63e845e27d4cd8ef2b9368",
     "https://mostafazke.github.io/ng-whiteboard/eraser.33503ef8cdcbf5ad.svg": "1d546142c70928c6a555793a9124b7533ff7a406",
     "https://mostafazke.github.io/ng-whiteboard/favicon.ico": "9d35872b3a7d7f6db2f00438f76872ed484174b8",
-    "https://mostafazke.github.io/ng-whiteboard/index.html": "d46b2adf906c147922e67092c6c5422a197cc87d",
-    "https://mostafazke.github.io/ng-whiteboard/main.46fc773176df49ea.js": "2a20720340dacdfdd1d395036959c98d48be9bbf",
+    "https://mostafazke.github.io/ng-whiteboard/index.html": "64141d95df14d3091864c5b3beabb6168b19eb9d",
+    "https://mostafazke.github.io/ng-whiteboard/main.b6973c871fc61e11.js": "8a8fa73929e456265353bf6e5b973020f454fa29",
     "https://mostafazke.github.io/ng-whiteboard/manifest.json": "ba8de36a6eeebf925eec35a2d9e498f317963747",
     "https://mostafazke.github.io/ng-whiteboard/pencil.5473798714690ad6.svg": "ffb748cc8e2aec448a2a95b3c982f864d7734400",
     "https://mostafazke.github.io/ng-whiteboard/polyfills.89014c6684f33d91.js": "14ad92d73c4d1acdb42cd3891941f409f652ac81",
-    "https://mostafazke.github.io/ng-whiteboard/runtime.26899490056b1f2b.js": "12d30fc2816c49b57ade4e31ff9bdf0cd5f8b10e",
-    "https://mostafazke.github.io/ng-whiteboard/styles.547f589dfc560145.css": "690ecdf2a327b9aac9fa1abba34dd9bc83ca0e6c"
+    "https://mostafazke.github.io/ng-whiteboard/runtime.a7519c37e84e4ec8.js": "68ebf4c0e0240b2243246ad6102e8a5896669361",
+    "https://mostafazke.github.io/ng-whiteboard/styles.1483f972de054c22.css": "a4c0a4db56d27c6e588ac450e14f3cfa30068449"
   },
   "navigationUrls": [
     {
