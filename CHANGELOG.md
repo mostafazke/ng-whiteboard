@@ -1,3 +1,12 @@
+## [3.0.6](https://github.com/mostafazke/ng-whiteboard/compare/v3.0.5...v3.0.6) (2024-08-24)
+
+
+### Bug Fixes
+
+* package.json & yarn.lock to reduce vulnerabilities ([9b4a36a](https://github.com/mostafazke/ng-whiteboard/commit/9b4a36af840f4c3c3a0d4642341f60ba5b53cff4))
+* upgrade ngx-colors from 3.5.2 to 3.6.0 ([c6a6e4b](https://github.com/mostafazke/ng-whiteboard/commit/c6a6e4b98d8c58018f2346ddffe9a29027ffeb35))
+* upgrade zone.js from 0.14.5 to 0.14.6 ([c07dead](https://github.com/mostafazke/ng-whiteboard/commit/c07dead7f1b5f9759e56789ed7c33a87a3e61c04))
+
 ## [3.0.5](https://github.com/mostafazke/ng-whiteboard/compare/v3.0.4...v3.0.5) (2024-05-18)
 
 
