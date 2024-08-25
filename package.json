@@ -37,7 +37,7 @@
     "@angular/router": "~16.2.4",
     "@angular/service-worker": "^16.2.4",
     "@nx/angular": "16.9.0",
-    "firebase": "^10.1.0",
+    "firebase": "^10.12.5",
     "highlight.js": "^11.8.0",
     "ngx-colors": "^3.6.0",
     "perfect-freehand": "^1.2.2",
