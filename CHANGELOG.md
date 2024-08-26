@@ -1,3 +1,11 @@
+## [3.0.7](https://github.com/mostafazke/ng-whiteboard/compare/v3.0.6...v3.0.7) (2024-08-26)
+
+
+### Bug Fixes
+
+* upgrade firebase from 10.12.2 to 10.12.5 ([2d2a92e](https://github.com/mostafazke/ng-whiteboard/commit/2d2a92e3b49b386929fdfd3ada7318b9c156c0ca))
+* upgrade zone.js from 0.14.7 to 0.14.8 ([ec76f08](https://github.com/mostafazke/ng-whiteboard/commit/ec76f088caa86c8299fc9a56e252215aab141a4c))
+
 ## [3.0.6](https://github.com/mostafazke/ng-whiteboard/compare/v3.0.5...v3.0.6) (2024-08-24)
 
 
