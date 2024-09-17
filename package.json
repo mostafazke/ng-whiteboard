@@ -36,7 +36,7 @@
     "@angular/platform-browser-dynamic": "~16.2.4",
     "@angular/router": "~16.2.4",
     "@angular/service-worker": "^16.2.4",
-    "@nx/angular": "19.6.0",
+    "@nx/angular": "19.6.3",
     "firebase": "^10.12.5",
     "highlight.js": "^11.8.0",
     "ngx-colors": "^3.6.0",
