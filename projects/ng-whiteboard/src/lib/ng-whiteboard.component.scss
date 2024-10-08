@@ -17,7 +17,7 @@
     background-position: 50%;
     background-repeat: no-repeat;
     touch-action: none;
-    
+
     .wb_element,
     .selectorGroup {
       transform-box: fill-box;
@@ -55,6 +55,9 @@
     cursor: copy;
   }
   .LINE {
+    cursor: crosshair;
+  }
+  .ARROW {
     cursor: crosshair;
   }
   .RECT {

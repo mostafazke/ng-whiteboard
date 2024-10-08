@@ -3,6 +3,7 @@ export enum ToolsEnum {
   BRUSH = 'BRUSH',
   IMAGE = 'IMAGE',
   LINE = 'LINE',
+  ARROW = 'ARROW',
   RECT = 'RECT',
   ELLIPSE = 'ELLIPSE',
   TEXT = 'TEXT',

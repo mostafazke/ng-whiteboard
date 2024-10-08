@@ -256,6 +256,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
       [ToolsEnum.BRUSH]: this.handleStartBrush,
       [ToolsEnum.IMAGE]: this.handleImageTool,
       [ToolsEnum.LINE]: this.handleStartLine,
+      [ToolsEnum.ARROW]: this.handleStartArrow,
       [ToolsEnum.RECT]: this.handleStartRect,
       [ToolsEnum.ELLIPSE]: this.handleStartEllipse,
       [ToolsEnum.TEXT]: this.handleTextTool,
@@ -271,6 +272,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     const toolHandlers: ToolHandlers = {
       [ToolsEnum.BRUSH]: this.handleDragBrush,
       [ToolsEnum.LINE]: this.handleDragLine,
+      [ToolsEnum.ARROW]: this.handleDragArrow,
       [ToolsEnum.RECT]: this.handleDragRect,
       [ToolsEnum.ELLIPSE]: this.handleDragEllipse,
       [ToolsEnum.TEXT]: this.handleTextDrag,
@@ -284,6 +286,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     const toolHandlers: ToolHandlers = {
       [ToolsEnum.BRUSH]: this.handleEndBrush,
       [ToolsEnum.LINE]: this.handleEndLine,
+      [ToolsEnum.ARROW]: this.handleEndArrow,
       [ToolsEnum.RECT]: this.handleEndRect,
       [ToolsEnum.ELLIPSE]: this.handleEndEllipse,
       [ToolsEnum.TEXT]: this.handleTextEnd,
@@ -373,6 +376,50 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     this.tempElement.options.y2 = y2;
   }
   handleEndLine() {
+    if (
+      this.tempElement.options.x1 != this.tempElement.options.x2 ||
+      this.tempElement.options.y1 != this.tempElement.options.y2
+    ) {
+      this._pushToData(this.tempElement);
+      this._pushToUndo();
+      this.tempElement = null as never;
+    }
+  }
+  // Handle Arrow tool
+  handleStartArrow(info: PointerEvent) {
+    const element = this._generateNewElement(ElementTypeEnum.ARROW);
+    let [x, y] = this._calculateXAndY([info.offsetX, info.offsetY]);
+
+    if (this.snapToGrid) {
+      x = Utils.snapToGrid(x, this.gridSize);
+      y = Utils.snapToGrid(y, this.gridSize);
+    }
+
+    element.options.x1 = x;
+    element.options.y1 = y;
+    element.options.x2 = x;
+    element.options.y2 = y;
+    this.tempElement = element;
+  }
+  handleDragArrow(info: PointerEvent) {
+    let [x2, y2] = this._calculateXAndY([info.offsetX, info.offsetY]);
+
+    if (this.snapToGrid) {
+      x2 = Utils.snapToGrid(x2, this.gridSize);
+      y2 = Utils.snapToGrid(y2, this.gridSize);
+    }
+
+    if (info.shiftKey) {
+      const x1 = this.tempElement.options.x1 as number;
+      const y1 = this.tempElement.options.y1 as number;
+      const { x, y } = Utils.snapToAngle(x1, y1, x2, y2);
+      [x2, y2] = [x, y];
+    }
+
+    this.tempElement.options.x2 = x2;
+    this.tempElement.options.y2 = y2;
+  }
+  handleEndArrow() {
     if (
       this.tempElement.options.x1 != this.tempElement.options.x2 ||
       this.tempElement.options.y1 != this.tempElement.options.y2
@@ -790,6 +837,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
           this._resizeElipse(grip, { x, y, width, height });
           break;
         case ElementTypeEnum.LINE:
+        case ElementTypeEnum.ARROW:
           this._resizeLine(grip, { x, y, width, height });
           break;
         default:

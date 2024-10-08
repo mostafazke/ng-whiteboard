@@ -46,6 +46,20 @@
     [attr.x]="x"
     [attr.y]="y"
   >
+    <defs>
+      <!-- A marker to be used as an arrowhead -->
+      <marker
+        id="arrow"
+        viewBox="0 0 10 10"
+        refX="5"
+        refY="5"
+        markerWidth="6"
+        markerHeight="6"
+        fill="context-fill"
+        orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" />
+      </marker>
+    </defs>
     <rect
       id="contentBackground"
       opacity="0"
@@ -108,6 +122,24 @@
               [attr.stroke-linecap]="item.options.lineCap"
               [attr.stroke-linejoin]="item.options.lineJoin"
               [attr.stroke]="item.options.strokeColor"
+            ></line>
+          </g>
+          <g *ngSwitchCase="types.ARROW">
+            <line
+              class="line"
+              [attr.x1]="item.options.x1"
+              [attr.y1]="item.options.y1"
+              [attr.x2]="item.options.x2"
+              [attr.y2]="item.options.y2"
+              style="pointer-events: inherit"
+              [attr.stroke-dasharray]="item.options.dasharray"
+              [attr.stroke-dashoffset]="1"
+              [attr.stroke-width]="item.options.strokeWidth"
+              [attr.stroke-linecap]="item.options.lineCap"
+              [attr.stroke-linejoin]="item.options.lineJoin"
+              [attr.stroke]="item.options.strokeColor"
+              [attr.fill]="item.options.strokeColor"
+              marker-end="url(#arrow)"
             ></line>
           </g>
           <g *ngSwitchCase="types.RECT">
@@ -214,6 +246,24 @@
             [attr.stroke-linecap]="tempElement.options.lineCap"
             [attr.stroke-linejoin]="tempElement.options.lineJoin"
             [attr.stroke]="tempElement.options.strokeColor"
+          ></line>
+        </g>
+        <g *ngSwitchCase="types.ARROW">
+          <line
+            class="line"
+            [attr.x1]="tempElement.options.x1"
+            [attr.y1]="tempElement.options.y1"
+            [attr.x2]="tempElement.options.x2"
+            [attr.y2]="tempElement.options.y2"
+            style="pointer-events: inherit"
+            [attr.stroke-dasharray]="tempElement.options.dasharray"
+            [attr.stroke-dashoffset]="1"
+            [attr.stroke-width]="tempElement.options.strokeWidth"
+            [attr.stroke-linecap]="tempElement.options.lineCap"
+            [attr.stroke-linejoin]="tempElement.options.lineJoin"
+            [attr.stroke]="tempElement.options.strokeColor"
+            [attr.fill]="tempElement.options.strokeColor"
+            marker-end="url(#arrow)"
           ></line>
         </g>
         <g *ngSwitchCase="types.RECT">
