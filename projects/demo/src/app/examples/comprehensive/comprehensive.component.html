@@ -456,7 +456,7 @@
                   />
                   <span>Content</span>
                 </label>
-                <label class="draginput" (mousedown)="onDragDown(text_x, selectedElement!, 'x')">
+                <label class="draginput" (mousedown)="onDragDown(text_x, selectedElement, 'x')">
                   <input
                     #text_x
                     class="attr_changer"
@@ -466,11 +466,11 @@
                     step="1"
                     title="Change text x coordinate"
                     [value]="selectedElement.x"
-                    (input)="setNumberValue(selectedElement!, 'x', +text_x.value)"
+                    (input)="setNumberValue(selectedElement, 'x', +text_x.value)"
                   />
                   <span>X</span>
                 </label>
-                <label class="draginput" (mousedown)="onDragDown(text_y, selectedElement!, 'y')">
+                <label class="draginput" (mousedown)="onDragDown(text_y, selectedElement, 'y')">
                   <input
                     #text_y
                     class="attr_changer"
@@ -480,7 +480,7 @@
                     step="1"
                     title="Change text y coordinate"
                     [value]="selectedElement.y"
-                    (input)="setNumberValue(selectedElement!, 'y', +text_y.value)"
+                    (input)="setNumberValue(selectedElement, 'y', +text_y.value)"
                   />
                   <span>Y</span>
                 </label>
@@ -561,7 +561,7 @@
           <!-- Buttons when a single element is selected -->
           <div id="selected_panel" class="context_panel" style="display: block">
             <div class="draginputs">
-              <label class="draginput" (mousedown)="onDragDown(angle, selectedElement!, 'rotation')">
+              <label class="draginput" (mousedown)="onDragDown(angle, selectedElement, 'rotation')">
                 <input
                   #angle
                   class="attr_changer"
@@ -570,7 +570,7 @@
                   max="180"
                   type="text"
                   [value]="selectedElement.rotation"
-                  (input)="setNumberValue(selectedElement!, 'rotation', +angle.value)"
+                  (input)="setNumberValue(selectedElement, 'rotation', +angle.value)"
                 />
                 <span class="icon_label">Rotation</span>
                 <div
@@ -582,7 +582,7 @@
                 </div>
               </label>
 
-              <label class="draginput" (mousedown)="onDragDown(group_opacity, selectedElement!, 'opacity')">
+              <label class="draginput" (mousedown)="onDragDown(group_opacity, selectedElement, 'opacity')">
                 <input
                   #group_opacity
                   class="attr_changer"
@@ -591,7 +591,7 @@
                   max="100"
                   type="text"
                   [value]="selectedElement.opacity"
-                  (input)="setNumberValue(selectedElement!, 'opacity', +group_opacity.value)"
+                  (input)="setNumberValue(selectedElement, 'opacity', +group_opacity.value)"
                 />
                 <span id="group_opacityLabel" class="icon_label">Opacity</span>
               </label>
@@ -712,7 +712,7 @@
                   class="color_tool active"
                   id="tool_canvas"
                   ngx-colors-trigger
-                  (change)="options.backgroundColor = $event+''"
+                  (change)="options.backgroundColor = $event"
                 >
                   <div class="color_block">
                     <div id="canvas_bg"></div>
@@ -957,7 +957,7 @@
             <path d="M3.01 2A6 6 0 019 8h1.83l-2.91 2.91L5 8h2a4 4 0 00-3.99-4v1.93L.1 3.02 3.01.1V2z" />
           </svg>
         </div>
-        <div class="color_tool active" id="tool_fill" ngx-colors-trigger (change)="colorChange('fill', $event+'')">
+        <div class="color_tool active" id="tool_fill" ngx-colors-trigger (change)="colorChange('fill', $event)">
           <label class="icon_label" title="Change fill color"> </label>
           <div class="color_block">
             <div id="fill_bg"></div>
@@ -969,7 +969,7 @@
           </div>
         </div>
 
-        <div class="color_tool" id="tool_stroke" ngx-colors-trigger (change)="colorChange('strokeColor', $event+'')">
+        <div class="color_tool" id="tool_stroke" ngx-colors-trigger (change)="colorChange('strokeColor', $event)">
           <label class="icon_label" title="Change stroke color"> </label>
           <div class="color_block">
             <div id="stroke_bg"></div>
