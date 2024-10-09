@@ -379,6 +379,69 @@
             </div>
           </div>
         </ng-container>
+        <ng-container *ngSwitchCase="elementTypeEnum.ARROW">
+          <div id="Arrow_panel" class="context_panel clearfix" style="display: block">
+            <h4>Arrow</h4>
+            <div class="draginputs">
+              <label class="draginput" (mousedown)="onDragDown(line_x1, selectedElement.options, 'x1')">
+                <input
+                  #line_x1
+                  class="attr_changer"
+                  type="text"
+                  min=""
+                  max=""
+                  step="1"
+                  title="Change line's starting x coordinate"
+                  [value]="selectedElement.options.x1"
+                  (input)="setNumberValue(selectedElement.options, 'x1', +line_x1.value)"
+                />
+                <span>Start X</span>
+              </label>
+              <label class="draginput" (mousedown)="onDragDown(line_y1, selectedElement.options, 'y1')">
+                <input
+                  #line_y1
+                  class="attr_changer"
+                  type="text"
+                  min=""
+                  max=""
+                  step="1"
+                  title="Change line's starting y coordinate"
+                  [value]="selectedElement.options.y1"
+                  (input)="setNumberValue(selectedElement.options, 'y1', +line_y1.value)"
+                />
+                <span>Start Y</span>
+              </label>
+              <label class="draginput" (mousedown)="onDragDown(line_x2, selectedElement.options, 'x2')">
+                <input
+                  #line_x2
+                  class="attr_changer"
+                  type="text"
+                  min=""
+                  max=""
+                  step="1"
+                  title="Change line's ending x coordinate"
+                  [value]="selectedElement.options.x2"
+                  (input)="setNumberValue(selectedElement.options, 'x2', +line_x2.value)"
+                />
+                <span>End X</span>
+              </label>
+              <label class="draginput" (mousedown)="onDragDown(line_y2, selectedElement.options, 'y2')">
+                <input
+                  #line_y2
+                  class="attr_changer"
+                  type="text"
+                  min=""
+                  max=""
+                  step="1"
+                  title="Change line's ending y coordinate"
+                  [value]="selectedElement.options.y2"
+                  (input)="setNumberValue(selectedElement.options, 'y2', +line_y2.value)"
+                />
+                <span>End Y</span>
+              </label>
+            </div>
+          </div>
+        </ng-container>
         <ng-container *ngSwitchCase="elementTypeEnum.TEXT">
           <div id="text_panel" class="context_panel" style="display: block">
             <h4>Text</h4>

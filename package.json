@@ -25,7 +25,6 @@
     "cm": "npx git-cz",
     "prepare": "husky install"
   },
-  "private": "false",
   "dependencies": {
     "@angular/animations": "~16.2.4",
     "@angular/common": "~16.2.4",
