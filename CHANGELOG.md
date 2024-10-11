@@ -1,3 +1,11 @@
+# [3.1.0](https://github.com/mostafazke/ng-whiteboard/compare/v3.0.8...v3.1.0) (2024-10-11)
+
+
+### Features
+
+* **whiteboard:** 🎸 add arrow shape ([420e4f4](https://github.com/mostafazke/ng-whiteboard/commit/420e4f48693a99af390d7e0c5e4d9c074cbba97e))
+* **whiteboard:** 🎸 add arrow shape ([8247ed8](https://github.com/mostafazke/ng-whiteboard/commit/8247ed88b5228ae78893cd3a58e6bf781e15fd8d))
+
 ## [3.0.8](https://github.com/mostafazke/ng-whiteboard/compare/v3.0.7...v3.0.8) (2024-09-13)
 
 
