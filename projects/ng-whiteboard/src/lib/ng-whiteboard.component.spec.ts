@@ -512,6 +512,99 @@ describe('NgWhiteboardComponent', () => {
       });
     });
   });
+  describe('handleArrowShape', () => {
+    describe('StartArrow', () => {
+      it('should create Arrow element', () => {
+        // arrange
+        const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+        Object.defineProperty(mockDownEvent, 'offsetX', { value: 100 });
+        Object.defineProperty(mockDownEvent, 'offsetY', { value: 200 });
+
+        // act
+        component.handleStartArrow(mockDownEvent);
+        // assert
+        expect(component.tempElement.type).toBe(ElementTypeEnum.ARROW);
+        expect(component.tempElement.options.x1).toBe(100);
+        expect(component.tempElement.options.y1).toBe(200);
+      });
+      it('should start from grid snap if snapToGrid is true', () => {
+        // arrange
+        component.gridSize = 10;
+        component.snapToGrid = true;
+        const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+        Object.defineProperty(mockDownEvent, 'offsetX', { value: 100 });
+        Object.defineProperty(mockDownEvent, 'offsetY', { value: 200 });
+        // act
+        component.handleStartArrow(mockDownEvent);
+        // assert
+        expect(component.tempElement.type).toBe(ElementTypeEnum.ARROW);
+        expect(component.tempElement.options.x1).toBe(100);
+        expect(component.tempElement.options.y1).toBe(200);
+      });
+    });
+    describe('DragArrow', () => {
+      it('should update Arrow element x2 y2', () => {
+        // arrange
+        const element = new WhiteboardElement(ElementTypeEnum.ARROW, {});
+        component.tempElement = element;
+        const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+        Object.defineProperty(mockDownEvent, 'offsetX', { value: 100 });
+        Object.defineProperty(mockDownEvent, 'offsetY', { value: 200 });
+        // act
+        component.handleDragArrow(mockDownEvent);
+        // assert
+        expect(component.tempElement.options.x2).toBe(100);
+        expect(component.tempElement.options.y2).toBe(200);
+      });
+      it('should snap x2 and y2 to grid size if snapToGrid is true', () => {
+        // arrange
+        component.gridSize = 10;
+        component.snapToGrid = true;
+        const element = new WhiteboardElement(ElementTypeEnum.ARROW, {});
+        component.tempElement = element;
+        const mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+        Object.defineProperty(mockDownEvent, 'offsetX', { value: 100 });
+        Object.defineProperty(mockDownEvent, 'offsetY', { value: 200 });
+        // act
+        component.handleDragArrow(mockDownEvent);
+        // assert
+        expect(component.tempElement.options.x2).toBe(100);
+        expect(component.tempElement.options.y2).toBe(200);
+      });
+      it('should snap x2 and y2 to specified angle when shift key is pressed', () => {
+        // arrange
+        const element = new WhiteboardElement(ElementTypeEnum.ARROW, {});
+        element.options.x1 = 1;
+        element.options.y1 = 1;
+        component.tempElement = element;
+        const mockDownEvent = new MouseEvent('pointerdown', {
+          shiftKey: true,
+        }) as PointerEvent;
+        Object.defineProperty(mockDownEvent, 'offsetX', { value: 1 });
+        Object.defineProperty(mockDownEvent, 'offsetY', { value: 0 });
+        // act
+        component.handleDragArrow(mockDownEvent);
+        // assert
+        expect(component.tempElement.options.x2).toEqual(1);
+        expect(component.tempElement.options.y2).toEqual(0);
+      });
+    });
+    describe('EndArrow', () => {
+      it('should push ARROW to data if x1 is not equal to x2 or y1 is not equal to y2', () => {
+        // arrange
+        const element = new WhiteboardElement(ElementTypeEnum.ARROW, {});
+        element.options.x1 = 0;
+        element.options.y1 = 0;
+        element.options.x2 = 0;
+        element.options.y2 = 10;
+        component.tempElement = element;
+
+        component.handleEndArrow();
+        expect(component.data.length).toBe(1);
+        expect(component.tempElement).toBeNull();
+      });
+    });
+  });
   describe('handleRectShape', () => {
     describe('StartRect', () => {
       it('should create Rect element', () => {

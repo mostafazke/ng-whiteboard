@@ -1,5 +1,5 @@
 import { ElementTypeEnum } from './element-type.enum';
-import { BrushElement, EllipseElement, ImageElement, LineElement, RectElement, TextElement } from './elements';
+import { BrushElement, EllipseElement, ImageElement, LineElement, ArrowElement, RectElement, TextElement } from './elements';
 import { IWhiteboardElementOptions } from './whiteboard-element-options.model';
 
 export class WhiteboardElement {
@@ -31,6 +31,9 @@ export class WhiteboardElement {
       case ElementTypeEnum.LINE:
         this.options = new LineElement(options);
         break;
+      case ElementTypeEnum.ARROW:
+          this.options = new ArrowElement(options);
+          break;
       case ElementTypeEnum.ELLIPSE:
         this.options = new EllipseElement(options);
         break;
