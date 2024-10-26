@@ -1,3 +1,10 @@
+## [3.1.1](https://github.com/mostafazke/ng-whiteboard/compare/v3.1.0...v3.1.1) (2024-10-26)
+
+
+### Bug Fixes
+
+* upgrade @nx/angular from 19.6.0 to 19.8.2 ([3c0ef85](https://github.com/mostafazke/ng-whiteboard/commit/3c0ef859a5da941e7c9aab439ea89d0cd5615b4e))
+
 # [3.1.0](https://github.com/mostafazke/ng-whiteboard/compare/v3.0.8...v3.1.0) (2024-10-11)
 
 
