@@ -1,3 +1,11 @@
+## [3.1.3](https://github.com/mostafazke/ng-whiteboard/compare/v3.1.2...v3.1.3) (2024-11-13)
+
+
+### Bug Fixes
+
+* package.json & yarn.lock to reduce vulnerabilities ([651db31](https://github.com/mostafazke/ng-whiteboard/commit/651db3190b09039529b9eb1472258f800470fe24))
+* upgrade tslib from 2.7.0 to 2.8.0 ([a611a2f](https://github.com/mostafazke/ng-whiteboard/commit/a611a2f918d27e2bc93aad44c6c11c398d522ac3))
+
 ## [3.1.2](https://github.com/mostafazke/ng-whiteboard/compare/v3.1.1...v3.1.2) (2024-11-01)
 
 
