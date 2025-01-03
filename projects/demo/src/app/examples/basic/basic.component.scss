@@ -57,10 +57,10 @@ $timing: 0.3s;
   }
   .dropdown {
     position: absolute;
-    bottom: 50%;
-    left: 0px;
+    bottom: 70%;
+    right: 0;
     opacity: 0;
-    min-width: 12em;
+    min-width: 100px;
     overflow: hidden;
     display: none;
     cursor: pointer;
@@ -76,8 +76,8 @@ $timing: 0.3s;
       display: block;
       height: 2em;
       line-height: 2em;
-      padding-left: 1em;
-      padding-right: 3em;
+      padding-right: 10px;
+      padding-left: 10px;
       cursor: pointer;
       position: relative;
       transition: $timing color ease-in-out;
