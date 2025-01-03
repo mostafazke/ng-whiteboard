@@ -1,3 +1,10 @@
+## [3.1.6](https://github.com/mostafazke/ng-whiteboard/compare/v3.1.5...v3.1.6) (2025-01-03)
+
+
+### Bug Fixes
+
+* **demo:**  fix the style of dropdown in basic example ([045f086](https://github.com/mostafazke/ng-whiteboard/commit/045f086087fe6f61032cdbbe20dc06744c72c230))
+
 ## [3.1.5](https://github.com/mostafazke/ng-whiteboard/compare/v3.1.4...v3.1.5) (2025-01-02)
 
 
