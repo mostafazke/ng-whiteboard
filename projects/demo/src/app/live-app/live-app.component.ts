@@ -1,7 +1,6 @@
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { ElementTypeEnum, FormatType, NgWhiteboardService, ToolsEnum, WhiteboardElement } from 'ng-whiteboard';
 import { initializeApp } from 'firebase/app';
-import { getAnalytics } from 'firebase/analytics';
 import { getDatabase, ref, set, onValue } from 'firebase/database';
 import { environment } from '../../environments/environment';
 
@@ -52,7 +51,6 @@ export class LiveAppComponent implements OnInit, AfterViewInit {
       measurementId: environment.measurementId,
       databaseURL: environment.databaseURL,
     });
-    getAnalytics(app);
     const db = getDatabase(app);
     const starCountRef = ref(db, 'data/');
     this.loading = true;
