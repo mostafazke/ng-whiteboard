@@ -63,7 +63,7 @@
     ></rect>
 
     <g style="pointer-events: all">
-      @for (item of data; track item.id) {
+      @for (item of data$ | async; track item.id) {
       <g
         class="wb_element"
         [id]="'item_' + item.id"
@@ -197,108 +197,6 @@
           >
             {{ item.value }}
           </text>
-        </g>
-        } }
-      </g>
-      } @if(tempElement) {
-      <g class="temp-element">
-        @switch (selectedTool) { @case (tools.BRUSH) {
-        <g>
-          <path
-            class="brush"
-            fill="none"
-            [attr.d]="tempElement.value"
-            [attr.stroke-dasharray]="tempElement.options.dasharray"
-            [attr.stroke-dashoffset]="1"
-            [attr.stroke-width]="tempElement.options.strokeWidth"
-            [attr.stroke-linecap]="tempElement.options.lineCap"
-            [attr.stroke-linejoin]="tempElement.options.lineJoin"
-            [attr.stroke]="tempElement.options.strokeColor"
-          ></path>
-        </g>
-        } @case (tools.IMAGE) {
-        <g>
-          <image
-            [attr.height]="tempElement.options.height"
-            [attr.width]="tempElement.options.width"
-            preserveAspectRatio="none"
-            [attr.xlink:href]="tempElement.value"
-            [attr.href]="tempElement.value"
-            [attr.stroke-width]="tempElement.options.strokeWidth"
-            [attr.stroke-dasharray]="tempElement.options.dasharray"
-            [attr.fill]="tempElement.options.fill"
-            [attr.stroke]="tempElement.options.strokeColor"
-            style="pointer-events: inherit"
-          ></image>
-        </g>
-        } @case (tools.LINE) {
-        <g>
-          <line
-            class="line"
-            [attr.x1]="tempElement.options.x1"
-            [attr.y1]="tempElement.options.y1"
-            [attr.x2]="tempElement.options.x2"
-            [attr.y2]="tempElement.options.y2"
-            style="pointer-events: inherit"
-            [attr.stroke-dasharray]="tempElement.options.dasharray"
-            [attr.stroke-dashoffset]="1"
-            [attr.stroke-width]="tempElement.options.strokeWidth"
-            [attr.stroke-linecap]="tempElement.options.lineCap"
-            [attr.stroke-linejoin]="tempElement.options.lineJoin"
-            [attr.stroke]="tempElement.options.strokeColor"
-          ></line>
-        </g>
-        } @case (tools.ARROW) {
-        <g>
-          <line
-            class="line"
-            [attr.x1]="tempElement.options.x1"
-            [attr.y1]="tempElement.options.y1"
-            [attr.x2]="tempElement.options.x2"
-            [attr.y2]="tempElement.options.y2"
-            style="pointer-events: inherit"
-            [attr.stroke-dasharray]="tempElement.options.dasharray"
-            [attr.stroke-dashoffset]="1"
-            [attr.stroke-width]="tempElement.options.strokeWidth"
-            [attr.stroke-linecap]="tempElement.options.lineCap"
-            [attr.stroke-linejoin]="tempElement.options.lineJoin"
-            [attr.stroke]="tempElement.options.strokeColor"
-            [attr.fill]="tempElement.options.strokeColor"
-            marker-end="url(#arrow)"
-          ></line>
-        </g>
-        } @case (tools.RECT) {
-        <g>
-          <rect
-            class="rect"
-            [attr.x]="tempElement.options.x2"
-            [attr.y]="tempElement.options.y2"
-            [attr.rx]="tempElement.options.rx"
-            [attr.width]="tempElement.options.width"
-            [attr.height]="tempElement.options.height"
-            [attr.stroke-dasharray]="tempElement.options.dasharray"
-            [attr.stroke-dashoffset]="tempElement.options.dashoffset"
-            [attr.stroke-width]="tempElement.options.strokeWidth"
-            [attr.fill]="tempElement.options.fill"
-            [attr.stroke]="tempElement.options.strokeColor"
-          ></rect>
-        </g>
-        } @case (tools.ELLIPSE) {
-        <g>
-          <ellipse
-            [attr.cx]="tempElement.options.cx"
-            [attr.cy]="tempElement.options.cy"
-            [attr.rx]="tempElement.options.rx"
-            [attr.ry]="tempElement.options.ry"
-            style="pointer-events: inherit"
-            [attr.stroke-dasharray]="tempElement.options.dasharray"
-            [attr.stroke-dashoffset]="1"
-            [attr.stroke-width]="tempElement.options.strokeWidth"
-            [attr.stroke-linecap]="tempElement.options.lineCap"
-            [attr.stroke-linejoin]="tempElement.options.lineJoin"
-            [attr.stroke]="tempElement.options.strokeColor"
-            [attr.fill]="tempElement.options.fill"
-          ></ellipse>
         </g>
         } }
       </g>

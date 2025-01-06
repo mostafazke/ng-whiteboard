@@ -12,15 +12,30 @@ import {
 } from '../';
 import { ToolsEnum } from './models/tools.enum';
 import Utils from './ng-whiteboard.utils';
+import { DataService } from './core/data/data.service';
+import { BehaviorSubject } from 'rxjs';
 
 describe('NgWhiteboardComponent', () => {
   let component: NgWhiteboardComponent;
   let fixture: ComponentFixture<NgWhiteboardComponent>;
+  let mockDataService: jest.Mocked<DataService>;
 
+  beforeEach(() => {
+    mockDataService = {
+      undoDraw: jest.fn(),
+      redoDraw: jest.fn(),
+      clearDraw: jest.fn(),
+      addElement: jest.fn(),
+      removeElement: jest.fn(),
+      getData: jest.fn(),
+      setData: jest.fn(),
+      data$: new BehaviorSubject<WhiteboardElement[]>([]).asObservable(),
+    } as unknown as jest.Mocked<DataService>;
+  });
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       declarations: [NgWhiteboardComponent],
-      providers: [NgWhiteboardService],
+      providers: [NgWhiteboardService, { provide: DataService, useValue: mockDataService }],
     });
   }));
 
@@ -259,6 +274,7 @@ describe('NgWhiteboardComponent', () => {
         // assert
         expect(component.tempElement.type).toBe(ElementTypeEnum.BRUSH);
         expect(component.tempElement.value).toBe(data);
+        expect(component.data.length).toBe(1);
       });
     });
     describe('DragBrush', () => {
@@ -292,7 +308,6 @@ describe('NgWhiteboardComponent', () => {
         component.handleEndBrush(mockDownEvent);
 
         // assert
-        expect(component.data.length).toBe(1);
         expect(component.tempElement).toBeNull();
         expect(component.tempDraw).toBeNull();
       });
@@ -433,6 +448,7 @@ describe('NgWhiteboardComponent', () => {
         expect(component.tempElement.type).toBe(ElementTypeEnum.LINE);
         expect(component.tempElement.options.x1).toBe(100);
         expect(component.tempElement.options.y1).toBe(200);
+        expect(component.data.length).toBe(1);
       });
       it('should start from grid snap if snapToGrid is true', () => {
         // arrange
@@ -507,7 +523,6 @@ describe('NgWhiteboardComponent', () => {
         component.tempElement = element;
 
         component.handleEndLine();
-        expect(component.data.length).toBe(1);
         expect(component.tempElement).toBeNull();
       });
     });
@@ -526,6 +541,7 @@ describe('NgWhiteboardComponent', () => {
         expect(component.tempElement.type).toBe(ElementTypeEnum.ARROW);
         expect(component.tempElement.options.x1).toBe(100);
         expect(component.tempElement.options.y1).toBe(200);
+        expect(component.data.length).toBe(1);
       });
       it('should start from grid snap if snapToGrid is true', () => {
         // arrange
@@ -600,7 +616,6 @@ describe('NgWhiteboardComponent', () => {
         component.tempElement = element;
 
         component.handleEndArrow();
-        expect(component.data.length).toBe(1);
         expect(component.tempElement).toBeNull();
       });
     });
@@ -622,6 +637,7 @@ describe('NgWhiteboardComponent', () => {
         expect(component.tempElement.options.y2).toBe(200);
         expect(component.tempElement.options.width).toBe(1);
         expect(component.tempElement.options.height).toBe(1);
+        expect(component.data.length).toBe(1);
       });
       it('should start from grid snap if snapToGrid is true', () => {
         // arrange
@@ -724,7 +740,6 @@ describe('NgWhiteboardComponent', () => {
         component.tempElement = element;
 
         component.handleEndRect();
-        expect(component.data.length).toBe(1);
         expect(component.tempElement).toBeNull();
       });
     });
@@ -744,6 +759,7 @@ describe('NgWhiteboardComponent', () => {
         expect(component.tempElement.options.y1).toBe(200);
         expect(component.tempElement.options.cx).toBe(100);
         expect(component.tempElement.options.cy).toBe(200);
+        expect(component.data.length).toBe(1);
       });
     });
     describe('DragEllipse', () => {
@@ -804,7 +820,6 @@ describe('NgWhiteboardComponent', () => {
         component.tempElement = element;
 
         component.handleEndEllipse();
-        expect(component.data.length).toBe(1);
         expect(component.tempElement).toBeNull();
       });
     });
@@ -897,27 +912,15 @@ describe('NgWhiteboardComponent', () => {
       expect(component.handleTextDrag).toHaveReturned();
     });
 
-    it('should push the current element to undo', () => {
-      // arrange
-      component['_pushToUndo'] = jest.fn();
-      component.tempElement = new WhiteboardElement(ElementTypeEnum.TEXT, {});
-
-      // act
-      component.handleTextEnd();
-
-      // assert
-      expect(component['_pushToUndo']).toHaveBeenCalled();
-    });
-
     it('should skip push the current element to undo if tempElement id not defined', () => {
       // arrange
-      component['_pushToUndo'] = jest.fn();
+      component['_pushToData'] = jest.fn();
 
       // act
       component.handleTextEnd();
 
       // assert
-      expect(component['_pushToUndo']).not.toHaveBeenCalled();
+      expect(component['_pushToData']).not.toHaveBeenCalled();
     });
     it('should update text element value if tempElement exist', () => {
       // Arrange
@@ -1044,40 +1047,21 @@ describe('NgWhiteboardComponent', () => {
 
       // act
       component.undoDraw();
+
       // assert
-      expect(component['undoStack'].length).toBe(0);
-      expect(component['redoStack'].length).toBe(0);
       expect(spyUndoEmit).not.toHaveBeenCalled();
     });
 
     it('should undo the last draw action and emit the "undo" event', () => {
       // arrange
       const spyUndoEmit = jest.spyOn(component.undo, 'emit');
-      const initialData: WhiteboardElement[] = [new WhiteboardElement(ElementTypeEnum.BRUSH, {})];
-      component['undoStack'] = [initialData, initialData];
+      const element = new WhiteboardElement(ElementTypeEnum.RECT, {});
+      component['_pushToData'](element);
 
       // act
       component.undoDraw();
 
       // assert
-      expect(component['undoStack'].length).toBe(1);
-      expect(component['redoStack'].length).toBe(1);
-      expect(component['redoStack'][0]).toBe(initialData);
-      expect(spyUndoEmit).toHaveBeenCalled();
-    });
-    it('should undo to initial data if undoStack is empty', () => {
-      // arrange
-      const spyUndoEmit = jest.spyOn(component.undo, 'emit');
-      const initialData: WhiteboardElement[] = [new WhiteboardElement(ElementTypeEnum.BRUSH, {})];
-      component['undoStack'] = [initialData];
-
-      // act
-      component.undoDraw();
-
-      // assert
-      expect(component['undoStack'].length).toBe(0);
-      expect(component['redoStack'].length).toBe(1);
-      expect(component['redoStack'][0]).toBe(initialData);
       expect(spyUndoEmit).toHaveBeenCalled();
     });
   });
@@ -1085,32 +1069,26 @@ describe('NgWhiteboardComponent', () => {
     it('should not redo anything when redoStack is empty', () => {
       // arrange
       const spyRedoEmit = jest.spyOn(component.redo, 'emit');
-      const initialData: WhiteboardElement[] = [new WhiteboardElement(ElementTypeEnum.BRUSH, {})];
-      component['undoStack'] = [initialData];
-      component['redoStack'] = [];
 
       // act
       component.redoDraw();
 
       // assert
-      expect(component['undoStack'].length).toBe(1);
-      expect(component['redoStack'].length).toBe(0);
       expect(spyRedoEmit).not.toHaveBeenCalled();
     });
     it('should redo the last undone action when redoStack is not empty', () => {
       // arrange
       const spyRedoEmit = jest.spyOn(component.redo, 'emit');
-      const redoState: WhiteboardElement[] = [new WhiteboardElement(ElementTypeEnum.BRUSH, {})];
-      component['redoStack'] = [redoState];
-      component['undoStack'] = [];
+      const element = new WhiteboardElement(ElementTypeEnum.RECT, {});
+      component['_pushToData'](element);
+      component.undoDraw();
 
       // act
       component.redoDraw();
 
       // assert
-      expect(component['undoStack'].length).toBe(1);
-      expect(component['redoStack'].length).toBe(0);
       expect(spyRedoEmit).toHaveBeenCalled();
+      expect(component.data).toContainEqual(element);
     });
   });
   describe('getMouseTarget', () => {

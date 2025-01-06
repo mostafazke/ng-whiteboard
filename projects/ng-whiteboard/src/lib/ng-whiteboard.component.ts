@@ -1,19 +1,21 @@
 import {
-  Component,
   AfterViewInit,
-  ViewChild,
-  Input,
-  ElementRef,
-  OnDestroy,
-  Output,
-  EventEmitter,
-  OnChanges,
-  OnInit,
-  SimpleChanges,
   ChangeDetectorRef,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  Output,
+  SimpleChanges,
+  ViewChild,
 } from '@angular/core';
-import { NgWhiteboardService } from './ng-whiteboard.service';
-import { Subscription, fromEvent, skip, BehaviorSubject } from 'rxjs';
+import { getStroke } from 'perfect-freehand';
+import { fromEvent, Observable, Subscription } from 'rxjs';
+import { DataService } from './core/data/data.service';
+import { SvgService } from './core/svg/svg.service';
 import {
   ElementTypeEnum,
   FormatType,
@@ -26,9 +28,8 @@ import {
   WhiteboardElement,
   WhiteboardOptions,
 } from './models';
+import { NgWhiteboardService } from './ng-whiteboard.service';
 import Utils from './ng-whiteboard.utils';
-import { SvgService } from './core/svg/svg.service';
-import { getStroke } from 'perfect-freehand';
 
 type BBox = { x: number; y: number; width: number; height: number };
 const getStrokeOptions = {
@@ -41,23 +42,23 @@ const getStrokeOptions = {
   selector: 'ng-whiteboard',
   templateUrl: './ng-whiteboard.component.html',
   styleUrls: ['./ng-whiteboard.component.scss'],
-  providers: [SvgService],
+  providers: [SvgService, DataService],
 })
 export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, OnDestroy {
   @ViewChild('svgContainer', { static: false })
   svgContainer!: ElementRef<SVGSVGElement>;
   @ViewChild('textInput', { static: false }) private textInput!: ElementRef<HTMLInputElement>;
 
-  private _data: BehaviorSubject<WhiteboardElement[]> = new BehaviorSubject<WhiteboardElement[]>([]);
-
   @Input() set data(data: WhiteboardElement[]) {
     if (data) {
-      this._data.next(data);
+      this._dataService.setData(data);
     }
   }
   get data(): WhiteboardElement[] {
-    return this._data.getValue();
+    return this._dataService.getData();
   }
+
+  data$: Observable<WhiteboardElement[]> = this._dataService.data$;
 
   @Input() options!: WhiteboardOptions;
 
@@ -111,8 +112,6 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   private _subscriptionList: Subscription[] = [];
 
   private _initialData: WhiteboardElement[] = [];
-  private undoStack: WhiteboardElement[][] = [];
-  private redoStack: WhiteboardElement[][] = [];
   private _selectedTool: ToolsEnum = ToolsEnum.BRUSH;
   selectedElement!: WhiteboardElement;
 
@@ -133,7 +132,8 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   constructor(
     private whiteboardService: NgWhiteboardService,
     private _cd: ChangeDetectorRef,
-    private _svgService: SvgService
+    private _svgService: SvgService,
+    private _dataService: DataService
   ) {}
 
   ngOnInit(): void {
@@ -244,14 +244,13 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     this._subscriptionList.push(this.whiteboardService.redoMethodCalled$.subscribe(() => this.redoDraw()));
     this._subscriptionList.push(fromEvent(window, 'resize').subscribe(() => this._resizeScreen()));
     this._subscriptionList.push(
-      this._data.pipe(skip(1)).subscribe((data) => {
+      this._dataService.data$.subscribe((data) => {
         this.dataChange.emit(data);
       })
     );
   }
 
   handleStartEvent(info: PointerEvent) {
-    this.redoStack = [];
     const toolHandlers: ToolHandlers = {
       [ToolsEnum.BRUSH]: this.handleStartBrush,
       [ToolsEnum.IMAGE]: this.handleImageTool,
@@ -305,6 +304,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     element.value = pathData;
     element.options.strokeWidth = this.strokeWidth;
     this.tempElement = element;
+    this._pushToData(this.tempElement);
   }
   handleDragBrush(info: PointerEvent) {
     this.tempDraw.push(this._calculateXAndY([info.offsetX, info.offsetY]));
@@ -317,8 +317,6 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     const outlinePoints = getStroke(this.tempDraw, getStrokeOptions);
     const pathData = Utils.getSvgPathFromStroke(outlinePoints);
     this.tempElement.value = pathData;
-    this._pushToData(this.tempElement);
-    this._pushToUndo();
     this.tempDraw = null as never;
     this.tempElement = null as never;
   }
@@ -356,6 +354,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     element.options.x2 = x;
     element.options.y2 = y;
     this.tempElement = element;
+    this._pushToData(this.tempElement);
   }
   handleDragLine(info: PointerEvent) {
     let [x2, y2] = this._calculateXAndY([info.offsetX, info.offsetY]);
@@ -380,8 +379,6 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
       this.tempElement.options.x1 != this.tempElement.options.x2 ||
       this.tempElement.options.y1 != this.tempElement.options.y2
     ) {
-      this._pushToData(this.tempElement);
-      this._pushToUndo();
       this.tempElement = null as never;
     }
   }
@@ -400,6 +397,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     element.options.x2 = x;
     element.options.y2 = y;
     this.tempElement = element;
+    this._pushToData(this.tempElement);
   }
   handleDragArrow(info: PointerEvent) {
     let [x2, y2] = this._calculateXAndY([info.offsetX, info.offsetY]);
@@ -424,8 +422,6 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
       this.tempElement.options.x1 != this.tempElement.options.x2 ||
       this.tempElement.options.y1 != this.tempElement.options.y2
     ) {
-      this._pushToData(this.tempElement);
-      this._pushToUndo();
       this.tempElement = null as never;
     }
   }
@@ -444,6 +440,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     element.options.width = 1;
     element.options.height = 1;
     this.tempElement = element;
+    this._pushToData(this.tempElement);
   }
   handleDragRect(info: PointerEvent) {
     const [x, y] = this._calculateXAndY([info.offsetX, info.offsetY]);
@@ -482,8 +479,6 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   }
   handleEndRect() {
     if (this.tempElement.options.width != 0 || this.tempElement.options.height != 0) {
-      this._pushToData(this.tempElement);
-      this._pushToUndo();
       this.tempElement = null as never;
     }
   }
@@ -499,6 +494,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     element.options.cx = x;
     element.options.cy = y;
     this.tempElement = element;
+    this._pushToData(this.tempElement);
   }
   handleDragEllipse(info: PointerEvent) {
     const [x, y] = this._calculateXAndY([info.offsetX, info.offsetY]);
@@ -527,8 +523,6 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   }
   handleEndEllipse() {
     if (this.tempElement.options.rx != 0 || this.tempElement.options.ry != 0) {
-      this._pushToData(this.tempElement);
-      this._pushToUndo();
       this.tempElement = null as never;
     }
   }
@@ -567,7 +561,6 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     if (!this.tempElement) {
       return;
     }
-    this._pushToUndo();
   }
   // Handle Select tool
   handleSelectTool(info: PointerEvent) {
@@ -589,7 +582,6 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
 
     if (element) {
       this.data = this.data.filter((el) => el.id !== element.id);
-      this._pushToUndo();
       this.deleteElement.emit(element);
     }
   }
@@ -600,7 +592,6 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     this.tempElement.value = value;
     if (this.tempElement.value) {
       this._pushToData(this.tempElement);
-      this._pushToUndo();
     }
     this.tempElement = null as never;
   }
@@ -650,7 +641,6 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
       element.y = y;
       this._pushToData(element);
       this.imageAdded.emit();
-      this._pushToUndo();
     };
     tempImg.src = imageSrc.image as string;
   }
@@ -689,46 +679,27 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     }
   }
   clearDraw() {
-    this.data = [];
-    this._data.next(this.data);
-    this._pushToUndo();
+    this._dataService.clearDraw();
     this.clear.emit();
   }
   undoDraw() {
-    if (!this.undoStack.length) {
-      return;
+    const didUndo = this._dataService.undoDraw();
+    if (didUndo) {
+      this.undo.emit();
     }
-    const currentState = this.undoStack.pop();
-    this.redoStack.push(currentState as WhiteboardElement[]);
-    if (this.undoStack.length) {
-      this.data = JSON.parse(JSON.stringify(this.undoStack[this.undoStack.length - 1]));
-    } else {
-      this.data = JSON.parse(JSON.stringify(this._initialData));
-    }
-    this.undo.emit();
   }
   redoDraw() {
-    if (!this.redoStack.length) {
-      return;
+    const didRedo = this._dataService.redoDraw();
+    if (didRedo) {
+      this.redo.emit();
     }
-    const currentState = this.redoStack.pop() as WhiteboardElement[];
-    this.undoStack.push(JSON.parse(JSON.stringify(currentState)));
-    this.data = currentState;
-    this.redo.emit();
   }
-  private _pushToUndo() {
-    this.undoStack.push(JSON.parse(JSON.stringify(this.data)));
-  }
+
   private _pushToData(element: WhiteboardElement) {
-    this.data.push(element);
-    this._data.next(this.data);
+    this._dataService.addElement(element);
   }
   private _removeFromData(element: WhiteboardElement) {
-    const index = this.data.indexOf(element);
-    if (index > -1) {
-      this.data.splice(index, 1);
-      this._data.next(this.data);
-    }
+    this._dataService.removeElement(element);
   }
   private _generateNewElement(name: ElementTypeEnum): WhiteboardElement {
     const element = new WhiteboardElement(name, {

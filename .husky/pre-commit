@@ -1,4 +1,3 @@
 yarn test:ci
-yarn format:write
 yarn format:check
 yarn copy:readme
