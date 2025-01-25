@@ -1,6 +1,6 @@
 {
   "configVersion": 1,
-  "timestamp": 1736572351054,
+  "timestamp": 1737779196023,
   "index": "https://mostafazke.github.io/ng-whiteboard/index.html",
   "assetGroups": [
     {
@@ -13,8 +13,8 @@
       "urls": [
         "https://mostafazke.github.io/ng-whiteboard/105.713209c007042265.js",
         "https://mostafazke.github.io/ng-whiteboard/145.5e76e143f0760753.js",
-        "https://mostafazke.github.io/ng-whiteboard/213.3afae13cb4c73e0c.js",
-        "https://mostafazke.github.io/ng-whiteboard/683.55fdcf9f3b5de300.js",
+        "https://mostafazke.github.io/ng-whiteboard/213.ac701a07b1c8ebbb.js",
+        "https://mostafazke.github.io/ng-whiteboard/683.e8bd0ac3d070227d.js",
         "https://mostafazke.github.io/ng-whiteboard/876.d02bbe99167b5772.js",
         "https://mostafazke.github.io/ng-whiteboard/891.c1c26c7081a51c84.js",
         "https://mostafazke.github.io/ng-whiteboard/common.2e4815123ad32945.js",
@@ -23,7 +23,7 @@
         "https://mostafazke.github.io/ng-whiteboard/main.7edd667198e0339f.js",
         "https://mostafazke.github.io/ng-whiteboard/manifest.json",
         "https://mostafazke.github.io/ng-whiteboard/polyfills.31742661214486d6.js",
-        "https://mostafazke.github.io/ng-whiteboard/runtime.32a7476b7b34703d.js",
+        "https://mostafazke.github.io/ng-whiteboard/runtime.3b307b4324eb6065.js",
         "https://mostafazke.github.io/ng-whiteboard/styles.1483f972de054c22.css"
       ],
       "patterns": []
@@ -59,8 +59,8 @@
   "hashTable": {
     "https://mostafazke.github.io/ng-whiteboard/105.713209c007042265.js": "56290f179f5ec4c73d60216295d31547463e787b",
     "https://mostafazke.github.io/ng-whiteboard/145.5e76e143f0760753.js": "32a1d3153635ac913afb6932404539515fa8651a",
-    "https://mostafazke.github.io/ng-whiteboard/213.3afae13cb4c73e0c.js": "fb70ecb946b397f721a0416b7cd36933da06b29c",
-    "https://mostafazke.github.io/ng-whiteboard/683.55fdcf9f3b5de300.js": "3e3fbab816ee0366c80a98c18ead426bd19519c9",
+    "https://mostafazke.github.io/ng-whiteboard/213.ac701a07b1c8ebbb.js": "4507cd0794a8dc802151fca9b3f5d8c32601b519",
+    "https://mostafazke.github.io/ng-whiteboard/683.e8bd0ac3d070227d.js": "7cc7197cb88d0a9d5377102cfb0f05e36ef56ef9",
     "https://mostafazke.github.io/ng-whiteboard/876.d02bbe99167b5772.js": "9f6802b4a4d3501c97c334aef824fefca3180e36",
     "https://mostafazke.github.io/ng-whiteboard/891.c1c26c7081a51c84.js": "c88df2369569e004670d82b2771f907dd13fc9e1",
     "https://mostafazke.github.io/ng-whiteboard/assets/icons/icon-128x128.png": "6acc83b99a4fec9522a82c02aa4640f7908d71c3",
@@ -79,12 +79,12 @@
     "https://mostafazke.github.io/ng-whiteboard/cursor.2cb01084080421f1.svg": "9670945e93fc66371d63e845e27d4cd8ef2b9368",
     "https://mostafazke.github.io/ng-whiteboard/eraser.33503ef8cdcbf5ad.svg": "1d546142c70928c6a555793a9124b7533ff7a406",
     "https://mostafazke.github.io/ng-whiteboard/favicon.ico": "9d35872b3a7d7f6db2f00438f76872ed484174b8",
-    "https://mostafazke.github.io/ng-whiteboard/index.html": "9fc2ff4b07d395151387fc60909f5b840b569be8",
+    "https://mostafazke.github.io/ng-whiteboard/index.html": "287dfd9161405c8fd34ef1aad5174172691f8164",
     "https://mostafazke.github.io/ng-whiteboard/main.7edd667198e0339f.js": "23916f4496ed93635c184eb6f93c7a5ce2d037fd",
     "https://mostafazke.github.io/ng-whiteboard/manifest.json": "ba8de36a6eeebf925eec35a2d9e498f317963747",
     "https://mostafazke.github.io/ng-whiteboard/pencil.5473798714690ad6.svg": "ffb748cc8e2aec448a2a95b3c982f864d7734400",
     "https://mostafazke.github.io/ng-whiteboard/polyfills.31742661214486d6.js": "6cf492d80f9f6d93d8c61a2e67b06100bea7c7b5",
-    "https://mostafazke.github.io/ng-whiteboard/runtime.32a7476b7b34703d.js": "975d0ebf614e7872ba42183931b8899593d3ab63",
+    "https://mostafazke.github.io/ng-whiteboard/runtime.3b307b4324eb6065.js": "f59a441199f1d4574197bffcc75a69724c783312",
     "https://mostafazke.github.io/ng-whiteboard/styles.1483f972de054c22.css": "a4c0a4db56d27c6e588ac450e14f3cfa30068449"
   },
   "navigationUrls": [
