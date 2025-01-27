@@ -601,7 +601,8 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   }
 
   handleEndHand(info: PointerEvent){
-    this.moveHandElement(info);
+    this.moveHandElement(info);    
+    this._pushToUndo();
   }
 
   private moveHandElement(info: PointerEvent){    
