@@ -1,3 +1,10 @@
+# [3.2.0](https://github.com/mostafazke/ng-whiteboard/compare/v3.1.6...v3.2.0) (2025-01-30)
+
+
+### Features
+
+* **whiteboard:** 🎸 implement hand tool ([69e8e12](https://github.com/mostafazke/ng-whiteboard/commit/69e8e126d6d5e72b1ec4ee37b5429f16d9d645fd))
+
 ## [3.1.6](https://github.com/mostafazke/ng-whiteboard/compare/v3.1.5...v3.1.6) (2025-01-03)
 
 

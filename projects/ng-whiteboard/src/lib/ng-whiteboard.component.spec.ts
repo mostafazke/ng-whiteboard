@@ -236,6 +236,94 @@ describe('NgWhiteboardComponent', () => {
       expect(component.handleTextEnd).not.toHaveBeenCalled();
     });
   });
+  describe('handleHandTool', () => 
+    {
+      let mockRectangleElement: WhiteboardElement;
+      let mockElement: SVGGraphicsElement;
+      let mockDownEvent: PointerEvent;
+      let mockMoveEvent: PointerEvent;
+      let mockUpEvent: PointerEvent;
+      const initialX = 30;
+      const initialY = 40;
+      
+      beforeEach(() => {
+        mockElement = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        mockRectangleElement = new WhiteboardElement(ElementTypeEnum.RECT, {});        
+        component.data = [mockRectangleElement];
+        
+        mockDownEvent = new MouseEvent('pointerdown') as PointerEvent;
+        Object.defineProperty(mockDownEvent, 'offsetX', { value: initialX });
+        Object.defineProperty(mockDownEvent, 'offsetY', { value: initialY });
+        mockMoveEvent = new MouseEvent('pointermove') as PointerEvent;        
+        Object.defineProperty(mockMoveEvent, 'offsetX', { value: initialX + 20 });
+        Object.defineProperty(mockMoveEvent, 'offsetY', { value: initialY + 40 });
+        mockUpEvent = new MouseEvent('pointerup') as PointerEvent;
+        Object.defineProperty(mockUpEvent, 'offsetX', { value: initialX + 30 });
+        Object.defineProperty(mockUpEvent, 'offsetY', { value: initialY + 35 });
+  
+        Object.defineProperty(mockDownEvent, 'target', {
+          configurable: true,
+          writable: true,
+          value: mockElement,
+        });
+        Object.defineProperty(mockMoveEvent, 'movementX', {
+          configurable: true,
+          writable: true,
+          value: 10,
+        });
+        Object.defineProperty(mockMoveEvent, 'movementY', {
+          configurable: true,
+          writable: true,
+          value: 20,
+        });
+      });
+      describe('StartHand', () => {	
+        it('element should stay in the same position when board is not moved after mousedown', () => {  		
+          component.handleStartHand(mockDownEvent);          
+          component.data.forEach(d => {
+            expect(d.x).toBe(0);
+            expect(d.y).toBe(0);
+          });
+        });		        
+        it('element should stay in the same position when mouse stay in the same position', () => {  		
+          component.handleStartHand(mockDownEvent);          
+          component.handleEndHand(mockDownEvent);
+          component.data.forEach(d => {
+            expect(d.x).toBe(0);
+            expect(d.y).toBe(0);
+          });
+        });	   
+      });
+      describe('DragHand', () => {
+        it('element should move after dragHand event', () => {  
+          component.handleStartHand(mockDownEvent);
+          component.handleDragHand(mockMoveEvent);
+          component.data.forEach(d => {
+            expect(d.x).toBe(20);
+            expect(d.y).toBe(40);
+          });          
+        });
+      });
+      describe('EndHand', () => {
+        it('element should move after endHand event', () => {  
+          component.handleStartHand(mockDownEvent);  		
+          component.handleEndHand(mockUpEvent);	
+          component.data.forEach(d => {
+            expect(d.x).toBe(30);
+            expect(d.y).toBe(35);
+          });   
+        });
+        it('element should move correctly after dragHand and endHand event', () => {  
+          component.handleStartHand(mockDownEvent);  
+          component.handleDragHand(mockMoveEvent);
+          component.handleEndHand(mockUpEvent);	
+          component.data.forEach(d => {
+            expect(d.x).toBe(30);
+            expect(d.y).toBe(35);
+          });   
+        });
+      });
+    });
   describe('handleBrushShape', () => {
     let getStrokeOptions: StrokeOptions;
     beforeAll(() => {

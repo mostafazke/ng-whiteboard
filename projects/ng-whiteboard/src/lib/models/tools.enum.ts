@@ -1,4 +1,5 @@
 export enum ToolsEnum {
+  HAND = 'HAND',
   SELECT = 'SELECT',
   BRUSH = 'BRUSH',
   IMAGE = 'IMAGE',

@@ -129,7 +129,10 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     height: 0,
     display: 'none',
   };
-
+  handPointer = {
+    x: 0,
+    y: 0
+  };
   constructor(
     private whiteboardService: NgWhiteboardService,
     private _cd: ChangeDetectorRef,
@@ -261,6 +264,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
       [ToolsEnum.ELLIPSE]: this.handleStartEllipse,
       [ToolsEnum.TEXT]: this.handleTextTool,
       [ToolsEnum.SELECT]: this.handleSelectTool,
+      [ToolsEnum.HAND]: this.handleStartHand,
       [ToolsEnum.ERASER]: this.handleEraserTool,
     };
     const handler = toolHandlers[this.selectedTool];
@@ -276,6 +280,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
       [ToolsEnum.RECT]: this.handleDragRect,
       [ToolsEnum.ELLIPSE]: this.handleDragEllipse,
       [ToolsEnum.TEXT]: this.handleTextDrag,
+      [ToolsEnum.HAND]: this.handleDragHand,
     };
     const handler = toolHandlers[this.selectedTool];
     if (handler) {
@@ -290,6 +295,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
       [ToolsEnum.RECT]: this.handleEndRect,
       [ToolsEnum.ELLIPSE]: this.handleEndEllipse,
       [ToolsEnum.TEXT]: this.handleTextEnd,
+      [ToolsEnum.HAND]: this.handleEndHand,
     };
     const handler = toolHandlers[this.selectedTool];
     if (handler) {
@@ -583,6 +589,36 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
       this.clearSelectedElement();
     }
   }
+  //Hand tool functions
+  handleStartHand(info: PointerEvent){
+    const [x, y] = this._calculateXAndY([info.offsetX, info.offsetY]);
+    this.handPointer.x = x;
+    this.handPointer.y = y;
+  }
+
+  handleDragHand(info: PointerEvent){
+    this.moveHandElement(info);
+  }
+
+  handleEndHand(info: PointerEvent){
+    this.moveHandElement(info);    
+    this._pushToUndo();
+  }
+
+  private moveHandElement(info: PointerEvent){    
+    const [x2, y2] = this._calculateXAndY([info.offsetX, info.offsetY]);
+    
+    const deltaX = x2 - this.handPointer.x;
+    const deltaY = y2 - this.handPointer.y;
+    this.data.forEach(ele => {
+      ele.x += deltaX;
+      ele.y += deltaY;
+    });
+
+    this.handPointer.x = x2
+    this.handPointer.y = y2;
+  }
+
   // Handle Eraser tool
   handleEraserTool(info: PointerEvent) {
     const element = this._getTargetElement(info);
