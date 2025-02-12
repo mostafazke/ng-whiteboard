@@ -1,3 +1,14 @@
+## [3.2.1](https://github.com/mostafazke/ng-whiteboard/compare/v3.2.0...v3.2.1) (2025-02-12)
+
+
+### Bug Fixes
+
+* package.json & yarn.lock to reduce vulnerabilities ([8b75f32](https://github.com/mostafazke/ng-whiteboard/commit/8b75f328b471cd5db288097f0dd37535fc3f1155))
+* package.json & yarn.lock to reduce vulnerabilities ([48accea](https://github.com/mostafazke/ng-whiteboard/commit/48accea7f2c7a4c7ab6a8e9f26131943ca9fe0e9))
+* package.json & yarn.lock to reduce vulnerabilities ([322db7f](https://github.com/mostafazke/ng-whiteboard/commit/322db7f89ab4307479ce6dd4bb695d922bc8065c))
+* package.json & yarn.lock to reduce vulnerabilities ([4732834](https://github.com/mostafazke/ng-whiteboard/commit/47328349a01f0052d39b03f08ae5d9c805c7218c))
+* package.json & yarn.lock to reduce vulnerabilities ([a12d1e6](https://github.com/mostafazke/ng-whiteboard/commit/a12d1e66874d395cff950b0d73b166c89c438b50))
+
 # [3.2.0](https://github.com/mostafazke/ng-whiteboard/compare/v3.1.6...v3.2.0) (2025-01-30)
 
 
