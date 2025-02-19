@@ -1,26 +1,17 @@
 import { SvgDirective } from './svg.directive';
 import { SvgService } from './svg.service';
-import { ElementRef } from '@angular/core';
 
 describe('SvgDirective', () => {
   let directive: SvgDirective;
-  let elementRefMock: ElementRef<Partial<SVGSVGElement>>;
   let svgServiceMock: Partial<SvgService>;
 
   beforeEach(() => {
-    elementRefMock = {
-      nativeElement: {
-        setPointerCapture: jest.fn(),
-        hasPointerCapture: jest.fn(),
-        releasePointerCapture: jest.fn(),
-      },
-    };
     svgServiceMock = {
       onPointerDown: jest.fn(),
       onPointerMove: jest.fn(),
       onPointerUp: jest.fn(),
     };
-    directive = new SvgDirective(elementRefMock as ElementRef, svgServiceMock as SvgService);
+    directive = new SvgDirective(svgServiceMock as SvgService);
   });
 
   it('should create an instance', () => {
