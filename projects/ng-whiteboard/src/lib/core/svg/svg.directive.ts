@@ -1,4 +1,4 @@
-import { Directive, ElementRef, HostListener } from '@angular/core';
+import { Directive, HostListener } from '@angular/core';
 import { SvgService } from './svg.service';
 
 @Directive({
@@ -8,13 +8,16 @@ export class SvgDirective {
   lastX!: number;
   lastY!: number;
 
-  constructor(private elementRef: ElementRef<SVGSVGElement>, private svgService: SvgService) {}
+  constructor(private svgService: SvgService) {}
 
   @HostListener('pointerdown', ['$event'])
   onPointerDown(e: PointerEvent) {
-    if (e.button !== 0 && e.button !== 1 && e.button !== 5) return;
+    if (e.button !== 0) return;
 
-    this.elementRef.nativeElement.setPointerCapture(e.pointerId);
+    if (e.currentTarget) {
+      (e.currentTarget as Element).setPointerCapture(e.pointerId);
+    }
+
     const info = e;
     this.svgService.onPointerDown(info);
   }
@@ -31,12 +34,13 @@ export class SvgDirective {
 
   @HostListener('pointerup', ['$event'])
   onPointerUp(e: PointerEvent) {
-    if (e.button !== 0 && e.button !== 1 && e.button !== 2 && e.button !== 5) return;
+    if (e.button !== 0) return;
+
     this.lastX = e.clientX;
     this.lastY = e.clientY;
 
-    if (this.elementRef.nativeElement.hasPointerCapture(e.pointerId)) {
-      this.elementRef.nativeElement?.releasePointerCapture(e.pointerId);
+    if (e.currentTarget && (e.currentTarget as Element).hasPointerCapture(e.pointerId)) {
+      (e.currentTarget as Element).releasePointerCapture(e.pointerId);
     }
 
     const info = e;
