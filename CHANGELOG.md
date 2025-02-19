@@ -1,3 +1,10 @@
+## [3.2.4](https://github.com/mostafazke/ng-whiteboard/compare/v3.2.3...v3.2.4) (2025-02-19)
+
+
+### Bug Fixes
+
+* **whiteboard:** 🐛 allow drawing with left click only ([0676ec6](https://github.com/mostafazke/ng-whiteboard/commit/0676ec6d120d994d59cba4664029fae177e514b3)), closes [#263](https://github.com/mostafazke/ng-whiteboard/issues/263)
+
 ## [3.2.3](https://github.com/mostafazke/ng-whiteboard/compare/v3.2.2...v3.2.3) (2025-02-16)
 
 
