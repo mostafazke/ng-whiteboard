@@ -1,3 +1,10 @@
+## [3.2.5](https://github.com/mostafazke/ng-whiteboard/compare/v3.2.4...v3.2.5) (2025-02-22)
+
+
+### Bug Fixes
+
+* upgrade highlight.js from 11.10.0 to 11.11.1 ([745ad18](https://github.com/mostafazke/ng-whiteboard/commit/745ad18624ddf30313f83604e9fd0f320e56bfb3))
+
 ## [3.2.4](https://github.com/mostafazke/ng-whiteboard/compare/v3.2.3...v3.2.4) (2025-02-19)
 
 
