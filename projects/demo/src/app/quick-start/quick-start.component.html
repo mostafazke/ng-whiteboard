@@ -1,58 +1,41 @@
 <app-header tagline="Quick Start & Demo"></app-header>
 <section class="main-content">
-  <h2>
-    <a id="getting-started" class="anchor" href="#getting-started" aria-hidden="true"
-      ><span aria-hidden="true" class="octicon octicon-link"></span></a
-    >Getting Started
-  </h2>
+  <h2 id="getting-started">🚀 Getting Started</h2>
   <p>Hello and Welcome!</p>
 
-  <h3>
-    <a id="installation" class="anchor" href="#installation" aria-hidden="true"
-      ><span aria-hidden="true" class="octicon octicon-link"></span></a
-    >Installation
-  </h3>
-  <p>The library is available as npm package, so all you need to do is to run the following command:</p>
-  <pre><code highlight class="bash">npm install ng-whiteboard --save</code></pre>
+  <h3 id="installation">📦 Installation</h3>
+  <p>The library is available as an npm package. You can install it using one of the following commands:</p>
 
-  <p>or yarn</p>
-  <pre><code highlight class="bash">yarn add ng-whiteboard --save</code></pre>
+  <pre><code class="bash">npm install ng-whiteboard --save</code></pre>
+
+  <p>or with Yarn:</p>
+
+  <pre><code class="bash">yarn add ng-whiteboard --save</code></pre>
 
   <p>
-    This command will create a record in your `package.json` file and install the package into the npm modules folder.
+    This command will add the package to your <code>package.json</code> and install it in the
+    <code>node_modules</code> folder.
   </p>
 
-  <h2>
-    <a id="minimal-setup" class="anchor" href="#minimal-setup" aria-hidden="true"
-      ><span aria-hidden="true" class="octicon octicon-link"></span></a
-    >Minimal Setup Example
-  </h2>
-  <p>First thing you need to do is to import the ng-whiteboard module.</p>
-  <pre>
-    <code highlight class="typescript">import &#123; NgWhiteboardModule &#125; from 'ng-whiteboard';</code>
-  </pre>
-  <p>Then register it by adding to the imports list of your module:</p>
-  <pre>
-    <code highlight class="typescript">// ...
-    NgModule {{'({'}}
-        imports: {{'['}}
-        // ...
-        NgWhiteboardModule,
-        // ...
-        {{'],'}}
-        declarations: {{'[ ... ]'}}
-    {{'})'}}
-// ...
-    </code>
-  </pre>
-  <p>Finally let's put the ng-whiteboard component inside of the template:</p>
-  <pre>
-    <code highlight class="typescript">{{'<'}}ng-whiteboard>{{'<'}}/ng-whiteboard></code>
-  </pre>
-  <p>At this step you will have a minimal whiteboard ready to use and it should look something like this:</p>
+  <h3 id="minimal-setup">⚡ Minimal Setup Example</h3>
+  <p>First, import the <code>NgWhiteboardModule</code> in your module:</p>
+
+  <pre><code class="typescript">{{libraryImportCode}}</code></pre>
+
+  <p>Then, add it to the imports list in your module:</p>
+
+  <pre><code class="typescript">{{NgModuleCode}}</code></pre>
+
+  <p>Finally, add the <code>ng-whiteboard</code> component to your template:</p>
+
+  <pre><code class="html">&lt;ng-whiteboard&gt;&lt;/ng-whiteboard&gt;</code></pre>
+
+  <p>At this step, you have a minimal whiteboard ready to use. It should look like this:</p>
+
   <div class="whiteboard-container">
     <ng-whiteboard></ng-whiteboard>
   </div>
-  <p>Full component documentation you can find <a [routerLink]="['/documentation']">here</a>.</p>
-  <p>More examples you can find <a [routerLink]="['/examples']">here</a>.</p>
+
+  <p>📖 Full component documentation is available <a href="/documentation">here</a>.</p>
+  <p>📌 More examples can be found <a href="/examples">here</a>.</p>
 </section>

@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
-import { FormatType, formatTypes, NgWhiteboardService } from 'ng-whiteboard';
+import { FormatType, NgWhiteboardService, ToolType } from 'ng-whiteboard';
 import data from './data';
+
 @Component({
   selector: 'app-basic-component',
   templateUrl: './basic.component.html',
@@ -9,12 +10,13 @@ import data from './data';
 })
 export class BasicComponent {
   data = data;
-  color = '#333333';
-  backgroundColor = '#eee';
+  color = '#333';
+  backgroundColor = '#fff';
   size = 5;
   isSizeActive = false;
   isSaveActive = false;
   formatType = FormatType;
+  toolType = ToolType;
 
   constructor(private whiteboardService: NgWhiteboardService) {}
 
@@ -27,19 +29,23 @@ export class BasicComponent {
   }
 
   erase() {
-    this.whiteboardService.erase();
+    this.whiteboardService.clear();
   }
+
   setSize(size: number) {
     this.size = size;
     this.isSizeActive = false;
   }
-  save(type: formatTypes) {
+
+  save(type: FormatType) {
     this.whiteboardService.save(type);
     this.isSaveActive = false;
   }
+
   undo() {
     this.whiteboardService.undo();
   }
+
   redo() {
     this.whiteboardService.redo();
   }

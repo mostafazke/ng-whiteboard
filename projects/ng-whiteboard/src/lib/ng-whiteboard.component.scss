@@ -42,35 +42,39 @@
   }
 
   // cursors
-  .HAND {
-    cursor: grabbing;
+  .hand {
+    cursor: grab;
   }
-  .SELECT {
+  .select {
     cursor: default;
   }
-  .BRUSH {
+  .pen {
     cursor: url('./cursors/pencil.svg') 1 18, crosshair;
   }
-  .IMAGE {
+  .image {
     cursor: copy;
   }
-  .LINE {
+  .line {
     cursor: crosshair;
   }
-  .ARROW {
+  .arrow {
     cursor: crosshair;
   }
-  .RECT {
+  .rectangle {
     cursor: crosshair;
   }
-  .ELLIPSE {
+  .ellipse {
     cursor: crosshair;
   }
-  .TEXT {
+  .text {
     cursor: text;
   }
-  .ERASER {
+  .eraser {
     cursor: url('./cursors/eraser.svg') 0 12, crosshair;
+  }
+
+  .select .wb_element {
+    cursor: pointer;
   }
 }
 
@@ -90,6 +94,7 @@
   display: inline-block;
 }
 .text-input {
+  display: none;
   position: absolute;
   background: transparent;
   border: 1px dashed #0b89f0;
@@ -98,8 +103,10 @@
   font-size: inherit;
   font-family: inherit;
   min-width: 5ch;
+  width: 5ch;
   height: 2ch;
   padding: 0;
   pointer-events: auto;
   z-index: 5;
+  transform-origin: top left;
 }

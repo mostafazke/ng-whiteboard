@@ -1,5 +1,17 @@
-import { AfterViewInit, Component, ElementRef, ViewChild, ViewEncapsulation } from '@angular/core';
-import { ElementTypeEnum, FormatType, NgWhiteboardService, ToolsEnum, WhiteboardElement } from 'ng-whiteboard';
+import { Component, Output, ViewEncapsulation, EventEmitter, Input } from '@angular/core';
+import {
+  ElementType,
+  FormatType,
+  LineCap,
+  LineJoin,
+  NgWhiteboardService,
+  ToolType,
+  WhiteboardElement,
+  WhiteboardOptions,
+} from 'ng-whiteboard';
+import { strokeDashArrayOptions } from '../../shared/strokeDashArrayOptions';
+
+type ColorProperty = 'fill' | 'strokeColor' | 'backgroundColor';
 
 @Component({
   selector: 'app-comprehensive-component',
@@ -8,236 +20,72 @@ import { ElementTypeEnum, FormatType, NgWhiteboardService, ToolsEnum, Whiteboard
   providers: [NgWhiteboardService],
   encapsulation: ViewEncapsulation.ShadowDom,
 })
-export class ComprehensiveComponent implements AfterViewInit {
-  @ViewChild('workarea', { static: false }) private workarea!: ElementRef<HTMLElement>;
-
-  toolsEnum = ToolsEnum;
-  elementTypeEnum = ElementTypeEnum;
-  selectedTool: ToolsEnum = ToolsEnum.BRUSH;
+export class ComprehensiveComponent {
+  selectedTool: ToolType = ToolType.Pen;
   selectedElement: WhiteboardElement | null = null;
-
-  options = {
-    strokeColor: '#ff0',
+  dashArrays = strokeDashArrayOptions;
+  options: WhiteboardOptions = {
+    drawingEnabled: true,
+    strokeColor: '#333333',
     strokeWidth: 5,
-    fill: '#000',
-    backgroundColor: '#fff',
+    fill: 'transparent',
+    backgroundColor: '#F8F9FA',
     canvasHeight: 600,
     canvasWidth: 800,
     dasharray: '',
+    lineJoin: LineJoin.Miter,
+    lineCap: LineCap.Butt,
+    zoom: 1,
+    fullScreen: false,
+    center: true,
+    enableGrid: false,
   };
 
-  formatTypes = FormatType;
-  outerWidth = 1200;
-  outerHeight = 750;
-  zoom = 1;
   x = 0;
   y = 0;
 
-  constructor(private _whiteboardService: NgWhiteboardService) {}
+  toolType = ToolType;
+  elementType = ElementType;
+  formatType = FormatType;
 
-  ngAfterViewInit(): void {
-    setTimeout(() => {
-      this.calculateSize();
-    }, 0);
+  @Input() data: WhiteboardElement[] = [];
+  @Output() dataChange = new EventEmitter<WhiteboardElement[]>();
+
+  constructor(private whiteboardService: NgWhiteboardService) {}
+
+  onDataChange(data: WhiteboardElement[]) {
+    this.dataChange.emit(data);
   }
 
-  calculateSize() {
-    const workarea = this.workarea.nativeElement;
-    const dim = {
-      w: this.options.canvasWidth,
-      h: this.options.canvasHeight,
-    };
-    let w = workarea.clientWidth;
-    let h = workarea.clientHeight;
-    const w_orig = w,
-      h_orig = h;
-    const zoom = this.zoom;
-
-    const multi = 2;
-    w = Math.max(w_orig, dim.w * zoom * multi);
-    h = Math.max(h_orig, dim.h * zoom * multi);
-    const scroll_x = w / 2 - w_orig / 2;
-    const scroll_y = h / 2 - h_orig / 2;
-
-    this.outerWidth = w;
-    this.outerHeight = h;
-    this.updateSize(dim.w, dim.h);
-
-    setTimeout(() => {
-      workarea.scrollLeft = scroll_x;
-      workarea.scrollTop = scroll_y;
-    }, 0);
-  }
-
-  updateSize(w: number, h: number) {
-    this.options.canvasWidth = w;
-    this.options.canvasHeight = h;
-    const current_zoom = this.zoom;
-    const contentW = this.outerWidth;
-    const contentH = this.outerHeight;
-    const x = contentW / 2 - (w * current_zoom) / 2;
-    const y = contentH / 2 - (h * current_zoom) / 2;
-    setTimeout(() => {
-      this.x = x;
-      this.y = y;
-    }, 0);
-  }
-
-  zoomWheel(e: Event) {
-    const ev = e as WheelEvent;
-
-    if (ev.altKey || ev.ctrlKey) {
-      e.preventDefault();
-      const zoom = this.zoom * 100;
-      this.setZoom(Math.trunc(zoom - (ev.deltaY / 100) * (ev.altKey ? 10 : 5)));
-    }
-  }
-
-  setZoom(new_zoom: string | number) {
-    const old_zoom = this.zoom;
-    let zoomlevel = +new_zoom / 100;
-    if (zoomlevel < 0.001) {
-      zoomlevel = 0.1;
-    }
-    const dim = {
-      w: this.options.canvasWidth,
-      h: this.options.canvasHeight,
-    };
-    let animatedZoom = null;
-    if (animatedZoom != null) {
-      window.cancelAnimationFrame(animatedZoom);
-    }
-    // zoom duration 500ms
-    const start = Date.now();
-    const duration = 500;
-    const diff = zoomlevel - old_zoom;
-    const animateZoom = () => {
-      const progress = Date.now() - start;
-      let tick = progress / duration;
-      tick = Math.pow(tick - 1, 3) + 1;
-      this.zoom = old_zoom + diff * tick;
-      this.updateSize(dim.w, dim.h);
-
-      if (tick < 1 && tick > -0.9) {
-        animatedZoom = requestAnimationFrame(animateZoom);
-      } else {
-        this.zoom = zoomlevel;
-        this.updateSize(dim.w, dim.h);
-      }
-    };
-    animateZoom();
-  }
-
-  setSizeResolution(value: string) {
-    let w = this.options.canvasWidth;
-    let h = this.options.canvasHeight;
-    const dims: number[] = [];
-    dims[0] = parseInt(value.split('x')[0]);
-    dims[1] = parseInt(value.split('x')[1]);
-    if (value == 'Custom') {
-      return;
-    } else if (value == 'content') {
-      dims[0] = 100;
-      dims[1] = 100;
-    }
-    const diff_w = dims[0] - w;
-    const diff_h = dims[1] - h;
-
-    let animatedSize = null;
-    if (animatedSize != null) {
-      window.cancelAnimationFrame(animatedSize);
-    }
-    const start = Date.now();
-    const duration = 500;
-
-    const animateCanvasSize = () => {
-      const progress = Date.now() - start;
-      let tick = progress / duration;
-      tick = Math.pow(tick - 1, 3) + 1;
-      w = parseInt((dims[0] - diff_w + tick * diff_w).toFixed(0));
-      h = parseInt((dims[1] - diff_h + tick * diff_h).toFixed(0));
-      this.updateSize(w, h);
-      if (tick < 1 && tick > -0.9) {
-        animatedSize = requestAnimationFrame(animateCanvasSize);
-      } else {
-        this.updateSize(w, h);
-      }
-    };
-    animateCanvasSize();
-  }
-
-  onDragDown(input: HTMLInputElement, selectedElement: Record<string, any>, prop: string | number) {
-    const min = input.min ? parseInt(input.min, 10) : null;
-    const max = input.max ? parseInt(input.max, 10) : null;
-    const step = parseInt(input.step, 10);
-    let area = 200;
-    if (min && max) {
-      area = max - min > 0 ? (max - min) / step : 200;
-    }
-    const scale = (area / 70) * step;
-    let lastY = 0;
-    let value = parseInt(input.value, 10);
-
-    const onMouseMove = (e: MouseEvent) => {
-      if (lastY === 0) {
-        lastY = e.pageY;
-      }
-      const deltaY = (e.pageY - lastY) * -1;
-      lastY = e.pageY;
-      let val = deltaY * scale * 1;
-      const fixed = step < 1 ? 1 : 0;
-      val.toFixed(fixed);
-      val = Math.floor(Number(value) + Number(val));
-
-      if (max !== null) val = Math.min(val, max);
-      if (min !== null) val = Math.max(val, min);
-      value = val;
-
-      selectedElement[prop] = value;
-      input.value = value.toString();
-    };
-    const onMouseUp = () => {
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
-    };
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
-  }
-
-  setNumberValue(obj: Record<string, any>, prop: string, value: number): void {
-    if (!isNaN(value)) {
-      obj[prop] = value;
-    }
-  }
-
-  toggleFontWeight() {
-    if (!this.selectedElement) {
-      return;
-    }
-    if (this.selectedElement.options.fontWeight === 'normal') {
-      this.selectedElement.options.fontWeight = 'bold';
-    } else {
-      this.selectedElement.options.fontWeight = 'normal';
-    }
-  }
-  toggleFontStyle() {
-    if (!this.selectedElement) {
-      return;
-    }
-    if (this.selectedElement.options.fontStyle === 'normal') {
-      this.selectedElement.options.fontStyle = 'italic';
-    } else {
-      this.selectedElement.options.fontStyle = 'normal';
-    }
-  }
+  // Document management methods
   newDocument() {
-    this._whiteboardService.erase();
+    this.whiteboardService.clear();
   }
 
   saveAs(format: FormatType) {
-    this._whiteboardService.save(format);
+    this.whiteboardService.save(format);
   }
 
+  // Tool selection methods
+  selectTool(tool: ToolType) {
+    this.selectedTool = tool;
+  }
+
+  // Undo/Redo methods
+  undo() {
+    this.whiteboardService.undo();
+  }
+
+  redo() {
+    this.whiteboardService.redo();
+  }
+
+  // Grid toggle method
+  toggleGrid() {
+    this.whiteboardService.toggleGrid();
+  }
+
+  // Image handling method
   addImage(fileInput: EventTarget | null) {
     if (fileInput) {
       const files = (fileInput as HTMLInputElement).files;
@@ -245,46 +93,211 @@ export class ComprehensiveComponent implements AfterViewInit {
         const reader = new FileReader();
         reader.onload = (e: ProgressEvent) => {
           const image = (e.target as FileReader).result;
-          this._whiteboardService.addImage(image as string);
+          this.whiteboardService.addImage(image as string);
         };
         reader.readAsDataURL(files[0]);
       }
     }
   }
 
-  undo() {
-    this._whiteboardService.undo();
-  }
-  redo() {
-    this._whiteboardService.redo();
-  }
-
-  colorChange(propName: 'fill' | 'strokeColor', color: string) {
+  // Color management methods
+  colorChange(propName: ColorProperty, color: string) {
     if (this.selectedElement) {
-      this.selectedElement.options[propName] = color;
-    } else {
-      this.options[propName] = color;
-      this.updateOptions();
+      let prop;
+      if (this.selectedElement.type === ElementType.Text) {
+        prop = propName === 'fill' ? 'strokeColor' : 'color';
+      } else {
+        prop = propName === 'fill' ? 'fill' : 'strokeColor';
+      }
+      this.updateSelectedElement({
+        style: {
+          ...this.selectedElement.style,
+          [prop]: color,
+        },
+      });
     }
+    this.updateOptions({ [propName]: color });
   }
 
   swapColors() {
-    [this.options.fill, this.options.strokeColor] = [this.options.strokeColor, this.options.fill];
-    this.updateOptions();
+    if (this.selectedElement) {
+      let newFill, newStrokeColor;
+      if (this.selectedElement.type === ElementType.Text) {
+        newFill = this.selectedElement.style.color;
+        newStrokeColor = this.selectedElement.style.strokeColor;
+        this.updateSelectedElement({
+          style: {
+            ...this.selectedElement.style,
+            color: newStrokeColor,
+            strokeColor: newFill,
+          },
+        });
+      } else {
+        newFill = this.selectedElement.style.fill;
+        newStrokeColor = this.selectedElement.style.strokeColor;
+        this.updateSelectedElement({
+          style: {
+            ...this.selectedElement.style,
+            fill: newStrokeColor,
+            strokeColor: newFill,
+          },
+        });
+      }
+    }
+    const fill = this.options.fill;
+    this.updateOptions({ fill: this.options.strokeColor, strokeColor: fill });
   }
 
-  updateOptions() {
-    this.options = Object.assign({}, this.options);
+  // Element update methods
+  updateSelectedElement(partialElement: Partial<WhiteboardElement>) {
+    this.whiteboardService.updateSelectedElement(partialElement);
   }
 
-  setSelectedElement(element: WhiteboardElement | null) {
+  setSizeResolution(value: string) {
+    if (value === 'Custom') return;
+    const [newWidth, newHeight] = value.split('x').map(Number);
+    this.updateSize(newWidth, newHeight);
+  }
+
+  setDashArray(value: string) {
+    if (this.selectedElement) {
+      this.updateSelectedElement({ style: { ...this.selectedElement.style, dasharray: value } });
+    }
+    this.updateOptions({ dasharray: value });
+  }
+
+  setStrokeJoin(value: string) {
+    if (this.selectedElement) {
+      this.updateSelectedElement({ style: { ...this.selectedElement.style, lineJoin: value as LineJoin } });
+    }
+    this.updateOptions({ lineJoin: value as LineJoin });
+  }
+
+  setStrokeCap(value: string) {
+    if (this.selectedElement) {
+      this.updateSelectedElement({ style: { ...this.selectedElement.style, lineCap: value as LineCap } });
+    }
+    this.updateOptions({ lineCap: value as LineCap });
+  }
+
+  updateSize(width: number, height: number) {
+    if (this.options.canvasWidth) {
+      this.animateChange(this.options.canvasWidth, width, (value) => {
+        this.updateOptions({ canvasWidth: value });
+      });
+    }
+    if (this.options.canvasHeight) {
+      this.animateChange(this.options.canvasHeight, height, (value) => {
+        this.updateOptions({ canvasHeight: value });
+      });
+    }
+  }
+
+  updateStrokeWidth(value: number) {
+    if (this.selectedElement) {
+      this.updateSelectedElement({ style: { ...this.selectedElement.style, strokeWidth: value } });
+    }
+    this.updateOptions({ strokeWidth: value });
+  }
+
+  updateRotation(value: number) {
+    if (this.selectedElement) {
+      this.updateSelectedElement({ rotation: value });
+    }
+  }
+
+  updateOpacity(value: number) {
+    if (this.selectedElement) {
+      this.updateSelectedElement({ opacity: value });
+    }
+  }
+
+  updateCornerRadius(value: number) {
+    if (this.selectedElement) {
+      this.updateSelectedElement({ rx: value });
+    }
+  }
+
+  updateTextContent(value: string) {
+    if (this.selectedElement) {
+      this.updateSelectedElement({ text: value });
+    }
+  }
+
+  updateFontFamily(value: string) {
+    if (this.selectedElement) {
+      this.updateSelectedElement({ style: { ...this.selectedElement.style, fontFamily: value } });
+    }
+  }
+
+  updateFontSize(value: number) {
+    if (this.selectedElement) {
+      this.updateSelectedElement({ style: { ...this.selectedElement.style, fontSize: value } });
+    }
+  }
+
+  toggleFontWeight() {
+    if (this.selectedElement) {
+      const fontWeight = this.selectedElement.style.fontWeight === 'normal' ? 'bold' : 'normal';
+      this.updateSelectedElement({ style: { ...this.selectedElement.style, fontWeight } });
+    }
+  }
+
+  toggleFontStyle() {
+    if (this.selectedElement) {
+      const fontStyle = this.selectedElement.style.fontStyle === 'normal' ? 'italic' : 'normal';
+      this.updateSelectedElement({ style: { ...this.selectedElement.style, fontStyle } });
+    }
+  }
+
+  // Clipboard method
+  onSave(img: string) {
+    navigator.clipboard?.writeText(img);
+  }
+
+  // Element selection method
+  selectElement(element: WhiteboardElement | null) {
     this.selectedElement = element;
   }
 
-  onSave(img: string) {
-    const cb = navigator.clipboard;
-    if (cb) {
-      cb.writeText(img);
+  // Zoom method
+  zoomChange(zoom: string) {
+    if (this.options.zoom) {
+      this.animateChange(this.options.zoom * 100, +zoom, (value) => {
+        this.updateOptions({ zoom: value / 100 });
+      });
     }
+  }
+
+  // Animation method
+  private animateChange(startValue: number, endValue: number, callback: (value: number) => void) {
+    const diff = endValue - startValue;
+
+    let animatationId: number | null = null;
+    if (animatationId !== null) {
+      cancelAnimationFrame(animatationId);
+    }
+
+    const start = Date.now();
+    const duration = 500;
+    const animate = () => {
+      const progress = Date.now() - start;
+      let tick = progress / duration;
+      tick = Math.pow(tick - 1, 3) + 1;
+      startValue = Number((endValue - diff + tick * diff).toFixed(0));
+      callback(startValue);
+      if (tick < 1 && tick > -0.9) {
+        animatationId = requestAnimationFrame(animate);
+      } else {
+        callback(startValue);
+      }
+    };
+
+    animate();
+  }
+
+  // Options update method
+  private updateOptions(options: Partial<typeof ComprehensiveComponent.prototype.options>) {
+    this.options = { ...this.options, ...options };
   }
 }

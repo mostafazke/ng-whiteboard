@@ -2964,11 +2964,6 @@
     protobufjs "^7.2.5"
     yargs "^17.7.2"
 
-"@hirez_io/observer-spy@~2.2.0":
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/@hirez_io/observer-spy/-/observer-spy-2.2.0.tgz#3b1df531ba333a9a6cbbec0333d3fbdc4c68cc3c"
-  integrity sha512-G9nv87vjRILgB/X1AtKBv1DZX7yXSYAOCXon/f+QULKoXVhVehYUF5Lv0SQ97ebf1sA48Z2CyQ9h2v4Pz6DgaQ==
-
 "@humanfs/core@^0.19.1":
   version "0.19.1"
   resolved "https://registry.yarnpkg.com/@humanfs/core/-/core-0.19.1.tgz#17c55ca7d426733fe3c561906b8173c336b40a77"
