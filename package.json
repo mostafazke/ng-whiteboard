@@ -19,8 +19,8 @@
     "publish:demo": "npx angular-cli-ghpages --dir=./dist/demo",
     "publish:lib": "npx semantic-release",
     "adjust-version": "concurrently \"yarn:adjust-version:*\"",
-    "adjust-version:lib": "rjp projects/ng-whiteboard/package.json version $VERSION",
-    "adjust-version:main": "rjp package.json version $VERSION",
+    "adjust-version:lib": "replace-json-property projects/ng-whiteboard/package.json version $VERSION",
+    "adjust-version:main": "replace-json-property package.json version $VERSION",
     "semantic-release": "semantic-release",
     "cm": "npx git-cz"
   },
@@ -99,6 +99,7 @@
     "postcss": "^8.4.5",
     "postcss-url": "~10.1.3",
     "prettier": "^2.6.2",
+    "replace-json-property": "^1.9.0",
     "ts-jest": "^29.1.0",
     "ts-node": "10.9.1",
     "tslib": "^2.3.0",
