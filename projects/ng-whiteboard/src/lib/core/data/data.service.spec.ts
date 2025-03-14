@@ -315,7 +315,6 @@ describe('DataService', () => {
 
     it('should undo last operation', () => {
       service.addElement(mockElement);
-      service.pushToUndo();
       service.undo();
       expect(service.getData().length).toBe(0);
       expect(eventBusMock.emit).toHaveBeenCalledWith(WhiteboardEvent.Undo);

@@ -128,12 +128,14 @@ export class DataService {
   addElement(element: WhiteboardElement) {
     const currentData = this.getData();
     this.setData([...currentData, element]);
+    this.pushToUndo();
     this.EventBusService.emit(WhiteboardEvent.ElementAdded, element);
   }
 
   addElements(elements: WhiteboardElement[]) {
     const currentData = this.getData();
     this.setData([...currentData, ...elements]);
+    this.pushToUndo();
   }
 
   addToDraft(element: WhiteboardElement): void {
@@ -152,9 +154,9 @@ export class DataService {
   commitDraftToData(): void {
     const draftElements = this.draftData.getValue();
     if (draftElements.length) {
-      this.data.next([...this.data.getValue(), ...draftElements]);
+      this.setData([...this.data.getValue(), ...draftElements]);
+      this.pushToUndo();
       this.draftData.next([]);
-      this.EventBusService.emit(WhiteboardEvent.DataChange, this.data.getValue());
     }
   }
 
