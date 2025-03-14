@@ -24,12 +24,11 @@
   "bugs": {
     "url": "https://github.com/mostafazke/ng-whiteboard/issues"
   },
-  "dependencies": {
-    "rxjs": "~7.8.0"
-  },
   "peerDependencies": {
     "@angular/common": "^17.3.0",
     "@angular/core": "^17.3.0",
+    "rxjs": "~7.8.0",
     "perfect-freehand": "^1.2.2"
-  }
+  },
+  "sideEffects": false
 }
