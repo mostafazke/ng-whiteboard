@@ -1,35 +1,40 @@
 <app-header tagline="Lightweight angular whiteboard."></app-header>
 
 <section class="main-content">
+  <div class="whiteboard-container">
+    <ng-whiteboard></ng-whiteboard>
+  </div>
 
-    <h3><a id="demo" class="anchor" href="#demo" aria-hidden="true"><span aria-hidden="true"
-                class="octicon octicon-link"></span></a>Minimal Demo</h3>
-
-    <div class="whiteboard-container">
-       <ng-whiteboard></ng-whiteboard>
-    </div>
-
-    <h3><a id="features" class="anchor" href="#features" aria-hidden="true"><span aria-hidden="true"
-                class="octicon octicon-link"></span></a>Features</h3>
+  <section id="features">
+    <h2>✨ Features</h2>
     <ul>
-        <li>Supports touch</li>
-        <li>Custom colors</li>
-        <li>Custom background colors</li>
-        <li>Custom stroke size</li>
-        <li>Add images</li>
-        <li>Save drawn as (svg | png | jpeg | base64) images</li>
-        <li>Experimental (undo-redo)</li>
+      <li>🎨 SVG-based rendering for high-quality visuals</li>
+      <li>⚡ Optimized performance for smooth interactions</li>
+      <li>📦 Modular, tree-shakable, and lightweight architecture</li>
+      <li>🛠️ Comprehensive Public API via WhiteboardService and component bindings</li>
+      <li>📏 Undo/Redo, Zoom, and Save functionalities</li>
+      <li>🖊️ Multiple drawing tools (pen, shapes, text, etc.)</li>
     </ul>
+  </section>
+  <section id="contributing">
+    <h2>🤝 Contributing</h2>
+    <p>The project is open to contributions. You can:</p>
+    <ul>
+      <li>Create pull requests</li>
+      <li>Submit bug reports</li>
+      <li>Suggest new features</li>
+    </ul>
+    <p>
+      If you find this project helpful, consider giving it a ⭐ star on
+      <a href="https://github.com/mostafazke/ngwhiteboard" target="_blank">GitHub</a>.
+    </p>
+  </section>
 
-    <h3><a id="free" class="anchor" href="#free" aria-hidden="true"><span aria-hidden="true"
-                class="octicon octicon-link"></span></a>License</h3>
-
-    <p>ng-whiteboard is under MIT license. That basically means you can use it as you want to.</p>
-
-    <h3><a id="support" class="anchor" href="#support" aria-hidden="true"><span aria-hidden="true"
-                class="octicon octicon-link"></span></a>Contributing</h3>
-
-    <p>The project is open for contributors.</p>
-    <p>You can Create pull requests, submit bugs, suggest new features.</p>
-    <p>If you like it give it a star on <a href="https://github.com/mostafazke/ngwhiteboard" target="_blank">GitHub</a>.</p>
+  <section id="license">
+    <h2>📜 License</h2>
+    <p>
+      <strong>ng-whiteboard</strong> is released under the <strong>MIT License</strong>. This means you are free to use,
+      modify, and distribute it as you wish.
+    </p>
+  </section>
 </section>

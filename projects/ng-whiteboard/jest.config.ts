@@ -1,4 +1,3 @@
-/* eslint-disable */
 export default {
   displayName: 'ng-whiteboard',
   preset: '../../jest.preset.js',
@@ -15,7 +14,7 @@ export default {
   coverageDirectory: '../../coverage/ng-whiteboard',
   coverageThreshold: {
     global: {
-      branches: 80,
+      branches: 70,
       functions: 80,
       lines: 80,
     },

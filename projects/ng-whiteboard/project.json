@@ -22,22 +22,13 @@
       "defaultConfiguration": "production"
     },
     "lint": {
-      "executor": "@nx/linter:eslint",
-      "outputs": ["{options.outputFile}"],
-      "options": {
-        "lintFilePatterns": [
-          "projects/ng-whiteboard/**/*.ts",
-          "projects/ng-whiteboard/**/*.html",
-          "projects/ng-whiteboard/package.json"
-        ]
-      }
+      "executor": "@nx/eslint:lint"
     },
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "projects/ng-whiteboard/jest.config.ts",
-        "passWithNoTests": true
+        "jestConfig": "projects/ng-whiteboard/jest.config.ts"
       },
       "configurations": {
         "ci": {

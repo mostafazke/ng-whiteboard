@@ -1,10 +1,11 @@
 <section class="page-header internal">
-    <h1 class="project-name"><a routerLink="/">ng-whiteboard</a></h1>
-    <h2 class="project-tagline">{{ tagline }}</h2>
+  <h1 class="project-name"><a routerLink="/">ng-whiteboard</a></h1>
+  <h2 class="project-tagline">{{ tagline }}</h2>
 
-    <a routerLinkActive="active" routerLink="/quick-start" class="btn">Quick Start</a>
-    <a routerLinkActive="active" routerLink="/examples" class="btn">Examples</a>
-    <a routerLinkActive="active" routerLink="/documentation" class="btn">Documentation</a>
-    <a class="btn special-btn" routerLinkActive="active" routerLink="/live">Live app</a>
-    <a target="_blank" href="https://github.com/mostafazke/ng-whiteboard" class="btn">View on GitHub</a>
+  <a routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" routerLink="/" class="btn">Home</a>
+  <a routerLinkActive="active" routerLink="/quick-start" class="btn">Quick Start</a>
+  <a routerLinkActive="active" routerLink="/examples" class="btn">Examples</a>
+  <a routerLinkActive="active" routerLink="/documentation" class="btn">Documentation</a>
+  <a class="btn special-btn" routerLinkActive="active" routerLink="/live">Live app</a>
+  <a target="_blank" href="https://github.com/mostafazke/ng-whiteboard" class="btn">View on GitHub</a>
 </section>

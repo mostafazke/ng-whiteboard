@@ -1,13 +1,22 @@
-<svg [class]="'svgroot ' + selectedTool" #svgContainer id="svgroot" xlinkns="http://www.w3.org/2000/svg" svg>
+<svg
+  #svgContainer
+  id="svgroot"
+  [class]="'svgroot ' + selectedTool"
+  xlinkns="http://www.w3.org/2000/svg"
+  svg
+  resizeHandler
+>
   <svg
-    id="canvasBackground"
+    id="svgcontent"
+    xlinkns="http://www.w3.org/2000/svg"
     [attr.width]="canvasWidth * zoom"
     [attr.height]="canvasHeight * zoom"
+    [attr.viewBox]="[0, 0, canvasWidth, canvasHeight]"
     [attr.x]="x"
     [attr.y]="y"
-    style="pointer-events: none"
   >
-    <defs id="grid-pattern">
+    <defs>
+      <!-- Grid -->
       <pattern id="smallGrid" [attr.width]="gridSize" [attr.height]="gridSize" patternUnits="userSpaceOnUse">
         <path [attr.d]="'M ' + gridSize + ' 0 H 0 V ' + gridSize + ''" fill="none" stroke="gray" stroke-width="0.5" />
       </pattern>
@@ -15,294 +24,161 @@
         <rect width="100" height="100" fill="url(#smallGrid)" />
         <path d="M 100 0 H 0 V 100" fill="none" stroke="gray" stroke-width="2" />
       </pattern>
-    </defs>
-    <defs id="placeholder_defs"></defs>
-    <rect
-      width="100%"
-      height="100%"
-      x="0"
-      y="0"
-      stroke-width="0"
-      stroke="transparent"
-      [attr.fill]="backgroundColor"
-      style="pointer-events: none"
-    ></rect>
-    <g *ngIf="enableGrid">
-      <rect
-        x="-100"
-        y="-100"
-        [attr.width]="canvasWidth * zoom + 100 * 2"
-        [attr.height]="canvasHeight * zoom + 100 * 2"
-        fill="url(#grid)"
-      />
-    </g>
-  </svg>
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    [attr.width]="canvasWidth * zoom"
-    [attr.height]="canvasHeight * zoom"
-    [attr.viewBox]="[0, 0, canvasWidth, canvasHeight]"
-    id="svgcontent"
-    [attr.x]="x"
-    [attr.y]="y"
-  >
-    <defs>
-      <!-- A marker to be used as an arrowhead -->
+
+      <!-- Arrowhead -->
       <marker
         id="arrow"
-        viewBox="0 0 10 10"
-        refX="5"
-        refY="5"
+        refX="3"
+        refY="3"
         markerWidth="6"
         markerHeight="6"
-        fill="context-fill"
-        orient="auto-start-reverse">
-        <path d="M 0 0 L 10 5 L 0 10 z" />
+        stroke="context-stroke"
+        fill="none"
+        orient="auto"
+      >
+        <path d="M 0 0 L 3 3 L 0 6"></path>
       </marker>
     </defs>
-    <rect
-      id="contentBackground"
-      opacity="0"
-      width="100%"
-      height="100%"
-      x="0"
-      y="0"
-      stroke-width="0"
-      stroke="transparent"
-      [attr.fill]="backgroundColor"
-    ></rect>
-    <g style="pointer-events: all">
-      <ng-container *ngFor="let item of data">
-        <g
-          class="wb_element"
-          [id]="'item_' + item.id"
-          [attr.data-wb-id]="item.id"
-          [ngSwitch]="item.type"
-          [attr.transform]="'translate(' + item.x + ',' + item.y + ')' + 'rotate(' + item.rotation + ')'"
-          [attr.opacity]="item.opacity / 100"
-        >
-          <g *ngSwitchCase="types.BRUSH">
-            <path
-              class="brush"
-              fill="none"
-              [attr.d]="item.value"
-              [attr.stroke-dasharray]="item.options.dasharray"
-              [attr.stroke-dashoffset]="1"
-              [attr.stroke-width]="item.options.strokeWidth"
-              [attr.stroke-linecap]="item.options.lineCap"
-              [attr.stroke-linejoin]="item.options.lineJoin"
-              [attr.stroke]="item.options.strokeColor"
-            ></path>
-          </g>
-          <g *ngSwitchCase="types.IMAGE">
-            <image
-              [attr.height]="item.options.height"
-              [attr.width]="item.options.width"
-              preserveAspectRatio="none"
-              [attr.xlink:href]="item.value"
-              [attr.href]="item.value"
-              [attr.stroke-width]="item.options.strokeWidth"
-              [attr.stroke-dasharray]="item.options.dasharray"
-              [attr.fill]="item.options.fill"
-              [attr.stroke]="item.options.strokeColor"
-              style="pointer-events: inherit"
-            ></image>
-          </g>
-          <g *ngSwitchCase="types.LINE">
-            <line
-              class="line"
-              [attr.x1]="item.options.x1"
-              [attr.y1]="item.options.y1"
-              [attr.x2]="item.options.x2"
-              [attr.y2]="item.options.y2"
-              style="pointer-events: inherit"
-              [attr.stroke-dasharray]="item.options.dasharray"
-              [attr.stroke-dashoffset]="1"
-              [attr.stroke-width]="item.options.strokeWidth"
-              [attr.stroke-linecap]="item.options.lineCap"
-              [attr.stroke-linejoin]="item.options.lineJoin"
-              [attr.stroke]="item.options.strokeColor"
-            ></line>
-          </g>
-          <g *ngSwitchCase="types.ARROW">
-            <line
-              class="line"
-              [attr.x1]="item.options.x1"
-              [attr.y1]="item.options.y1"
-              [attr.x2]="item.options.x2"
-              [attr.y2]="item.options.y2"
-              style="pointer-events: inherit"
-              [attr.stroke-dasharray]="item.options.dasharray"
-              [attr.stroke-dashoffset]="1"
-              [attr.stroke-width]="item.options.strokeWidth"
-              [attr.stroke-linecap]="item.options.lineCap"
-              [attr.stroke-linejoin]="item.options.lineJoin"
-              [attr.stroke]="item.options.strokeColor"
-              [attr.fill]="item.options.strokeColor"
-              marker-end="url(#arrow)"
-            ></line>
-          </g>
-          <g *ngSwitchCase="types.RECT">
-            <rect
-              class="rect"
-              [attr.x]="item.options.x2"
-              [attr.y]="item.options.y2"
-              [attr.rx]="item.options.rx"
-              [attr.width]="item.options.width"
-              [attr.height]="item.options.height"
-              [attr.stroke-dasharray]="item.options.dasharray"
-              [attr.stroke-dashoffset]="item.options.dashoffset"
-              [attr.stroke-width]="item.options.strokeWidth"
-              [attr.fill]="item.options.fill"
-              [attr.stroke]="item.options.strokeColor"
-            ></rect>
-          </g>
-          <g *ngSwitchCase="types.ELLIPSE">
-            <ellipse
-              [attr.cx]="item.options.cx"
-              [attr.cy]="item.options.cy"
-              [attr.rx]="item.options.rx"
-              [attr.ry]="item.options.ry"
-              style="pointer-events: inherit"
-              [attr.stroke-dasharray]="item.options.dasharray"
-              [attr.stroke-dashoffset]="1"
-              [attr.stroke-width]="item.options.strokeWidth"
-              [attr.stroke-linecap]="item.options.lineCap"
-              [attr.stroke-linejoin]="item.options.lineJoin"
-              [attr.stroke]="item.options.strokeColor"
-              [attr.fill]="item.options.fill"
-            ></ellipse>
-          </g>
-          <g *ngSwitchCase="types.TEXT">
-            <text
-              class="text_element"
-              text-anchor="start"
-              xml:space="preserve"
-              [attr.x]="item.options.left"
-              [attr.y]="item.options.top"
-              [attr.width]="item.options.width"
-              [attr.height]="item.options.height"
-              style="pointer-events: inherit; white-space: normal"
-              [attr.font-size]="item.options.fontSize"
-              [attr.font-family]="item.options.fontFamily"
-              [attr.stroke-dasharray]="item.options.dasharray"
-              [attr.stroke-dashoffset]="1"
-              [attr.stroke-width]="item.options.strokeWidth"
-              [attr.stroke-linecap]="item.options.lineCap"
-              [attr.stroke-linejoin]="item.options.lineJoin"
-              [attr.stroke]="item.options.strokeColor"
-              [attr.fill]="item.options.fill"
-              [attr.font-style]="item.options.fontStyle"
-              [attr.font-weight]="item.options.fontWeight"
-              alignment-baseline="before-edge"
-            >
-              {{ item.value }}
-            </text>
-          </g>
-          <g *ngSwitchDefault>
-            <text>Not defined type</text>
-          </g>
-        </g>
-      </ng-container>
-      <g class="temp-element" *ngIf="tempElement" [ngSwitch]="selectedTool">
-        <g *ngSwitchCase="tools.BRUSH">
+
+    <rect width="100%" height="100%" [attr.fill]="backgroundColor"></rect>
+
+    @if (enableGrid) {
+    <g [attr.transform]="'translate(' + gridTranslation.x + ',' + gridTranslation.y + ')'">
+      <rect
+        id="grid"
+        x="-100"
+        y="-100"
+        [attr.width]="canvasWidth + 200"
+        [attr.height]="canvasHeight + 200"
+        fill="url(#grid)"
+      ></rect>
+    </g>
+    }
+
+    <g
+      [attr.transform]="'translate(' + elementsTranslation.x + ',' + elementsTranslation.y + ')'"
+      style="pointer-events: all"
+    >
+      @for (item of data$ | async; track item.id) {
+      <g
+        class="wb_element"
+        [id]="'item_' + item.id"
+        [attr.data-wb-id]="item.id"
+        [attr.transform]="'translate(' + item.x + ',' + item.y + ')' + 'rotate(' + item.rotation + ')'"
+        [attr.opacity]="item.opacity / 100"
+      >
+        @switch (item.type) { @case (types.Pen) {
+        <g>
           <path
-            class="brush"
             fill="none"
-            [attr.d]="tempElement.value"
-            [attr.stroke-dasharray]="tempElement.options.dasharray"
-            [attr.stroke-dashoffset]="1"
-            [attr.stroke-width]="tempElement.options.strokeWidth"
-            [attr.stroke-linecap]="tempElement.options.lineCap"
-            [attr.stroke-linejoin]="tempElement.options.lineJoin"
-            [attr.stroke]="tempElement.options.strokeColor"
+            [attr.d]="item.path"
+            [attr.stroke-width]="item.style.strokeWidth"
+            [attr.stroke-linecap]="item.style.lineCap"
+            [attr.stroke-linejoin]="item.style.lineJoin"
+            [attr.stroke]="item.style.strokeColor"
+            [attr.stroke-dasharray]="item.style.dasharray"
+            [attr.stroke-dashoffset]="item.style.dashoffset"
           ></path>
         </g>
-        <g *ngSwitchCase="types.IMAGE">
+        } @case (types.Image) {
+        <g>
           <image
-            [attr.height]="tempElement.options.height"
-            [attr.width]="tempElement.options.width"
+            [attr.height]="item.height"
+            [attr.width]="item.width"
             preserveAspectRatio="none"
-            [attr.xlink:href]="tempElement.value"
-            [attr.href]="tempElement.value"
-            [attr.stroke-width]="tempElement.options.strokeWidth"
-            [attr.stroke-dasharray]="tempElement.options.dasharray"
-            [attr.fill]="tempElement.options.fill"
-            [attr.stroke]="tempElement.options.strokeColor"
-            style="pointer-events: inherit"
+            [attr.xlink:href]="item.src"
+            [attr.href]="item.src"
+            [attr.stroke-width]="item.style.strokeWidth"
+            [attr.fill]="item.style.fill"
+            [attr.stroke]="item.style.strokeColor"
+            [attr.stroke-dasharray]="item.style.dasharray"
+            [attr.stroke-dashoffset]="item.style.dashoffset"
           ></image>
         </g>
-        <g *ngSwitchCase="types.LINE">
+        } @case (types.Line) {
+
+        <g>
           <line
-            class="line"
-            [attr.x1]="tempElement.options.x1"
-            [attr.y1]="tempElement.options.y1"
-            [attr.x2]="tempElement.options.x2"
-            [attr.y2]="tempElement.options.y2"
-            style="pointer-events: inherit"
-            [attr.stroke-dasharray]="tempElement.options.dasharray"
-            [attr.stroke-dashoffset]="1"
-            [attr.stroke-width]="tempElement.options.strokeWidth"
-            [attr.stroke-linecap]="tempElement.options.lineCap"
-            [attr.stroke-linejoin]="tempElement.options.lineJoin"
-            [attr.stroke]="tempElement.options.strokeColor"
+            [attr.x1]="item.x1"
+            [attr.y1]="item.y1"
+            [attr.x2]="item.x2"
+            [attr.y2]="item.y2"
+            [attr.stroke-dasharray]="item.style.dasharray"
+            [attr.stroke-dashoffset]="item.style.dashoffset"
+            [attr.stroke-width]="item.style.strokeWidth"
+            [attr.stroke-linecap]="item.style.lineCap"
+            [attr.stroke]="item.style.strokeColor"
           ></line>
         </g>
-        <g *ngSwitchCase="types.ARROW">
+        } @case (types.Arrow) {
+        <g>
           <line
-            class="line"
-            [attr.x1]="tempElement.options.x1"
-            [attr.y1]="tempElement.options.y1"
-            [attr.x2]="tempElement.options.x2"
-            [attr.y2]="tempElement.options.y2"
-            style="pointer-events: inherit"
-            [attr.stroke-dasharray]="tempElement.options.dasharray"
-            [attr.stroke-dashoffset]="1"
-            [attr.stroke-width]="tempElement.options.strokeWidth"
-            [attr.stroke-linecap]="tempElement.options.lineCap"
-            [attr.stroke-linejoin]="tempElement.options.lineJoin"
-            [attr.stroke]="tempElement.options.strokeColor"
-            [attr.fill]="tempElement.options.strokeColor"
+            [attr.x1]="item.x1"
+            [attr.y1]="item.y1"
+            [attr.x2]="item.x2"
+            [attr.y2]="item.y2"
+            [attr.stroke-dasharray]="item.style.dasharray"
+            [attr.stroke-dashoffset]="item.style.dashoffset"
+            [attr.stroke-width]="item.style.strokeWidth"
+            [attr.stroke-linecap]="item.style.lineCap"
+            [attr.stroke]="item.style.strokeColor"
+            [attr.fill]="item.style.strokeColor"
             marker-end="url(#arrow)"
           ></line>
         </g>
-        <g *ngSwitchCase="types.RECT">
+        } @case (types.Rectangle) {
+        <g>
           <rect
-            class="rect"
-            [attr.x]="tempElement.options.x2"
-            [attr.y]="tempElement.options.y2"
-            [attr.rx]="tempElement.options.rx"
-            [attr.width]="tempElement.options.width"
-            [attr.height]="tempElement.options.height"
-            [attr.stroke-dasharray]="tempElement.options.dasharray"
-            [attr.stroke-dashoffset]="tempElement.options.dashoffset"
-            [attr.stroke-width]="tempElement.options.strokeWidth"
-            [attr.fill]="tempElement.options.fill"
-            [attr.stroke]="tempElement.options.strokeColor"
+            [attr.rx]="item.rx"
+            [attr.width]="item.width"
+            [attr.height]="item.height"
+            [attr.stroke-dasharray]="item.style.dasharray"
+            [attr.stroke-dashoffset]="item.style.dashoffset"
+            [attr.stroke-width]="item.style.strokeWidth"
+            [attr.fill]="item.style.fill"
+            [attr.stroke]="item.style.strokeColor"
+            [attr.stroke-linejoin]="item.style.lineJoin"
           ></rect>
         </g>
-        <g *ngSwitchCase="types.ELLIPSE">
+        } @case (types.Ellipse) {
+        <g>
           <ellipse
-            [attr.cx]="tempElement.options.cx"
-            [attr.cy]="tempElement.options.cy"
-            [attr.rx]="tempElement.options.rx"
-            [attr.ry]="tempElement.options.ry"
-            style="pointer-events: inherit"
-            [attr.stroke-dasharray]="tempElement.options.dasharray"
-            [attr.stroke-dashoffset]="1"
-            [attr.stroke-width]="tempElement.options.strokeWidth"
-            [attr.stroke-linecap]="tempElement.options.lineCap"
-            [attr.stroke-linejoin]="tempElement.options.lineJoin"
-            [attr.stroke]="tempElement.options.strokeColor"
-            [attr.fill]="tempElement.options.fill"
+            [attr.cx]="item.cx"
+            [attr.cy]="item.cy"
+            [attr.rx]="item.rx"
+            [attr.ry]="item.ry"
+            [attr.stroke-dasharray]="item.style.dasharray"
+            [attr.stroke-dashoffset]="item.style.dashoffset"
+            [attr.stroke-width]="item.style.strokeWidth"
+            [attr.stroke]="item.style.strokeColor"
+            [attr.fill]="item.style.fill"
           ></ellipse>
         </g>
-        <g *ngSwitchCase="types.TEXT"></g>
-        <g *ngSwitchDefault>
-          <text>Not defined type</text>
+        } @case (types.Text) {
+        <g [attr.transform]="'scale(' + item.scaleX + ',' + item.scaleY + ')'">
+          <!-- {{item.dimensions | json}} -->
+          <text
+            text-anchor="start"
+            [attr.font-size]="item.style.fontSize"
+            [attr.font-family]="item.style.fontFamily"
+            [attr.fill]="item.style.color"
+            [attr.font-style]="item.style.fontStyle"
+            [attr.font-weight]="item.style.fontWeight"
+            alignment-baseline="before-edge"
+            [attr.stroke-linecap]="item.style.lineCap"
+            [attr.stroke-lineJoin]="item.style.lineJoin"
+            [attr.stroke-dasharray]="item.style.dasharray"
+            [attr.stroke-dashoffset]="item.style.dashoffset"
+            [attr.stroke]="item.style.strokeColor"
+            [attr.stroke-width]="item.style.strokeWidth"
+          >
+            {{ item.text }}
+          </text>
         </g>
+        } }
       </g>
-      <g id="selectorParentGroup" *ngIf="selectedElement">
+      } @if(selectedElement) {
+      <g id="selectorParentGroup">
         <g
           class="selectorGroup"
           id="selectorGroup"
@@ -321,17 +197,15 @@
         >
           <g display="inline">
             <rect
-              id="selectedBox"
+              id="selectorBox"
               fill="none"
               stroke="#4F80FF"
-              shape-rendering="crispEdges"
-              style="pointer-events: none"
+              style="pointer-events: all"
               [attr.x]="rubberBox.x"
               [attr.y]="rubberBox.y"
               [attr.width]="rubberBox.width"
               [attr.height]="rubberBox.height"
               style="cursor: move"
-              (pointerdown)="moveSelect($event)"
             ></rect>
           </g>
           <g display="inline">
@@ -393,7 +267,6 @@
               pointer-events="all"
               [attr.x]="rubberBox.x - 4"
               [attr.y]="rubberBox.y - 4"
-              (pointerdown)="resizeSelect($event)"
             ></rect>
             <rect
               id="selectorGrip_resize_n"
@@ -405,7 +278,6 @@
               pointer-events="all"
               [attr.x]="rubberBox.x + rubberBox.width / 2 - 4"
               [attr.y]="rubberBox.y - 4"
-              (pointerdown)="resizeSelect($event)"
             ></rect>
             <rect
               id="selectorGrip_resize_ne"
@@ -417,7 +289,6 @@
               pointer-events="all"
               [attr.x]="rubberBox.x + rubberBox.width - 4"
               [attr.y]="rubberBox.y - 4"
-              (pointerdown)="resizeSelect($event)"
             ></rect>
             <rect
               id="selectorGrip_resize_e"
@@ -429,7 +300,6 @@
               pointer-events="all"
               [attr.x]="rubberBox.x + rubberBox.width - 4"
               [attr.y]="rubberBox.y + rubberBox.height / 2 - 4"
-              (pointerdown)="resizeSelect($event)"
             ></rect>
             <rect
               id="selectorGrip_resize_se"
@@ -441,7 +311,6 @@
               pointer-events="all"
               [attr.x]="rubberBox.x + rubberBox.width - 4"
               [attr.y]="rubberBox.y + rubberBox.height - 4"
-              (pointerdown)="resizeSelect($event)"
             ></rect>
             <rect
               id="selectorGrip_resize_s"
@@ -453,7 +322,6 @@
               pointer-events="all"
               [attr.x]="rubberBox.x + rubberBox.width / 2 - 4"
               [attr.y]="rubberBox.y + rubberBox.height - 4"
-              (pointerdown)="resizeSelect($event)"
             ></rect>
             <rect
               id="selectorGrip_resize_sw"
@@ -465,7 +333,6 @@
               pointer-events="all"
               [attr.x]="rubberBox.x - 4"
               [attr.y]="rubberBox.y + rubberBox.height - 4"
-              (pointerdown)="resizeSelect($event)"
             ></rect>
             <rect
               id="selectorGrip_resize_w"
@@ -477,17 +344,18 @@
               pointer-events="all"
               [attr.x]="rubberBox.x - 4"
               [attr.y]="rubberBox.y + rubberBox.height / 2 - 4"
-              (pointerdown)="resizeSelect($event)"
             ></rect>
           </g>
         </g>
       </g>
+      }
     </g>
   </svg>
 </svg>
 
+@if (selectedTool === tools.Text) {
 <div
-  *ngIf="tempElement && selectedTool === tools.TEXT"
+  id="text-editor"
   [style.font-family]="fontFamily"
   [style.font-size.px]="fontSize"
   [style.pointer-events]="'none'"
@@ -500,14 +368,11 @@
   <input
     #textInput
     type="text"
+    id="textInput"
     class="text-input"
     [style.width]="textInput.value.length + 'ch'"
     [style.height]="2 * zoom + 'ch'"
-    [style.top.px]="(tempElement.options.top || 0) * zoom"
-    [style.left.px]="(tempElement.options.left || 0) * zoom"
-    [style.font-size.px]="tempElement.options.fontSize"
-    [value]="tempElement.value"
-    (input)="updateTextItem(textInput.value)"
-    autofocus
+    autocomplete="off"
   />
 </div>
+}

@@ -1,300 +1,459 @@
 <app-header tagline="Documentation"></app-header>
 
 <section class="main-content">
-  <h2><a id="documentation" class="anchor" href="#documentation" aria-hidden="true"><span aria-hidden="true"
-        class="octicon octicon-link"></span></a>Documentation</h2>
+  <h2>📘 Documentation</h2>
 
-  <h3><a id="inputs" class="anchor" href="#configuration" aria-hidden="true"><span aria-hidden="true"
-        class="octicon octicon-link"></span></a>Component Inputs</h3>
-
+  <h3>📌 Component Inputs</h3>
   <table>
     <tr>
-      <th>Input</th>
-      <th>Type</th>
-      <th>Description</th>
-      <th>Defaults</th>
+      <th>⚙️ Input</th>
+      <th>🔠 Type</th>
+      <th>ℹ️ Description</th>
+      <th>🔧 Default</th>
     </tr>
     <tr>
       <td>[data]</td>
-      <td><span class="highlight">[<a href="/projects/ng-whiteboard/src/lib/models/whiteboard-element.model.ts">WhiteboardElement</a>]</span></td>
-      <td>The whiteboard data</td>
-      <td><span class="highlight">[]</span></td>
+      <td>
+        <code class="highlight"
+          ><a href="/projects/ng-whiteboard/src/lib/core/types/elements.ts">WhiteboardElement[]</a></code
+        >
+      </td>
+      <td>Whiteboard data</td>
+      <td><code class="highlight">[]</code></td>
     </tr>
     <tr>
       <td>[options]</td>
-      <td><span class="highlight"><a href="/projects/ng-whiteboard/src/lib/models/whiteboard-options.model.ts">WhiteboardOptions</a></span></td>
+      <td>
+        <code class="highlight"
+          ><a href="/projects/ng-whiteboard/src/lib/core/types/options.ts">WhiteboardOptions</a></code
+        >
+      </td>
       <td>component configuration object, properties described below</td>
-      <td><span class="highlight">null</span></td>
+      <td><code class="highlight">null</code></td>
     </tr>
     <tr>
       <td>[drawingEnabled]</td>
-      <td><span class="highlight">boolean</span></td>
+      <td><code class="highlight">boolean</code></td>
       <td>Enable mouse/touch interactions</td>
-      <td><span class="highlight">true</span></td>
+      <td><code class="highlight">true</code></td>
     </tr>
     <tr>
       <td>[selectedTool]</td>
-      <td><span class="highlight"><a href="/projects/ng-whiteboard/src/lib/models/tools.enum.ts">ToolsEnum</a></span></td>
+      <td>
+        <code class="highlight"><a href="/projects/ng-whiteboard/src/lib/core/types/tools.ts">ToolType</a></code>
+      </td>
       <td>The current selected tool</td>
-      <td><span class="highlight">ToolsEnum.BRUSH</span></td>
+      <td><code class="highlight">ToolType.Pen</code></td>
     </tr>
     <tr>
       <td>[canvasWidth]</td>
-      <td><span class="highlight">number</span></td>
+      <td><code class="highlight">number</code></td>
       <td>The width of whiteboard canvas</td>
-      <td><span class="highlight">800</span></td>
+      <td><code class="highlight">800</code></td>
     </tr>
     <tr>
       <td>[canvasHeight]</td>
-      <td><span class="highlight">number</span></td>
+      <td><code class="highlight">number</code></td>
       <td>The height of whiteboard canvas</td>
-      <td><span class="highlight">600</span></td>
+      <td><code class="highlight">600</code></td>
     </tr>
     <tr>
       <td>[fullScreen]</td>
-      <td><span class="highlight">boolean</span></td>
+      <td><code class="highlight">boolean</code></td>
       <td>if true change (canvasWidth, canvasHeight) to fit the parent container</td>
-      <td><span class="highlight">true</span></td>
+      <td><code class="highlight">true</code></td>
     </tr>
     <tr>
       <td>[strokeColor]</td>
-      <td><span class="highlight">string</span></td>
+      <td><code class="highlight">string</code></td>
       <td>The default stroke color</td>
-      <td><span class="highlight">#000000</span></td>
-    </tr>
-    <tr>
-      <td>[backgroundColor]</td>
-      <td><span class="highlight">string</span></td>
-      <td>The default background color</td>
-      <td><span class="highlight">#FFFFFF</span></td>
+      <td><code class="highlight">#333333</code></td>
     </tr>
     <tr>
       <td>[fill]</td>
-      <td><span class="highlight">number</span></td>
+      <td><code class="highlight">number</code></td>
       <td>The default fill color</td>
-      <td><span class="highlight">#333333</span></td>
+      <td><code class="highlight">transparent</code></td>
+    </tr>
+    <tr>
+      <td>[backgroundColor]</td>
+      <td><code class="highlight">string</code></td>
+      <td>The default background color</td>
+      <td><code class="highlight">#F8F9FA</code></td>
     </tr>
     <tr>
       <td>[strokeWidth]</td>
-      <td><span class="highlight">number</span></td>
+      <td><code class="highlight">number</code></td>
       <td>The default stroke width</td>
-      <td><span class="highlight">2</span></td>
+      <td><code class="highlight">2</code></td>
     </tr>
     <tr>
       <td>[zoom]</td>
-      <td><span class="highlight">number</span></td>
+      <td><code class="highlight">number</code></td>
       <td>Zoom level</td>
-      <td><span class="highlight">1</span></td>
+      <td><code class="highlight">1</code></td>
     </tr>
     <tr>
       <td>[fontFamily]</td>
-      <td><span class="highlight">string</span></td>
+      <td><code class="highlight">string</code></td>
       <td>The default font family</td>
-      <td><span class="highlight">sans-serif</span></td>
+      <td><code class="highlight">sans-serif</code></td>
     </tr>
     <tr>
       <td>[fontSize]</td>
-      <td><span class="highlight">number</span></td>
+      <td><code class="highlight">number</code></td>
       <td>The default font size</td>
-      <td><span class="highlight">24</span></td>
+      <td><code class="highlight">24</code></td>
     </tr>
-    <tr>
+    <tr></tr>
     <tr>
       <td>[center]</td>
-      <td><span class="highlight">boolean</span></td>
+      <td><code class="highlight">boolean</code></td>
       <td>Center the canvas in parent component, works with fullScreen: false</td>
-      <td><span class="highlight">true</span></td>
+      <td><code class="highlight">true</code></td>
     </tr>
     <tr>
       <td>[x]</td>
-      <td><span class="highlight">number</span></td>
+      <td><code class="highlight">number</code></td>
       <td>if center is false, set the X axis</td>
-      <td><span class="highlight">0</span></td>
+      <td><code class="highlight">0</code></td>
     </tr>
     <tr>
       <td>[y]</td>
-      <td><span class="highlight">number</span></td>
+      <td><code class="highlight">number</code></td>
       <td>if center is false, set the Y axis</td>
-      <td><span class="highlight">0</span></td>
+      <td><code class="highlight">0</code></td>
     </tr>
     <tr>
       <td>[enableGrid]</td>
-      <td><span class="highlight">boolean</span></td>
+      <td><code class="highlight">boolean</code></td>
       <td>Enable the grid pattern</td>
-      <td><span class="highlight">false</span></td>
+      <td><code class="highlight">false</code></td>
     </tr>
     <tr>
       <td>[gridSize]</td>
-      <td><span class="highlight">number</span></td>
+      <td><code class="highlight">number</code></td>
       <td>Set the grid inner boxes size</td>
-      <td><span class="highlight">10</span></td>
+      <td><code class="highlight">10</code></td>
     </tr>
     <tr>
       <td>[snapToGrid]</td>
-      <td><span class="highlight">boolean</span></td>
+      <td><code class="highlight">boolean</code></td>
       <td>Enable snaping to grid</td>
-      <td><span class="highlight">false</span></td>
+      <td><code class="highlight">false</code></td>
     </tr>
     <tr>
       <td>[lineJoin]</td>
-      <td><span class="highlight"><a href="">LineJoinEnum</a></span></td>
+      <td>
+        <code class="highlight"><a href="">LineJoin</a></code>
+      </td>
       <td>The default Line join</td>
-      <td><span class="highlight">LineJoinEnum.ROUND</span></td>
+      <td><code class="highlight">LineJoin.Miter</code></td>
     </tr>
     <tr>
       <td>[lineCap]</td>
-      <td><span class="highlight"><a href="">LineCapEnum</a></span></td>
+      <td>
+        <code class="highlight"><a href="">LineCap</a></code>
+      </td>
       <td>The default Line cap</td>
-      <td><span class="highlight">LineCapEnum.ROUND</span></td>
+      <td><code class="highlight">LineCap.Butt</code></td>
     </tr>
     <tr>
       <td>[dasharray]</td>
-      <td><span class="highlight">string</span></td>
+      <td><code class="highlight">string</code></td>
       <td>The default dash-array</td>
-      <td><span class="highlight">''</span></td>
+      <td><code class="highlight">''</code></td>
     </tr>
     <tr>
       <td>[dashoffset]</td>
-      <td><span class="highlight">number</span></td>
+      <td><code class="highlight">number</code></td>
       <td>The default dash-offset</td>
-      <td><span class="highlight">0</span></td>
+      <td><code class="highlight">0</code></td>
     </tr>
   </table>
 
-  <h3><a id="events" class="anchor" href="#events" aria-hidden="true"><span aria-hidden="true"
-        class="octicon octicon-link"></span></a>Component Outputs/Events</h3>
+  <h3>📢 Component Outputs/Events</h3>
 
   <table>
-    <tr>
-      <th>Event</th>
-      <th>Description</th>
-      <th>Arguments</th>
-    </tr>
-    <tr>
-      <td>(ready)</td>
-      <td>
-        <p>Emitted when the component is ready</p>
-      </td>
-      <td><span class="highlight">none</span></td>
-    </tr>
-    <tr>
-      <td>(dataChange)</td>
-      <td>
-        <p>Emitted when the data is changed</p>
-      </td>
-      <td><span class="highlight">data</span></td>
-    </tr>
-    <tr>
-      <td>(clear)</td>
-      <td>
-        <p>Emitted when the canvas is cleared</p>
-      </td>
-      <td><span class="highlight">none</span></td>
-    </tr>
-    <tr>
-      <td>(undo)</td>
-      <td>
-        <p>Emitted when the user undo an action</p>
-      </td>
-      <td><span class="highlight">none</span></td>
-    </tr>
-    <tr>
-      <td>(redo)</td>
-      <td>
-        <p>Emitted when the user redo an action</p>
-      </td>
-      <td><span class="highlight">none</span></td>
-    </tr>
-    <tr>
-      <td>(imageAdded)</td>
-      <td>
-        <p>Emitted when the user add an image to the canvas</p>
-      </td>
-      <td><span class="highlight">none</span></td>
-    </tr>
-    <tr>
-      <td>(save)</td>
-      <td>
-        <p>Emitted when the user save the canvas</p>
-      </td>
-      <td>
-        <p><span class="highlight">base64 image</span></p>
-      </td>
-    </tr>
-    <tr>
-      <td>(selectElement)</td>
-      <td>
-        <p>Emitted when the user select/deselect an element</p>
-      </td>
-      <td>
-        <p><span class="highlight">WhiteboardElement | null</span></p>
-      </td>
-    </tr>
-    <tr>
-      <td>(deleteElement)</td>
-      <td>
-        <p>Emitted when the user delete an element</p>
-      </td>
-      <td>
-        <p><span class="highlight">WhiteboardElement</span></p>
-      </td>
-    </tr>
-    <tr>
-      <td>(toolChanged)</td>
-      <td>
-        <p>Emitted when the user change the tool</p>
-      </td>
-      <td>
-        <p><span class="highlight">ToolsEnum</span></p>
-      </td>
-    </tr>
+    <thead>
+      <tr>
+        <th>🎯 Event</th>
+        <th>📝 Description</th>
+        <th>🛠 Arguments</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Lifecycle Events -->
+      <tr>
+        <td>
+          <strong><code>ready</code></strong>
+        </td>
+        <td>Emitted when the whiteboard is fully initialized and ready for use.</td>
+        <td><code class="highlight">none</code></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>destroyed</code></strong>
+        </td>
+        <td>Emitted when the whiteboard is destroyed, allowing for cleanup.</td>
+        <td><code class="highlight">none</code></td>
+      </tr>
+
+      <!-- Drawing Events -->
+      <tr>
+        <td>
+          <strong><code>drawStart</code></strong>
+        </td>
+        <td>Triggered when a user starts drawing on the whiteboard.</td>
+        <td><code class="highlight">none</code></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>drawing</code></strong>
+        </td>
+        <td>Emitted continuously while the user is drawing.</td>
+        <td><code class="highlight">none</code></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>drawEnd</code></strong>
+        </td>
+        <td>Triggered when the user stops drawing.</td>
+        <td><code class="highlight">none</code></td>
+      </tr>
+
+      <!-- State & Data Events -->
+      <tr>
+        <td>
+          <strong><code>undo</code></strong>
+        </td>
+        <td>Emitted when an undo action is performed.</td>
+        <td><code class="highlight">none</code></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>redo</code></strong>
+        </td>
+        <td>Emitted when a redo action is performed.</td>
+        <td><code class="highlight">none</code></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>clear</code></strong>
+        </td>
+        <td>Triggered when the whiteboard is cleared.</td>
+        <td><code class="highlight">none</code></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>dataChange</code></strong>
+        </td>
+        <td>Emitted when the whiteboard's internal data state changes.</td>
+        <td><code class="highlight">data</code></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>save</code></strong>
+        </td>
+        <td>Triggered when the whiteboard state is saved.</td>
+        <td><code class="highlight">base64 image</code></td>
+      </tr>
+
+      <!-- Element Events -->
+      <tr>
+        <td>
+          <strong><code>elementAdded</code></strong>
+        </td>
+        <td>Emitted when a new element is added to the whiteboard.</td>
+        <td><code class="highlight">WhiteboardElement</code></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>elementUpdated</code></strong>
+        </td>
+        <td>Triggered when an existing element is modified.</td>
+        <td><code class="highlight">WhiteboardElement</code></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>elementSelected</code></strong>
+        </td>
+        <td>Emitted when an element is selected.</td>
+        <td><code class="highlight">WhiteboardElement | null</code></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>elementDeleted</code></strong>
+        </td>
+        <td>Triggered when an element is removed.</td>
+        <td><code class="highlight">WhiteboardElement</code></td>
+      </tr>
+
+      <!-- Image Events -->
+      <tr>
+        <td>
+          <strong><code>imageAdded</code></strong>
+        </td>
+        <td>Emitted when an image is added to the whiteboard.</td>
+        <td><code class="highlight">none</code></td>
+      </tr>
+
+      <!-- Configuration & Tool Events -->
+      <tr>
+        <td>
+          <strong><code>selectedToolChange</code></strong>
+        </td>
+        <td>Triggered when the active drawing tool is changed.</td>
+        <td><code class="highlight">ToolsEnum</code></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>configChanged</code></strong>
+        </td>
+        <td>Emitted when the whiteboard configuration settings are updated.</td>
+        <td><code class="highlight">ConfigObject</code></td>
+      </tr>
+    </tbody>
   </table>
 
-  <h3><a id="events" class="anchor" href="#events" aria-hidden="true"><span aria-hidden="true"
-        class="octicon octicon-link"></span></a>Service Methods</h3>
+  <h3>🛠 Service Methods</h3>
+
+  <p>
+    The
+    <code class="highlight">
+      <a href="/projects/ng-whiteboard/src/lib/ng-whiteboard.service.ts">WhiteboardService</a>
+    </code>
+    provides methods to manage elements, control the canvas, and interact with the whiteboard.
+  </p>
+
   <table>
-    <tr>
-      <th>Method</th>
-      <th>Description</th>
-      <th>Arguments</th>
-      <th>Defaults</th>
-    </tr>
-    <tr>
-      <td>save</td>
-      <td>Save the current board</td>
-      <td>
-        <p><span class="highlight">format</span>: string</p>
-        <p><span class="highlight">name</span>: string</p>
-      </td>
-      <td>
-        <p><span class="highlight">format</span>: 'base64'</p>
-        <p><span class="highlight">name</span>: 'New board'</p>
-      </td>
-    </tr>
-    <tr>
-      <td>erase</td>
-      <td>Clean the whiteboard</td>
-      <td><span class="highlight">none</span></td>
-      <td><span class="highlight">none</span></td>
-    </tr>
-    <tr>
-      <td>undo</td>
-      <td>Undo last action</td>
-      <td><span class="highlight">none</span></td>
-      <td><span class="highlight">none</span></td>
-    </tr>
-    <tr>
-      <td>redo</td>
-      <td>Redo last action</td>
-      <td><span class="highlight">none</span></td>
-      <td><span class="highlight">none</span></td>
-    </tr>
-    <tr>
-      <td>addImage</td>
-      <td>Add images to the board</td>
-      <td><span class="highlight">image</span>: (string; ArrayBuffer)</td>
-      <td><span class="highlight">none</span></td>
-    </tr>
-  </table>
+    <thead>
+      <tr>
+        <th>🎯 Method</th>
+        <th>📝 Description</th>
+        <th>🛠 Parameters</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- 📌 Element Management -->
+      <tr>
+        <td>
+          <strong><code>addElement(element: WhiteboardElement)</code></strong>
+        </td>
+        <td>Adds a new element (e.g., shape, text) to the whiteboard.</td>
+        <td><code class="highlight">element: WhiteboardElement</code></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>addImage(image: string, x?: number, y?: number)</code></strong>
+        </td>
+        <td>Adds an image to the whiteboard at a specified position.</td>
+        <td><code class="highlight">image: string, x?: number, y?: number</code></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>removeElement(id: string)</code></strong>
+        </td>
+        <td>Removes an element from the whiteboard by its ID.</td>
+        <td><code class="highlight">id: string</code></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>updateElement(element: WhiteboardElement)</code></strong>
+        </td>
+        <td>Updates an existing element with new properties.</td>
+        <td><code class="highlight">element: WhiteboardElement</code></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>updateSelectedElement(partialElement: Partial&lt;WhiteboardElement&gt;)</code></strong>
+        </td>
+        <td>Modifies only specific properties of the currently selected element.</td>
+        <td><code class="highlight">partialElement: Partial&lt;WhiteboardElement&gt;</code></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>selectElement(element: WhiteboardElement | null)</code></strong>
+        </td>
+        <td>Selects or deselects an element on the whiteboard.</td>
+        <td><code class="highlight">element: WhiteboardElement | null</code></td>
+      </tr>
 
+      <!-- 🔄 State Management -->
+      <tr>
+        <td>
+          <strong><code>clear()</code></strong>
+        </td>
+        <td>Clears all elements from the whiteboard.</td>
+        <td><code class="highlight">none</code></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>undo()</code></strong>
+        </td>
+        <td>Reverts the last action.</td>
+        <td><code class="highlight">none</code></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>redo()</code></strong>
+        </td>
+        <td>Restores the last undone action.</td>
+        <td><code class="highlight">none</code></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>save(format = FormatType.Base64, name = 'New board')</code></strong>
+        </td>
+        <td>Saves the current whiteboard state in the specified format (e.g., Base64, JSON, SVG).</td>
+        <td><code class="highlight">format: FormatType, name: string</code></td>
+      </tr>
+
+      <!-- 🖌 Drawing Tools & Interaction -->
+      <tr>
+        <td>
+          <strong><code>setActiveTool(tool: ToolType)</code></strong>
+        </td>
+        <td>Sets the current drawing tool (e.g., pen, eraser, shape).</td>
+        <td><code class="highlight">tool: ToolType</code></td>
+      </tr>
+
+      <!-- 🎨 Canvas Control -->
+      <tr>
+        <td>
+          <strong><code>setCanvasDimensions(width: number, height: number)</code></strong>
+        </td>
+        <td>Sets the width and height of the whiteboard canvas.</td>
+        <td><code class="highlight">width: number, height: number</code></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>setCanvasPosition(x: number, y: number)</code></strong>
+        </td>
+        <td>Moves the canvas to a specific position.</td>
+        <td><code class="highlight">x: number, y: number</code></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>centerCanvas()</code></strong>
+        </td>
+        <td>Centers the whiteboard canvas within the viewport.</td>
+        <td><code class="highlight">none</code></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>fullScreen()</code></strong>
+        </td>
+        <td>Toggles full-screen mode for the whiteboard.</td>
+        <td><code class="highlight">none</code></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>toggleGrid()</code></strong>
+        </td>
+        <td>Enables or disables the background grid for alignment.</td>
+        <td><code class="highlight">none</code></td>
+      </tr>
+    </tbody>
+  </table>
 </section>

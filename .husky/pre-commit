@@ -1,0 +1,3 @@
+yarn test:ci
+yarn format:check
+yarn copy:readme

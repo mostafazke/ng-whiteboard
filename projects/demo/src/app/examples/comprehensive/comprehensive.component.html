@@ -1,1027 +1,864 @@
-<div class="demo">
-  <div class="editor">
-    <div id="rulers">
-      <div id="ruler_corner"></div>
-      <div id="ruler_x"></div>
-      <div id="ruler_y"></div>
-    </div>
-
-    <div #workarea id="workarea" class="select" style="overflow: scroll" (mousewheel)="zoomWheel($event)">
-      <div id="svgcanvas" [style.width.px]="outerWidth" [style.height.px]="outerHeight">
-        <ng-whiteboard
-          #whiteboard
-          [selectedTool]="selectedTool"
-          [options]="options"
-          (selectElement)="setSelectedElement($event)"
-          (save)="onSave($event)"
-          [strokeWidth]="options.strokeWidth"
-          (toolChanged)="selectedTool = $event"
-          [zoom]="zoom"
-          [canvasHeight]="options.canvasHeight"
-          [canvasWidth]="options.canvasWidth"
-          [x]="x"
-          [y]="y"
-          [fullScreen]="false"
-          [strokeColor]="options.strokeColor"
-          [fill]="options.fill"
-          [backgroundColor]="options.backgroundColor"
-        >
-        </ng-whiteboard>
-      </div>
-    </div>
-
-    <div id="menu_bar" class="active">
-      <div class="menu">
-        <div class="menu_title" (click)="newDocument()" title="New document">
-          <svg viewBox="0 0 16 16" width="20" height="20">
-            <path
-              fill="#565a66"
-              d="m9.5 1.1l3.4 3.5l.1.4v2h-1V6H8V2H3v11h4v1H2.5l-.5-.5v-12l.5-.5h6.7l.3.1zM9 2v3h2.9L9 2zm4 14h-1v-3H9v-1h3V9h1v3h3v1h-3v3z"
-            ></path>
-          </svg>
-        </div>
-      </div>
-      <div class="menu">
-        <div class="menu_title" title="Save Board">
-          <svg viewBox="0 0 20 20" width="20" height="20">
-            <path
-              d="M12.984 12.656l2.625-2.578 1.406 1.406-5.016 5.016-5.016-5.016 1.406-1.406 2.625 2.578v-9.656h1.969v9.656zM18.984 12h2.016v6.984q0 0.797-0.609 1.406t-1.406 0.609h-13.969q-0.797 0-1.406-0.609t-0.609-1.406v-6.984h2.016v6.984h13.969v-6.984z"
-              fill="#565a66"
-            ></path>
-          </svg>
-        </div>
-        <div class="menu_list inverted-undo" id="file_menu">
-          <div class="menu_item" (click)="saveAs(formatTypes.Png)">Save as PNG</div>
-          <div class="menu_item" (click)="saveAs(formatTypes.Jpeg)">Save as JPEG</div>
-          <div class="menu_item" (click)="saveAs(formatTypes.Svg)">Save as SVG</div>
-          <div class="menu_item" (click)="saveAs(formatTypes.Base64)">Copy Base-64</div>
-        </div>
-      </div>
-
-      <div class="menu">
-        <label class="menu_title" title="Add image">
-          <svg viewBox="0 0 20 20" width="20" height="20">
-            <path
-              fill="#565a66"
-              d="M4 5h13v7h2V5c0-1.103-.897-2-2-2H4c-1.103 0-2 .897-2 2v12c0 1.103.897 2 2 2h8v-2H4V5z"
-            ></path>
-            <path fill="#565a66" d="m8 11l-3 4h11l-4-6l-3 4z"></path>
-            <path fill="#565a66" d="M19 14h-2v3h-3v2h3v3h2v-3h3v-2h-3z"></path>
-          </svg>
-          <input type="file" class="file-input" (change)="addImage($event.target)" />
-        </label>
-      </div>
-      <div class="menu">
-        <div class="menu_title" (click)="undo()" title="Undo">
-          <svg viewBox="0 0 20 20" width="20" height="20">
-            <path
-              fill="#565a66"
-              d="M9 10h6c1.654 0 3 1.346 3 3s-1.346 3-3 3h-3v2h3c2.757 0 5-2.243 5-5s-2.243-5-5-5H9V5L4 9l5 4v-3z"
-            ></path>
-          </svg>
-        </div>
-      </div>
-      <div class="menu">
-        <div class="menu_title" (click)="redo()" title="Redo">
-          <svg viewBox="0 0 20 20" width="20" height="20">
-            <path
-              fill="#565a66"
-              d="M9 18h3v-2H9c-1.654 0-3-1.346-3-3s1.346-3 3-3h6v3l5-4l-5-4v3H9c-2.757 0-5 2.243-5 5s2.243 5 5 5z"
-            ></path>
-          </svg>
-        </div>
-      </div>
-    </div>
-
-    <div id="panels" class="tools_panel">
-      <ng-container *ngIf="selectedElement">
-        <ng-container [ngSwitch]="selectedElement.type">
-          <ng-container *ngSwitchCase="elementTypeEnum.BRUSH">
-            <div id="path_panel" class="context_panel clearfix" style="display: block">
-              <h4>Path</h4>
-              <div class="draginputs">
-                <label class="draginput" (mousedown)="onDragDown(path_x, selectedElement, 'x')">
-                  <input
-                    #path_x
-                    class="attr_changer"
-                    type="text"
-                    min=""
-                    max=""
-                    step="1"
-                    [value]="selectedElement.x"
-                    (input)="setNumberValue(selectedElement, 'x', +path_x.value)"
-                  />
-                  <span>X</span>
-                </label>
-                <label class="draginput" (mousedown)="onDragDown(path_y, selectedElement, 'y')">
-                  <input
-                    #path_y
-                    class="attr_changer"
-                    type="text"
-                    min=""
-                    max=""
-                    step="1"
-                    [value]="selectedElement.y"
-                    (input)="setNumberValue(selectedElement, 'y', +path_y.value)"
-                  />
-                  <span>Y</span>
-                </label>
-              </div>
-            </div>
-          </ng-container>
-          <ng-container *ngSwitchCase="elementTypeEnum.RECT">
-            <div id="rect_panel" class="context_panel" style="display: block">
-              <h4>Rectangle</h4>
-              <div class="draginputs">
-                <label class="draginput" (mousedown)="onDragDown(rect_x, selectedElement, 'x')">
-                  <input
-                    #rect_x
-                    class="attr_changer"
-                    type="text"
-                    min=""
-                    max=""
-                    step="1"
-                    [value]="selectedElement.x"
-                    (input)="setNumberValue(selectedElement, 'x', +rect_x.value)"
-                  />
-                  <span>X</span>
-                </label>
-                <label class="draginput" (mousedown)="onDragDown(rect_y, selectedElement, 'y')">
-                  <input
-                    #rect_y
-                    class="attr_changer"
-                    type="text"
-                    min=""
-                    max=""
-                    step="1"
-                    [value]="selectedElement.y"
-                    (input)="setNumberValue(selectedElement, 'y', +rect_y.value)"
-                  />
-                  <span>Y</span>
-                </label>
-                <label class="draginput" (mousedown)="onDragDown(rect_width, selectedElement.options, 'width')">
-                  <input
-                    #rect_width
-                    class="attr_changer"
-                    type="text"
-                    min=""
-                    max=""
-                    step="1"
-                    [value]="selectedElement.options.width"
-                    (input)="setNumberValue(selectedElement.options, 'width', +rect_width.value)"
-                  />
-                  <span class="icon_label">Width</span>
-                </label>
-                <label class="draginput" (mousedown)="onDragDown(rect_height, selectedElement.options, 'height')">
-                  <input
-                    #rect_height
-                    class="attr_changer"
-                    type="text"
-                    min=""
-                    max=""
-                    step="1"
-                    [value]="selectedElement.options.height"
-                    (input)="setNumberValue(selectedElement.options, 'height', +rect_height.value)"
-                  />
-                  <span class="icon_label">Height</span>
-                </label>
-              </div>
-            </div>
-          </ng-container>
-          <ng-container *ngSwitchCase="elementTypeEnum.IMAGE">
-            <div id="image_panel" class="context_panel clearfix" style="display: block">
-              <h4>Image</h4>
-              <div class="draginputs">
-                <label class="draginput" (mousedown)="onDragDown(image_x, selectedElement, 'x')">
-                  <input
-                    #image_x
-                    class="attr_changer"
-                    title="Change X coordinate"
-                    type="text"
-                    min=""
-                    max=""
-                    step="1"
-                    [value]="selectedElement.x"
-                    (input)="setNumberValue(selectedElement, 'x', +image_x.value)"
-                  />
-                  <span>X</span>
-                </label>
-                <label class="draginput" (mousedown)="onDragDown(image_y, selectedElement, 'y')">
-                  <input
-                    #image_y
-                    class="attr_changer"
-                    title="Change Y coordinate"
-                    type="text"
-                    min=""
-                    max=""
-                    step="1"
-                    [value]="selectedElement.y"
-                    (input)="setNumberValue(selectedElement, 'y', +image_y.value)"
-                  />
-                  <span>Y</span>
-                </label>
-                <label class="draginput" (mousedown)="onDragDown(image_width, selectedElement.options, 'width')">
-                  <input
-                    #image_width
-                    class="attr_changer"
-                    type="text"
-                    min=""
-                    max=""
-                    step="1"
-                    [value]="selectedElement.options.width"
-                    (input)="setNumberValue(selectedElement.options, 'width', +image_width.value)"
-                  />
-                  <span class="icon_label">Width</span>
-                </label>
-                <label class="draginput" (mousedown)="onDragDown(image_height, selectedElement.options, 'height')">
-                  <input
-                    #image_height
-                    class="attr_changer"
-                    type="text"
-                    min=""
-                    max=""
-                    step="1"
-                    [value]="selectedElement.options.height"
-                    (input)="setNumberValue(selectedElement.options, 'height', +image_height.value)"
-                  />
-                  <span class="icon_label">Height</span>
-                </label>
-              </div>
-            </div>
-          </ng-container>
-          <ng-container *ngSwitchCase="elementTypeEnum.ELLIPSE">
-            <div id="ellipse_panel" class="context_panel" style="display: block">
-              <h4>Ellipse</h4>
-              <div class="draginputs">
-                <label
-                  class="draginput"
-                  id="tool_ellipse_cx"
-                  (mousedown)="onDragDown(ellipse_cx, selectedElement.options, 'cx')"
-                >
-                  <input
-                    #ellipse_cx
-                    class="attr_changer"
-                    title="Change ellipse's cx coordinate"
-                    type="text"
-                    min=""
-                    max=""
-                    step="1"
-                    [value]="selectedElement.options.cx"
-                    (input)="setNumberValue(selectedElement.options, 'cx', +ellipse_cx.value)"
-                  />
-                  <span>X</span>
-                </label>
-                <label class="draginput" (mousedown)="onDragDown(ellipse_cy, selectedElement.options, 'cy')">
-                  <input
-                    #ellipse_cy
-                    class="attr_changer"
-                    title="Change ellipse's cy coordinate"
-                    type="text"
-                    min=""
-                    max=""
-                    step="1"
-                    [value]="selectedElement.options.cy"
-                    (input)="setNumberValue(selectedElement.options, 'cy', +ellipse_cy.value)"
-                  />
-                  <span>Y</span>
-                </label>
-                <label class="draginput" (mousedown)="onDragDown(ellipse_rx, selectedElement.options, 'rx')">
-                  <input
-                    #ellipse_rx
-                    class="attr_changer"
-                    title="Change ellipse's x radius"
-                    type="text"
-                    min=""
-                    max=""
-                    step="1"
-                    [value]="selectedElement.options.rx"
-                    (input)="setNumberValue(selectedElement.options, 'rx', +ellipse_rx.value)"
-                  />
-                  <span>Radius X</span>
-                </label>
-                <label class="draginput" (mousedown)="onDragDown(ellipse_ry, selectedElement.options, 'ry')">
-                  <input
-                    #ellipse_ry
-                    class="attr_changer"
-                    title="Change ellipse's y radius"
-                    type="text"
-                    min=""
-                    max=""
-                    step="1"
-                    [value]="selectedElement.options.ry"
-                    (input)="setNumberValue(selectedElement.options, 'ry', +ellipse_ry.value)"
-                  />
-                  <span>Radius Y</span>
-                </label>
-              </div>
-            </div>
-          </ng-container>
-          <ng-container *ngSwitchCase="elementTypeEnum.LINE">
-            <div id="line_panel" class="context_panel clearfix" style="display: block">
-              <h4>Line</h4>
-              <div class="draginputs">
-                <label class="draginput" (mousedown)="onDragDown(line_x1, selectedElement.options, 'x1')">
-                  <input
-                    #line_x1
-                    class="attr_changer"
-                    type="text"
-                    min=""
-                    max=""
-                    step="1"
-                    title="Change line's starting x coordinate"
-                    [value]="selectedElement.options.x1"
-                    (input)="setNumberValue(selectedElement.options, 'x1', +line_x1.value)"
-                  />
-                  <span>Start X</span>
-                </label>
-                <label class="draginput" (mousedown)="onDragDown(line_y1, selectedElement.options, 'y1')">
-                  <input
-                    #line_y1
-                    class="attr_changer"
-                    type="text"
-                    min=""
-                    max=""
-                    step="1"
-                    title="Change line's starting y coordinate"
-                    [value]="selectedElement.options.y1"
-                    (input)="setNumberValue(selectedElement.options, 'y1', +line_y1.value)"
-                  />
-                  <span>Start Y</span>
-                </label>
-                <label class="draginput" (mousedown)="onDragDown(line_x2, selectedElement.options, 'x2')">
-                  <input
-                    #line_x2
-                    class="attr_changer"
-                    type="text"
-                    min=""
-                    max=""
-                    step="1"
-                    title="Change line's ending x coordinate"
-                    [value]="selectedElement.options.x2"
-                    (input)="setNumberValue(selectedElement.options, 'x2', +line_x2.value)"
-                  />
-                  <span>End X</span>
-                </label>
-                <label class="draginput" (mousedown)="onDragDown(line_y2, selectedElement.options, 'y2')">
-                  <input
-                    #line_y2
-                    class="attr_changer"
-                    type="text"
-                    min=""
-                    max=""
-                    step="1"
-                    title="Change line's ending y coordinate"
-                    [value]="selectedElement.options.y2"
-                    (input)="setNumberValue(selectedElement.options, 'y2', +line_y2.value)"
-                  />
-                  <span>End Y</span>
-                </label>
-              </div>
-            </div>
-          </ng-container>
-          <ng-container *ngSwitchCase="elementTypeEnum.ARROW">
-            <div id="arrow_panel" class="context_panel clearfix" style="display: block">
-              <h4>Arrow</h4>
-              <div class="draginputs">
-                <label class="draginput" (mousedown)="onDragDown(line_x1, selectedElement.options, 'x1')">
-                  <input
-                    #line_x1
-                    class="attr_changer"
-                    type="text"
-                    min=""
-                    max=""
-                    step="1"
-                    title="Change line's starting x coordinate"
-                    [value]="selectedElement.options.x1"
-                    (input)="setNumberValue(selectedElement.options, 'x1', +line_x1.value)"
-                  />
-                  <span>Start X</span>
-                </label>
-                <label class="draginput" (mousedown)="onDragDown(line_y1, selectedElement.options, 'y1')">
-                  <input
-                    #line_y1
-                    class="attr_changer"
-                    type="text"
-                    min=""
-                    max=""
-                    step="1"
-                    title="Change line's starting y coordinate"
-                    [value]="selectedElement.options.y1"
-                    (input)="setNumberValue(selectedElement.options, 'y1', +line_y1.value)"
-                  />
-                  <span>Start Y</span>
-                </label>
-                <label class="draginput" (mousedown)="onDragDown(line_x2, selectedElement.options, 'x2')">
-                  <input
-                    #line_x2
-                    class="attr_changer"
-                    type="text"
-                    min=""
-                    max=""
-                    step="1"
-                    title="Change line's ending x coordinate"
-                    [value]="selectedElement.options.x2"
-                    (input)="setNumberValue(selectedElement.options, 'x2', +line_x2.value)"
-                  />
-                  <span>End X</span>
-                </label>
-                <label class="draginput" (mousedown)="onDragDown(line_y2, selectedElement.options, 'y2')">
-                  <input
-                    #line_y2
-                    class="attr_changer"
-                    type="text"
-                    min=""
-                    max=""
-                    step="1"
-                    title="Change line's ending y coordinate"
-                    [value]="selectedElement.options.y2"
-                    (input)="setNumberValue(selectedElement.options, 'y2', +line_y2.value)"
-                  />
-                  <span>End Y</span>
-                </label>
-              </div>
-            </div>
-          </ng-container>
-          <ng-container *ngSwitchCase="elementTypeEnum.TEXT">
-            <div id="text_panel" class="context_panel" style="display: block">
-              <h4>Text</h4>
-              <div class="draginputs">
-                <label class="draginput twocol textcontent" data-title="Change Content">
-                  <input
-                    #text
-                    id="text"
-                    type="text"
-                    [value]="selectedElement.value"
-                    (input)="selectedElement.value = text.value"
-                  />
-                  <span>Content</span>
-                </label>
-                <label class="draginput" (mousedown)="onDragDown(text_x, selectedElement, 'x')">
-                  <input
-                    #text_x
-                    class="attr_changer"
-                    type="text"
-                    min=""
-                    max=""
-                    step="1"
-                    title="Change text x coordinate"
-                    [value]="selectedElement.x"
-                    (input)="setNumberValue(selectedElement, 'x', +text_x.value)"
-                  />
-                  <span>X</span>
-                </label>
-                <label class="draginput" (mousedown)="onDragDown(text_y, selectedElement, 'y')">
-                  <input
-                    #text_y
-                    class="attr_changer"
-                    type="text"
-                    min=""
-                    max=""
-                    step="1"
-                    title="Change text y coordinate"
-                    [value]="selectedElement.y"
-                    (input)="setNumberValue(selectedElement, 'y', +text_y.value)"
-                  />
-                  <span>Y</span>
-                </label>
-                <div class="toolset draginput twocol" id="tool_font_family">
-                  <!-- Font family -->
-                  <span>Font</span>
-                  <div id="preview_font" [style.fontFamily]="selectedElement.options.fontFamily">
-                    {{ selectedElement.options.fontFamily }}
-                  </div>
-                  <div class="caret"></div>
-                  <input id="font_family" data-title="Change Font Family" size="12" type="hidden" />
-                  <select
-                    #font_family
-                    id="font_family_dropdown"
-                    [value]="selectedElement.options.fontFamily"
-                    (change)="selectedElement.options.fontFamily = font_family.value"
-                  >
-                    <option value="Arial">Arial</option>
-                    <option value="Arial Black">Arial Black</option>
-                    <option value="Comic Sans MS">Comic Sans MS</option>
-                    <option value="Courier New">Courier New</option>
-                    <option value="Georgia">Georgia</option>
-                    <option value="Impact">Impact</option>
-                    <option value="Lucida Console">Lucida Console</option>
-                    <option value="Lucida Sans Unicode">Lucida Sans Unicode</option>
-                    <option value="monospace" selected="">Monospace</option>
-                    <option value="Palatino Linotype">Palatino Linotype</option>
-                    <option value="sans-serif" selected="">Sans-serif</option>
-                    <option value="serif" selected="">Serif</option>
-                    <option value="Tahoma">Tahoma</option>
-                    <option value="Times New Roman">Times New Roman</option>
-                    <option value="Trebuchet MS">Trebuchet MS</option>
-                    <option value="Verdana">Verdana</option>
-                  </select>
-                </div>
-                <div class="draginput font_style">
-                  <span>Font Style</span>
-                  <div
-                    id="tool_bold"
-                    data-title="Bold Text [B]"
-                    [class.active]="selectedElement.options.fontWeight === 'bold'"
-                    (click)="toggleFontWeight()"
-                  >
-                    B
-                  </div>
-                  <div
-                    id="tool_italic"
-                    data-title="Italic Text [I]"
-                    [class.active]="selectedElement.options.fontStyle === 'italic'"
-                    (click)="toggleFontStyle()"
-                  >
-                    i
-                  </div>
-                </div>
-                <label
-                  id="tool_font_size"
-                  data-title="Change Font Size"
-                  class="draginput"
-                  (mousedown)="onDragDown(font_size, selectedElement.options, 'fontSize')"
-                >
-                  <input
-                    #font_size
-                    class="attr_changer"
-                    type="text"
-                    min="0"
-                    max=""
-                    step="1"
-                    title="Change text font size"
-                    [value]="selectedElement.options.fontSize"
-                    (input)="setNumberValue(selectedElement.options, 'fontSize', +font_size.value)"
-                  />
-                  <span id="font_sizeLabel" class="icon_label">Font Size</span>
-                </label>
-              </div>
-            </div>
-          </ng-container>
-
-          <!-- Buttons when a single element is selected -->
-          <div id="selected_panel" class="context_panel" style="display: block">
-            <div class="draginputs">
-              <label class="draginput" (mousedown)="onDragDown(angle, selectedElement, 'rotation')">
-                <input
-                  #angle
-                  class="attr_changer"
-                  step="2"
-                  min="-180"
-                  max="180"
-                  type="text"
-                  [value]="selectedElement.rotation"
-                  (input)="setNumberValue(selectedElement, 'rotation', +angle.value)"
-                />
-                <span class="icon_label">Rotation</span>
-                <div
-                  id="tool_angle_indicator"
-                  class="angle"
-                  [style]="'transform: rotate(' + selectedElement.rotation + 'deg);'"
-                >
-                  <div id="tool_angle_indicator_cursor" class="angle-cursor"></div>
-                </div>
-              </label>
-
-              <label class="draginput" (mousedown)="onDragDown(group_opacity, selectedElement, 'opacity')">
-                <input
-                  #group_opacity
-                  class="attr_changer"
-                  step="5"
-                  min="0"
-                  max="100"
-                  type="text"
-                  [value]="selectedElement.opacity"
-                  (input)="setNumberValue(selectedElement, 'opacity', +group_opacity.value)"
-                />
-                <span id="group_opacityLabel" class="icon_label">Opacity</span>
-              </label>
-
-              <ng-container *ngSwitchCase="elementTypeEnum.RECT">
-                <label class="draginput" (mousedown)="onDragDown(rect_rx, selectedElement.options, 'rx')">
-                  <input
-                    #rect_rx
-                    class="attr_changer"
-                    type="text"
-                    step="5"
-                    min="0"
-                    max="100"
-                    [value]="selectedElement.options.rx"
-                    (input)="setNumberValue(selectedElement.options, 'rx', +rect_rx.value)"
-                  />
-                  <span class="icon_label">Roundness</span>
-                  <div class="draginput_cursor" style="top: 70px"></div>
-                </label>
-              </ng-container>
-            </div>
-          </div>
-          <div id="stroke_panel" class="context_panel" style="display: block">
-            <h4>Stroke</h4>
-            <div class="draginputs">
-              <label class="draginput" (mousedown)="onDragDown(stroke_width, selectedElement.options, 'strokeWidth')">
-                <input
-                  #stroke_width
-                  size="2"
-                  value="1"
-                  data-attr="stroke-width"
-                  min="0"
-                  max="99"
-                  step="1"
-                  [value]="selectedElement.options.strokeWidth"
-                  (input)="setNumberValue(selectedElement.options, 'strokeWidth', +stroke_width.value)"
-                />
-                <span class="icon_label">Width</span>
-                <div class="draginput_cursor" style="top: 68.9394px"></div>
-              </label>
-              <div class="stroke_tool draginput">
-                <span>Dash</span>
-                <select
-                  #dasharray
-                  id="stroke_style"
-                  [value]="selectedElement.options.dasharray"
-                  (change)="selectedElement.options.dasharray = dasharray.value"
-                >
-                  <option selected="selected" value="none">—</option>
-                  <option value="2,2">···</option>
-                  <option value="5,5">- -</option>
-                  <option value="5,2,2,2">-·-</option>
-                  <option value="5,2,2,2,2,2">-··-</option>
-                </select>
-                <div class="caret"></div>
-                <label id="stroke_style_label">
-                  <ng-container [ngSwitch]="selectedElement.options.dasharray">
-                    <ng-container *ngSwitchCase="'2,2'">···</ng-container>
-                    <ng-container *ngSwitchCase="'5,5'">- -</ng-container>
-                    <ng-container *ngSwitchCase="'5,2,2,2'">-·-</ng-container>
-                    <ng-container *ngSwitchCase="'5,2,2,2,2,2'">-··-</ng-container>
-                    <ng-container *ngSwitchDefault>—</ng-container>
-                  </ng-container>
-                </label>
-              </div>
-
-              <label style="display: none">
-                <span class="icon_label">Stroke Join</span>
-              </label>
-
-              <label style="display: none">
-                <span class="icon_label">Stroke Cap</span>
-              </label>
-            </div>
-          </div>
-          <ng-container *ngSwitchDefault>
-            <ng-container *ngTemplateOutlet="main_context_panel"></ng-container>
-          </ng-container>
-        </ng-container>
-      </ng-container>
-      <ng-container *ngIf="!selectedElement">
-        <ng-container *ngTemplateOutlet="main_context_panel"></ng-container>
-      </ng-container>
-      <ng-template #main_context_panel>
-        <div id="canvas_panel" class="context_panel">
-          <h4>Whiteboard</h4>
-          <div class="draginputs">
-            <label class="draginput" (mousedown)="onDragDown(canvas_width, options, 'canvasWidth')">
-              <input
-                #canvas_width
-                type="text"
-                min="10"
-                max=""
-                step="1"
-                pattern="[0-9]*"
-                [value]="options.canvasWidth"
-                (input)="setNumberValue(options, 'canvasWidth', +canvas_width.value); updateOptions()"
-              />
-              <span class="icon_label">Width</span>
-            </label>
-            <label class="draginput" (mousedown)="onDragDown(canvas_height, options, 'canvasHeight')">
-              <input
-                #canvas_height
-                type="text"
-                min="10"
-                max=""
-                step="1"
-                pattern="[0-9]*"
-                [value]="options.canvasHeight"
-                (input)="setNumberValue(options, 'canvasHeight', +canvas_height.value); updateOptions()"
-              />
-              <span class="icon_label">Height</span>
-            </label>
-            <label data-title="Change canvas color" class="draginput">
-              <span>Color</span>
-              <div id="color_canvas_tools">
-                <div
-                  class="color_tool active"
-                  id="tool_canvas"
-                  ngx-colors-trigger
-                  (change)="options.backgroundColor = $event"
-                >
-                  <div class="color_block">
-                    <div id="canvas_bg"></div>
-                    <div id="canvas_color">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="60.5">
-                        <rect width="100%" height="100%" [attr.fill]="options.backgroundColor"></rect>
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </label>
-
-            <div class="draginput">
-              <span>Sizes</span>
-              <select #resolution (change)="setSizeResolution(resolution.value)">
-                <option id="selectedPredefined" selected="selected">Custom</option>
-                <option id="fitToContent" value="content">Fit to Content</option>
-
-                <optgroup label="Social Media">
-                  <option value="1012x506">Twitter Post (1012 × 506)</option>
-                  <option value="1500x500">Twitter Header (1500 × 500)</option>
-                  <option value="1200x630">Facebook Post (1200 × 630)</option>
-                  <option value="820x312">Facebook Cover (820 × 312)</option>
-                  <option value="1080x1080">Instagram Post (1080 × 1080)</option>
-                  <option value="1080x1920">Instagram Story (1080 × 1920)</option>
-                  <option value="400x300">Dribble Shot (400 × 300)</option>
-                  <option value="800x600">Dribble Shot HD (800 × 600)</option>
-                  <option value="1584x396">LinkedIn Cover (1584 × 396)</option>
-                </optgroup>
-
-                <optgroup label="Presentation">
-                  <option value="1920x1080">16:9 (1920 × 1080)</option>
-                  <option value="1024x768">4:3 (1024 × 768)</option>
-                </optgroup>
-
-                <optgroup label="Desktop">
-                  <option value="1140x1024">Desktop (1140 × 1024)</option>
-                  <option value="834x1194">MacBook (834 × 1194)</option>
-                  <option value="1024x1366">MacBook Pro (1024 × 1366)</option>
-                  <option value="1440x990">Surface Book (1440 × 990)</option>
-                  <option value="1368x912">iMac (1368 × 912)</option>
-                </optgroup>
-
-                <optgroup label="Tablet">
-                  <option value="768x1024">iPad Mini (768 × 1024)</option>
-                  <option value="834x1194">iPad Pro 11" (834 × 1194)</option>
-                  <option value="1024x1366">iPad Pro 12.9" (1024 × 1366)</option>
-                  <option value="1440x990">Surface Pro 3 (1440 × 990)</option>
-                  <option value="1368x912">Surface Pro 4 (1368 × 912)</option>
-                </optgroup>
-
-                <optgroup label="Phone">
-                  <option value="414x896">iPhone 11 ProMax (414 × 896)</option>
-                  <option value="375x812">iPhone 11 Pro / X (375 × 812)</option>
-                  <option value="414x736">iPhone 8 Plus (414 × 736)</option>
-                  <option value="375x667">iPhone 8 (375 × 667)</option>
-                  <option value="411x731">Google Pixel 2 (411 × 731)</option>
-                  <option value="411x823">Google Pixel XL (411 × 823)</option>
-                  <option value="360x640">Android (360 × 640)</option>
-                </optgroup>
-
-                <optgroup label="Paper">
-                  <option value="595x842">A4 (595 × 842)</option>
-                  <option value="420x595">A5 (420 × 595)</option>
-                  <option value="297x420">A6 (297 × 420)</option>
-                  <option value="612x792">Letter (612 × 792)</option>
-                  <option value="792x1224">Tabloid (792 × 1224)</option>
-                </optgroup>
-              </select>
-              <div class="caret"></div>
-              <label id="resolution_label">{{ resolution.value }}</label>
-            </div>
-          </div>
-          <div id="stroke_panel" class="context_panel" style="display: block">
-            <h4>Stroke</h4>
-            <div class="draginputs">
-              <label class="draginput" (mousedown)="onDragDown(stroke_width, options, 'strokeWidth')">
-                <input
-                  #stroke_width
-                  size="2"
-                  value="1"
-                  data-attr="stroke-width"
-                  min="0"
-                  max="99"
-                  step="1"
-                  [value]="options.strokeWidth"
-                  (input)="setNumberValue(options, 'strokeWidth', +stroke_width.value)"
-                />
-                <span class="icon_label">Width</span>
-                <div class="draginput_cursor" style="top: 68.9394px"></div>
-              </label>
-              <div class="stroke_tool draginput">
-                <span>Dash</span>
-                <select
-                  #dasharray
-                  id="stroke_style"
-                  [value]="options.dasharray"
-                  (change)="options.dasharray = dasharray.value; updateOptions()"
-                >
-                  <option selected="selected" value="none">—</option>
-                  <option value="2,2">···</option>
-                  <option value="5,5">- -</option>
-                  <option value="5,2,2,2">-·-</option>
-                  <option value="5,2,2,2,2,2">-··-</option>
-                </select>
-                <div class="caret"></div>
-                <label id="stroke_style_label">
-                  <ng-container [ngSwitch]="options.dasharray">
-                    <ng-container *ngSwitchCase="'2,2'">···</ng-container>
-                    <ng-container *ngSwitchCase="'5,5'">- -</ng-container>
-                    <ng-container *ngSwitchCase="'5,2,2,2'">-·-</ng-container>
-                    <ng-container *ngSwitchCase="'5,2,2,2,2,2'">-··-</ng-container>
-                    <ng-container *ngSwitchDefault>—</ng-container>
-                  </ng-container>
-                </label>
-              </div>
-
-              <label style="display: none">
-                <span class="icon_label">Stroke Join</span>
-              </label>
-
-              <label style="display: none">
-                <span class="icon_label">Stroke Cap</span>
-              </label>
-            </div>
-          </div>
-        </div>
-      </ng-template>
-    </div>
-
-    <div id="tools_left" class="tools_panel">
-      <div
-      class="tool_button"
-      title="Hand Tool"
-      [class.active]="selectedTool === toolsEnum.HAND"
-      (click)="selectedTool = toolsEnum.HAND"
-    >
-      <svg viewBox="0 0 24 24" width="24" height="24" transform="rotate(-45)">
-        <path d="M13.5001 3.75C13.9143 3.75 14.2501 4.08579 14.2501 4.5V7.5V12.75H15.7501V7.5C15.7501 7.08579 16.0858 6.75 16.5001 6.75C16.9143 6.75 17.2501 7.08579 17.2501 7.5V15C17.2501 17.8995 14.8996 20.25 12.0001 20.25V21.75C15.728 21.75 18.7501 18.7279 18.7501 15V7.5C18.7501 6.25736 17.7427 5.25 16.5001 5.25C16.2371 5.25 15.9846 5.29512 15.7501 5.37803V4.5C15.7501 3.25736 14.7427 2.25 13.5001 2.25C12.4625 2.25 11.5889 2.95235 11.3289 3.90757C11.0724 3.80589 10.7927 3.75 10.5001 3.75C9.25742 3.75 8.25006 4.75736 8.25006 6V12.5344L7.77377 11.5689L7.77221 11.5657C7.21726 10.4539 5.86607 10.0024 4.75422 10.5574C3.65214 11.1075 3.1989 12.4399 3.7315 13.546L5.03741 16.7808L5.06205 16.8354C6.16787 19.047 7.45919 20.2994 8.73651 20.9857C10.0096 21.6696 11.194 21.75 12.0001 21.75V20.25C11.3061 20.25 10.4069 20.1803 9.44641 19.6643C8.49439 19.1528 7.40758 18.1618 6.41695 16.191L5.11239 12.9597L5.08798 12.9055C4.903 12.5349 5.05349 12.0845 5.4241 11.8995C5.79428 11.7147 6.24405 11.8646 6.42944 12.2343L8.32743 16.0818L9.75004 15.75V14.25H9.75006V6C9.75006 5.58579 10.0858 5.25 10.5001 5.25C10.9143 5.25 11.2501 5.58579 11.2501 6V12.75H12.7501V6V4.5C12.7501 4.08579 13.0858 3.75 13.5001 3.75Z"/>
-      </svg>
-    </div>
-      <div
-        class="tool_button"
-        title="Select Tool"
-        [class.active]="selectedTool === toolsEnum.SELECT"
-        (click)="selectedTool = toolsEnum.SELECT"
+<div class="editor">
+  <div id="workarea">
+    <div id="svgcanvas">
+      <ng-whiteboard
+        #whiteboard
+        [data]="data"
+        [(selectedTool)]="selectedTool"
+        [options]="options"
+        [x]="x"
+        [y]="y"
+        (save)="onSave($event)"
+        (elementSelected)="selectElement($event)"
+        (elementUpdated)="selectElement($event)"
+        (dataChange)="onDataChange($event)"
       >
-        <svg viewBox="0 0 24 24" width="24" height="24">
-          <path d="M17.15 20.76l-2.94 1.5-3.68-6-4.41 3V1.24l12.5 12.01-4.41 1.5 2.94 6z" />
+      </ng-whiteboard>
+    </div>
+  </div>
+
+  <div id="menu_bar">
+    <div class="menu">
+      <button class="menu_title" (click)="newDocument()" title="New document">
+        <svg viewBox="0 0 16 16" width="20" height="20">
+          <path
+            fill="#565a66"
+            d="m9.5 1.1l3.4 3.5l.1.4v2h-1V6H8V2H3v11h4v1H2.5l-.5-.5v-12l.5-.5h6.7l.3.1zM9 2v3h2.9L9 2zm4 14h-1v-3H9v-1h3V9h1v3h3v1h-3v3z"
+          ></path>
+        </svg>
+      </button>
+    </div>
+    <div class="menu">
+      <div class="menu_title" title="Save Board" tabindex="0">
+        <svg viewBox="0 0 20 20" width="20" height="20">
+          <path
+            d="M12.984 12.656l2.625-2.578 1.406 1.406-5.016 5.016-5.016-5.016 1.406-1.406 2.625 2.578v-9.656h1.969v9.656zM18.984 12h2.016v6.984q0 0.797-0.609 1.406t-1.406 0.609h-13.969q-0.797 0-1.406-0.609t-0.609-1.406v-6.984h2.016v6.984h13.969v-6.984z"
+            fill="#565a66"
+          ></path>
         </svg>
       </div>
-
-      <div
-        class="tool_button"
-        title="Brush Tool"
-        [class.active]="selectedTool === toolsEnum.BRUSH"
-        (click)="selectedTool = toolsEnum.BRUSH"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          height="24"
-          viewBox="0 0 24 24"
-          width="24"
-          style="transform: scale(-1, 1)"
+      <div class="menu_list">
+        <div class="menu_item" (click)="saveAs(formatType.Png)" (keyup.enter)="saveAs(formatType.Png)" tabindex="0">
+          Save as PNG
+        </div>
+        <div class="menu_item" (click)="saveAs(formatType.Jpeg)" (keyup.enter)="saveAs(formatType.Jpeg)" tabindex="0">
+          Save as JPEG
+        </div>
+        <div class="menu_item" (click)="saveAs(formatType.Svg)" (keyup.enter)="saveAs(formatType.Svg)" tabindex="0">
+          Save as SVG
+        </div>
+        <div
+          class="menu_item"
+          (click)="saveAs(formatType.Base64)"
+          (keyup.enter)="saveAs(formatType.Base64)"
+          tabindex="0"
         >
+          Copy Base-64
+        </div>
+      </div>
+    </div>
+    <div class="menu">
+      <label class="menu_title" title="Add image">
+        <svg viewBox="0 0 20 20" width="20" height="20">
           <path
-            d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+            fill="#565a66"
+            d="M4 5h13v7h2V5c0-1.103-.897-2-2-2H4c-1.103 0-2 .897-2 2v12c0 1.103.897 2 2 2h8v-2H4V5z"
+          ></path>
+          <path fill="#565a66" d="m8 11l-3 4h11l-4-6l-3 4z"></path>
+          <path fill="#565a66" d="M19 14h-2v3h-3v2h3v3h2v-3h3v-2h-3z"></path>
+        </svg>
+        <input type="file" class="file-input" (change)="addImage($event.target)" />
+      </label>
+    </div>
+    <div class="menu">
+      <button class="menu_title" (click)="undo()" title="Undo">
+        <svg viewBox="0 0 20 20" width="20" height="20">
+          <path
+            fill="#565a66"
+            d="M9 10h6c1.654 0 3 1.346 3 3s-1.346 3-3 3h-3v2h3c2.757 0 5-2.243 5-5s-2.243-5-5-5H9V5L4 9l5 4v-3z"
+          ></path>
+        </svg>
+      </button>
+    </div>
+    <div class="menu">
+      <button class="menu_title" (click)="redo()" title="Redo">
+        <svg viewBox="0 0 20 20" width="20" height="20">
+          <path
+            fill="#565a66"
+            d="M9 18h3v-2H9c-1.654 0-3-1.346-3-3s1.346-3 3-3h6v3l5-4l-5-4v3H9c-2.757 0-5 2.243-5 5s2.243 5 5 5z"
+          ></path>
+        </svg>
+      </button>
+    </div>
+    <div class="menu">
+      <button class="menu_title" (click)="toggleGrid()" title="Toggle grid">
+        <svg viewBox="0 0 20 15" width="20" height="25">
+          <path
+            d="M 2.003906 0.0585938 C 1.785156 0.152344 1.757812 0.261719 1.757812 1.054688 L 1.757812 1.757812 L 1.054688 1.757812 C 0.253906 1.757812 0.152344 1.785156 0.0546875 2.015625 C -0.046875 2.257812 0.0820312 2.503906 0.347656 2.578125 C 0.425781 2.597656 0.773438 2.617188 1.125 2.617188 L 1.757812 2.617188 L 1.757812 6.953125 L 1.117188 6.953125 C 0.375 6.953125 0.269531 6.96875 0.140625 7.09375 C -0.0429688 7.28125 -0.0078125 7.605469 0.207031 7.734375 C 0.320312 7.804688 0.40625 7.8125 1.046875 7.8125 L 1.757812 7.8125 L 1.757812 12.1875 L 1.046875 12.1875 C 0.40625 12.1875 0.320312 12.195312 0.207031 12.265625 C -0.0078125 12.394531 -0.0429688 12.71875 0.140625 12.90625 C 0.269531 13.03125 0.375 13.046875 1.117188 13.046875 L 1.757812 13.046875 L 1.757812 17.382812 L 1.125 17.382812 C 0.773438 17.382812 0.425781 17.402344 0.347656 17.421875 C 0.0820312 17.496094 -0.046875 17.742188 0.0546875 17.984375 C 0.152344 18.214844 0.253906 18.242188 1.054688 18.242188 L 1.757812 18.242188 L 1.757812 18.945312 C 1.757812 19.746094 1.785156 19.847656 2.015625 19.945312 C 2.257812 20.046875 2.503906 19.917969 2.578125 19.652344 C 2.597656 19.574219 2.617188 19.226562 2.617188 18.875 L 2.617188 18.242188 L 6.953125 18.242188 L 6.953125 18.882812 C 6.953125 19.625 6.96875 19.730469 7.09375 19.859375 C 7.28125 20.042969 7.605469 20.007812 7.734375 19.792969 C 7.804688 19.679688 7.8125 19.59375 7.8125 18.953125 L 7.8125 18.242188 L 12.1875 18.242188 L 12.1875 18.953125 C 12.1875 19.59375 12.195312 19.679688 12.265625 19.792969 C 12.394531 20.007812 12.71875 20.042969 12.90625 19.859375 C 13.03125 19.730469 13.046875 19.625 13.046875 18.882812 L 13.046875 18.242188 L 17.382812 18.242188 L 17.382812 18.875 C 17.382812 19.226562 17.402344 19.574219 17.421875 19.652344 C 17.496094 19.917969 17.742188 20.046875 17.984375 19.945312 C 18.214844 19.847656 18.242188 19.746094 18.242188 18.945312 L 18.242188 18.242188 L 18.945312 18.242188 C 19.757812 18.242188 19.835938 18.21875 19.960938 17.960938 C 20.046875 17.78125 20.058594 17.71875 20 17.753906 C 19.976562 17.765625 19.960938 17.746094 19.960938 17.703125 C 19.960938 17.605469 19.808594 17.46875 19.644531 17.421875 C 19.570312 17.398438 19.226562 17.382812 18.878906 17.382812 L 18.242188 17.382812 L 18.242188 13.054688 L 18.976562 13.039062 C 19.761719 13.027344 19.835938 13.007812 19.925781 12.8125 C 19.949219 12.757812 19.984375 12.683594 20.003906 12.648438 C 20.046875 12.5625 20.046875 12.527344 20.003906 12.554688 C 19.984375 12.566406 19.960938 12.523438 19.945312 12.460938 C 19.933594 12.386719 19.878906 12.316406 19.796875 12.265625 C 19.679688 12.195312 19.597656 12.1875 18.953125 12.1875 L 18.242188 12.1875 L 18.242188 7.8125 L 18.953125 7.8125 C 19.597656 7.8125 19.679688 7.804688 19.796875 7.734375 C 19.878906 7.683594 19.933594 7.613281 19.949219 7.539062 C 19.960938 7.472656 19.984375 7.410156 20.003906 7.398438 C 20.023438 7.386719 20.039062 7.359375 20.039062 7.339844 C 20.039062 7.316406 20.023438 7.3125 20 7.324219 C 19.976562 7.335938 19.960938 7.316406 19.960938 7.273438 C 19.960938 7.167969 19.789062 7.007812 19.644531 6.976562 C 19.578125 6.964844 19.234375 6.953125 18.882812 6.953125 L 18.242188 6.953125 L 18.242188 2.625 L 18.960938 2.609375 C 19.617188 2.597656 19.691406 2.589844 19.789062 2.515625 C 19.847656 2.472656 19.90625 2.410156 19.921875 2.382812 C 19.9375 2.351562 19.96875 2.285156 19.992188 2.238281 C 20.046875 2.132812 20.054688 2.058594 20.003906 2.085938 C 19.984375 2.097656 19.957031 2.0625 19.945312 2.011719 C 19.929688 1.957031 19.863281 1.878906 19.792969 1.835938 C 19.679688 1.765625 19.59375 1.757812 18.953125 1.757812 L 18.242188 1.757812 L 18.242188 1.054688 C 18.242188 0.253906 18.214844 0.152344 17.984375 0.0546875 C 17.742188 -0.046875 17.496094 0.0820312 17.421875 0.347656 C 17.402344 0.425781 17.382812 0.773438 17.382812 1.125 L 17.382812 1.757812 L 13.046875 1.757812 L 13.046875 1.117188 C 13.046875 0.375 13.03125 0.269531 12.90625 0.140625 C 12.71875 -0.0429688 12.394531 -0.0078125 12.265625 0.207031 C 12.195312 0.320312 12.1875 0.40625 12.1875 1.046875 L 12.1875 1.757812 L 7.8125 1.757812 L 7.8125 1.046875 C 7.8125 0.40625 7.804688 0.320312 7.734375 0.207031 C 7.605469 -0.0078125 7.28125 -0.0429688 7.09375 0.140625 C 6.96875 0.269531 6.953125 0.375 6.953125 1.117188 L 6.953125 1.757812 L 2.617188 1.757812 L 2.617188 1.125 C 2.617188 0.773438 2.597656 0.425781 2.578125 0.347656 C 2.503906 0.0820312 2.246094 -0.0507812 2.003906 0.0585938 M 2.617188 4.785156 L 2.617188 6.953125 L 6.953125 6.953125 L 6.953125 2.617188 L 2.617188 2.617188 L 2.617188 4.785156 M 7.8125 4.785156 L 7.8125 6.953125 L 12.1875 6.953125 L 12.1875 2.617188 L 7.8125 2.617188 L 7.8125 4.785156 M 13.046875 4.785156 L 13.046875 6.953125 L 17.382812 6.953125 L 17.382812 2.617188 L 13.046875 2.617188 L 13.046875 4.785156 M 2.617188 10 L 2.617188 12.1875 L 6.953125 12.1875 L 6.953125 7.8125 L 2.617188 7.8125 L 2.617188 10 M 7.8125 10 L 7.8125 12.1875 L 12.1875 12.1875 L 12.1875 7.8125 L 7.8125 7.8125 L 7.8125 10 M 13.046875 10 L 13.046875 12.1875 L 17.382812 12.1875 L 17.382812 7.8125 L 13.046875 7.8125 L 13.046875 10 M 2.617188 15.214844 L 2.617188 17.382812 L 6.953125 17.382812 L 6.953125 13.046875 L 2.617188 13.046875 L 2.617188 15.214844 M 7.8125 15.214844 L 7.8125 17.382812 L 12.1875 17.382812 L 12.1875 13.046875 L 7.8125 13.046875 L 7.8125 15.214844 M 13.046875 15.214844 L 13.046875 17.382812 L 17.382812 17.382812 L 17.382812 13.046875 L 13.046875 13.046875 L 13.046875 15.214844"
+            fill="#565a66"
+            fill-rule="evenodd"
           />
         </svg>
-      </div>
+      </button>
+    </div>
+  </div>
 
-      <div
-        class="tool_button"
-        title="Image Tool"
-        [class.active]="selectedTool === toolsEnum.IMAGE"
-        (click)="selectedTool = toolsEnum.IMAGE"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
-          <path d="M0 0h24v24H0z" fill="none" />
-          <path d="M17 7l-5 5 5 5V7zm-2 9.17L12.83 12 15 9.83 17.17 12 15 14.17zM3 3v18h18V3H3zm16 16H5V5h14v14z" />
-        </svg>
-      </div>
-      <div
-        class="tool_button"
-        title="Line Tool"
-        [class.active]="selectedTool === toolsEnum.LINE"
-        (click)="selectedTool = toolsEnum.LINE"
-      >
-        <svg viewBox="0 0 27 27" xmlns="http://www.w3.org/2000/svg" width="24" height="24">
-          <path d="M 3 1 L 26 24 L 24 26 L 1 3 L 3 1 Z"></path>
-        </svg>
-      </div>
-      <div
-        class="tool_button"
-        title="Arrow Tool"
-        [class.active]="selectedTool === toolsEnum.ARROW"
-        (click)="selectedTool = toolsEnum.ARROW"
-      >
-        <svg viewBox="0 0 27 27" xmlns="http://www.w3.org/2000/svg" width="24" height="24">
-          <path d="M 3 1 L 26 24 L 24 26 L 1 3 L 3 1 Z L 12 2 L 2 12 L 1 3 L 1 1 L 3 1"></path>
-        </svg>
-      </div>
-      <div
-        class="tool_button"
-        title="Square/Rect Tool"
-        [class.active]="selectedTool === toolsEnum.RECT"
-        (click)="selectedTool = toolsEnum.RECT"
-      >
-        <svg viewBox="0 0 27 27" xmlns="http://www.w3.org/2000/svg" width="24" height="24">
-          <path d="M 0 8 L 0 24 L 24 24 L 25 8 L 0 8 Z" />
-        </svg>
-      </div>
-
-      <div
-        class="tool_button"
-        title="Ellipse/Circle Tool"
-        [class.active]="selectedTool === toolsEnum.ELLIPSE"
-        (click)="selectedTool = toolsEnum.ELLIPSE"
-      >
-        <svg viewBox="0 0 27 27" xmlns="http://www.w3.org/2000/svg" width="24" height="24">
-          <ellipse cx="13" cy="13" rx="13" ry="9"></ellipse>
-        </svg>
-      </div>
-
-      <div
-        class="tool_button"
-        title="Text Tool"
-        [class.active]="selectedTool === toolsEnum.TEXT"
-        (click)="selectedTool = toolsEnum.TEXT"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="2 2 20 20" width="27" height="27">
-          <path d="M5 4v3h5.5v12h3V7H19V4z" />
-        </svg>
-      </div>
-
-      <div
-        class="tool_button"
-        title="Eraser Tool"
-        [class.active]="selectedTool === toolsEnum.ERASER"
-        (click)="selectedTool = toolsEnum.ERASER"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
-          <path d="M0 0h24v24H0z" fill="none" />
-          <path d="M19 13H5v-2h14v2z" />
-        </svg>
-      </div>
-
-      <div id="color_tools">
-        <div id="tool_switch" title="Switch stroke and fill colors [X]" (click)="swapColors()">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 11 11">
-            <path d="M3.01 2A6 6 0 019 8h1.83l-2.91 2.91L5 8h2a4 4 0 00-3.99-4v1.93L.1 3.02 3.01.1V2z" />
-          </svg>
+  <div id="panels" class="tools_panel">
+    @if (!selectedElement) {
+    <div id="canvas_panel" class="context_panel">
+      <h4>Whiteboard</h4>
+      <div class="draginputs">
+        <div title="Change canvas width" class="draginput">
+          <input
+            dragInput
+            [min]="10"
+            [max]=""
+            [step]="10"
+            [value]="options.canvasWidth"
+            (valueChange)="updateSize($event, options.canvasHeight!)"
+            readonly
+          />
+          <span>Width</span>
         </div>
-        <div class="color_tool active" id="tool_fill" ngx-colors-trigger (change)="colorChange('fill', $event)">
-          <label class="icon_label" title="Change fill color"> </label>
-          <div class="color_block">
-            <div id="fill_bg"></div>
-            <div id="fill_color" class="color_block">
-              <svg xmlns="http://www.w3.org/2000/svg" width="100%">
-                <rect width="100%" height="100%" [attr.fill]="options.fill" opacity="1"></rect>
-              </svg>
+        <div title="Change canvas height" class="draginput">
+          <input
+            dragInput
+            [min]="10"
+            [max]=""
+            [step]="10"
+            [value]="options.canvasHeight"
+            (valueChange)="updateSize(options.canvasWidth!, $event)"
+            readonly
+          />
+          <span>Height</span>
+        </div>
+        <div title="Change canvas color" class="draginput">
+          <span>Color</span>
+          <div id="color_canvas_tools">
+            <div
+              class="color_tool active"
+              id="tool_canvas"
+              ngx-colors-trigger
+              (change)="colorChange('backgroundColor', $event)"
+            >
+              <div class="color_block">
+                <div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="60.5">
+                    <rect width="100%" height="100%" [attr.fill]="options.backgroundColor"></rect>
+                  </svg>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+        <div class="draginput">
+          <span>Sizes</span>
+          <select #resolution (change)="setSizeResolution(resolution.value)">
+            <option selected>Custom</option>
+            <optgroup label="Social Media">
+              <option value="1012x506">Twitter Post (1012 × 506)</option>
+              <option value="1500x500">Twitter Header (1500 × 500)</option>
+              <option value="1200x630">Facebook Post (1200 × 630)</option>
+              <option value="820x312">Facebook Cover (820 × 312)</option>
+              <option value="1080x1080">Instagram Post (1080 × 1080)</option>
+              <option value="1080x1920">Instagram Story (1080 × 1920)</option>
+              <option value="400x300">Dribble Shot (400 × 300)</option>
+              <option value="800x600">Dribble Shot HD (800 × 600)</option>
+              <option value="1584x396">LinkedIn Cover (1584 × 396)</option>
+            </optgroup>
 
-        <div class="color_tool" id="tool_stroke" ngx-colors-trigger (change)="colorChange('strokeColor', $event)">
-          <label class="icon_label" title="Change stroke color"> </label>
-          <div class="color_block">
-            <div id="stroke_bg"></div>
-            <div id="stroke_color" class="color_block" title="Change stroke color">
-              <svg xmlns="http://www.w3.org/2000/svg" width="100%">
-                <rect width="100%" height="100%" [attr.fill]="options.strokeColor" opacity="1"></rect>
-              </svg>
-            </div>
+            <optgroup label="Presentation">
+              <option value="1920x1080">16:9 (1920 × 1080)</option>
+              <option value="1024x768">4:3 (1024 × 768)</option>
+            </optgroup>
+
+            <optgroup label="Desktop">
+              <option value="1140x1024">Desktop (1140 × 1024)</option>
+              <option value="834x1194">MacBook (834 × 1194)</option>
+              <option value="1024x1366">MacBook Pro (1024 × 1366)</option>
+              <option value="1440x990">Surface Book (1440 × 990)</option>
+              <option value="1368x912">iMac (1368 × 912)</option>
+            </optgroup>
+
+            <optgroup label="Tablet">
+              <option value="768x1024">iPad Mini (768 × 1024)</option>
+              <option value="834x1194">iPad Pro 11" (834 × 1194)</option>
+              <option value="1024x1366">iPad Pro 12.9" (1024 × 1366)</option>
+              <option value="1440x990">Surface Pro 3 (1440 × 990)</option>
+              <option value="1368x912">Surface Pro 4 (1368 × 912)</option>
+            </optgroup>
+
+            <optgroup label="Phone">
+              <option value="414x896">iPhone 11 ProMax (414 × 896)</option>
+              <option value="375x812">iPhone 11 Pro / X (375 × 812)</option>
+              <option value="414x736">iPhone 8 Plus (414 × 736)</option>
+              <option value="375x667">iPhone 8 (375 × 667)</option>
+              <option value="411x731">Google Pixel 2 (411 × 731)</option>
+              <option value="411x823">Google Pixel XL (411 × 823)</option>
+              <option value="360x640">Android (360 × 640)</option>
+            </optgroup>
+
+            <optgroup label="Paper">
+              <option value="595x842">A4 (595 × 842)</option>
+              <option value="420x595">A5 (420 × 595)</option>
+              <option value="297x420">A6 (297 × 420)</option>
+              <option value="612x792">Letter (612 × 792)</option>
+              <option value="792x1224">Tabloid (792 × 1224)</option>
+            </optgroup>
+          </select>
+          <div class="caret"></div>
+          <label for="" id="resolution_label">{{ resolution.value }}</label>
+        </div>
+      </div>
+    </div>
+    } @if (selectedElement) { @if (selectedElement.type === elementType.Rectangle) {
+    <div class="context_panel">
+      <h4>Rectangle</h4>
+      <div class="draginputs">
+        <div class="draginput" title="Change X coordinate">
+          <input
+            dragInput
+            [step]="1"
+            [value]="selectedElement.x"
+            (valueChange)="updateSelectedElement({ x: $event })"
+            readonly
+          />
+          <span>X</span>
+        </div>
+        <div class="draginput" title="Change Y coordinate">
+          <input
+            dragInput
+            [step]="1"
+            [value]="selectedElement.y"
+            (valueChange)="updateSelectedElement({ y: $event })"
+            readonly
+          />
+          <span>Y</span>
+        </div>
+        <div class="draginput" title="Change rectangle width">
+          <input
+            dragInput
+            [step]="1"
+            [min]="0"
+            [value]="selectedElement.width"
+            (valueChange)="updateSelectedElement({ width: $event })"
+            readonly
+          />
+          <span>Width</span>
+        </div>
+        <div class="draginput" title="Change rectangle height">
+          <input
+            dragInput
+            [step]="1"
+            [min]="0"
+            [value]="selectedElement.height"
+            (valueChange)="updateSelectedElement({ height: $event })"
+            readonly
+          />
+          <span>Height</span>
+        </div>
+      </div>
+    </div>
+    } @if (selectedElement.type === elementType.Pen) {
+    <div class="context_panel clearfix">
+      <h4>Pen</h4>
+      <div class="draginputs">
+        <div class="draginput" title="Change X coordinate">
+          <input
+            dragInput
+            [step]="1"
+            [value]="selectedElement.x"
+            (valueChange)="updateSelectedElement({ x: $event })"
+            readonly
+          />
+          <span>X</span>
+        </div>
+        <div class="draginput" title="Change Y coordinate">
+          <input
+            dragInput
+            [step]="1"
+            [value]="selectedElement.y"
+            (valueChange)="updateSelectedElement({ y: $event })"
+            readonly
+          />
+          <span>Y</span>
+        </div>
+      </div>
+    </div>
+    } @if (selectedElement.type === elementType.Image) {
+    <div class="context_panel clearfix">
+      <h4>Image</h4>
+      <div class="draginputs">
+        <div class="draginput" title="Change X coordinate">
+          <input
+            dragInput
+            [step]="1"
+            [value]="selectedElement.x"
+            (valueChange)="updateSelectedElement({ x: $event })"
+            readonly
+          />
+          <span>X</span>
+        </div>
+        <div class="draginput" title="Change Y coordinate">
+          <input
+            dragInput
+            [step]="1"
+            [value]="selectedElement.y"
+            (valueChange)="updateSelectedElement({ y: $event })"
+            readonly
+          />
+          <span>Y</span>
+        </div>
+        <div class="draginput" title="Change image width">
+          <input
+            dragInput
+            [step]="1"
+            [min]="0"
+            [value]="selectedElement.width"
+            (valueChange)="updateSelectedElement({ width: $event })"
+            readonly
+          />
+          <span>Width</span>
+        </div>
+        <div class="draginput" title="Change image height">
+          <input
+            dragInput
+            [step]="1"
+            [min]="0"
+            [value]="selectedElement.height"
+            (valueChange)="updateSelectedElement({ height: $event })"
+            readonly
+          />
+          <span>Height</span>
+        </div>
+      </div>
+    </div>
+    } @if (selectedElement.type === elementType.Ellipse) {
+    <div class="context_panel">
+      <h4>Ellipse</h4>
+      <div class="draginputs">
+        <div class="draginput" title="Change X coordinate">
+          <input
+            dragInput
+            [step]="1"
+            [value]="selectedElement.x"
+            (valueChange)="updateSelectedElement({ x: $event })"
+            readonly
+          />
+          <span>X</span>
+        </div>
+        <div class="draginput" title="Change Y coordinate">
+          <input
+            dragInput
+            [step]="1"
+            [value]="selectedElement.y"
+            (valueChange)="updateSelectedElement({ y: $event })"
+            readonly
+          />
+          <span>Y</span>
+        </div>
+        <div class="draginput" title="Change ellipse's x radius">
+          <input
+            dragInput
+            [min]="0"
+            [step]="1"
+            [value]="selectedElement.rx"
+            (valueChange)="updateSelectedElement({ rx: $event })"
+            readonly
+          />
+          <span>Radius X</span>
+        </div>
+        <div class="draginput" title="Change ellipse's y radius">
+          <input
+            dragInput
+            [min]="0"
+            [step]="1"
+            [value]="selectedElement.ry"
+            (valueChange)="updateSelectedElement({ ry: $event })"
+            readonly
+          />
+          <span>Radius Y</span>
+        </div>
+      </div>
+    </div>
+    } @if (selectedElement.type === elementType.Line || selectedElement.type === elementType.Arrow) {
+    <div class="context_panel clearfix">
+      <h4>Line</h4>
+      <div class="draginputs">
+        <div class="draginput" title="Change line's starting x coordinate">
+          <input
+            dragInput
+            [step]="1"
+            [value]="selectedElement.x1"
+            (valueChange)="updateSelectedElement({ x1: $event })"
+            readonly
+          />
+          <span>Start X</span>
+        </div>
+        <div class="draginput" title="Change line's starting y coordinate">
+          <input
+            dragInput
+            [step]="1"
+            [value]="selectedElement.y1"
+            (valueChange)="updateSelectedElement({ y1: $event })"
+            readonly
+          />
+          <span>Start Y</span>
+        </div>
+        <div class="draginput" title="Change line's ending x coordinate">
+          <input
+            dragInput
+            [step]="1"
+            [value]="selectedElement.x2"
+            (valueChange)="updateSelectedElement({ x2: $event })"
+            readonly
+          />
+          <span>End X</span>
+        </div>
+        <div class="draginput" title="Change line's ending y coordinate">
+          <input
+            dragInput
+            [step]="1"
+            [value]="selectedElement.y2"
+            (valueChange)="updateSelectedElement({ y2: $event })"
+            readonly
+          />
+          <span>End Y</span>
+        </div>
+      </div>
+    </div>
+    } @if (selectedElement.type === elementType.Text) {
+    <div class="context_panel">
+      <h4>Text</h4>
+      <div class="draginputs">
+        <div class="draginput twocol textcontent hidden" title="Change Content">
+          <input #text autocomplete="off" [value]="selectedElement.text" (input)="updateTextContent(text.value)" />
+          <span>Content</span>
+        </div>
+        <div class="draginput" title="Change X coordinate">
+          <input
+            dragInput
+            [step]="1"
+            [value]="selectedElement.x"
+            (valueChange)="updateSelectedElement({ x: $event })"
+            readonly
+          />
+          <span>X</span>
+        </div>
+        <div class="draginput" title="Change Y coordinate">
+          <input
+            dragInput
+            [step]="1"
+            [value]="selectedElement.y"
+            (valueChange)="updateSelectedElement({ y: $event })"
+            readonly
+          />
+          <span>Y</span>
+        </div>
+        <div class="toolset draginput twocol" title="Change Font Family">
+          <!-- Font family -->
+          <span>Font</span>
+          <div id="preview_font" [style.fontFamily]="selectedElement.style.fontFamily">
+            {{ selectedElement.style.fontFamily }}
+          </div>
+          <div class="caret"></div>
+          <select
+            #font_family
+            [value]="selectedElement.style.fontFamily"
+            (change)="updateFontFamily(font_family.value)"
+          >
+            <option value="Arial, sans-serif" style="font-family: Arial, sans-serif">Arial</option>
+            <option value="Comic Sans MS, cursive, sans-serif" style="font-family: Comic Sans MS, cursive">
+              Comic Sans MS
+            </option>
+            <option value="Brush Script MT, cursive" style="font-family: Brush Script MT, cursive">
+              Brush Script MT
+            </option>
+            <option value="Lucida Handwriting, cursive" style="font-family: Lucida Handwriting, cursive">
+              Lucida Handwriting
+            </option>
+            <option value="Papyrus, fantasy" style="font-family: Papyrus, fantasy">Papyrus</option>
+            <option value="Courier New, monospace" style="font-family: Courier New, monospace">Courier New</option>
+            <option value="Lucida Console, Monaco, monospace" style="font-family: Lucida Console, monospace">
+              Lucida Console
+            </option>
+            <option value="Consolas, monospace" style="font-family: Consolas, monospace">Consolas</option>
+            <option value="Arial Narrow, sans-serif" style="font-family: Arial Narrow, sans-serif">Arial Narrow</option>
+            <option value="Century Gothic, sans-serif" style="font-family: Century Gothic, sans-serif">
+              Century Gothic
+            </option>
+            <option value="Trebuchet MS, sans-serif" style="font-family: Trebuchet MS, sans-serif">Trebuchet MS</option>
+            <option value="Georgia, serif" style="font-family: Georgia, serif">Georgia</option>
+            <option value="Palatino Linotype, Book Antiqua, serif" style="font-family: Palatino Linotype, serif">
+              Palatino Linotype
+            </option>
+            <option value="Garamond, serif" style="font-family: Garamond, serif">Garamond</option>
+            <option value="Impact, sans-serif" style="font-family: Impact, sans-serif">Impact</option>
+            <option value="Franklin Gothic Medium, sans-serif" style="font-family: Franklin Gothic Medium, sans-serif">
+              Franklin Gothic Medium
+            </option>
+            <option value="Copperplate, fantasy" style="font-family: Copperplate, fantasy">Copperplate</option>
+            <option value="OCR A Std, monospace" style="font-family: OCR A Std, monospace">OCR A Std</option>
+            <option value="Terminal, monospace" style="font-family: Terminal, monospace">Terminal</option>
+          </select>
+        </div>
+        <div class="draginput font_style">
+          <span>Font Style</span>
+          <button id="tool_bold" title="Bold Text" (click)="toggleFontWeight()">B</button>
+          <button id="tool_italic" title="Italic Text" (click)="toggleFontStyle()">i</button>
+        </div>
+        <div class="draginput" title="Change Font Size">
+          <input
+            dragInput
+            [min]="0"
+            [step]="1"
+            [value]="selectedElement.style.fontSize"
+            (valueChange)="updateFontSize($event)"
+            readonly
+          />
+          <span>Font Size</span>
+        </div>
+      </div>
+    </div>
+    }
+    <!-- Buttons when a single element is selected -->
+    <div class="context_panel">
+      <div class="draginputs">
+        <div class="draginput" title="Change rotation angle">
+          <input
+            dragInput
+            [min]="-180"
+            [max]="180"
+            [step]="1"
+            [value]="selectedElement.rotation || 0"
+            (valueChange)="updateRotation($event)"
+            readonly
+          />
+          <span>Rotation</span>
+          <div class="angle" [attr.style]="'transform: rotate(' + selectedElement.rotation + 'deg)'">
+            <div class="angle-cursor"></div>
+          </div>
+        </div>
+
+        <div class="draginput" title="Change selected item opacity">
+          <input
+            dragInput
+            [min]="0"
+            [max]="100"
+            [step]="1"
+            [value]="selectedElement.opacity || 0"
+            (valueChange)="updateOpacity($event)"
+            readonly
+          />
+          <span>Opacity</span>
+          <div
+            class="draginput_cursor"
+            [attr.style]="'top:' + (selectedElement.opacity | dragInputCursor) + 'px'"
+          ></div>
+        </div>
+        @if (selectedElement.type === elementType.Rectangle) {
+        <div class="draginput" title="Change Rectangle Corner Radius">
+          <input
+            dragInput
+            [min]="0"
+            [max]="100"
+            [step]="1"
+            [value]="selectedElement.rx"
+            (valueChange)="updateCornerRadius($event)"
+            readonly
+          />
+          <span>Roundness</span>
+          <div class="draginput_cursor" [attr.style]="'top:' + (selectedElement.rx | dragInputCursor) + 'px'"></div>
+        </div>
+        }
+      </div>
+    </div>
+    }
+    <div class="context_panel">
+      <h4>Stroke</h4>
+      <div class="draginputs">
+        <div class="draginput" title="Change stroke">
+          <input
+            dragInput
+            [min]="1"
+            [max]="99"
+            [step]="1"
+            [value]="selectedElement?.style?.strokeWidth || options.strokeWidth"
+            (valueChange)="updateStrokeWidth($event)"
+            readonly
+          />
+          <span>Width</span>
+          <div
+            class="draginput_cursor"
+            [attr.style]="
+              'top:' + (selectedElement?.style?.strokeWidth || options.strokeWidth! | dragInputCursor) + 'px'
+            "
+          ></div>
+        </div>
+        <div class="stroke_tool draginput">
+          <span>Dash</span>
+          <select
+            #dasharray
+            id="stroke_style"
+            title="Change stroke dash style"
+            (change)="setDashArray(dasharray.value)"
+            [value]="selectedElement?.style?.dasharray || 'none'"
+          >
+            @for (dashArray of dashArrays; track dashArray.value) {
+            <option [value]="dashArray.value">
+              {{ dashArray.label }}
+            </option>
+            }
+          </select>
+          <div class="caret"></div>
+          <label for="stroke_style" id="stroke_style_label">
+            @if (selectedElement?.style || options; as style) { @if (style.dasharray) {
+            <ng-container>
+              {{ style.dasharray | findDashArray }}
+            </ng-container>
+            } @else {
+            <ng-container>──────</ng-container>
+            } }
+          </label>
+        </div>
+
+        <div class="stroke_tool draginput">
+          <span>Stroke Join</span>
+          <select
+            #stroke_join
+            id="stroke_join"
+            title="Change stroke dash style"
+            (change)="setStrokeJoin(stroke_join.value)"
+          >
+            <option selected="selected" value="miter">Miter</option>
+            <option value="round">Round</option>
+            <option value="bevel">Bevel</option>
+            <option value="miter-clip">Miter Clip</option>
+          </select>
+          <div class="caret"></div>
+          <label for="stroke_join">
+            @if (selectedElement?.style || options; as style) { @switch (style.lineJoin) { @case('miter')
+            {<ng-container>Miter</ng-container>} @case('bevel') {<ng-container>Bevel</ng-container>} @case('miter-clip')
+            {<ng-container>Miter Clip</ng-container>} @default {<ng-container>Round</ng-container>} } }
+          </label>
+        </div>
+
+        <div class="stroke_tool draginput">
+          <span>Stroke Cap</span>
+          <select
+            #stroke_cap
+            id="stroke_cap"
+            title="Change stroke dash style"
+            (change)="setStrokeCap(stroke_cap.value)"
+          >
+            <option selected="selected" value="butt">Butt</option>
+            <option value="round">Round</option>
+            <option value="square">Square</option>
+          </select>
+          <div class="caret"></div>
+          <label for="stroke_cap">
+            @if (selectedElement?.style || options; as style) { @switch (style.lineCap) { @case('square')
+            {<ng-container>Square</ng-container>} @case('butt') {<ng-container>Butt</ng-container>} @default
+            {<ng-container>Round</ng-container>} } }
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tools_left" class="tools_panel">
+    <button
+      class="tool_button"
+      title="Hand Tool"
+      (click)="selectTool(toolType.Hand)"
+      [class.active]="selectedTool === toolType.Hand"
+    >
+      <svg viewBox="0 0 24 24" width="24" height="24">
+        <path
+          d="M13.5001 3.75C13.9143 3.75 14.2501 4.08579 14.2501 4.5V7.5V12.75H15.7501V7.5C15.7501 7.08579 16.0858 6.75 16.5001 6.75C16.9143 6.75 17.2501 7.08579 17.2501 7.5V15C17.2501 17.8995 14.8996 20.25 12.0001 20.25V21.75C15.728 21.75 18.7501 18.7279 18.7501 15V7.5C18.7501 6.25736 17.7427 5.25 16.5001 5.25C16.2371 5.25 15.9846 5.29512 15.7501 5.37803V4.5C15.7501 3.25736 14.7427 2.25 13.5001 2.25C12.4625 2.25 11.5889 2.95235 11.3289 3.90757C11.0724 3.80589 10.7927 3.75 10.5001 3.75C9.25742 3.75 8.25006 4.75736 8.25006 6V12.5344L7.77377 11.5689L7.77221 11.5657C7.21726 10.4539 5.86607 10.0024 4.75422 10.5574C3.65214 11.1075 3.1989 12.4399 3.7315 13.546L5.03741 16.7808L5.06205 16.8354C6.16787 19.047 7.45919 20.2994 8.73651 20.9857C10.0096 21.6696 11.194 21.75 12.0001 21.75V20.25C11.3061 20.25 10.4069 20.1803 9.44641 19.6643C8.49439 19.1528 7.40758 18.1618 6.41695 16.191L5.11239 12.9597L5.08798 12.9055C4.903 12.5349 5.05349 12.0845 5.4241 11.8995C5.79428 11.7147 6.24405 11.8646 6.42944 12.2343L8.32743 16.0818L9.75004 15.75V14.25H9.75006V6C9.75006 5.58579 10.0858 5.25 10.5001 5.25C10.9143 5.25 11.2501 5.58579 11.2501 6V12.75H12.7501V6V4.5C12.7501 4.08579 13.0858 3.75 13.5001 3.75Z"
+        />
+        />
+      </svg>
+    </button>
+    <button
+      class="tool_button"
+      title="Select Tool"
+      (click)="selectTool(toolType.Select)"
+      [class.active]="selectedTool === toolType.Select"
+    >
+      <svg viewBox="0 0 24 24" width="24" height="24">
+        <path d="M17.15 20.76l-2.94 1.5-3.68-6-4.41 3V1.24l12.5 12.01-4.41 1.5 2.94 6z" />
+      </svg>
+    </button>
+    <button
+      class="tool_button"
+      title="Pen Tool"
+      (click)="selectTool(toolType.Pen)"
+      [class.active]="selectedTool === toolType.Pen"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        height="24"
+        viewBox="0 0 24 24"
+        width="24"
+        style="transform: scale(-1, 1)"
+      >
+        <path
+          d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+        />
+      </svg>
+    </button>
+    <button
+      class="tool_button"
+      title="Image Tool"
+      (click)="selectTool(toolType.Image)"
+      [class.active]="selectedTool === toolType.Image"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24">
+        <path d="M0 0h24v24H0z" fill="none" />
+        <path d="M17 7l-5 5 5 5V7zm-2 9.17L12.83 12 15 9.83 17.17 12 15 14.17zM3 3v18h18V3H3zm16 16H5V5h14v14z" />
+      </svg>
+    </button>
+    <button
+      class="tool_button"
+      title="Line Tool"
+      (click)="selectTool(toolType.Line)"
+      [class.active]="selectedTool === toolType.Line"
+    >
+      <svg viewBox="0 0 27 27" xmlns="http://www.w3.org/2000/svg" width="24" height="24">
+        <path d="M 3 1 L 26 24 L 24 26 L 1 3 L 3 1 Z"></path>
+      </svg>
+    </button>
+    <button
+      class="tool_button"
+      title="Arrow Tool"
+      (click)="selectTool(toolType.Arrow)"
+      [class.active]="selectedTool === toolType.Arrow"
+    >
+      <svg viewBox="0 0 27 27" xmlns="http://www.w3.org/2000/svg" width="24" height="24">
+        <path d="M 3 1 L 26 24 L 24 26 L 1 3 L 3 1 Z L 12 2 L 2 12 L 1 3 L 1 1 L 3 1"></path>
+      </svg>
+    </button>
+    <button
+      class="tool_button"
+      title="Rectangle Tool"
+      (click)="selectTool(toolType.Rectangle)"
+      [class.active]="selectedTool === toolType.Rectangle"
+    >
+      <svg viewBox="0 0 27 27" xmlns="http://www.w3.org/2000/svg" width="24" height="24">
+        <path d="M 0 8 L 0 24 L 24 24 L 25 8 L 0 8 Z" />
+      </svg>
+    </button>
+    <button
+      class="tool_button"
+      title="Ellipse Tool"
+      (click)="selectTool(toolType.Ellipse)"
+      [class.active]="selectedTool === toolType.Ellipse"
+    >
+      <svg viewBox="0 0 27 27" xmlns="http://www.w3.org/2000/svg" width="24" height="24">
+        <ellipse cx="13" cy="13" rx="13" ry="9"></ellipse>
+      </svg>
+    </button>
+    <button
+      class="tool_button"
+      title="Text Tool"
+      (click)="selectTool(toolType.Text)"
+      [class.active]="selectedTool === toolType.Text"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="2 2 20 20" width="27" height="27">
+        <path d="M5 4v3h5.5v12h3V7H19V4z" />
+      </svg>
+    </button>
+    <button
+      class="tool_button"
+      title="Eraser Tool"
+      (click)="selectTool(toolType.Eraser)"
+      [class.active]="selectedTool === toolType.Eraser"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 16 16" width="24">
+        <path
+          d="M8.086 2.207a2 2 0 0 1 2.828 0l3.879 3.879a2 2 0 0 1 0 2.828l-5.5 5.5A2 2 0 0 1 7.879 15H5.12a2 2 0 0 1-1.414-.586l-2.5-2.5a2 2 0 0 1 0-2.828l6.879-6.879zm2.121.707a1 1 0 0 0-1.414 0L4.16 7.547l5.293 5.293l4.633-4.633a1 1 0 0 0 0-1.414l-3.879-3.879zM8.746 13.547L3.453 8.254L1.914 9.793a1 1 0 0 0 0 1.414l2.5 2.5a1 1 0 0 0 .707.293H7.88a1 1 0 0 0 .707-.293l.16-.16z"
+        ></path>
+      </svg>
+    </button>
+    <div id="color_tools">
+      <div
+        id="tool_switch"
+        title="Switch stroke and fill colors"
+        (click)="swapColors()"
+        (keyup.enter)="swapColors()"
+        tabindex="0"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 11 11">
+          <path d="M3.01 2A6 6 0 019 8h1.83l-2.91 2.91L5 8h2a4 4 0 00-3.99-4v1.93L.1 3.02 3.01.1V2z" />
+        </svg>
+      </div>
+      <div class="color_tool active" id="tool_fill" ngx-colors-trigger (change)="colorChange('fill', $event)">
+        <label for="" title="Change fill color"> </label>
+        <div class="color_block">
+          <div id="fill_bg"></div>
+          <div id="fill_color" class="color_block">
+            <svg xmlns="http://www.w3.org/2000/svg" width="100%">
+              @if (selectedElement) { @if (selectedElement.type === elementType.Text) {
+              <rect width="100%" height="100%" [attr.fill]="selectedElement.style.strokeColor"></rect>
+              } @else {
+              <rect width="100%" height="100%" [attr.fill]="selectedElement.style.fill"></rect>
+              } } @else {
+              <rect width="100%" height="100%" [attr.fill]="options.fill"></rect>
+              }
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="color_tool" id="tool_stroke" ngx-colors-trigger (change)="colorChange('strokeColor', $event)">
+        <label for="" title="Change stroke color"> </label>
+        <div class="color_block">
+          <div id="stroke_bg"></div>
+          <div id="stroke_color" class="color_block" title="Change stroke color">
+            <svg xmlns="http://www.w3.org/2000/svg" width="100%">
+              @if (selectedElement) { @if (selectedElement.type === elementType.Text) {
+              <rect width="100%" height="100%" [attr.fill]="selectedElement.style.color"></rect>
+              } @else {
+              <rect width="100%" height="100%" [attr.fill]="selectedElement.style.strokeColor"></rect>
+              } } @else {
+              <rect width="100%" height="100%" [attr.fill]="options.strokeColor"></rect>
+              }
+            </svg>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-    <div id="tools_bottom" class="tools_panel">
-      <!-- Zoom buttons -->
-      <select #zoomSelect id="zoom_select" (change)="setZoom(zoomSelect.value)">
-        <option value="6">6%</option>
-        <option value="12">12%</option>
-        <option value="16">16%</option>
-        <option value="25">25%</option>
-        <option value="50">50%</option>
-        <option value="75">75%</option>
-        <option value="100" selected="selected">100%</option>
-        <option value="150">150%</option>
-        <option value="200">200%</option>
-        <option value="300">300%</option>
-        <option value="400">400%</option>
-        <option value="600">600%</option>
-        <option value="800">800%</option>
-        <option value="1600">1600%</option>
-      </select>
-      <div id="zoom_panel" class="toolset" title="Change zoom level">
-        <div class="select-input" id="zoom_label">
-          <span id="zoomLabel" class="zoom_tool icon_label">
-            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="2 2 20 20" width="27">
-              <path
-                d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
-              />
-            </svg>
-          </span>
-          <input id="zoom" [value]="zoom * 100 + '%'" type="text" readonly="readonly" />
-        </div>
+  <div id="tools_bottom" class="tools_panel">
+    <!-- Zoom buttons -->
+    <select #zoom_select id="zoom_select" title="Change zoom level" (change)="zoomChange(zoom_select.value)">
+      <option value="6">6%</option>
+      <option value="12">12%</option>
+      <option value="16">16%</option>
+      <option value="25">25%</option>
+      <option value="50">50%</option>
+      <option value="75">75%</option>
+      <option value="100" selected="selected">100%</option>
+      <option value="150">150%</option>
+      <option value="200">200%</option>
+      <option value="300">300%</option>
+      <option value="400">400%</option>
+      <option value="600">600%</option>
+      <option value="800">800%</option>
+      <option value="1600">1600%</option>
+    </select>
+    <div id="zoom_panel" class="toolset" title="Change zoom level">
+      <div class="select-input" id="zoom_label">
+        <span id="zoomLabel" class="zoom_tool icon_label">
+          <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="2 2 20 20" width="27">
+            <path
+              d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+            />
+          </svg>
+        </span>
+        <input id="zoom" [value]="options.zoom! * 100 + '%'" readonly="readonly" />
       </div>
     </div>
   </div>

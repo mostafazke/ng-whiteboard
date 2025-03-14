@@ -5,4 +5,4 @@
 export * from './lib/ng-whiteboard.service';
 export * from './lib/ng-whiteboard.component';
 export * from './lib/ng-whiteboard.module';
-export * from './lib/models';
+export * from './lib/core/types';
