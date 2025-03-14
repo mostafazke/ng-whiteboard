@@ -1,3 +1,10 @@
+## [4.0.1](https://github.com/mostafazke/ng-whiteboard/compare/v4.0.0...v4.0.1) (2025-03-14)
+
+
+### Bug Fixes
+
+* **whiteboard:** 🐛 enable undo for elements addition ([e26baa0](https://github.com/mostafazke/ng-whiteboard/commit/e26baa0dccb4eb3a1ae4b76e30cde60e3d27b8d4))
+
 # [4.0.0](https://github.com/mostafazke/ng-whiteboard/compare/v3.2.6...v4.0.0) (2025-03-14)
 
 
