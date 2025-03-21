@@ -32,5 +32,8 @@
   "dependencies": {
     "perfect-freehand": "^1.2.2"
   },
+  "allowedNonPeerDependencies": [
+    "perfect-freehand"
+  ],
   "sideEffects": false
 }
