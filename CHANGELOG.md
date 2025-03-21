@@ -1,3 +1,13 @@
+## [4.0.2](https://github.com/mostafazke/ng-whiteboard/compare/v4.0.1...v4.0.2) (2025-03-21)
+
+
+### Bug Fixes
+
+* **deps:**  add allowedNonPeerDependencies for perfect-freehand ([f5d28fd](https://github.com/mostafazke/ng-whiteboard/commit/f5d28fd87c0a073694148acc5af4c1cb7b390f04))
+* **deps:** add perfect-freehand to allowedNonPeerDependencies ([5c447ca](https://github.com/mostafazke/ng-whiteboard/commit/5c447ca37eee47c16a523ca3754e41626ee245e7))
+* **deps:** fix perfect-freehand to allowedNonPeerDependencies ([c54920d](https://github.com/mostafazke/ng-whiteboard/commit/c54920dbe644c4252f686b5114038e38863f5be3))
+* **whiteboard:** 🐛 update Angular peer dependencies ([4225955](https://github.com/mostafazke/ng-whiteboard/commit/42259555ed228d42049195de1f90cec23099f5e3))
+
 ## [4.0.1](https://github.com/mostafazke/ng-whiteboard/compare/v4.0.0...v4.0.1) (2025-03-14)
 
 
