@@ -24,9 +24,6 @@
   "bugs": {
     "url": "https://github.com/mostafazke/ng-whiteboard/issues"
   },
-  "allowedNonPeerDependencies": [
-    "perfect-freehand"
-  ],
   "peerDependencies": {
     "@angular/core": ">=17.3.0 <20.0.0",
     "@angular/common": ">=17.3.0 <20.0.0",
