@@ -3,5 +3,6 @@
   "dest": "../../dist/ng-whiteboard",
   "lib": {
     "entryFile": "src/index.ts"
-  }
+  },
+  "allowedNonPeerDependencies": ["perfect-freehand"]
 }
