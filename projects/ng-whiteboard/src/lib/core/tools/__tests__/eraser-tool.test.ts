@@ -1,8 +1,6 @@
+import { getElementUtil } from '../../elements/element.utils';
+import { ElementType, ToolType, WhiteboardElement } from '../../types';
 import { EraserTool } from '../eraser-tool';
-import { ToolType, WhiteboardElement } from '../../types';
-import { getTargetElement } from '../../utils';
-
-jest.mock('../../utils');
 
 describe('EraserTool', () => {
   let eraserTool: EraserTool;
@@ -10,86 +8,111 @@ describe('EraserTool', () => {
 
   beforeEach(() => {
     mockDataService = {
-      removeElement: jest.fn(),
-      updateElement: jest.fn(),
       getData: jest.fn(),
+      getConfig: jest.fn(),
+      removeElements: jest.fn(),
+      updateElement: jest.fn(),
+      patchElements: jest.fn(),
     };
     eraserTool = new EraserTool(mockDataService);
-    eraserTool.activate();
   });
 
-  it('should have type ToolType.Eraser', () => {
+  it('should initialize with the correct type', () => {
     expect(eraserTool.type).toBe(ToolType.Eraser);
   });
 
   describe('handlePointerDown', () => {
-    it('should clear hoveredElements and process element if active', () => {
-      const event = new MouseEvent('pointerdown') as PointerEvent;
-      const element = { id: '1', opacity: 100 } as WhiteboardElement;
+    it('should start erasing and set the last position', () => {
+      const mockElement = { id: '1', type: ElementType.Rectangle, opacity: 100 } as WhiteboardElement;
+      mockDataService.getData.mockReturnValue([mockElement]);
+      const mockEvent = { clientX: 100, clientY: 200 } as PointerEvent;
+      jest.spyOn(eraserTool, 'getPointerPosition').mockReturnValue({ x: 100, y: 200 });
 
-      (getTargetElement as jest.Mock).mockReturnValue(element);
+      eraserTool.activate();
+      eraserTool.handlePointerDown(mockEvent);
 
-      eraserTool.handlePointerDown(event);
-
-      expect(eraserTool['hoveredElements'].size).toBe(1);
-      expect(mockDataService.updateElement).toHaveBeenCalledWith(element, false);
+      expect(eraserTool['isErasing']).toBe(true);
+      expect(eraserTool['lastPosition']).toEqual({ x: 100, y: 200 });
     });
 
-    it('should not process element if not active', () => {
+    it('should not start erasing if the tool is not active', () => {
+      const mockEvent = { clientX: 100, clientY: 200 } as PointerEvent;
+
       eraserTool.deactivate();
-      const event = new MouseEvent('pointerdown') as PointerEvent;
+      eraserTool.handlePointerDown(mockEvent);
 
-      eraserTool.handlePointerDown(event);
+      expect(eraserTool['isErasing']).toBe(false);
+      expect(eraserTool['lastPosition']).toBeNull();
+    });
+  });
 
-      expect(eraserTool['hoveredElements'].size).toBe(0);
-      expect(mockDataService.updateElement).not.toHaveBeenCalled();
+  describe('handlePointerMove', () => {
+    it('should erase elements when moving the pointer', () => {
+      const mockElement = { id: '1', type: ElementType.Rectangle, opacity: 100 } as WhiteboardElement;
+      mockDataService.getData.mockReturnValue([mockElement]);
+
+      const mockEvent = { clientX: 150, clientY: 250, altKey: false } as PointerEvent;
+      jest.spyOn(eraserTool, 'getPointerPosition').mockReturnValue({ x: 150, y: 250 });
+      jest.spyOn<any, any>(eraserTool, 'eraseElementsAt');
+
+      eraserTool.activate();
+      eraserTool['isErasing'] = true;
+      eraserTool['lastPosition'] = { x: 100, y: 200 };
+
+      eraserTool.handlePointerMove(mockEvent);
+
+      expect(eraserTool['eraseElementsAt']).toHaveBeenCalledWith({ x: 100, y: 200 }, { x: 150, y: 250 }, false);
+      expect(eraserTool['lastPosition']).toEqual({ x: 150, y: 250 });
+    });
+
+    it('should not erase elements if the tool is not active or erasing', () => {
+      const mockEvent = { clientX: 150, clientY: 250 } as PointerEvent;
+
+      eraserTool.deactivate();
+      eraserTool.handlePointerMove(mockEvent);
+
+      expect(eraserTool['lastPosition']).toBeNull();
     });
   });
 
   describe('handlePointerUp', () => {
-    it('should remove elements from dataService if active', () => {
-      const element = { id: '1', opacity: 100 } as WhiteboardElement;
-      eraserTool['hoveredElements'].add(element);
+    it('should remove hovered elements and reset state', () => {
+      const mockElement = { id: '1' } as WhiteboardElement;
+      eraserTool['hoveredElements'].add(mockElement);
 
+      eraserTool.activate();
       eraserTool.handlePointerUp();
 
-      expect(mockDataService.removeElement).toHaveBeenCalledWith('1');
+      expect(mockDataService.removeElements).toHaveBeenCalledWith(['1']);
       expect(eraserTool['hoveredElements'].size).toBe(0);
+      expect(eraserTool['isErasing']).toBe(false);
+      expect(eraserTool['lastPosition']).toBeNull();
     });
 
-    it('should not remove elements if not active', () => {
+    it('should do nothing if the tool is not active', () => {
       eraserTool.deactivate();
-
       eraserTool.handlePointerUp();
 
-      expect(mockDataService.removeElement).not.toHaveBeenCalled();
+      expect(mockDataService.removeElements).not.toHaveBeenCalled();
     });
   });
 
-  describe('processElement', () => {
-    it('should add element to hoveredElements and update its opacity', () => {
-      const event = new MouseEvent('pointermove') as PointerEvent;
-      const element = { id: '1', opacity: 100 } as WhiteboardElement;
+  describe('eraseElementsAt', () => {
+    it('should update elements based on erasing logic', () => {
+      const mockElement = { id: '1', type: ElementType.Rectangle, opacity: 100 } as WhiteboardElement;
+      const mockBounds = { minX: 0, minY: 0, maxX: 100, maxY: 100, width: 100, height: 100 };
+      jest.spyOn<any, any>(eraserTool, 'isPointInElement').mockReturnValue(true);
+      jest.spyOn<any, any>(eraserTool, 'getPointerPosition');
+      mockDataService.getData.mockReturnValue([mockElement]);
+      mockDataService.getConfig.mockReturnValue({ zoom: 1 });
 
-      (getTargetElement as jest.Mock).mockReturnValue(element);
+      jest.spyOn(getElementUtil(mockElement.type), 'getBounds').mockReturnValue(mockBounds);
 
-      eraserTool['processElement'](event);
+      eraserTool['eraseElementsAt']({ x: 10, y: 10 }, { x: 20, y: 20 });
 
-      expect(element.opacity).toBe(50);
-      expect(eraserTool['hoveredElements'].has(element)).toBe(true);
-      expect(mockDataService.updateElement).toHaveBeenCalledWith(element, false);
-    });
-
-    it('should not add element if it is already in hoveredElements', () => {
-      const event = new MouseEvent('pointermove') as PointerEvent;
-      const element = { id: '1', opacity: 100 } as WhiteboardElement;
-
-      eraserTool['hoveredElements'].add(element);
-      (getTargetElement as jest.Mock).mockReturnValue(element);
-
-      eraserTool['processElement'](event);
-
-      expect(mockDataService.updateElement).not.toHaveBeenCalled();
+      expect(eraserTool['hoveredElements'].has(mockElement)).toBe(true);
+      expect(mockElement.isDeleting).toBe(true);
+      expect(mockDataService.updateElement).toHaveBeenCalledWith(mockElement, false);
     });
   });
 });

@@ -9,7 +9,7 @@ export enum ActionType {
   ToggleGrid = 'toggleGrid',
   AddElement = 'addElement',
   UpdateElement = 'updateElement',
-  removeElement = 'removeElement',
+  RemoveElements = 'removeElements',
   SelectElement = 'selectElement',
   UpdateSelectedElement = 'updateSelectedElement',
   SetActiveTool = 'setActiveTool',
@@ -31,7 +31,7 @@ export type WhiteboardAction =
   | { type: ActionType.ToggleGrid }
   | { type: ActionType.AddElement; payload: { element: WhiteboardElement } }
   | { type: ActionType.UpdateElement; payload: { element: WhiteboardElement } }
-  | { type: ActionType.removeElement; payload: { id: string } }
+  | { type: ActionType.RemoveElements; payload: { ids: string[] } }
   | { type: ActionType.SelectElement; payload: { element: WhiteboardElement | null } }
   | { type: ActionType.UpdateSelectedElement; payload: { partialElement: Partial<WhiteboardElement> } }
   | { type: ActionType.SetActiveTool; payload: { tool: ToolType } }

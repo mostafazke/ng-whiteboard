@@ -15,7 +15,7 @@ export enum WhiteboardEvent {
   ElementAdded = 'elementAdded',
   ElementUpdated = 'elementUpdated',
   ElementSelected = 'elementSelected',
-  ElementDeleted = 'elementDeleted',
+  ElementsDeleted = 'elementsDeleted',
   Undo = 'undo',
   Redo = 'redo',
   Clear = 'clear',
@@ -37,7 +37,7 @@ export type WhiteboardEventPayloads = {
   [WhiteboardEvent.ElementAdded]: WhiteboardElement;
   [WhiteboardEvent.ElementUpdated]: WhiteboardElement;
   [WhiteboardEvent.ElementSelected]: WhiteboardElement | null;
-  [WhiteboardEvent.ElementDeleted]: WhiteboardElement;
+  [WhiteboardEvent.ElementsDeleted]: void;
 
   [WhiteboardEvent.Undo]: void;
   [WhiteboardEvent.Redo]: void;
@@ -60,7 +60,7 @@ export type WhiteboardEventType =
   | [WhiteboardEvent.ElementAdded]
   | [WhiteboardEvent.ElementUpdated]
   | [WhiteboardEvent.ElementSelected]
-  | [WhiteboardEvent.ElementDeleted]
+  | [WhiteboardEvent.ElementsDeleted]
   | [WhiteboardEvent.Undo]
   | [WhiteboardEvent.Redo]
   | [WhiteboardEvent.Clear]

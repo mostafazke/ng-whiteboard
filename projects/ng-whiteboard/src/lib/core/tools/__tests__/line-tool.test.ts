@@ -1,35 +1,37 @@
 import { LineTool } from '../line-tool';
 import { createElement } from '../../elements/element.utils';
-import { ElementType, ToolType } from '../../types';
+import { ElementType, LineCap, LineJoin, ToolType, WhiteboardConfig } from '../../types';
 import { snapToAngle } from '../../utils/utils';
+import { DataService } from '../../data/data.service';
 
 jest.mock('../../elements/element.utils');
 jest.mock('../../utils/utils');
 
 describe('LineTool', () => {
   let lineTool: LineTool;
-  let mockDataService: any;
-  let mockWhiteboardConfig: any;
+  let dataService: DataService;
+  let config: WhiteboardConfig;
 
   beforeEach(() => {
-    mockWhiteboardConfig = {
-      snapToGrid: false,
-      gridSize: 10,
+    config = {
       strokeColor: '#000000',
-      strokeWidth: 1,
-      lineCap: 'round',
+      strokeWidth: 2,
+      lineCap: LineCap.Butt,
+      lineJoin: LineJoin.Miter,
       dasharray: '',
       dashoffset: 0,
-    };
+      backgroundColor: '#ffffff',
+      canvasWidth: 800,
+      canvasHeight: 600,
+    } as WhiteboardConfig;
 
-    mockDataService = {
-      getCanvasCoordinates: jest.fn(),
+    dataService = {
       addToDraft: jest.fn(),
       commitDraftToData: jest.fn(),
-      getConfig: jest.fn().mockReturnValue(mockWhiteboardConfig),
-    };
+      getConfig: jest.fn().mockReturnValue(config),
+    } as unknown as DataService;
 
-    lineTool = new LineTool(mockDataService);
+    lineTool = new LineTool(dataService);
     lineTool.activate();
   });
 
@@ -37,62 +39,151 @@ describe('LineTool', () => {
     expect(lineTool.type).toBe(ToolType.Line);
   });
 
-  it('should handle pointer down event', () => {
-    const event = { offsetX: 10, offsetY: 20 } as PointerEvent;
-    mockDataService.getCanvasCoordinates.mockReturnValue([10, 20]);
+  it('should handle pointer down and create a line element', () => {
+    const event = {
+      clientX: 100,
+      clientY: 150,
+    } as PointerEvent;
+
+    jest.spyOn(lineTool, 'getPointerPosition').mockReturnValue({ x: 100, y: 150 });
+    (createElement as jest.Mock).mockReturnValue({
+      x1: 100,
+      y1: 150,
+      x2: 100,
+      y2: 150,
+      style: {},
+    });
 
     lineTool.handlePointerDown(event);
 
-    expect(mockDataService.getCanvasCoordinates).toHaveBeenCalledWith([10, 20]);
-    expect(lineTool.startPoint).toEqual([10, 20]);
-    expect(createElement).toHaveBeenCalledWith(ElementType.Line, {
-      x1: 10,
-      y1: 20,
-      x2: 10,
-      y2: 20,
-      style: {
-        strokeColor: '#000000',
-        strokeWidth: 1,
-        lineCap: 'round',
-        dasharray: '',
-        dashoffset: 0,
-      },
+    expect(lineTool.startPoint).toEqual({ x: 100, y: 150 });
+    expect(lineTool.element).toEqual({
+      x1: 100,
+      y1: 150,
+      x2: 100,
+      y2: 150,
+      style: {},
     });
-    expect(mockDataService.addToDraft).toHaveBeenCalled();
+    expect(dataService.addToDraft).toHaveBeenCalledWith(lineTool.element);
   });
 
-  it('should handle pointer move event', () => {
-    const event = { offsetX: 30, offsetY: 40, shiftKey: false } as PointerEvent;
-    mockDataService.getCanvasCoordinates.mockReturnValue([30, 40]);
-    (createElement as jest.Mock).mockReturnValue({ type: ElementType.Line, x1: 10, y1: 20, x2: 30, y2: 40 });
-    lineTool.handlePointerDown({ offsetX: 10, offsetY: 20 } as PointerEvent);
-    lineTool.handlePointerMove(event);
+  it('should handle pointer move and update line element coordinates', () => {
+    const downEvent = {
+      clientX: 100,
+      clientY: 150,
+    } as PointerEvent;
+    const moveEvent = {
+      clientX: 200,
+      clientY: 250,
+      shiftKey: false,
+    } as PointerEvent;
 
-    expect(mockDataService.getCanvasCoordinates).toHaveBeenCalledWith([10, 20]);
-    expect(lineTool.element?.x1).toBe(10);
-    expect(lineTool.element?.y1).toBe(20);
+    jest
+      .spyOn(lineTool, 'getPointerPosition')
+      .mockReturnValueOnce({ x: 100, y: 150 }) // For handlePointerDown
+      .mockReturnValueOnce({ x: 200, y: 250 }); // For handlePointerMove
+
+    (createElement as jest.Mock).mockReturnValue({
+      x1: 100,
+      y1: 150,
+      x2: 100,
+      y2: 150,
+      style: {},
+    });
+
+    lineTool.handlePointerDown(downEvent);
+    lineTool.handlePointerMove(moveEvent);
+
+    expect(lineTool.element?.x2).toBe(200);
+    expect(lineTool.element?.y2).toBe(250);
   });
 
-  it('should snap to angle when shift key is pressed', () => {
-    const event = { offsetX: 30, offsetY: 40, shiftKey: true } as PointerEvent;
-    mockDataService.getCanvasCoordinates.mockReturnValue([30, 40]);
-    (snapToAngle as jest.Mock).mockReturnValue({ x: 30, y: 40 });
+  it('should snap to grid when pointer moves if snapToGrid is enabled', () => {
+    config.snapToGrid = true;
+    config.gridSize = 10;
 
-    lineTool.handlePointerDown({ offsetX: 10, offsetY: 20 } as PointerEvent);
-    lineTool.handlePointerMove(event);
+    const downEvent = {
+      clientX: 103,
+      clientY: 157,
+    } as PointerEvent;
+    const moveEvent = {
+      clientX: 208,
+      clientY: 263,
+      shiftKey: false,
+    } as PointerEvent;
 
-    expect(snapToAngle).toHaveBeenCalledWith(10, 20, 30, 40);
-    expect(lineTool.element?.x2).toBe(30);
-    expect(lineTool.element?.y2).toBe(40);
+    jest
+      .spyOn(lineTool, 'getPointerPosition')
+      .mockReturnValueOnce({ x: 103, y: 157 })
+      .mockReturnValueOnce({ x: 208, y: 263 });
+
+    (createElement as jest.Mock).mockReturnValue({
+      x1: 100,
+      y1: 160,
+      x2: 100,
+      y2: 160,
+      style: {},
+    });
+
+    lineTool.handlePointerDown(downEvent);
+    lineTool.handlePointerMove(moveEvent);
+
+    expect(lineTool.element?.x2).toBe(100);
+    expect(lineTool.element?.y2).toBe(160);
   });
 
-  it('should handle pointer up event', () => {
-    mockDataService.getCanvasCoordinates.mockReturnValue([30, 40]);
+  it('should snap to angle when shift key is pressed during pointer move', () => {
+    const downEvent = {
+      clientX: 100,
+      clientY: 150,
+    } as PointerEvent;
+    const moveEvent = {
+      clientX: 200,
+      clientY: 250,
+      shiftKey: true,
+    } as PointerEvent;
 
-    lineTool.handlePointerDown({ offsetX: 10, offsetY: 20 } as PointerEvent);
+    jest
+      .spyOn(lineTool, 'getPointerPosition')
+      .mockReturnValueOnce({ x: 100, y: 150 }) // For handlePointerDown
+      .mockReturnValueOnce({ x: 200, y: 250 }); // For handlePointerMove
+
+    (snapToAngle as jest.Mock).mockReturnValue({ x: 200, y: 200 });
+    (createElement as jest.Mock).mockReturnValue({
+      x1: 100,
+      y1: 150,
+      x2: 100,
+      y2: 150,
+      style: {},
+    });
+
+    lineTool.handlePointerDown(downEvent);
+    lineTool.handlePointerMove(moveEvent);
+
+    expect(lineTool.element?.x2).toBe(200); // Snapped to angle
+    expect(lineTool.element?.y2).toBe(200); // Snapped to angle
+  });
+
+  it('should handle pointer up and commit the draft', () => {
+    const downEvent = {
+      clientX: 100,
+      clientY: 150,
+    } as PointerEvent;
+
+    jest.spyOn(lineTool, 'getPointerPosition').mockReturnValue({ x: 100, y: 150 });
+    (createElement as jest.Mock).mockReturnValue({
+      x1: 100,
+      y1: 150,
+      x2: 100,
+      y2: 150,
+      style: {},
+    });
+
+    lineTool.handlePointerDown(downEvent);
     lineTool.handlePointerUp();
 
-    // expect(lineTool.startPoint).toBeNull();
+    expect(dataService.commitDraftToData).toHaveBeenCalled();
+    expect(lineTool.startPoint).toBeNull();
     expect(lineTool.element).toBeNull();
   });
 });

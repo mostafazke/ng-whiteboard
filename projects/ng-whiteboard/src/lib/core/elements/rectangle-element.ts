@@ -1,4 +1,5 @@
-import { BaseElement, Direction, ElementType, ElementUtil, defaultElementStyle } from '../types';
+import { BaseElement, Bounds, Direction, ElementType, ElementUtil, Point, defaultElementStyle } from '../types';
+import { hitTestBoundingBox } from '../utils/hit-test';
 import { generateId } from '../utils/utils';
 
 export interface RectangleElement extends BaseElement {
@@ -56,5 +57,21 @@ export class RectangleElementUtil implements ElementUtil<RectangleElement> {
       }
     }
     return element;
+  }
+
+  getBounds(element: RectangleElement): Bounds {
+    return {
+      minX: element.x,
+      minY: element.y,
+      maxX: element.x + element.width,
+      maxY: element.y + element.height,
+      width: element.width,
+      height: element.height,
+    };
+  }
+
+  hitTest(element: RectangleElement, pointA: Point, pointB: Point, threshold: number): boolean {
+    const bounds = this.getBounds(element);
+    return hitTestBoundingBox(bounds, pointA, pointB, threshold);
   }
 }

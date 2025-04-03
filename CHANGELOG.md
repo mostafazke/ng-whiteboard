@@ -1,45 +1,39 @@
 ## [4.0.2](https://github.com/mostafazke/ng-whiteboard/compare/v4.0.1...v4.0.2) (2025-03-21)
 
-
 ### Bug Fixes
 
-* **deps:**  add allowedNonPeerDependencies for perfect-freehand ([f5d28fd](https://github.com/mostafazke/ng-whiteboard/commit/f5d28fd87c0a073694148acc5af4c1cb7b390f04))
-* **deps:** add perfect-freehand to allowedNonPeerDependencies ([5c447ca](https://github.com/mostafazke/ng-whiteboard/commit/5c447ca37eee47c16a523ca3754e41626ee245e7))
-* **deps:** fix perfect-freehand to allowedNonPeerDependencies ([c54920d](https://github.com/mostafazke/ng-whiteboard/commit/c54920dbe644c4252f686b5114038e38863f5be3))
-* **whiteboard:** 🐛 update Angular peer dependencies ([4225955](https://github.com/mostafazke/ng-whiteboard/commit/42259555ed228d42049195de1f90cec23099f5e3))
+- **deps:** add allowedNonPeerDependencies for perfect-freehand ([f5d28fd](https://github.com/mostafazke/ng-whiteboard/commit/f5d28fd87c0a073694148acc5af4c1cb7b390f04))
+- **deps:** add perfect-freehand to allowedNonPeerDependencies ([5c447ca](https://github.com/mostafazke/ng-whiteboard/commit/5c447ca37eee47c16a523ca3754e41626ee245e7))
+- **deps:** fix perfect-freehand to allowedNonPeerDependencies ([c54920d](https://github.com/mostafazke/ng-whiteboard/commit/c54920dbe644c4252f686b5114038e38863f5be3))
+- **whiteboard:** 🐛 update Angular peer dependencies ([4225955](https://github.com/mostafazke/ng-whiteboard/commit/42259555ed228d42049195de1f90cec23099f5e3))
 
 ## [4.0.1](https://github.com/mostafazke/ng-whiteboard/compare/v4.0.0...v4.0.1) (2025-03-14)
 
-
 ### Bug Fixes
 
-* **whiteboard:** 🐛 enable undo for elements addition ([e26baa0](https://github.com/mostafazke/ng-whiteboard/commit/e26baa0dccb4eb3a1ae4b76e30cde60e3d27b8d4))
+- **whiteboard:** 🐛 enable undo for elements addition ([e26baa0](https://github.com/mostafazke/ng-whiteboard/commit/e26baa0dccb4eb3a1ae4b76e30cde60e3d27b8d4))
 
 # [4.0.0](https://github.com/mostafazke/ng-whiteboard/compare/v3.2.6...v4.0.0) (2025-03-14)
 
-
 ### Bug Fixes
 
-* **deps:** move rxjs to peerDependencies ([b51c24e](https://github.com/mostafazke/ng-whiteboard/commit/b51c24ed6e4cd5e48cf99c6a301ce1c7fdad782e))
-* **deps:** update version adjustment scripts to use replace-json-property ([7fba81e](https://github.com/mostafazke/ng-whiteboard/commit/7fba81e42a7475e830db0770f516d1bf9034f267))
-
+- **deps:** move rxjs to peerDependencies ([b51c24e](https://github.com/mostafazke/ng-whiteboard/commit/b51c24ed6e4cd5e48cf99c6a301ce1c7fdad782e))
+- **deps:** update version adjustment scripts to use replace-json-property ([7fba81e](https://github.com/mostafazke/ng-whiteboard/commit/7fba81e42a7475e830db0770f516d1bf9034f267))
 
 ### Code Refactoring
 
-* **whiteboard:** 💡 modularize ng-whiteboard by extracting logic into services and classes ([637351b](https://github.com/mostafazke/ng-whiteboard/commit/637351b5b11930a0a511ac992a2001836e40ed19))
-
+- **whiteboard:** 💡 modularize ng-whiteboard by extracting logic into services and classes ([637351b](https://github.com/mostafazke/ng-whiteboard/commit/637351b5b11930a0a511ac992a2001836e40ed19))
 
 ### Features
 
-* **core:** 🎸 adds angular 17 support ([d08fd12](https://github.com/mostafazke/ng-whiteboard/commit/d08fd12d7fa34ae5bd04a4aa043e849afd5f61be))
-* **whiteboard:** 🎸 centralize data management in DataService ([993facf](https://github.com/mostafazke/ng-whiteboard/commit/993facf20ee59f5abbe47690b522066deece6086))
-
+- **core:** 🎸 adds angular 17 support ([d08fd12](https://github.com/mostafazke/ng-whiteboard/commit/d08fd12d7fa34ae5bd04a4aa043e849afd5f61be))
+- **whiteboard:** 🎸 centralize data management in DataService ([993facf](https://github.com/mostafazke/ng-whiteboard/commit/993facf20ee59f5abbe47690b522066deece6086))
 
 ### BREAKING CHANGES
 
-* **whiteboard:** Some internal APIs and component structure have changed.
-* **whiteboard:** 🧨 Data management is now handled through DataService
-* **core:** 🧨 minimum required angular version is 17.0.0
+- **whiteboard:** Some internal APIs and component structure have changed.
+- **whiteboard:** 🧨 Data management is now handled through DataService
+- **core:** 🧨 minimum required angular version is 17.0.0
 
 ## [3.2.6](https://github.com/mostafazke/ng-whiteboard/compare/v3.2.5...v3.2.6) (2025-03-08)
 

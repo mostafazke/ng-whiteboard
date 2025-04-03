@@ -147,47 +147,31 @@ export class WhiteboardContainerComponent implements OnInit {
 
 ### 📌 Element Management
 
-- **`addElement(element: WhiteboardElement)`**  
-  Adds a new element (e.g., shape, text) to the whiteboard.
-- **`addImage(image: string, x?: number, y?: number)`**  
-  Adds an image to the whiteboard at a specified position.
-- **`removeElement(id: string)`**  
-  Removes an element from the whiteboard by its ID.
-- **`updateElement(element: WhiteboardElement)`**  
-  Updates an existing element with new properties.
-- **`updateSelectedElement(partialElement: Partial<WhiteboardElement>)`**  
-  Modifies only specific properties of the currently selected element.
-- **`selectElement(element: WhiteboardElement | null)`**  
-  Selects or deselects an element on the whiteboard.
+- **`addElement(element: WhiteboardElement)`** Adds a new element (e.g., shape, text) to the whiteboard.
+- **`addImage(image: string, x?: number, y?: number)`** Adds an image to the whiteboard at a specified position.
+- **`removeElement(id: string)`** Removes an element from the whiteboard by its ID.
+- **`updateElement(element: WhiteboardElement)`** Updates an existing element with new properties.
+- **`updateSelectedElement(partialElement: Partial<WhiteboardElement>)`** Modifies only specific properties of the currently selected element.
+- **`selectElement(element: WhiteboardElement | null)`** Selects or deselects an element on the whiteboard.
 
 ### 🔄 State Management
 
-- **`clear()`**  
-  Clears all elements from the whiteboard.
-- **`undo()`**  
-  Reverts the last action.
-- **`redo()`**  
-  Restores the last undone action.
-- **`save(format = FormatType.Base64, name = 'New board')`**  
-  Saves the current whiteboard state in the specified format (e.g., Base64, JSON, SVG).
+- **`clear()`** Clears all elements from the whiteboard.
+- **`undo()`** Reverts the last action.
+- **`redo()`** Restores the last undone action.
+- **`save(format = FormatType.Base64, name = 'New board')`** Saves the current whiteboard state in the specified format (e.g., Base64, JSON, SVG).
 
 ### 🖌 Drawing Tools & Interaction
 
-- **`setActiveTool(tool: ToolType)`**  
-  Sets the current drawing tool (e.g., pen, eraser, shape).
+- **`setActiveTool(tool: ToolType)`** Sets the current drawing tool (e.g., pen, eraser, shape).
 
 ### 🎨 Canvas Control
 
-- **`setCanvasDimensions(width: number, height: number)`**  
-  Sets the width and height of the whiteboard canvas.
-- **`setCanvasPosition(x: number, y: number)`**  
-  Moves the canvas to a specific position.
-- **`centerCanvas()`**  
-  Centers the whiteboard canvas within the viewport.
-- **`fullScreen()`**  
-  Toggles full-screen mode for the whiteboard.
-- **`toggleGrid()`**  
-  Enables or disables the background grid for alignment.
+- **`setCanvasDimensions(width: number, height: number)`** Sets the width and height of the whiteboard canvas.
+- **`setCanvasPosition(x: number, y: number)`** Moves the canvas to a specific position.
+- **`centerCanvas()`** Centers the whiteboard canvas within the viewport.
+- **`fullScreen()`** Toggles full-screen mode for the whiteboard.
+- **`toggleGrid()`** Enables or disables the background grid for alignment.
 
 ## 📢 Whiteboard Events (Outputs)
 
@@ -195,55 +179,38 @@ The `NgWhiteboardComponent` emits the following events to notify about changes a
 
 ### 🟢 Lifecycle Events
 
-- **`ready`**  
-  Emitted when the whiteboard is fully initialized and ready for use.
-- **`destroyed`**  
-  Emitted when the whiteboard is destroyed, allowing for cleanup.
+- **`ready`** Emitted when the whiteboard is fully initialized and ready for use.
+- **`destroyed`** Emitted when the whiteboard is destroyed, allowing for cleanup.
 
 ### ✏️ Drawing Events
 
-- **`drawStart`**  
-  Triggered when a user starts drawing on the whiteboard.
-- **`drawing`**  
-  Emitted continuously while the user is drawing.
-- **`drawEnd`**  
-  Triggered when the user stops drawing.
+- **`drawStart`** Triggered when a user starts drawing on the whiteboard.
+- **`drawing`** Emitted continuously while the user is drawing.
+- **`drawEnd`** Triggered when the user stops drawing.
 
 ### 🔄 State & Data Events
 
-- **`undo`**  
-  Emitted when an undo action is performed.
-- **`redo`**  
-  Emitted when a redo action is performed.
-- **`clear`**  
-  Triggered when the whiteboard is cleared.
-- **`dataChange`**  
-  Emitted when the whiteboard's internal data state changes.
-- **`save`**  
-  Triggered when the whiteboard state is saved.
+- **`undo`** Emitted when an undo action is performed.
+- **`redo`** Emitted when a redo action is performed.
+- **`clear`** Triggered when the whiteboard is cleared.
+- **`dataChange`** Emitted when the whiteboard's internal data state changes.
+- **`save`** Triggered when the whiteboard state is saved.
 
 ### 📌 Element Events
 
-- **`elementAdded`**  
-  Emitted when a new element is added to the whiteboard.
-- **`elementUpdated`**  
-  Triggered when an existing element is modified.
-- **`elementSelected`**  
-  Emitted when an element is selected.
-- **`elementDeleted`**  
-  Triggered when an element is removed.
+- **`elementAdded`** Emitted when a new element is added to the whiteboard.
+- **`elementUpdated`** Triggered when an existing element is modified.
+- **`elementSelected`** Emitted when an element is selected.
+- **`elementDeleted`** Triggered when an element is removed.
 
 ### 🖼 Image Events
 
-- **`imageAdded`**  
-  Emitted when an image is added to the whiteboard.
+- **`imageAdded`** Emitted when an image is added to the whiteboard.
 
 ### 🛠 Configuration & Tool Events
 
-- **`selectedToolChange`**  
-  Triggered when the active drawing tool is changed.
-- **`configChanged`**  
-  Emitted when the whiteboard configuration settings are updated.
+- **`selectedToolChange`** Triggered when the active drawing tool is changed.
+- **`configChanged`** Emitted when the whiteboard configuration settings are updated.
 
 ## 🤝 Contributing
 

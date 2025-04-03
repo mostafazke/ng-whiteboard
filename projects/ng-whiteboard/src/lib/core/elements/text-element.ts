@@ -1,4 +1,5 @@
-import { BaseElement, Direction, ElementType, ElementUtil, defaultTextElementStyle } from '../types';
+import { BaseElement, Bounds, Direction, ElementType, ElementUtil, Point, defaultTextElementStyle } from '../types';
+import { hitTestBoundingBox } from '../utils/hit-test';
 import { generateId } from '../utils/utils';
 
 export interface TextElement extends BaseElement {
@@ -73,5 +74,23 @@ export class TextElementUtil implements ElementUtil<TextElement> {
     }
 
     return element;
+  }
+
+  getBounds(element: TextElement): Bounds {
+    const width = element.text.length * 10 * element.scaleX;
+    const height = 20 * element.scaleY;
+    return {
+      minX: element.x,
+      minY: element.y,
+      maxX: element.x + width,
+      maxY: element.y + height,
+      width,
+      height,
+    };
+  }
+
+  hitTest(element: TextElement, pointA: Point, pointB: Point, threshold: number): boolean {
+    const bounds = this.getBounds(element);
+    return hitTestBoundingBox(bounds, pointA, pointB, threshold);
   }
 }

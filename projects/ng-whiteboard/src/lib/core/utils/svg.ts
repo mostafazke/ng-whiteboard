@@ -1,4 +1,4 @@
-import { FormatType } from '../types';
+import { Bounds, FormatType } from '../types';
 import getStroke, { StrokeOptions } from 'perfect-freehand';
 
 // Default stroke options for drawing paths
@@ -60,31 +60,24 @@ export function svgToBase64(
  * @param points - An array of points where each point is an array of two numbers [x, y].
  * @returns An object containing the x, y, width, and height of the bounding box.
  */
-export function calculateBoundingBox(points: number[][]): {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-} {
-  if (points.length === 0) {
-    return { x: 0, y: 0, width: 0, height: 0 };
-  }
-
+export function calculateBoundingBox(points: number[][]): Bounds {
   let minX = Infinity;
   let minY = Infinity;
   let maxX = -Infinity;
   let maxY = -Infinity;
 
-  points.forEach((point) => {
-    if (point[0] < minX) minX = point[0];
-    if (point[1] < minY) minY = point[1];
-    if (point[0] > maxX) maxX = point[0];
-    if (point[1] > maxY) maxY = point[1];
-  });
+  for (const [x, y] of points) {
+    minX = Math.min(minX, x);
+    minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x);
+    maxY = Math.max(maxY, y);
+  }
 
   return {
-    x: minX,
-    y: minY,
+    minX,
+    minY,
+    maxX,
+    maxY,
     width: maxX - minX,
     height: maxY - minY,
   };

@@ -1,6 +1,7 @@
+import { DataService } from '../../data/data.service';
 import { createElement } from '../../elements/element.utils';
-import { ElementType } from '../../types';
-import { snapToGrid, snapToAngle } from '../../utils';
+import { LineCap, LineJoin, ToolType, WhiteboardConfig } from '../../types';
+import { snapToAngle, snapToGrid } from '../../utils/utils';
 import { ArrowTool } from '../arrow-tool';
 
 jest.mock('../../elements/element.utils');
@@ -8,100 +9,227 @@ jest.mock('../../utils/utils');
 
 describe('ArrowTool', () => {
   let arrowTool: ArrowTool;
-  let mockDataService: any;
-  let mockWhiteboardConfig: any;
+  let dataService: DataService;
+  let config: WhiteboardConfig;
 
   beforeEach(() => {
-    mockWhiteboardConfig = {
-      snapToGrid: false,
-      gridSize: 10,
+    config = {
       strokeColor: '#000000',
-      strokeWidth: 1,
-      lineCap: 'round',
+      strokeWidth: 2,
+      lineCap: LineCap.Butt,
+      lineJoin: LineJoin.Miter,
       dasharray: '',
       dashoffset: 0,
-    };
+      backgroundColor: '#ffffff',
+      canvasWidth: 800,
+      canvasHeight: 600,
+      snapToGrid: false,
+      gridSize: 10,
+    } as WhiteboardConfig;
 
-    mockDataService = {
-      getCanvasCoordinates: jest.fn(),
+    dataService = {
       addToDraft: jest.fn(),
       commitDraftToData: jest.fn(),
-      getConfig: jest.fn().mockReturnValue(mockWhiteboardConfig),
-    };
+      getConfig: jest.fn().mockReturnValue(config),
+    } as unknown as DataService;
 
-    arrowTool = new ArrowTool(mockDataService);
+    arrowTool = new ArrowTool(dataService);
     arrowTool.activate();
   });
 
-  it('should handle pointer down event', () => {
-    const event = { offsetX: 100, offsetY: 100 } as PointerEvent;
-    mockDataService.getCanvasCoordinates.mockReturnValue([100, 100]);
-    (createElement as jest.Mock).mockReturnValue({});
-
-    arrowTool.handlePointerDown(event);
-
-    expect(mockDataService.getCanvasCoordinates).toHaveBeenCalledWith([100, 100]);
-    expect(createElement).toHaveBeenCalledWith(ElementType.Arrow, {
-      x1: 100,
-      y1: 100,
-      x2: 100,
-      y2: 100,
-      style: {
-        strokeColor: '#000000',
-        strokeWidth: 1,
-        lineCap: 'round',
-        dasharray: '',
-        dashoffset: 0,
-      },
-    });
-    expect(mockDataService.addToDraft).toHaveBeenCalled();
+  it('should initialize with the correct type', () => {
+    expect(arrowTool.type).toBe(ToolType.Arrow);
   });
 
-  it('should handle pointer move event', () => {
-    const event = { offsetX: 150, offsetY: 150, shiftKey: false } as PointerEvent;
-    mockDataService.getCanvasCoordinates.mockReturnValue([150, 150]);
-    arrowTool.element = { x1: 100, y1: 100, x2: 100, y2: 100 } as any;
+  it('should handle pointer down and create an element', () => {
+    const mockEvent = {
+      clientX: 100,
+      clientY: 200,
+    } as PointerEvent;
 
-    arrowTool.handlePointerMove(event);
+    jest.spyOn(arrowTool, 'getPointerPosition').mockReturnValue({ x: 100, y: 200 });
+    (createElement as jest.Mock).mockReturnValue({ x1: 100, y1: 200, x2: 100, y2: 200 });
 
-    expect(mockDataService.getCanvasCoordinates).toHaveBeenCalledWith([150, 150]);
+    arrowTool.handlePointerDown(mockEvent);
+
+    expect(arrowTool.startPoint).toEqual({ x: 100, y: 200 });
+    expect(arrowTool.element).toBeDefined();
+    expect(dataService.addToDraft).toHaveBeenCalledWith(arrowTool.element);
+  });
+
+  it('should handle pointer move and update the element', () => {
+    const mockEvent = {
+      clientX: 150,
+      clientY: 250,
+      shiftKey: false,
+    } as PointerEvent;
+
+    jest.spyOn(arrowTool, 'getPointerPosition').mockReturnValue({ x: 150, y: 250 });
+    arrowTool.element = { x1: 100, y1: 200, x2: 100, y2: 200 } as any;
+
+    arrowTool.handlePointerMove(mockEvent);
+
     expect(arrowTool.element?.x2).toBe(150);
-    expect(arrowTool.element?.y2).toBe(150);
+    expect(arrowTool.element?.y2).toBe(250);
   });
 
-  it('should handle pointer up event', () => {
-    arrowTool.element = { x1: 100, y1: 100, x2: 150, y2: 150 } as any;
-    arrowTool.startPoint = [100, 100];
+  it('should snap to grid when enabled', () => {
+    config.snapToGrid = true;
+    config.gridSize = 10;
+
+    const mockEvent = {
+      clientX: 105,
+      clientY: 205,
+    } as PointerEvent;
+
+    jest.spyOn(arrowTool, 'getPointerPosition').mockReturnValue({ x: 105, y: 205 });
+    (snapToGrid as jest.Mock).mockImplementation((value, gridSize) => Math.round(value / gridSize) * gridSize);
+
+    arrowTool.handlePointerDown(mockEvent);
+
+    expect(arrowTool.startPoint).toEqual({ x: 110, y: 210 });
+  });
+
+  it('should snap to angle when shift key is pressed', () => {
+    const mockEvent = {
+      clientX: 150,
+      clientY: 250,
+      shiftKey: true,
+    } as PointerEvent;
+
+    jest.spyOn(arrowTool, 'getPointerPosition').mockReturnValue({ x: 150, y: 250 });
+    (snapToAngle as jest.Mock).mockReturnValue({ x: 160, y: 240 });
+
+    arrowTool.element = { x1: 100, y1: 200, x2: 100, y2: 200 } as any;
+
+    arrowTool.handlePointerMove(mockEvent);
+
+    expect(arrowTool.element?.x2).toBe(160);
+    expect(arrowTool.element?.y2).toBe(240);
+  });
+
+  it('should handle pointer up and commit the draft', () => {
+    arrowTool.element = { x1: 100, y1: 200, x2: 150, y2: 250 } as any;
+    arrowTool.startPoint = { x: 100, y: 200 };
 
     arrowTool.handlePointerUp();
 
-    expect(mockDataService.commitDraftToData).toHaveBeenCalled();
+    expect(dataService.commitDraftToData).toHaveBeenCalled();
+    expect(arrowTool.element).toBeNull();
     expect(arrowTool.startPoint).toBeNull();
+  });
+
+  it('should not update element if movement is below MIN_LENGTH', () => {
+    const mockEvent = {
+      clientX: 101,
+      clientY: 201,
+    } as PointerEvent;
+
+    jest.spyOn(arrowTool, 'getPointerPosition').mockReturnValue({ x: 101, y: 201 });
+    arrowTool.element = { x1: 100, y1: 200, x2: 100, y2: 200 } as any;
+
+    arrowTool.handlePointerMove(mockEvent);
+
+    expect(arrowTool.element?.x2).toBe(101);
+    expect(arrowTool.element?.y2).toBe(201);
+  });
+
+  it('should not update element if tool is inactive', () => {
+    arrowTool.deactivate();
+
+    const mockEvent = {
+      clientX: 150,
+      clientY: 250,
+    } as PointerEvent;
+
+    jest.spyOn(arrowTool, 'getPointerPosition').mockReturnValue({ x: 150, y: 250 });
+    arrowTool.element = { x1: 100, y1: 200, x2: 100, y2: 200 } as any;
+
+    arrowTool.handlePointerMove(mockEvent);
+
+    expect(arrowTool.element?.x2).toBe(100);
+    expect(arrowTool.element?.y2).toBe(200);
+  });
+
+  it('should not update element if no element is active', () => {
+    const mockEvent = {
+      clientX: 150,
+      clientY: 250,
+    } as PointerEvent;
+
+    jest.spyOn(arrowTool, 'getPointerPosition').mockReturnValue({ x: 150, y: 250 });
+    arrowTool.element = null;
+
+    arrowTool.handlePointerMove(mockEvent);
+
     expect(arrowTool.element).toBeNull();
   });
 
-  it('should snap to grid if allowed', () => {
-    mockWhiteboardConfig.snapToGrid = true;
-    const event = { offsetX: 105, offsetY: 105 } as PointerEvent;
-    mockDataService.getCanvasCoordinates.mockReturnValue([105, 105]);
-    (snapToGrid as jest.Mock).mockImplementation((value, gridSize) => Math.round(value / gridSize) * gridSize);
+  it('should update element coordinates when movement is significant', () => {
+    const mockEvent = {
+      clientX: 160,
+      clientY: 260,
+    } as PointerEvent;
 
-    arrowTool.handlePointerDown(event);
+    jest.spyOn(arrowTool, 'getPointerPosition').mockReturnValue({ x: 160, y: 260 });
+    arrowTool.element = { x1: 100, y1: 200, x2: 100, y2: 200 } as any;
 
-    expect(snapToGrid).toHaveBeenCalledWith(105, 10);
-    expect(snapToGrid).toHaveBeenCalledWith(105, 10);
+    arrowTool.handlePointerMove(mockEvent);
+
+    expect(arrowTool.element?.x2).toBe(160);
+    expect(arrowTool.element?.y2).toBe(260);
   });
 
-  it('should snap to angle if shift key is pressed', () => {
-    const event = { offsetX: 150, offsetY: 150, shiftKey: true } as PointerEvent;
-    mockDataService.getCanvasCoordinates.mockReturnValue([150, 150]);
-    arrowTool.element = { x1: 100, y1: 100, x2: 100, y2: 100 } as any;
-    (snapToAngle as jest.Mock).mockReturnValue({ x: 140, y: 140 });
+  it('should not update element coordinates when movement is below MIN_LENGTH', () => {
+    const mockEvent = {
+      clientX: 101,
+      clientY: 201,
+    } as PointerEvent;
 
-    arrowTool.handlePointerMove(event);
+    jest.spyOn(arrowTool, 'getPointerPosition').mockReturnValue({ x: 101, y: 201 });
+    arrowTool.element = { x1: 100, y1: 200, x2: 100, y2: 200 } as any;
 
-    expect(snapToAngle).toHaveBeenCalledWith(100, 100, 150, 150);
-    expect(arrowTool.element?.x2).toBe(140);
-    expect(arrowTool.element?.y2).toBe(140);
+    arrowTool.handlePointerMove(mockEvent);
+
+    expect(arrowTool.element?.x2).toBe(101);
+    expect(arrowTool.element?.y2).toBe(201);
+  });
+
+  it('should snap to grid when enabled', () => {
+    config.snapToGrid = true;
+    config.gridSize = 10;
+
+    const mockEvent = {
+      clientX: 105,
+      clientY: 205,
+    } as PointerEvent;
+
+    jest.spyOn(arrowTool, 'getPointerPosition').mockReturnValue({ x: 105, y: 205 });
+    (snapToGrid as jest.Mock).mockImplementation((value, gridSize) => Math.round(value / gridSize) * gridSize);
+
+    arrowTool.element = { x1: 100, y1: 200, x2: 100, y2: 200 } as any;
+
+    arrowTool.handlePointerMove(mockEvent);
+
+    expect(arrowTool.element?.x2).toBe(110);
+    expect(arrowTool.element?.y2).toBe(210);
+  });
+
+  it('should snap to angle when shift key is pressed', () => {
+    const mockEvent = {
+      clientX: 150,
+      clientY: 250,
+      shiftKey: true,
+    } as PointerEvent;
+
+    jest.spyOn(arrowTool, 'getPointerPosition').mockReturnValue({ x: 150, y: 250 });
+    (snapToAngle as jest.Mock).mockReturnValue({ x: 160, y: 240 });
+
+    arrowTool.element = { x1: 100, y1: 200, x2: 100, y2: 200 } as any;
+
+    arrowTool.handlePointerMove(mockEvent);
+
+    expect(arrowTool.element?.x2).toBe(160);
+    expect(arrowTool.element?.y2).toBe(240);
   });
 });

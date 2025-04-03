@@ -1,17 +1,21 @@
 import { DataService } from '../../data/data.service';
-import { createElement } from '../../elements/element.utils';
-import { LineCap, LineJoin, WhiteboardConfig } from '../../types';
+import { ElementType, LineCap, LineJoin, ToolType, WhiteboardConfig } from '../../types';
 import { PenTool } from '../pen-tool';
+import { createElement } from '../../elements/element.utils';
+import { calculatePath } from '../../utils';
 
 jest.mock('../../elements/element.utils');
+jest.mock('../../utils', () => ({
+  calculatePath: jest.fn().mockReturnValue(''),
+}));
 
 describe('PenTool', () => {
   let penTool: PenTool;
   let dataService: DataService;
-  let mockConfig: WhiteboardConfig;
+  let config: WhiteboardConfig;
 
   beforeEach(() => {
-    mockConfig = {
+    config = {
       strokeColor: '#000000',
       strokeWidth: 2,
       lineCap: LineCap.Butt,
@@ -24,92 +28,80 @@ describe('PenTool', () => {
     } as WhiteboardConfig;
 
     dataService = {
-      getCanvasCoordinates: jest.fn().mockImplementation((coords) => coords),
       addToDraft: jest.fn(),
       commitDraftToData: jest.fn(),
-      getConfig: jest.fn().mockReturnValue(mockConfig),
+      getConfig: jest.fn().mockReturnValue(config),
     } as unknown as DataService;
 
     penTool = new PenTool(dataService);
     penTool.activate();
   });
 
-  it('should handle pointer down event and create new pen element', () => {
-    (createElement as jest.Mock).mockReturnValue({
-      points: [100, 200],
+  it('should create a PenTool instance', () => {
+    expect(penTool).toBeTruthy();
+    expect(penTool.type).toBe(ToolType.Pen);
+  });
+
+  it('should handle pointer down and create a PenElement', () => {
+    const mockEvent = { clientX: 100, clientY: 200 } as PointerEvent;
+    jest.spyOn(penTool, 'getPointerPosition').mockReturnValue({ x: 100, y: 200 });
+    (createElement as jest.Mock).mockReturnValue({ points: [], path: '', style: {} });
+
+    penTool.handlePointerDown(mockEvent);
+
+    expect(penTool.getPointerPosition).toHaveBeenCalledWith(mockEvent);
+    expect(createElement).toHaveBeenCalledWith(ElementType.Pen, {
+      path: '',
+      points: [[100, 200]],
+      style: {
+        strokeColor: '#000000',
+        strokeWidth: 2,
+        lineCap: LineCap.Butt,
+        lineJoin: LineJoin.Miter,
+        dasharray: '',
+        dashoffset: 0,
+      },
     });
-
-    const event = new MouseEvent('pointerdown', {
-      bubbles: true,
-      cancelable: true,
-      clientX: 100,
-      clientY: 200,
-    }) as PointerEvent;
-    Object.defineProperty(event, 'offsetX', { value: 100 });
-    Object.defineProperty(event, 'offsetY', { value: 200 });
-    penTool.handlePointerDown(event);
-
-    expect(dataService.getCanvasCoordinates).toHaveBeenCalledWith([100, 200]);
     expect(dataService.addToDraft).toHaveBeenCalled();
-    expect(penTool.element).toBeTruthy();
-    expect(penTool.element?.points.length).toBe(2);
   });
 
-  it('should not handle pointer down when inactive', () => {
-    penTool.deactivate();
-    const event = new MouseEvent('pointerdown', { offsetX: 100, offsetY: 200 } as MouseEventInit) as PointerEvent;
-    penTool.handlePointerDown(event);
+  it('should handle pointer move and update the PenElement', () => {
+    const mockEvent = { clientX: 150, clientY: 250 } as PointerEvent;
+    jest.spyOn(penTool, 'getPointerPosition').mockReturnValue({ x: 150, y: 250 });
+    penTool.element = { points: [[100, 200]], path: '', style: {} } as any;
+    (calculatePath as jest.Mock).mockReturnValue('M100,200 L150,250');
 
-    expect(dataService.addToDraft).not.toHaveBeenCalled();
-    expect(penTool.element).toBeNull();
+    penTool.handlePointerMove(mockEvent);
+
+    expect(penTool.getPointerPosition).toHaveBeenCalledWith(mockEvent);
+    expect(penTool.element?.points).toEqual([
+      [100, 200],
+      [150, 250],
+    ]);
+    expect(penTool.element?.path).toBe('M100,200 L150,250');
   });
 
-  it('should handle pointer move and update element points', () => {
-    (createElement as jest.Mock).mockReturnValue({
-      points: [],
-    });
-    const downEvent = new MouseEvent('pointerdown', {
-      bubbles: true,
-      cancelable: true,
-      clientX: 100,
-      clientY: 200,
-    }) as PointerEvent;
-    Object.defineProperty(downEvent, 'offsetX', { value: 100 });
-    Object.defineProperty(downEvent, 'offsetY', { value: 200 });
-    penTool.handlePointerDown(downEvent);
+  it('should handle pointer up and commit the draft', () => {
+    penTool.element = { points: [[100, 200]], path: '', style: {} } as any;
 
-    const moveEvent = new MouseEvent('pointerdown', {
-      bubbles: true,
-      cancelable: true,
-      clientX: 100,
-      clientY: 200,
-    }) as PointerEvent;
-    Object.defineProperty(moveEvent, 'offsetX', { value: 150 });
-    Object.defineProperty(moveEvent, 'offsetY', { value: 250 });
-    penTool.handlePointerMove(moveEvent);
-
-    expect(penTool.element?.points.length).toBe(1);
-    expect(dataService.getCanvasCoordinates).toHaveBeenCalledWith([150, 250]);
-  });
-
-  it('should not handle pointer move when no element exists', () => {
-    const moveEvent = new MouseEvent('pointermove', { offsetX: 150, offsetY: 250 } as MouseEventInit) as PointerEvent;
-    penTool.handlePointerMove(moveEvent);
-
-    expect(dataService.getCanvasCoordinates).not.toHaveBeenCalled();
-  });
-
-  it('should handle pointer up and commit draft', () => {
-    const downEvent = new MouseEvent('pointerdown', { offsetX: 100, offsetY: 200 } as MouseEventInit) as PointerEvent;
-    penTool.handlePointerDown(downEvent);
     penTool.handlePointerUp();
 
     expect(dataService.commitDraftToData).toHaveBeenCalled();
     expect(penTool.element).toBeNull();
   });
 
-  it('should not commit draft on pointer up when no element exists', () => {
+  it('should not handle pointer events if not active', () => {
+    penTool.deactivate();
+
+    const mockEvent = { clientX: 100, clientY: 200 } as PointerEvent;
+    jest.spyOn(penTool, 'getPointerPosition');
+
+    penTool.handlePointerDown(mockEvent);
+    penTool.handlePointerMove(mockEvent);
     penTool.handlePointerUp();
+
+    expect(penTool.getPointerPosition).not.toHaveBeenCalled();
+    expect(dataService.addToDraft).not.toHaveBeenCalled();
     expect(dataService.commitDraftToData).not.toHaveBeenCalled();
   });
 });

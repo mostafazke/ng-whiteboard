@@ -1,13 +1,13 @@
 import { LineElement } from '../elements';
 import { createElement } from '../elements/element.utils';
-import { ElementType, ToolType, WhiteboardElementStyle } from '../types';
+import { ElementType, Point, ToolType, WhiteboardElementStyle } from '../types';
 import { snapToAngle, snapToGrid } from '../utils/utils';
 import { BaseTool } from './base-tool';
 
 export class LineTool extends BaseTool {
   type = ToolType.Line;
   element: LineElement | null = null;
-  startPoint: [number, number] | null = null;
+  startPoint: Point | null = null;
   private lastX = 0;
   private lastY = 0;
   private readonly MIN_LENGTH = 2;
@@ -15,7 +15,7 @@ export class LineTool extends BaseTool {
   override handlePointerDown(event: PointerEvent): void {
     if (!this.active) return;
 
-    let [x, y] = this.dataService.getCanvasCoordinates([event.offsetX, event.offsetY]);
+    let { x, y } = this.getPointerPosition(event);
 
     const { snapToGrid: allowedSnap } = this.whiteboardConfig;
     if (allowedSnap) {
@@ -24,7 +24,7 @@ export class LineTool extends BaseTool {
       y = snapToGrid(y, gridSize);
     }
 
-    this.startPoint = [x, y];
+    this.startPoint = { x, y };
     this.lastX = x;
     this.lastY = y;
 
@@ -42,7 +42,9 @@ export class LineTool extends BaseTool {
   override handlePointerMove(event: PointerEvent): void {
     if (!this.active || !this.element) return;
 
-    let [x2, y2] = this.dataService.getCanvasCoordinates([event.offsetX, event.offsetY]);
+    const coords = this.getPointerPosition(event);
+    let x2 = coords.x;
+    let y2 = coords.y;
 
     const { snapToGrid: allowedSnap } = this.whiteboardConfig;
     if (allowedSnap) {

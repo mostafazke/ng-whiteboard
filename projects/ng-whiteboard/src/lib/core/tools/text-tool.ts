@@ -27,7 +27,7 @@ export class TextTool extends BaseTool {
     }
 
     // Create a new text element
-    const [x, y] = this.dataService.getCanvasCoordinates([event.offsetX, event.offsetY]);
+    const { x, y } = this.getPointerPosition(event);
     this.textElement = this.createTextElement(x, y);
     this.createTextInput(x, y);
   }
@@ -85,7 +85,7 @@ export class TextTool extends BaseTool {
           this.dataService.pushToUndo();
         }
       } else {
-        this.dataService.removeElement(this.textElement.id);
+        this.dataService.removeElements([this.textElement.id]);
       }
 
       this.textInput.style.display = 'none';

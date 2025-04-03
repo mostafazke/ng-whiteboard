@@ -75,12 +75,12 @@ describe('NgWhiteboardService', () => {
     expect(service.dispatchWithPriority).toHaveBeenCalledWith({ type: ActionType.FullScreen }, 'normal');
   });
 
-  it('should remove an element by ID', () => {
-    const id = '1';
+  it('should remove elements by IDs', () => {
+    const ids = ['1', '2'];
     jest.spyOn(service, 'dispatchWithPriority');
-    service.removeElement(id);
+    service.removeElements(ids);
     expect(service.dispatchWithPriority).toHaveBeenCalledWith(
-      { type: ActionType.removeElement, payload: { id } },
+      { type: ActionType.RemoveElements, payload: { ids } },
       'normal'
     );
   });
