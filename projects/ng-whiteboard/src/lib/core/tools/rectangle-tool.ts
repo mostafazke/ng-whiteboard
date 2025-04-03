@@ -1,18 +1,18 @@
 import { RectangleElement } from '../elements';
 import { createElement } from '../elements/element.utils';
-import { ElementType, ToolType, WhiteboardElementStyle } from '../types';
+import { ElementType, Point, ToolType, WhiteboardElementStyle } from '../types';
 import { snapToGrid } from '../utils/utils';
 import { BaseTool } from './base-tool';
 
 export class RectangleTool extends BaseTool {
   type = ToolType.Rectangle;
   element: RectangleElement | null = null;
-  startPoint: [number, number] | null = null;
+  startPoint: Point | null = null;
 
   override handlePointerDown(event: PointerEvent): void {
     if (!this.active) return;
 
-    let [x, y] = this.dataService.getCanvasCoordinates([event.offsetX, event.offsetY]);
+    let { x, y } = this.getPointerPosition(event);
 
     const { snapToGrid: allowedSnap } = this.whiteboardConfig;
     if (allowedSnap) {
@@ -20,7 +20,7 @@ export class RectangleTool extends BaseTool {
       x = snapToGrid(x, gridSize);
       y = snapToGrid(y, gridSize);
     }
-    this.startPoint = [x, y];
+    this.startPoint = { x, y };
 
     this.element = createElement(ElementType.Rectangle, {
       x,
@@ -34,9 +34,9 @@ export class RectangleTool extends BaseTool {
   override handlePointerMove(event: PointerEvent): void {
     if (!this.active || !this.element || !this.startPoint) return;
 
-    const [x, y] = this.dataService.getCanvasCoordinates([event.offsetX, event.offsetY]);
-    const start_x = this.startPoint[0] || 0;
-    const start_y = this.startPoint[1] || 0;
+    const { x, y } = this.getPointerPosition(event);
+    const start_x = this.startPoint.x;
+    const start_y = this.startPoint.y;
     let w = Math.abs(x - start_x);
     let h = Math.abs(y - start_y);
     let new_x = null;

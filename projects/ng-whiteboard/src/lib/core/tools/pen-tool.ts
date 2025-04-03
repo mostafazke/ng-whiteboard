@@ -11,11 +11,11 @@ export class PenTool extends BaseTool {
   override handlePointerDown(event: PointerEvent): void {
     if (!this.active) return;
 
-    const points = this.dataService.getCanvasCoordinates([event.offsetX, event.offsetY]);
+    const point = this.getPointerPosition(event);
 
     this.element = createElement(ElementType.Pen, {
-      points: [points],
-      path: calculatePath([points]),
+      points: [[point.x, point.y]],
+      path: calculatePath([[point.x, point.y]]),
       style: this.getElementStyle(),
     });
 
@@ -25,7 +25,7 @@ export class PenTool extends BaseTool {
   override handlePointerMove(event: PointerEvent): void {
     if (!this.active || !this.element) return;
 
-    const [x, y] = this.dataService.getCanvasCoordinates([event.offsetX, event.offsetY]);
+    const { x, y } = this.getPointerPosition(event);
     const points = this.element.points;
     points.push([x, y]);
     this.element.points = points;

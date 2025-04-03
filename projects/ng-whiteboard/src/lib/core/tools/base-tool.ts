@@ -1,5 +1,6 @@
 import { DataService } from '../data/data.service';
-import { Tool, ToolType, WhiteboardConfig } from '../types';
+import { Point, Tool, ToolType, WhiteboardConfig } from '../types';
+import { getCanvasCoordinates } from '../utils';
 
 export abstract class BaseTool implements Tool {
   abstract type: ToolType;
@@ -9,6 +10,10 @@ export abstract class BaseTool implements Tool {
 
   get whiteboardConfig(): WhiteboardConfig {
     return this.dataService?.getConfig();
+  }
+
+  getPointerPosition(event: PointerEvent): Point {
+    return getCanvasCoordinates(this.dataService.getConfig(), { x: event.offsetX, y: event.offsetY });
   }
   activate(): void {
     this.active = true;

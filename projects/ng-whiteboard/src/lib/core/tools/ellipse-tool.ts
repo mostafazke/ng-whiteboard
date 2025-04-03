@@ -1,18 +1,18 @@
 import { EllipseElement } from '../elements';
 import { createElement } from '../elements/element.utils';
-import { ToolType, ElementType, WhiteboardElementStyle } from '../types';
+import { ToolType, ElementType, WhiteboardElementStyle, Point } from '../types';
 import { snapToGrid } from '../utils/utils';
 import { BaseTool } from './base-tool';
 
 export class EllipseTool extends BaseTool {
   type = ToolType.Ellipse;
   element: EllipseElement | null = null;
-  startPoint: [number, number] | null = null;
+  startPoint: Point | null = null;
 
   override handlePointerDown(event: PointerEvent): void {
     if (!this.active) return;
 
-    let [x, y] = this.dataService.getCanvasCoordinates([event.offsetX, event.offsetY]);
+    let { x, y } = this.getPointerPosition(event);
 
     const { snapToGrid: allowedSnap } = this.whiteboardConfig;
     if (allowedSnap) {
@@ -20,7 +20,7 @@ export class EllipseTool extends BaseTool {
       x = snapToGrid(x, gridSize);
       y = snapToGrid(y, gridSize);
     }
-    this.startPoint = [x, y];
+    this.startPoint = { x, y };
 
     this.element = createElement(ElementType.Ellipse, {
       cx: x,
@@ -34,9 +34,9 @@ export class EllipseTool extends BaseTool {
   override handlePointerMove(event: PointerEvent): void {
     if (!this.active || !this.element || !this.startPoint) return;
 
-    const [x, y] = this.dataService.getCanvasCoordinates([event.offsetX, event.offsetY]);
-    const start_x = this.startPoint[0] || 0;
-    const start_y = this.startPoint[1] || 0;
+    const { x, y } = this.getPointerPosition(event);
+    const start_x = this.startPoint.x;
+    const start_y = this.startPoint.y;
     let cx = Math.abs(start_x + (x - start_x) / 2);
     let cy = Math.abs(start_y + (y - start_y) / 2);
     let rx = Math.abs(start_x - cx);

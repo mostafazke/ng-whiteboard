@@ -1,13 +1,13 @@
 import { ArrowElement } from '../elements';
 import { createElement } from '../elements/element.utils';
-import { ElementType, ToolType, WhiteboardElementStyle } from '../types';
+import { ElementType, Point, ToolType, WhiteboardElementStyle } from '../types';
 import { snapToAngle, snapToGrid } from '../utils/utils';
 import { BaseTool } from './base-tool';
 
 export class ArrowTool extends BaseTool {
   type = ToolType.Arrow;
   element: ArrowElement | null = null;
-  startPoint: [number, number] | null = null;
+  startPoint: Point | null = null;
   private lastX = 0;
   private lastY = 0;
   private readonly MIN_LENGTH = 2;
@@ -15,7 +15,8 @@ export class ArrowTool extends BaseTool {
   override handlePointerDown(event: PointerEvent): void {
     if (!this.active) return;
 
-    let [x, y] = this.dataService.getCanvasCoordinates([event.offsetX, event.offsetY]);
+    const coordinates = this.getPointerPosition(event);
+    let { x, y } = coordinates;
 
     const { snapToGrid: allowedSnap } = this.whiteboardConfig;
     if (allowedSnap) {
@@ -24,7 +25,7 @@ export class ArrowTool extends BaseTool {
       y = snapToGrid(y, gridSize);
     }
 
-    this.startPoint = [x, y];
+    this.startPoint = { x, y };
     this.lastX = x;
     this.lastY = y;
 
@@ -38,11 +39,12 @@ export class ArrowTool extends BaseTool {
 
     this.dataService.addToDraft(this.element);
   }
-
   override handlePointerMove(event: PointerEvent): void {
     if (!this.active || !this.element) return;
 
-    let [x2, y2] = this.dataService.getCanvasCoordinates([event.offsetX, event.offsetY]);
+    const coordinates = this.getPointerPosition(event);
+    let x2 = coordinates.x;
+    let y2 = coordinates.y;
 
     const { snapToGrid: allowedSnap } = this.whiteboardConfig;
     if (allowedSnap) {
@@ -55,7 +57,8 @@ export class ArrowTool extends BaseTool {
       const x1 = this.element.x1;
       const y1 = this.element.y1;
       const { x, y } = snapToAngle(x1, y1, x2, y2);
-      [x2, y2] = [x, y];
+      x2 = x;
+      y2 = y;
     }
 
     // Only update if the movement is significant
@@ -66,7 +69,6 @@ export class ArrowTool extends BaseTool {
       this.lastY = y2;
     }
   }
-
   override handlePointerUp(): void {
     if (!this.active) return;
 

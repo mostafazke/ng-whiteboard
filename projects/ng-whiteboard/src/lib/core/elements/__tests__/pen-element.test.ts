@@ -1,5 +1,5 @@
 import { ElementType, Direction } from '../../types';
-import { PenElementUtil } from '../pen-element';
+import { PenElement, PenElementUtil } from '../pen-element';
 
 describe('PenElementUtil', () => {
   let penElementUtil: PenElementUtil;
@@ -22,7 +22,7 @@ describe('PenElementUtil', () => {
   });
 
   it('should create a PenElement with provided properties', () => {
-    const props = {
+    const props: Partial<PenElement> = {
       x: 10,
       y: 20,
       points: [

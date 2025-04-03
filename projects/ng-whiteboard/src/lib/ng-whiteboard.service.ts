@@ -96,13 +96,13 @@ export class NgWhiteboardService {
 
   /**
    * Remove an element from the whiteboard.
-   * @param {string} id - The ID of the element to remove from the whiteboard.
+   * @param {string[]} ids - The IDs of the elements to remove from the whiteboard.
    */
-  public removeElement(id: string): void {
+  public removeElements(ids: string[]): void {
     this.dispatchWithPriority(
       {
-        type: ActionType.removeElement,
-        payload: { id },
+        type: ActionType.RemoveElements,
+        payload: { ids },
       },
       'normal'
     );

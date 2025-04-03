@@ -65,7 +65,7 @@
         [id]="'item_' + item.id"
         [attr.data-wb-id]="item.id"
         [attr.transform]="'translate(' + item.x + ',' + item.y + ')' + 'rotate(' + item.rotation + ')'"
-        [attr.opacity]="item.opacity / 100"
+        [attr.opacity]="item.isDeleting ? 0.1 : item.opacity / 100"
       >
         @switch (item.type) { @case (types.Pen) {
         <g>

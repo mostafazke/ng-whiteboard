@@ -173,14 +173,30 @@ export class DataService {
     }
   }
 
-  removeElement(id: string) {
+  patchElements(elements: (Partial<WhiteboardElement> & { id: string })[], history = true) {
     const currentData = this.getData();
-    const index = currentData.findIndex((el) => el.id === id);
-    if (index > -1) {
-      this.EventBusService.emit(WhiteboardEvent.ElementDeleted, currentData[index]);
-      currentData.splice(index, 1);
+    elements.forEach((patch) => {
+      const index = currentData.findIndex((el) => el.id === patch.id);
+      if (index > -1) {
+        currentData[index] = { ...currentData[index], ...patch } as WhiteboardElement;
+      }
+    });
+    if (history) {
       this.setData(currentData);
       this.pushToUndo();
+    }
+  }
+
+  removeElements(ids: string[], history = true) {
+    const currentData = this.getData();
+    const elementsToRemove = currentData.filter((el) => ids.includes(el.id));
+    if (elementsToRemove.length) {
+      this.EventBusService.emit(WhiteboardEvent.ElementsDeleted);
+      const updatedData = currentData.filter((el) => !ids.includes(el.id));
+      if (history) {
+        this.setData(updatedData);
+        this.pushToUndo();
+      }
     }
   }
 
@@ -242,15 +258,6 @@ export class DataService {
 
     this.EventBusService.emit(WhiteboardEvent.ElementSelected, updatedElement);
     this.debouncedPushToUndo();
-  }
-
-  // Mouse & Coordinate Handling
-
-  getCanvasCoordinates([x, y]: [number, number]): [number, number] {
-    const { zoom, x: configX, y: configY, elementsTranslation } = this.getConfig();
-    const translatedX = (x - configX) / zoom - elementsTranslation.x;
-    const translatedY = (y - configY) / zoom - elementsTranslation.y;
-    return [translatedX, translatedY];
   }
 
   // Visual Elements Management

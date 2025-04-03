@@ -1,10 +1,11 @@
-import { BaseElement, ElementType, ElementUtil, defaultElementStyle } from '../types';
+import { BaseElement, Bounds, ElementType, ElementUtil, Point, defaultElementStyle } from '../types';
 import { calculateBoundingBox, calculatePath } from '../utils';
+import { hitTestPen } from '../utils/hit-test';
 import { generateId } from '../utils/utils';
 
 export interface PenElement extends BaseElement {
   type: ElementType.Pen;
-  points: number[][];
+  points: [number, number][];
   path: string;
 }
 
@@ -28,13 +29,13 @@ export class PenElementUtil implements ElementUtil<PenElement> {
   }
 
   resize(element: PenElement, direction: string, dx: number, dy: number): PenElement {
-    const bbox = calculateBoundingBox(element.points);
-    const { points, position } = this.getScaleFactors(direction, bbox, dx, dy);
-    const centerX = bbox.x + bbox.width / 2;
-    const centerY = bbox.y + bbox.height / 2;
+    const bounds = calculateBoundingBox(element.points);
+    const { points, position } = this.getScaleFactors(direction, bounds, dx, dy);
+    const centerX = bounds.minX + bounds.width / 2;
+    const centerY = bounds.minY + bounds.height / 2;
     const [scaleX, scaleY] = points;
 
-    if (bbox.width * scaleX < 10 || bbox.height * scaleY < 10) {
+    if (bounds.width * scaleX < 10 || bounds.height * scaleY < 10) {
       return element;
     }
 
@@ -49,32 +50,43 @@ export class PenElementUtil implements ElementUtil<PenElement> {
     return element;
   }
 
-  private getScaleFactors(
-    direction: string,
-    bbox: { width: number; height: number; x: number; y: number },
-    dx: number,
-    dy: number
-  ) {
+  private getScaleFactors(direction: string, bounds: Bounds, dx: number, dy: number) {
     const points = [1, 1];
     const position = { x: 0, y: 0 };
 
     if (direction.includes('w')) {
-      points[0] = (bbox.width - dx) / bbox.width;
+      points[0] = (bounds.width - dx) / bounds.width;
       position.x += dx / 2;
     }
     if (direction.includes('n')) {
-      points[1] = (bbox.height - dy) / bbox.height;
+      points[1] = (bounds.height - dy) / bounds.height;
       position.y += dy / 2;
     }
     if (direction.includes('e')) {
-      points[0] = (bbox.width + dx) / bbox.width;
+      points[0] = (bounds.width + dx) / bounds.width;
       position.x += dx / 2;
     }
     if (direction.includes('s')) {
-      points[1] = (bbox.height + dy) / bbox.height;
+      points[1] = (bounds.height + dy) / bounds.height;
       position.y += dy / 2;
     }
 
     return { points, position };
+  }
+
+  getBounds(element: PenElement): Bounds {
+    const { minX, minY, maxX, maxY, width, height } = calculateBoundingBox(element.points);
+    return {
+      minX: minX + element.x,
+      minY: minY + element.y,
+      maxX: maxX + element.x,
+      maxY: maxY + element.y,
+      width,
+      height,
+    };
+  }
+
+  hitTest(element: PenElement, pointA: Point, pointB: Point, threshold: number): boolean {
+    return hitTestPen(element.points, pointA, pointB, threshold);
   }
 }
