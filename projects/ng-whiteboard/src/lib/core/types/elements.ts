@@ -8,7 +8,7 @@ import {
   ImageElement,
 } from '../elements';
 import { WhiteboardElementStyle } from './styles';
-import { Direction } from './types';
+import { Bounds, Direction, Point } from './types';
 
 export enum ElementType {
   Pen = 'pen',
@@ -42,9 +42,12 @@ export interface BaseElement {
   style: WhiteboardElementStyle;
   rotation: number;
   opacity: number;
+  isDeleting?: boolean;
 }
 
 export interface ElementUtil<T> {
   create(props: Partial<T>): T;
   resize(element: T, direction: Direction, dx: number, dy: number): T;
+  getBounds(element: T): Bounds;
+  hitTest(element: T, pointA: Point, pointB: Point, threshold: number): boolean;
 }

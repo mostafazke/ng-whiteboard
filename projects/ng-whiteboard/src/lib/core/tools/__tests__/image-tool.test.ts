@@ -1,18 +1,36 @@
 import { ImageTool } from '../image-tool';
-import { ToolType } from '../../types';
+import { LineCap, LineJoin, ToolType, WhiteboardConfig } from '../../types';
+import { DataService } from '../../data/data.service';
+
+jest.mock('../../elements/element.utils');
+jest.mock('../../utils/utils');
 
 describe('ImageTool', () => {
   let imageTool: ImageTool;
-  let mockDataService: any;
-  const input = document.createElement('input');
+  let dataService: DataService;
+  let config: WhiteboardConfig;
 
   beforeEach(() => {
-    mockDataService = {
-      removeElement: jest.fn(),
-      updateElement: jest.fn(),
-      getCanvasCoordinates: jest.fn(),
-    };
-    imageTool = new ImageTool(mockDataService);
+    config = {
+      strokeColor: '#000000',
+      strokeWidth: 2,
+      lineCap: LineCap.Butt,
+      lineJoin: LineJoin.Miter,
+      dasharray: '',
+      dashoffset: 0,
+      backgroundColor: '#ffffff',
+      canvasWidth: 800,
+      canvasHeight: 600,
+    } as WhiteboardConfig;
+
+    dataService = {
+      addToDraft: jest.fn(),
+      commitDraftToData: jest.fn(),
+      getConfig: jest.fn().mockReturnValue(config),
+      addImage: jest.fn(),
+    } as unknown as DataService;
+
+    imageTool = new ImageTool(dataService);
     imageTool.activate();
   });
 
@@ -20,40 +38,62 @@ describe('ImageTool', () => {
     expect(imageTool.type).toBe(ToolType.Image);
   });
 
-  it('should handle pointer down event and add image', () => {
-    const event = new MouseEvent('pointerdown', { offsetX: 100, offsetY: 200 } as any) as PointerEvent;
-    const canvasCoordinates = [50, 100];
-    mockDataService.getCanvasCoordinates.mockReturnValue(canvasCoordinates);
+  it('should handle pointer down and upload an image', () => {
+    const mockEvent = {
+      clientX: 100,
+      clientY: 200,
+    } as PointerEvent;
 
-    jest.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+    jest.spyOn(imageTool, 'getPointerPosition').mockReturnValue({ x: 100, y: 200 });
+    const inputSpy = jest.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
       if (tagName === 'input') {
-        setTimeout(() => {
-          const file = new Blob(['image content'], { type: 'image/png' });
-          const fileList: FileList = {
-            0: file,
-            length: 1,
-            item: (index: number) => file,
-          } as any;
-          Object.defineProperty(input, 'files', {
-            value: fileList,
-            writable: false,
-          });
-          input.onchange!({ target: input } as any);
-        }, 0);
-        return input;
+        const mockInput = {
+          type: '',
+          accept: '',
+          onchange: null,
+          click: jest.fn(),
+        } as unknown as HTMLInputElement;
+        return mockInput;
       }
       return document.createElement(tagName);
     });
 
-    imageTool.handlePointerDown(event);
+    const fileReaderMock = {
+      readAsDataURL: jest.fn(),
+      onload: null,
+    } as unknown as FileReader;
 
-    setTimeout(() => {
-      expect(mockDataService.getCanvasCoordinates).toHaveBeenCalledWith([100, 200]);
-      expect(mockDataService.addImage).toHaveBeenCalledWith({
-        image: jasmine.any(String),
-        x: 50,
-        y: 100,
-      });
-    }, 0);
+    jest.spyOn(window, 'FileReader').mockImplementation(() => fileReaderMock);
+
+    imageTool.handlePointerDown(mockEvent);
+
+    const inputElement = inputSpy.mock.results[0].value as HTMLInputElement;
+    expect(inputElement.type).toBe('file');
+    expect(inputElement.accept).toBe('image/*');
+    expect(inputElement.click).toHaveBeenCalled();
+
+    const mockFile = new Blob(['image content'], { type: 'image/png' });
+    const mockFileList = {
+      0: mockFile,
+      length: 1,
+      item: (index: number) => (index === 0 ? mockFile : null),
+    } as unknown as FileList;
+
+    inputElement.onchange!({
+      target: { files: mockFileList },
+    } as unknown as Event);
+
+    expect(fileReaderMock.readAsDataURL).toHaveBeenCalledWith(mockFile);
+
+    const mockImageData = 'data:image/png;base64,mockImageData';
+    fileReaderMock.onload!({
+      target: { result: mockImageData },
+    } as ProgressEvent<FileReader>);
+
+    expect(dataService.addImage).toHaveBeenCalledWith({
+      image: mockImageData,
+      x: 100,
+      y: 200,
+    });
   });
 });

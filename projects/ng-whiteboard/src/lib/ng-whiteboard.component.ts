@@ -254,7 +254,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
    * @event
    * @emits WhiteboardElement
    */
-  @Output() elementDeleted = new EventEmitter<WhiteboardElement>();
+  @Output() elementsDeleted = new EventEmitter<void>();
 
   /**
    * Emits when an undo action is triggered.
@@ -321,7 +321,7 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     [WhiteboardEvent.ElementAdded]: this.elementAdded,
     [WhiteboardEvent.ElementUpdated]: this.elementUpdated,
     [WhiteboardEvent.ElementSelected]: this.elementSelected,
-    [WhiteboardEvent.ElementDeleted]: this.elementDeleted,
+    [WhiteboardEvent.ElementsDeleted]: this.elementsDeleted,
     [WhiteboardEvent.Undo]: this.undo,
     [WhiteboardEvent.Redo]: this.redo,
     [WhiteboardEvent.Clear]: this.clear,

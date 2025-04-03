@@ -1,19 +1,12 @@
 import { RendererFactory2 } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ConfigService } from '../config/config.service';
+import { MAX_STACK_SIZE } from '../constants';
 import { RectangleElement } from '../elements';
 import { EventBusService } from '../event-bus/event-bus.service';
 import { AddImage, ElementType, FormatType, ToolType, WhiteboardElement, WhiteboardEvent } from '../types';
 import * as utils from '../utils';
 import { DataService } from './data.service';
-import {
-  ITEM_PREFIX,
-  MAX_STACK_SIZE,
-  SELECTOR_BOX_PREFIX,
-  SELECTOR_GRIP_PREFIX,
-  SELECTOR_GROUP_ID,
-  SVG_ROOT_ID,
-} from '../constants';
 
 jest.mock('../utils', () => ({
   ...jest.requireActual('../utils'),
@@ -477,16 +470,16 @@ describe('DataService', () => {
 
     it('should remove existing element from data array and emit ElementDeleted event', () => {
       service.addElement(mockElement);
-      service.removeElement(mockElement.id);
+      service.removeElements([mockElement.id]);
       expect(service.getData()).not.toContain(mockElement);
       expect(service.getData().length).toBe(0);
-      expect(eventBusMock.emit).toHaveBeenCalledWith(WhiteboardEvent.ElementDeleted, mockElement);
+      expect(eventBusMock.emit).toHaveBeenCalledWith(WhiteboardEvent.ElementsDeleted);
     });
 
     it('should not modify array when removing non-existent element', () => {
       service.addElement(mockElement);
       const nonExistentElement = { ...mockElement, id: '2' };
-      service.removeElement(nonExistentElement.id);
+      service.removeElements([nonExistentElement.id]);
       expect(service.getData().length).toBe(1);
     });
 
@@ -577,12 +570,6 @@ describe('DataService', () => {
       service.selectElement(mockElement);
       service.updateSelectedElement({ width: 200 });
       expect((service.getSelectedElement() as RectangleElement).width).toBe(200);
-    });
-  });
-  describe('Mouse & Coordinate Handling', () => {
-    it('should return correct canvas coordinates', () => {
-      const coordinates = service.getCanvasCoordinates([100, 100]);
-      expect(coordinates).toEqual([100, 100]);
     });
   });
   describe('Visual Elements Management', () => {

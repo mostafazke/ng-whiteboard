@@ -1,4 +1,4 @@
-import { WhiteboardConfig } from '../types';
+import { Point, WhiteboardConfig } from '../types';
 
 /**
  * Get the canvas coordinates from screen coordinates.
@@ -6,9 +6,9 @@ import { WhiteboardConfig } from '../types';
  * @param coordinates - The screen coordinates.
  * @returns The canvas coordinates.
  */
-export function getCanvasCoordinates(config: WhiteboardConfig, [x, y]: [number, number]): [number, number] {
+export function getCanvasCoordinates(config: WhiteboardConfig, { x, y }: Point): Point {
   const { zoom, x: configX, y: configY, elementsTranslation } = config;
   const translatedX = (x - configX) / zoom - elementsTranslation.x;
   const translatedY = (y - configY) / zoom - elementsTranslation.y;
-  return [translatedX, translatedY];
+  return { x: translatedX, y: translatedY };
 }

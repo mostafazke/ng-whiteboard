@@ -1,5 +1,6 @@
-import { WhiteboardElement } from '../types';
+import { Bounds, Point, WhiteboardElement } from '../types';
 import { ITEM_PREFIX } from '../constants';
+import { getElementUtil } from '../elements/element.utils';
 
 /**
  * Get the bounding box of an element.
@@ -14,4 +15,13 @@ export function getElementBbox(svgContainer: SVGSVGElement, element: WhiteboardE
     return el.getBBox();
   }
   throw new Error(`Element with id ${elementId} not found`);
+}
+
+export function isBoundsIntersect(bounds: Bounds, p1: Point, p2: Point, margin: number): boolean {
+  return (
+    bounds.minX - margin <= Math.max(p1.x, p2.x) &&
+    bounds.maxX + margin >= Math.min(p1.x, p2.x) &&
+    bounds.minY - margin <= Math.max(p1.y, p2.y) &&
+    bounds.maxY + margin >= Math.min(p1.y, p2.y)
+  );
 }

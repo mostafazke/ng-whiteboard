@@ -5,7 +5,7 @@ export class ImageTool extends BaseTool {
   type = ToolType.Image;
 
   override handlePointerDown(event: PointerEvent): void {
-    const [x, y] = this.dataService.getCanvasCoordinates([event.offsetX, event.offsetY]);
+    const { x, y } = this.getPointerPosition(event);
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
