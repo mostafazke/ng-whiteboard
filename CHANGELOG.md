@@ -1,3 +1,10 @@
+# [4.1.0](https://github.com/mostafazke/ng-whiteboard/compare/v4.0.2...v4.1.0) (2025-04-03)
+
+
+### Features
+
+* **whiteboard:** 🎸 implement multiple erase on move ([cb5529a](https://github.com/mostafazke/ng-whiteboard/commit/cb5529a869d9c5f172e94b2600487b404874bc47)), closes [#130](https://github.com/mostafazke/ng-whiteboard/issues/130)
+
 ## [4.0.2](https://github.com/mostafazke/ng-whiteboard/compare/v4.0.1...v4.0.2) (2025-03-21)
 
 ### Bug Fixes

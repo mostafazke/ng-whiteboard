@@ -1,6 +1,6 @@
 {
   "name": "ng-whiteboard",
-  "version": "4.0.2",
+  "version": "4.1.0",
   "license": "MIT",
   "scripts": {
     "ng": "nx",
