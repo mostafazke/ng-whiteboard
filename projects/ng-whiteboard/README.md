@@ -149,7 +149,7 @@ export class WhiteboardContainerComponent implements OnInit {
 
 - **`addElement(element: WhiteboardElement)`** Adds a new element (e.g., shape, text) to the whiteboard.
 - **`addImage(image: string, x?: number, y?: number)`** Adds an image to the whiteboard at a specified position.
-- **`removeElement(id: string)`** Removes an element from the whiteboard by its ID.
+- **`removeElements(ids: string[])`** Removes elements from the whiteboard by IDs.
 - **`updateElement(element: WhiteboardElement)`** Updates an existing element with new properties.
 - **`updateSelectedElement(partialElement: Partial<WhiteboardElement>)`** Modifies only specific properties of the currently selected element.
 - **`selectElement(element: WhiteboardElement | null)`** Selects or deselects an element on the whiteboard.
@@ -201,7 +201,7 @@ The `NgWhiteboardComponent` emits the following events to notify about changes a
 - **`elementAdded`** Emitted when a new element is added to the whiteboard.
 - **`elementUpdated`** Triggered when an existing element is modified.
 - **`elementSelected`** Emitted when an element is selected.
-- **`elementDeleted`** Triggered when an element is removed.
+- **`elementsDeleted`** Triggered when an element is removed.
 
 ### 🖼 Image Events
 

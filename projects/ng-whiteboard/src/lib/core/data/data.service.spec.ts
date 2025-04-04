@@ -468,7 +468,7 @@ describe('DataService', () => {
       expect((service.getData()[0] as RectangleElement).width).toBe(100);
     });
 
-    it('should remove existing element from data array and emit ElementDeleted event', () => {
+    it('should remove existing element from data array and emit ElementsDeleted event', () => {
       service.addElement(mockElement);
       service.removeElements([mockElement.id]);
       expect(service.getData()).not.toContain(mockElement);
