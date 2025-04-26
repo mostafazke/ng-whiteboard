@@ -1,6 +1,6 @@
 import { BaseElement, Bounds, Direction, ElementType, ElementUtil, Point, defaultElementStyle } from '../types';
-import { hitTestEllipse } from '../utils/hit-test';
-import { generateId } from '../utils/utils';
+import { generateId } from '../utils/common';
+import { hitTestEllipse } from '../utils/drawing';
 
 export interface EllipseElement extends BaseElement {
   type: ElementType.Ellipse;
@@ -65,11 +65,14 @@ export class EllipseElementUtil implements ElementUtil<EllipseElement> {
   }
 
   getBounds(element: EllipseElement): Bounds {
+    const globalCx = element.cx + element.x;
+    const globalCy = element.cy + element.y;
+
     return {
-      minX: element.cx - element.rx,
-      minY: element.cy - element.ry,
-      maxX: element.cx + element.rx,
-      maxY: element.cy + element.ry,
+      minX: globalCx - element.rx,
+      minY: globalCy - element.ry,
+      maxX: globalCx + element.rx,
+      maxY: globalCy + element.ry,
       width: element.rx * 2,
       height: element.ry * 2,
     };

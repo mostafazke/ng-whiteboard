@@ -9,8 +9,8 @@
         [x]="x"
         [y]="y"
         (save)="onSave($event)"
-        (elementSelected)="selectElement($event)"
-        (elementUpdated)="selectElement($event)"
+        (elementsSelected)="selectElements($event)"
+        (elementsUpdated)="selectElements($event)"
         (dataChange)="onDataChange($event)"
       >
       </ng-whiteboard>
@@ -104,7 +104,7 @@
   </div>
 
   <div id="panels" class="tools_panel">
-    @if (!selectedElement) {
+    @if (!selectedElements.length) {
     <div id="canvas_panel" class="context_panel">
       <h4>Whiteboard</h4>
       <div class="draginputs">
@@ -211,7 +211,7 @@
         </div>
       </div>
     </div>
-    } @if (selectedElement) { @if (selectedElement.type === elementType.Rectangle) {
+    } @if (selectedElements[0]; as selectedElement) { @if (selectedElement.type === elementType.Rectangle) {
     <div class="context_panel">
       <h4>Rectangle</h4>
       <div class="draginputs">
@@ -583,7 +583,7 @@
             [min]="1"
             [max]="99"
             [step]="1"
-            [value]="selectedElement?.style?.strokeWidth || options.strokeWidth"
+            [value]="(selectedElements.length && selectedElements[0].style.strokeWidth) || options.strokeWidth"
             (valueChange)="updateStrokeWidth($event)"
             readonly
           />
@@ -591,7 +591,10 @@
           <div
             class="draginput_cursor"
             [attr.style]="
-              'top:' + (selectedElement?.style?.strokeWidth || options.strokeWidth! | dragInputCursor) + 'px'
+              'top:' +
+              ((selectedElements.length && selectedElements[0].style.strokeWidth) || options.strokeWidth!
+                | dragInputCursor) +
+              'px'
             "
           ></div>
         </div>
@@ -602,7 +605,7 @@
             id="stroke_style"
             title="Change stroke dash style"
             (change)="setDashArray(dasharray.value)"
-            [value]="selectedElement?.style?.dasharray || 'none'"
+            [value]="(selectedElements.length && selectedElements[0].style.dasharray) || 'none'"
           >
             @for (dashArray of dashArrays; track dashArray.value) {
             <option [value]="dashArray.value">
@@ -612,7 +615,7 @@
           </select>
           <div class="caret"></div>
           <label for="stroke_style" id="stroke_style_label">
-            @if (selectedElement?.style || options; as style) { @if (style.dasharray) {
+            @if (selectedElements.length && selectedElements[0].style || options; as style) { @if (style.dasharray) {
             <ng-container>
               {{ style.dasharray | findDashArray }}
             </ng-container>
@@ -637,9 +640,10 @@
           </select>
           <div class="caret"></div>
           <label for="stroke_join">
-            @if (selectedElement?.style || options; as style) { @switch (style.lineJoin) { @case('miter')
-            {<ng-container>Miter</ng-container>} @case('bevel') {<ng-container>Bevel</ng-container>} @case('miter-clip')
-            {<ng-container>Miter Clip</ng-container>} @default {<ng-container>Round</ng-container>} } }
+            @if (selectedElements.length && selectedElements[0].style || options; as style) { @switch (style.lineJoin) {
+            @case('miter') {<ng-container>Miter</ng-container>} @case('bevel') {<ng-container>Bevel</ng-container>}
+            @case('miter-clip') {<ng-container>Miter Clip</ng-container>} @default {<ng-container>Round</ng-container>}
+            } }
           </label>
         </div>
 
@@ -657,9 +661,9 @@
           </select>
           <div class="caret"></div>
           <label for="stroke_cap">
-            @if (selectedElement?.style || options; as style) { @switch (style.lineCap) { @case('square')
-            {<ng-container>Square</ng-container>} @case('butt') {<ng-container>Butt</ng-container>} @default
-            {<ng-container>Round</ng-container>} } }
+            @if (selectedElements.length && selectedElements[0].style || options; as style) { @switch (style.lineCap) {
+            @case('square') {<ng-container>Square</ng-container>} @case('butt') {<ng-container>Butt</ng-container>}
+            @default {<ng-container>Round</ng-container>} } }
           </label>
         </div>
       </div>
@@ -799,7 +803,7 @@
           <div id="fill_bg"></div>
           <div id="fill_color" class="color_block">
             <svg xmlns="http://www.w3.org/2000/svg" width="100%">
-              @if (selectedElement) { @if (selectedElement.type === elementType.Text) {
+              @if (selectedElements[0]; as selectedElement) { @if (selectedElement.type === elementType.Text) {
               <rect width="100%" height="100%" [attr.fill]="selectedElement.style.strokeColor"></rect>
               } @else {
               <rect width="100%" height="100%" [attr.fill]="selectedElement.style.fill"></rect>
@@ -817,7 +821,7 @@
           <div id="stroke_bg"></div>
           <div id="stroke_color" class="color_block" title="Change stroke color">
             <svg xmlns="http://www.w3.org/2000/svg" width="100%">
-              @if (selectedElement) { @if (selectedElement.type === elementType.Text) {
+              @if (selectedElements[0]; as selectedElement) { @if (selectedElement.type === elementType.Text) {
               <rect width="100%" height="100%" [attr.fill]="selectedElement.style.color"></rect>
               } @else {
               <rect width="100%" height="100%" [attr.fill]="selectedElement.style.strokeColor"></rect>

@@ -1,8 +1,8 @@
 import { TextElement } from '../elements';
 import { createElement } from '../elements/element.utils';
 import { ElementType, ToolType, WhiteboardElementStyle } from '../types';
-import { getTargetElement } from '../utils';
-import { snapToGrid } from '../utils/utils';
+import { getTargetElement } from '../utils/dom';
+import { snapToGrid } from '../utils/geometry';
 import { BaseTool } from './base-tool';
 
 export class TextTool extends BaseTool {
@@ -73,7 +73,7 @@ export class TextTool extends BaseTool {
 
     if (this.textElement) {
       this.textElement.text = input.value;
-      this.dataService.updateElement(this.textElement);
+      this.dataService.updateElements(this.textElement);
     }
   }
 
@@ -81,7 +81,7 @@ export class TextTool extends BaseTool {
     if (this.textInput && this.textElement) {
       if (this.textInput.value.trim()) {
         if (!this.dataService.hasElement(this.textElement)) {
-          this.dataService.addElement(this.textElement);
+          this.dataService.addElements(this.textElement);
           this.dataService.pushToUndo();
         }
       } else {

@@ -1,7 +1,7 @@
 import { EllipseElement } from '../elements';
 import { createElement } from '../elements/element.utils';
 import { ToolType, ElementType, WhiteboardElementStyle, Point } from '../types';
-import { snapToGrid } from '../utils/utils';
+import { snapToGrid } from '../utils/geometry';
 import { BaseTool } from './base-tool';
 
 export class EllipseTool extends BaseTool {

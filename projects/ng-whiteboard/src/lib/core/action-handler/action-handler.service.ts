@@ -27,8 +27,8 @@ export class ActionHandlerService {
       case ActionType.Clear:
         this._dataService.clear();
         break;
-      case ActionType.UpdateSelectedElement:
-        this._dataService.updateSelectedElement(action.payload.partialElement);
+      case ActionType.UpdateSelectedElements:
+        this._dataService.updateSelectedElements(action.payload.partialElement);
         break;
       case ActionType.Save: {
         const { format, name } = action.payload;
@@ -36,19 +36,31 @@ export class ActionHandlerService {
         break;
       }
       case ActionType.AddElement:
-        this._dataService.addElement(action.payload.element);
+        this._dataService.addElements(action.payload.element);
         break;
       case ActionType.UpdateElement:
-        this._dataService.updateElement(action.payload.element);
+        this._dataService.updateElements(action.payload.element);
         break;
       case ActionType.RemoveElements:
         this._dataService.removeElements(action.payload.ids);
         break;
-      case ActionType.SelectElement:
-        this._dataService.selectElement(action.payload.element);
+      case ActionType.SelectElements:
+        this._dataService.selectElements(action.payload.elementsOrIds);
         break;
       case ActionType.SetActiveTool:
         this._dataService.setActiveTool(action.payload.tool);
+        break;
+      case ActionType.ToggleSelection:
+        this._dataService.toggleSelection(action.payload.elementOrId);
+        break;
+      case ActionType.DeselectElement:
+        this._dataService.deselectElement(action.payload.elementOrId);
+        break;
+      case ActionType.SelectAll:
+        this._dataService.selectAll();
+        break;
+      case ActionType.ClearSelection:
+        this._dataService.clearSelection();
         break;
       case ActionType.ToggleGrid:
         this._dataService.toggleGrid();

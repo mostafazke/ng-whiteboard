@@ -110,9 +110,9 @@ describe('NgWhiteboardService', () => {
       height: 100,
     } as WhiteboardElement;
     jest.spyOn(service, 'dispatchWithPriority');
-    service.selectElement(element);
+    service.selectElements(element);
     expect(service.dispatchWithPriority).toHaveBeenCalledWith(
-      { type: ActionType.SelectElement, payload: { element } },
+      { type: ActionType.SelectElements, payload: { elementsOrIds: element } },
       'normal'
     );
   });
@@ -173,12 +173,12 @@ describe('NgWhiteboardService', () => {
     );
   });
 
-  it('should update the selected element', () => {
+  it('should update the selected elements', () => {
     const partialElement: Partial<WhiteboardElement> = { x: 10, y: 20 };
     jest.spyOn(service, 'dispatchWithPriority');
-    service.updateSelectedElement(partialElement);
+    service.updateSelectedElements(partialElement);
     expect(service.dispatchWithPriority).toHaveBeenCalledWith(
-      { type: ActionType.UpdateSelectedElement, payload: { partialElement } },
+      { type: ActionType.UpdateSelectedElements, payload: { partialElement } },
       'normal'
     );
   });

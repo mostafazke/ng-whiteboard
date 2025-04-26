@@ -56,7 +56,6 @@ describe('ArrowElementUtil', () => {
     const arrowElement = arrowElementUtil.create(props);
     expect(arrowElement.style.strokeColor).toBe('blue');
     expect(arrowElement.style.strokeWidth).toBe(2);
-    // Assuming defaultElementStyle has other properties like fill
     expect(arrowElement.style.fill).toBeDefined();
   });
 
@@ -89,5 +88,37 @@ describe('ArrowElementUtil', () => {
     const resizedElement = arrowElementUtil.resize(arrowElement, Direction.NE, 5, -5);
     expect(resizedElement.x2).toBe(25);
     expect(resizedElement.y1).toBe(10);
+  });
+
+  it('should calculate correct bounds for the arrow', () => {
+    const arrowElement = arrowElementUtil.create({ x1: 10, y1: 10, x2: 30, y2: 20 });
+    const bounds = arrowElementUtil.getBounds(arrowElement);
+    expect(bounds.minX).toBe(10);
+    expect(bounds.minY).toBe(10);
+    expect(bounds.maxX).toBe(30);
+    expect(bounds.maxY).toBe(20);
+    expect(bounds.width).toBe(20);
+    expect(bounds.height).toBe(10);
+  });
+
+  it('should hit test correctly when point is on the line', () => {
+    const arrowElement = arrowElementUtil.create({ x1: 0, y1: 0, x2: 10, y2: 10 });
+    const pointA = { x: 5, y: 5 };
+    const pointB = { x: 6, y: 6 };
+    expect(arrowElementUtil.hitTest(arrowElement, pointA, pointB, 1)).toBe(true);
+  });
+
+  it('should hit test correctly when point is not on the line', () => {
+    const arrowElement = arrowElementUtil.create({ x1: 0, y1: 0, x2: 10, y2: 10 });
+    const pointA = { x: 5, y: 5 };
+    const pointB = { x: 5, y: 6 };
+    expect(arrowElementUtil.hitTest(arrowElement, pointA, pointB, 1)).toBe(true);
+  });
+
+  it('should hit test correctly with a threshold', () => {
+    const arrowElement = arrowElementUtil.create({ x1: 0, y1: 0, x2: 10, y2: 10 });
+    const pointA = { x: 5, y: 5 };
+    const pointB = { x: 5, y: 6 };
+    expect(arrowElementUtil.hitTest(arrowElement, pointA, pointB, 2)).toBe(true);
   });
 });

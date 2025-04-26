@@ -26,13 +26,6 @@ export class ConfigService {
     enableGrid: false,
     gridSize: 10,
     snapToGrid: true,
-    rubberBox: {
-      x: 0,
-      y: 0,
-      width: 0,
-      height: 0,
-      display: 'none',
-    },
     gridTranslation: { x: 0, y: 0 },
     elementsTranslation: { x: 0, y: 0 },
   };

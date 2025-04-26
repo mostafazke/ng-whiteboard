@@ -1,7 +1,7 @@
 import { LineElement } from '../elements';
 import { createElement } from '../elements/element.utils';
 import { ElementType, Point, ToolType, WhiteboardElementStyle } from '../types';
-import { snapToAngle, snapToGrid } from '../utils/utils';
+import { snapToAngle, snapToGrid } from '../utils/geometry';
 import { BaseTool } from './base-tool';
 
 export class LineTool extends BaseTool {

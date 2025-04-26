@@ -2,10 +2,10 @@ import { DataService } from '../../data/data.service';
 import { ElementType, LineCap, LineJoin, ToolType, WhiteboardConfig } from '../../types';
 import { PenTool } from '../pen-tool';
 import { createElement } from '../../elements/element.utils';
-import { calculatePath } from '../../utils';
+import { calculatePath } from '../../utils/drawing';
 
 jest.mock('../../elements/element.utils');
-jest.mock('../../utils', () => ({
+jest.mock('../../utils/drawing', () => ({
   calculatePath: jest.fn().mockReturnValue(''),
 }));
 

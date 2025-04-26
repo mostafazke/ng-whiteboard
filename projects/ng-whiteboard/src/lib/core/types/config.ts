@@ -1,4 +1,4 @@
-import { LineCap, LineJoin, RubberBox } from '.';
+import { LineCap, LineJoin } from '.';
 
 export interface WhiteboardConfig {
   drawingEnabled: boolean;
@@ -22,7 +22,6 @@ export interface WhiteboardConfig {
   enableGrid: boolean;
   gridSize: number;
   snapToGrid: boolean;
-  rubberBox: RubberBox;
   gridTranslation: { x: number; y: number };
   elementsTranslation: { x: number; y: number };
 }

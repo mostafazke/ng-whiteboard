@@ -1,6 +1,6 @@
 import { BaseElement, Bounds, Direction, ElementType, ElementUtil, Point, defaultElementStyle } from '../types';
-import { hitTestBoundingBox } from '../utils/hit-test';
-import { generateId } from '../utils/utils';
+import { generateId } from '../utils/common';
+import { hitTestBoundingBox } from '../utils/drawing';
 
 export interface ImageElement extends BaseElement {
   type: ElementType.Image;

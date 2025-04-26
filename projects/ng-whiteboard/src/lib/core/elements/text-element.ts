@@ -1,6 +1,15 @@
-import { BaseElement, Bounds, Direction, ElementType, ElementUtil, Point, defaultTextElementStyle } from '../types';
-import { hitTestBoundingBox } from '../utils/hit-test';
-import { generateId } from '../utils/utils';
+import {
+  BaseElement,
+  Bounds,
+  Direction,
+  ElementType,
+  ElementUtil,
+  Point,
+  WhiteboardElementStyle,
+  defaultTextElementStyle,
+} from '../types';
+import { generateId } from '../utils/common';
+import { hitTestBoundingBox } from '../utils/drawing';
 
 export interface TextElement extends BaseElement {
   type: ElementType.Text;
@@ -77,13 +86,19 @@ export class TextElementUtil implements ElementUtil<TextElement> {
   }
 
   getBounds(element: TextElement): Bounds {
-    const width = element.text.length * 10 * element.scaleX;
-    const height = 20 * element.scaleY;
+    const { text, x, y, scaleX, scaleY, style } = element;
+    const fontSize = style.fontSize ?? defaultTextElementStyle.fontSize ?? 16;
+    const approximateCharWidth = fontSize * 0.5;
+    const lines = text.split('\n');
+    const maxChars = lines.reduce((max, line) => Math.max(max, line.length), 0);
+    const width = approximateCharWidth * maxChars * scaleX;
+    const height = fontSize * lines.length * scaleY;
+
     return {
-      minX: element.x,
-      minY: element.y,
-      maxX: element.x + width,
-      maxY: element.y + height,
+      minX: x,
+      minY: y,
+      maxX: x + width,
+      maxY: y + height,
       width,
       height,
     };

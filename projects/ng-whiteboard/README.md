@@ -149,10 +149,14 @@ export class WhiteboardContainerComponent implements OnInit {
 
 - **`addElement(element: WhiteboardElement)`** Adds a new element (e.g., shape, text) to the whiteboard.
 - **`addImage(image: string, x?: number, y?: number)`** Adds an image to the whiteboard at a specified position.
-- **`removeElement(id: string)`** Removes an element from the whiteboard by its ID.
+- **`removeElements(ids: string[])`** Removes elements from the whiteboard by IDs.
 - **`updateElement(element: WhiteboardElement)`** Updates an existing element with new properties.
-- **`updateSelectedElement(partialElement: Partial<WhiteboardElement>)`** Modifies only specific properties of the currently selected element.
-- **`selectElement(element: WhiteboardElement | null)`** Selects or deselects an element on the whiteboard.
+- **`updateSelectedElements(partialElement: Partial<WhiteboardElement>)`** Modifies only specific properties of the currently selected element.
+- **`selectElements(elementsOrIds: WhiteboardElement | WhiteboardElement[] | string | string[])`** Select element(s) on the whiteboard.
+- **`deselectElement(elementOrId: WhiteboardElement | string)`** Deselects a specific element on the whiteboard.
+- **`toggleSelection(elementOrId: WhiteboardElement | string)`** Toggle the selection of an element on the whiteboard.
+- **`selectAll()`** Selects all elements currently present on the whiteboard.
+- **`clearSelection()`** Clears any currently selected elements on the whiteboard.
 
 ### 🔄 State Management
 
@@ -172,6 +176,7 @@ export class WhiteboardContainerComponent implements OnInit {
 - **`centerCanvas()`** Centers the whiteboard canvas within the viewport.
 - **`fullScreen()`** Toggles full-screen mode for the whiteboard.
 - **`toggleGrid()`** Enables or disables the background grid for alignment.
+- **`dispatchBatch(actions: WhiteboardAction[])`** Dispatches a batch of actions to the whiteboard.
 
 ## 📢 Whiteboard Events (Outputs)
 
@@ -198,10 +203,10 @@ The `NgWhiteboardComponent` emits the following events to notify about changes a
 
 ### 📌 Element Events
 
-- **`elementAdded`** Emitted when a new element is added to the whiteboard.
-- **`elementUpdated`** Triggered when an existing element is modified.
-- **`elementSelected`** Emitted when an element is selected.
-- **`elementDeleted`** Triggered when an element is removed.
+- **`elementsAdded`** Emitted when a new element is added to the whiteboard.
+- **`elementsUpdated`** Triggered when an existing element is modified.
+- **`elementsSelected`** Emitted when an element is selected.
+- **`elementsDeleted`** Triggered when an element is removed.
 
 ### 🖼 Image Events
 

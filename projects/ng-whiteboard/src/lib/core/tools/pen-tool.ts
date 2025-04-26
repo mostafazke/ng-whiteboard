@@ -1,8 +1,8 @@
 import { PenElement } from '../elements';
 import { createElement } from '../elements/element.utils';
 import { ElementType, ToolType, WhiteboardElementStyle } from '../types';
+import { calculatePath } from '../utils/drawing';
 import { BaseTool } from './base-tool';
-import { calculatePath } from '../utils';
 
 export class PenTool extends BaseTool {
   type = ToolType.Pen;

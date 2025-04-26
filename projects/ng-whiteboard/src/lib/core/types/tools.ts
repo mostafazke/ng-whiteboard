@@ -18,4 +18,6 @@ export type Tool = {
   handlePointerDown?(event: PointerEvent): void;
   handlePointerMove?(event: PointerEvent): void;
   handlePointerUp?(event: PointerEvent): void;
+  onActivate?(): void;
+  onDeactivate?(): void;
 };

@@ -262,7 +262,7 @@
       <!-- Element Events -->
       <tr>
         <td>
-          <strong><code>elementAdded</code></strong>
+          <strong><code>elementsAdded</code></strong>
         </td>
         <td>Emitted when a new element is added to the whiteboard.</td>
         <td><code class="highlight">WhiteboardElement</code></td>
@@ -276,14 +276,14 @@
       </tr>
       <tr>
         <td>
-          <strong><code>elementSelected</code></strong>
+          <strong><code>elementsSelected</code></strong>
         </td>
         <td>Emitted when an element is selected.</td>
         <td><code class="highlight">WhiteboardElement | null</code></td>
       </tr>
       <tr>
         <td>
-          <strong><code>elementDeleted</code></strong>
+          <strong><code>elementsDeleted</code></strong>
         </td>
         <td>Triggered when an element is removed.</td>
         <td><code class="highlight">WhiteboardElement</code></td>
@@ -352,10 +352,10 @@
       </tr>
       <tr>
         <td>
-          <strong><code>removeElement(id: string)</code></strong>
+          <strong><code>removeElements(ids: string[])</code></strong>
         </td>
-        <td>Removes an element from the whiteboard by its ID.</td>
-        <td><code class="highlight">id: string</code></td>
+        <td>Removes elements from the whiteboard by IDs.</td>
+        <td><code class="highlight">ids: string[]</code></td>
       </tr>
       <tr>
         <td>
@@ -366,17 +366,51 @@
       </tr>
       <tr>
         <td>
-          <strong><code>updateSelectedElement(partialElement: Partial&lt;WhiteboardElement&gt;)</code></strong>
+          <strong><code>updateSelectedElements(partialElement: Partial&lt;WhiteboardElement&gt;)</code></strong>
         </td>
         <td>Modifies only specific properties of the currently selected element.</td>
         <td><code class="highlight">partialElement: Partial&lt;WhiteboardElement&gt;</code></td>
       </tr>
       <tr>
         <td>
-          <strong><code>selectElement(element: WhiteboardElement | null)</code></strong>
+          <strong
+            ><code
+              >selectElement(elementsOrIds: WhiteboardElement | WhiteboardElement[] | string | string[])</code
+            ></strong
+          >
+        </td>
+        <td>Select element(s) on the whiteboard.</td>
+        <td>
+          <code class="highlight">elementsOrIds: WhiteboardElement | WhiteboardElement[] | string | string[]</code>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>deselectElement(elementOrId: WhiteboardElement | string)</code></strong>
+        </td>
+        <td>Deselects a specific element on the whiteboard.</td>
+        <td><code class="highlight">elementOrId: WhiteboardElement | string</code></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>toggleSelection(elementOrId: WhiteboardElement | string)</code></strong>
         </td>
         <td>Selects or deselects an element on the whiteboard.</td>
-        <td><code class="highlight">element: WhiteboardElement | null</code></td>
+        <td><code class="highlight">elementOrId: WhiteboardElement | string</code></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>selectAll()</code></strong>
+        </td>
+        <td>Selects all elements currently present on the whiteboard.</td>
+        <td><code class="highlight">none</code></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>clearSelection()</code></strong>
+        </td>
+        <td>Clears any currently selected elements on the whiteboard.</td>
+        <td><code class="highlight">none</code></td>
       </tr>
 
       <!-- 🔄 State Management -->
@@ -453,6 +487,13 @@
         </td>
         <td>Enables or disables the background grid for alignment.</td>
         <td><code class="highlight">none</code></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><code>dispatchBatch(actions: WhiteboardAction[])</code></strong>
+        </td>
+        <td>Dispatches a batch of actions to the whiteboard.</td>
+        <td><code class="highlight">actions: WhiteboardAction[]</code></td>
       </tr>
     </tbody>
   </table>
