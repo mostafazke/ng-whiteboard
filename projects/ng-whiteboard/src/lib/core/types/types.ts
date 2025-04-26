@@ -41,14 +41,6 @@ export interface ResizeElement {
   y: number;
 }
 
-export interface RubberBox {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  display: 'none' | 'block';
-}
-
 export interface Point {
   x: number;
   y: number;
@@ -61,4 +53,27 @@ export interface Bounds {
   maxY: number;
   width: number;
   height: number;
+}
+
+export interface SelectionBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  visible: boolean;
+}
+
+export interface BoundingBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  handles: {
+    topLeft: Point;
+    topRight: Point;
+    bottomLeft: Point;
+    bottomRight: Point;
+    rotateHandle: Point;
+  };
+  rotation: number;
 }

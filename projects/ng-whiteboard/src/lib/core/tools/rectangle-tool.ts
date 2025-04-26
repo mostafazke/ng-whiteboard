@@ -1,7 +1,7 @@
 import { RectangleElement } from '../elements';
 import { createElement } from '../elements/element.utils';
 import { ElementType, Point, ToolType, WhiteboardElementStyle } from '../types';
-import { snapToGrid } from '../utils/utils';
+import { snapToGrid } from '../utils/geometry';
 import { BaseTool } from './base-tool';
 
 export class RectangleTool extends BaseTool {

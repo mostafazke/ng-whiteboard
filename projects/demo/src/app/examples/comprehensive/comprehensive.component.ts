@@ -22,7 +22,7 @@ type ColorProperty = 'fill' | 'strokeColor' | 'backgroundColor';
 })
 export class ComprehensiveComponent {
   selectedTool: ToolType = ToolType.Pen;
-  selectedElement: WhiteboardElement | null = null;
+  selectedElements: WhiteboardElement[] = [];
   dashArrays = strokeDashArrayOptions;
   options: WhiteboardOptions = {
     drawingEnabled: true,
@@ -102,55 +102,55 @@ export class ComprehensiveComponent {
 
   // Color management methods
   colorChange(propName: ColorProperty, color: string) {
-    if (this.selectedElement) {
+    this.selectedElements.forEach((element) => {
       let prop;
-      if (this.selectedElement.type === ElementType.Text) {
+      if (element.type === ElementType.Text) {
         prop = propName === 'fill' ? 'strokeColor' : 'color';
       } else {
         prop = propName === 'fill' ? 'fill' : 'strokeColor';
       }
       this.updateSelectedElement({
         style: {
-          ...this.selectedElement.style,
+          ...element.style,
           [prop]: color,
         },
       });
-    }
+    });
     this.updateOptions({ [propName]: color });
   }
 
   swapColors() {
-    if (this.selectedElement) {
+    this.selectedElements.forEach((element) => {
       let newFill, newStrokeColor;
-      if (this.selectedElement.type === ElementType.Text) {
-        newFill = this.selectedElement.style.color;
-        newStrokeColor = this.selectedElement.style.strokeColor;
+      if (element.type === ElementType.Text) {
+        newFill = element.style.color;
+        newStrokeColor = element.style.strokeColor;
         this.updateSelectedElement({
           style: {
-            ...this.selectedElement.style,
+            ...element.style,
             color: newStrokeColor,
             strokeColor: newFill,
           },
         });
       } else {
-        newFill = this.selectedElement.style.fill;
-        newStrokeColor = this.selectedElement.style.strokeColor;
+        newFill = element.style.fill;
+        newStrokeColor = element.style.strokeColor;
         this.updateSelectedElement({
           style: {
-            ...this.selectedElement.style,
+            ...element.style,
             fill: newStrokeColor,
             strokeColor: newFill,
           },
         });
       }
-    }
+    });
     const fill = this.options.fill;
     this.updateOptions({ fill: this.options.strokeColor, strokeColor: fill });
   }
 
   // Element update methods
   updateSelectedElement(partialElement: Partial<WhiteboardElement>) {
-    this.whiteboardService.updateSelectedElement(partialElement);
+    this.whiteboardService.updateSelectedElements(partialElement);
   }
 
   setSizeResolution(value: string) {
@@ -160,23 +160,23 @@ export class ComprehensiveComponent {
   }
 
   setDashArray(value: string) {
-    if (this.selectedElement) {
-      this.updateSelectedElement({ style: { ...this.selectedElement.style, dasharray: value } });
-    }
+    this.selectedElements.forEach((element) => {
+      this.updateSelectedElement({ style: { ...element.style, dasharray: value } });
+    });
     this.updateOptions({ dasharray: value });
   }
 
   setStrokeJoin(value: string) {
-    if (this.selectedElement) {
-      this.updateSelectedElement({ style: { ...this.selectedElement.style, lineJoin: value as LineJoin } });
-    }
+    this.selectedElements.forEach((element) => {
+      this.updateSelectedElement({ style: { ...element.style, lineJoin: value as LineJoin } });
+    });
     this.updateOptions({ lineJoin: value as LineJoin });
   }
 
   setStrokeCap(value: string) {
-    if (this.selectedElement) {
-      this.updateSelectedElement({ style: { ...this.selectedElement.style, lineCap: value as LineCap } });
-    }
+    this.selectedElements.forEach((element) => {
+      this.updateSelectedElement({ style: { ...element.style, lineCap: value as LineCap } });
+    });
     this.updateOptions({ lineCap: value as LineCap });
   }
 
@@ -194,60 +194,52 @@ export class ComprehensiveComponent {
   }
 
   updateStrokeWidth(value: number) {
-    if (this.selectedElement) {
-      this.updateSelectedElement({ style: { ...this.selectedElement.style, strokeWidth: value } });
-    }
+    this.selectedElements.forEach((element) => {
+      this.updateSelectedElement({ style: { ...element.style, strokeWidth: value } });
+    });
     this.updateOptions({ strokeWidth: value });
   }
 
   updateRotation(value: number) {
-    if (this.selectedElement) {
-      this.updateSelectedElement({ rotation: value });
-    }
+    this.updateSelectedElement({ rotation: value });
   }
 
   updateOpacity(value: number) {
-    if (this.selectedElement) {
-      this.updateSelectedElement({ opacity: value });
-    }
+    this.updateSelectedElement({ opacity: value });
   }
 
   updateCornerRadius(value: number) {
-    if (this.selectedElement) {
-      this.updateSelectedElement({ rx: value });
-    }
+    this.updateSelectedElement({ rx: value });
   }
 
   updateTextContent(value: string) {
-    if (this.selectedElement) {
-      this.updateSelectedElement({ text: value });
-    }
+    this.updateSelectedElement({ text: value });
   }
 
   updateFontFamily(value: string) {
-    if (this.selectedElement) {
-      this.updateSelectedElement({ style: { ...this.selectedElement.style, fontFamily: value } });
-    }
+    this.selectedElements.forEach((element) => {
+      this.updateSelectedElement({ style: { ...element.style, fontFamily: value } });
+    });
   }
 
   updateFontSize(value: number) {
-    if (this.selectedElement) {
-      this.updateSelectedElement({ style: { ...this.selectedElement.style, fontSize: value } });
-    }
+    this.selectedElements.forEach((element) => {
+      this.updateSelectedElement({ style: { ...element.style, fontSize: value } });
+    });
   }
 
   toggleFontWeight() {
-    if (this.selectedElement) {
-      const fontWeight = this.selectedElement.style.fontWeight === 'normal' ? 'bold' : 'normal';
-      this.updateSelectedElement({ style: { ...this.selectedElement.style, fontWeight } });
-    }
+    this.selectedElements.forEach((element) => {
+      const fontWeight = element.style.fontWeight === 'normal' ? 'bold' : 'normal';
+      this.updateSelectedElement({ style: { ...element.style, fontWeight } });
+    });
   }
 
   toggleFontStyle() {
-    if (this.selectedElement) {
-      const fontStyle = this.selectedElement.style.fontStyle === 'normal' ? 'italic' : 'normal';
-      this.updateSelectedElement({ style: { ...this.selectedElement.style, fontStyle } });
-    }
+    this.selectedElements.forEach((element) => {
+      const fontStyle = element.style.fontStyle === 'normal' ? 'italic' : 'normal';
+      this.updateSelectedElement({ style: { ...element.style, fontStyle } });
+    });
   }
 
   // Clipboard method
@@ -256,8 +248,9 @@ export class ComprehensiveComponent {
   }
 
   // Element selection method
-  selectElement(element: WhiteboardElement | null) {
-    this.selectedElement = element;
+  selectElements(elements: WhiteboardElement[]) {
+    console.log('🚀 ~ ComprehensiveComponent ~ selectElements ~ elements:', elements);
+    this.selectedElements = elements;
   }
 
   // Zoom method

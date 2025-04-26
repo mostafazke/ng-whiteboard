@@ -1,11 +1,15 @@
-import { WhiteboardElement } from '../types';
-import { SELECTOR_GROUP_ID, ITEM_PREFIX, SELECTOR_GRIP_PREFIX, SELECTOR_BOX_PREFIX, SVG_ROOT_ID } from '../constants';
+import { WhiteboardElement } from '../../types';
+import {
+  SELECTOR_GROUP_ID,
+  ITEM_PREFIX,
+  SELECTOR_GRIP_PREFIX,
+  SELECTOR_BOX,
+  SVG_ROOT_ID,
+  DATA_ID,
+} from '../../constants';
 
 /**
  * Get the target element from a pointer event.
- * @param info - The pointer event.
- * @param data - The whiteboard data.
- * @returns The target whiteboard element or null.
  */
 export function getTargetElement(info: PointerEvent, data: WhiteboardElement[]): WhiteboardElement | null {
   const mouseTarget = getMouseTarget(info);
@@ -13,7 +17,7 @@ export function getTargetElement(info: PointerEvent, data: WhiteboardElement[]):
     if (mouseTarget.id === SELECTOR_GROUP_ID) {
       return null;
     }
-    const id = mouseTarget.getAttribute('data-wb-id');
+    const id = mouseTarget.getAttribute(DATA_ID);
     const element = data.find((el) => el.id === id);
     return element || null;
   }
@@ -22,8 +26,6 @@ export function getTargetElement(info: PointerEvent, data: WhiteboardElement[]):
 
 /**
  * Get the mouse target element from a pointer event.
- * @param info - The pointer event.
- * @returns The target SVG graphics element or null.
  */
 export function getMouseTarget(info: PointerEvent): SVGGraphicsElement | null {
   if (!info?.target) {
@@ -39,7 +41,7 @@ export function getMouseTarget(info: PointerEvent): SVGGraphicsElement | null {
     if (
       mouseTarget.id.includes(ITEM_PREFIX) ||
       mouseTarget.id.includes(SELECTOR_GRIP_PREFIX) ||
-      mouseTarget.id.includes(SELECTOR_BOX_PREFIX)
+      mouseTarget.id.includes(SELECTOR_BOX)
     ) {
       return mouseTarget;
     }

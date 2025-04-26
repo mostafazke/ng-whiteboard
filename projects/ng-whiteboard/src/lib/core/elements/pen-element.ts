@@ -1,7 +1,7 @@
 import { BaseElement, Bounds, ElementType, ElementUtil, Point, defaultElementStyle } from '../types';
-import { calculateBoundingBox, calculatePath } from '../utils';
-import { hitTestPen } from '../utils/hit-test';
-import { generateId } from '../utils/utils';
+import { generateId } from '../utils/common';
+import { calculatePath, hitTestPen } from '../utils/drawing';
+import { calculateBoundingBox } from '../utils/geometry';
 
 export interface PenElement extends BaseElement {
   type: ElementType.Pen;

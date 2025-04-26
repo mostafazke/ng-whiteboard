@@ -11,8 +11,8 @@ describe('EraserTool', () => {
       getData: jest.fn(),
       getConfig: jest.fn(),
       removeElements: jest.fn(),
-      updateElement: jest.fn(),
       patchElements: jest.fn(),
+      updateElements: jest.fn(),
     };
     eraserTool = new EraserTool(mockDataService);
   });
@@ -78,13 +78,13 @@ describe('EraserTool', () => {
   describe('handlePointerUp', () => {
     it('should remove hovered elements and reset state', () => {
       const mockElement = { id: '1' } as WhiteboardElement;
-      eraserTool['hoveredElements'].add(mockElement);
+      eraserTool['hoveredElementIds'].add(mockElement.id);
 
       eraserTool.activate();
       eraserTool.handlePointerUp();
 
       expect(mockDataService.removeElements).toHaveBeenCalledWith(['1']);
-      expect(eraserTool['hoveredElements'].size).toBe(0);
+      expect(eraserTool['hoveredElementIds'].size).toBe(0);
       expect(eraserTool['isErasing']).toBe(false);
       expect(eraserTool['lastPosition']).toBeNull();
     });
@@ -110,9 +110,9 @@ describe('EraserTool', () => {
 
       eraserTool['eraseElementsAt']({ x: 10, y: 10 }, { x: 20, y: 20 });
 
-      expect(eraserTool['hoveredElements'].has(mockElement)).toBe(true);
+      expect(eraserTool['hoveredElementIds'].has(mockElement.id)).toBe(true);
       expect(mockElement.isDeleting).toBe(true);
-      expect(mockDataService.updateElement).toHaveBeenCalledWith(mockElement, false);
+      expect(mockDataService.updateElements).toHaveBeenCalledWith(mockElement, false);
     });
   });
 });

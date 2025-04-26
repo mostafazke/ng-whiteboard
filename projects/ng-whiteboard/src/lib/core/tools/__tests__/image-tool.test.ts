@@ -3,7 +3,6 @@ import { LineCap, LineJoin, ToolType, WhiteboardConfig } from '../../types';
 import { DataService } from '../../data/data.service';
 
 jest.mock('../../elements/element.utils');
-jest.mock('../../utils/utils');
 
 describe('ImageTool', () => {
   let imageTool: ImageTool;

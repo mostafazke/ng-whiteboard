@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -13,8 +14,8 @@ import {
   SimpleChanges,
   ViewChild,
 } from '@angular/core';
-import { Observable } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Observable } from 'rxjs';
 import { ActionHandlerService } from './core/action-handler/action-handler.service';
 import { ConfigService } from './core/config/config.service';
 import { DataService } from './core/data/data.service';
@@ -25,7 +26,6 @@ import {
   ElementType,
   LineCap,
   LineJoin,
-  RubberBox,
   ToolType,
   WhiteboardConfig,
   WhiteboardElement,
@@ -34,6 +34,7 @@ import {
 import { WhiteboardEvent } from './core/types/events';
 import { InputConfig } from './decorators/input-config.decorator';
 import { NgWhiteboardService } from './ng-whiteboard.service';
+import { GripCursorPipe } from './core/pipes';
 
 /**
  * The `NgWhiteboardComponent` is the main component for the ng-whiteboard library. It provides a whiteboard canvas with various drawing tools and configuration options.
@@ -81,7 +82,6 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   @Input() set selectedTool(tool: ToolType) {
     if (tool && this.dataService.getActiveTool() !== tool) {
       this.dataService.setActiveTool(tool);
-      this.dataService.selectElement(null);
     }
   }
 
@@ -233,21 +233,21 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
    * @event
    * @emits WhiteboardElement
    */
-  @Output() elementAdded = new EventEmitter<WhiteboardElement>();
+  @Output() elementsAdded = new EventEmitter<WhiteboardElement[]>();
 
   /**
    * Emits when an element on the whiteboard is updated.
    * @event
    * @emits WhiteboardElement
    */
-  @Output() elementUpdated = new EventEmitter<WhiteboardElement>();
+  @Output() elementsUpdated = new EventEmitter<WhiteboardElement[]>();
 
   /**
    * Emits when an element is selected or deselected.
    * @event
    * @emits WhiteboardElement | null
    */
-  @Output() elementSelected = new EventEmitter<WhiteboardElement | null>();
+  @Output() elementsSelected = new EventEmitter<WhiteboardElement[]>();
 
   /**
    * Emits when an element is deleted from the whiteboard.
@@ -318,9 +318,9 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     [WhiteboardEvent.DrawStart]: this.drawStart,
     [WhiteboardEvent.Drawing]: this.drawing,
     [WhiteboardEvent.DrawEnd]: this.drawEnd,
-    [WhiteboardEvent.ElementAdded]: this.elementAdded,
-    [WhiteboardEvent.ElementUpdated]: this.elementUpdated,
-    [WhiteboardEvent.ElementSelected]: this.elementSelected,
+    [WhiteboardEvent.ElementsAdded]: this.elementsAdded,
+    [WhiteboardEvent.ElementsUpdated]: this.elementsUpdated,
+    [WhiteboardEvent.ElementsSelected]: this.elementsSelected,
     [WhiteboardEvent.ElementsDeleted]: this.elementsDeleted,
     [WhiteboardEvent.Undo]: this.undo,
     [WhiteboardEvent.Redo]: this.redo,
@@ -365,20 +365,20 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
     this.eventBusService.emit(WhiteboardEvent.Destroyed);
   }
 
-  get selectedElement() {
-    return this.dataService.getSelectedElement();
-  }
-
-  get rubberBox(): RubberBox {
-    return this.getConfigValue('rubberBox');
-  }
-
   get gridTranslation() {
     return this.getConfigValue('gridTranslation');
   }
 
   get elementsTranslation() {
     return this.getConfigValue('elementsTranslation');
+  }
+
+  get selectionBox$() {
+    return this.dataService.selectionBox$;
+  }
+
+  get boundingBox$() {
+    return this.dataService.boundingBox$;
   }
 
   /**

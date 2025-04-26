@@ -1,6 +1,6 @@
 import { DataService } from '../data/data.service';
 import { Point, Tool, ToolType, WhiteboardConfig } from '../types';
-import { getCanvasCoordinates } from '../utils';
+import { getCanvasCoordinates } from '../utils/geometry';
 
 export abstract class BaseTool implements Tool {
   abstract type: ToolType;
@@ -17,10 +17,12 @@ export abstract class BaseTool implements Tool {
   }
   activate(): void {
     this.active = true;
+    this.onActivate?.();
   }
 
   deactivate(): void {
     this.active = false;
+    this.onDeactivate?.();
   }
 
   get isActive() {
@@ -30,4 +32,6 @@ export abstract class BaseTool implements Tool {
   handlePointerDown?(event: PointerEvent): void;
   handlePointerMove?(event: PointerEvent): void;
   handlePointerUp?(event: PointerEvent): void;
+  onActivate?(): void;
+  onDeactivate?(): void;
 }

@@ -1,6 +1,6 @@
 import { BaseElement, Bounds, Direction, ElementType, ElementUtil, Point, defaultElementStyle } from '../types';
-import { hitTestLine } from '../utils/hit-test';
-import { generateId } from '../utils/utils';
+import { generateId } from '../utils/common';
+import { hitTestLine } from '../utils/drawing';
 
 export interface LineElement extends BaseElement {
   type: ElementType.Line;
@@ -40,13 +40,18 @@ export class LineElementUtil implements ElementUtil<LineElement> {
   }
 
   getBounds(element: LineElement): Bounds {
+    const x1 = element.x1 + element.x;
+    const y1 = element.y1 + element.y;
+    const x2 = element.x2 + element.x;
+    const y2 = element.y2 + element.y;
+
     return {
-      minX: Math.min(element.x1, element.x2),
-      minY: Math.min(element.y1, element.y2),
-      maxX: Math.max(element.x1, element.x2),
-      maxY: Math.max(element.y1, element.y2),
-      width: Math.abs(element.x2 - element.x1),
-      height: Math.abs(element.y2 - element.y1),
+      minX: Math.min(x1, x2),
+      minY: Math.min(y1, y2),
+      maxX: Math.max(x1, x2),
+      maxY: Math.max(y1, y2),
+      width: Math.abs(x2 - x1),
+      height: Math.abs(y2 - y1),
     };
   }
 

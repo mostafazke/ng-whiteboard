@@ -13,7 +13,6 @@ describe('ConfigService', () => {
 
   describe('getConfig', () => {
     it('should return a copy of the config object', () => {
-      const config = service.getConfig();
       expect(service.getConfig().strokeColor).toBe('#333333');
     });
   });
@@ -52,17 +51,13 @@ describe('ConfigService', () => {
     it('should return false for same values', () => {
       expect(service.isConfigDifferent('strokeWidth', 2)).toBeFalsy();
     });
-
-    it('should handle object comparisons', () => {
-      expect(service.isConfigDifferent('rubberBox', { x: 1, y: 1, width: 0, height: 0, display: 'none' })).toBeTruthy();
-    });
   });
 
   describe('updateConfigValue', () => {
     it('should update nested object properties', () => {
-      const newRubberBox = { x: 10, y: 10, width: 100, height: 100, display: 'block' };
-      service.updateConfigValue('rubberBox', newRubberBox);
-      expect(service.getConfig().rubberBox).toEqual(newRubberBox);
+      const newTranslation = { x: 10, y: 10 };
+      service.updateConfigValue('gridTranslation', newTranslation);
+      expect(service.getConfig().gridTranslation).toEqual(newTranslation);
     });
 
     it('should emit event with property name as key', () => {

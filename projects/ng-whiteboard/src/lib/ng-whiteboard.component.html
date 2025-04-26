@@ -66,6 +66,7 @@
         [attr.data-wb-id]="item.id"
         [attr.transform]="'translate(' + item.x + ',' + item.y + ')' + 'rotate(' + item.rotation + ')'"
         [attr.opacity]="item.isDeleting ? 0.1 : item.opacity / 100"
+        transform-origin="center"
       >
         @switch (item.type) { @case (types.Pen) {
         <g>
@@ -177,176 +178,90 @@
         </g>
         } }
       </g>
-      } @if(selectedElement) {
-      <g id="selectorParentGroup">
-        <g
-          class="selectorGroup"
-          id="selectorGroup"
-          transform=""
-          [style.display]="rubberBox.display"
-          [attr.transform]="
-            'translate(' +
-            selectedElement.x +
-            ',' +
-            selectedElement.y +
-            ')' +
-            'rotate(' +
-            selectedElement.rotation +
-            ')'
-          "
-        >
-          <g display="inline">
-            <rect
-              id="selectorBox"
-              fill="none"
-              stroke="#4F80FF"
-              style="pointer-events: all"
-              [attr.x]="rubberBox.x"
-              [attr.y]="rubberBox.y"
-              [attr.width]="rubberBox.width"
-              [attr.height]="rubberBox.height"
-              style="cursor: move"
-            ></rect>
-          </g>
-          <g display="inline">
-            <circle
-              class="selector_rotate"
-              id="selectorGrip_rotate_nw"
-              fill="#000"
-              r="8"
-              stroke="#000"
-              fill-opacity="0"
-              stroke-opacity="0"
-              stroke-width="0"
-              [attr.cx]="rubberBox.x - 4"
-              [attr.cy]="rubberBox.y - 4"
-            ></circle>
-            <circle
-              class="selector_rotate"
-              id="selectorGrip_rotate_ne"
-              fill="#000"
-              r="8"
-              stroke="#000"
-              fill-opacity="0"
-              stroke-opacity="0"
-              stroke-width="0"
-              [attr.cx]="rubberBox.x + rubberBox.width + 4"
-              [attr.cy]="rubberBox.y - 4"
-            ></circle>
-            <circle
-              class="selector_rotate"
-              id="selectorGrip_rotate_se"
-              fill="#000"
-              r="8"
-              stroke="#000"
-              fill-opacity="0"
-              stroke-opacity="0"
-              stroke-width="0"
-              [attr.cx]="rubberBox.x + rubberBox.width + 4"
-              [attr.cy]="rubberBox.y + rubberBox.height + 4"
-            ></circle>
-            <circle
-              class="selector_rotate"
-              id="selectorGrip_rotate_sw"
-              fill="#000"
-              r="8"
-              stroke="#000"
-              fill-opacity="0"
-              stroke-opacity="0"
-              stroke-width="0"
-              [attr.cx]="rubberBox.x - 4"
-              [attr.cy]="rubberBox.y + rubberBox.height + 4"
-            ></circle>
-            <rect
-              id="selectorGrip_resize_nw"
-              width="8"
-              height="8"
-              fill="#4F80FF"
-              stroke="rgba(0,0,0,0)"
-              style="cursor: nw-resize"
-              pointer-events="all"
-              [attr.x]="rubberBox.x - 4"
-              [attr.y]="rubberBox.y - 4"
-            ></rect>
-            <rect
-              id="selectorGrip_resize_n"
-              width="8"
-              height="8"
-              fill="#4F80FF"
-              stroke="rgba(0,0,0,0)"
-              style="cursor: n-resize"
-              pointer-events="all"
-              [attr.x]="rubberBox.x + rubberBox.width / 2 - 4"
-              [attr.y]="rubberBox.y - 4"
-            ></rect>
-            <rect
-              id="selectorGrip_resize_ne"
-              width="8"
-              height="8"
-              fill="#4F80FF"
-              stroke="rgba(0,0,0,0)"
-              style="cursor: ne-resize"
-              pointer-events="all"
-              [attr.x]="rubberBox.x + rubberBox.width - 4"
-              [attr.y]="rubberBox.y - 4"
-            ></rect>
-            <rect
-              id="selectorGrip_resize_e"
-              width="8"
-              height="8"
-              fill="#4F80FF"
-              stroke="rgba(0,0,0,0)"
-              style="cursor: e-resize"
-              pointer-events="all"
-              [attr.x]="rubberBox.x + rubberBox.width - 4"
-              [attr.y]="rubberBox.y + rubberBox.height / 2 - 4"
-            ></rect>
-            <rect
-              id="selectorGrip_resize_se"
-              width="8"
-              height="8"
-              fill="#4F80FF"
-              stroke="rgba(0,0,0,0)"
-              style="cursor: se-resize"
-              pointer-events="all"
-              [attr.x]="rubberBox.x + rubberBox.width - 4"
-              [attr.y]="rubberBox.y + rubberBox.height - 4"
-            ></rect>
-            <rect
-              id="selectorGrip_resize_s"
-              width="8"
-              height="8"
-              fill="#4F80FF"
-              stroke="rgba(0,0,0,0)"
-              style="cursor: s-resize"
-              pointer-events="all"
-              [attr.x]="rubberBox.x + rubberBox.width / 2 - 4"
-              [attr.y]="rubberBox.y + rubberBox.height - 4"
-            ></rect>
-            <rect
-              id="selectorGrip_resize_sw"
-              width="8"
-              height="8"
-              fill="#4F80FF"
-              stroke="rgba(0,0,0,0)"
-              style="cursor: sw-resize"
-              pointer-events="all"
-              [attr.x]="rubberBox.x - 4"
-              [attr.y]="rubberBox.y + rubberBox.height - 4"
-            ></rect>
-            <rect
-              id="selectorGrip_resize_w"
-              width="8"
-              height="8"
-              fill="#4F80FF"
-              stroke="rgba(0,0,0,0)"
-              style="cursor: w-resize"
-              pointer-events="all"
-              [attr.x]="rubberBox.x - 4"
-              [attr.y]="rubberBox.y + rubberBox.height / 2 - 4"
-            ></rect>
-          </g>
-        </g>
+      } @if ((selectionBox$ | async); as box) {
+      <rect
+        [attr.x]="box.x"
+        [attr.y]="box.y"
+        [attr.width]="box.width"
+        [attr.height]="box.height"
+        stroke="blue"
+        stroke-dasharray="5,5"
+        fill="transparent"
+      />
+      } @if (boundingBox$ | async; as box) {
+      <g
+        id="selectorParentGroup"
+        [attr.transform]="
+          'rotate(' + box.rotation + ',' + (box.x + box.width / 2) + ',' + (box.y + box.height / 2) + ')'
+        "
+      >
+        <rect
+          id="selectorBox"
+          [attr.x]="box.x"
+          [attr.y]="box.y"
+          [attr.width]="box.width"
+          [attr.height]="box.height"
+          fill="transparent"
+          stroke="dodgerblue"
+          stroke-width="1"
+          cursor="move"
+          pointer-events="all"
+        ></rect>
+
+        <!-- Side Resize Lines -->
+        <ng-container *ngFor="let side of ['n', 's', 'e', 'w']">
+          <rect
+            [attr.id]="'selectorGrip_resize_' + side"
+            [attr.x]="side === 'n' || side === 's' ? box.x : side === 'e' ? box.x + box.width - 5 : box.x - 5"
+            [attr.y]="side === 'n' ? box.y - 5 : side === 's' ? box.y + box.height - 5 : box.y"
+            [attr.width]="side === 'n' || side === 's' ? box.width : 10"
+            [attr.height]="side === 'n' || side === 's' ? 10 : box.height"
+            fill="transparent"
+            stroke="transparent"
+            [attr.cursor]="side | gripCursor : box.rotation"
+            pointer-events="all"
+          ></rect>
+        </ng-container>
+
+        <!-- Corner Resize Grips -->
+        <ng-container *ngFor="let grip of ['nw', 'ne', 'se', 'sw']">
+          <rect
+            [attr.id]="'selectorGrip_resize_' + grip"
+            [attr.x]="box.x + (grip === 'ne' || grip === 'se' ? box.width : 0) - 5"
+            [attr.y]="box.y + (grip === 'se' || grip === 'sw' ? box.height : 0) - 5"
+            width="10"
+            height="10"
+            fill="white"
+            stroke="dodgerblue"
+            stroke-width="1"
+            [attr.cursor]="grip | gripCursor : box.rotation"
+          ></rect>
+        </ng-container>
+
+        <circle
+          id="selectorGrip_rotate_n"
+          [attr.cx]="box.handles.rotateHandle.x"
+          [attr.cy]="box.handles.rotateHandle.y"
+          r="6"
+          fill="white"
+          stroke="green"
+          stroke-width="1"
+          cursor="grab"
+        ></circle>
+
+        <!-- Corner Rotate Grips -->
+        <ng-container *ngFor="let grip of ['nw', 'ne', 'se', 'sw']">
+          <circle
+            [attr.id]="'selectorGrip_rotate_' + grip"
+            [attr.cx]="box.x + (grip === 'ne' || grip === 'se' ? box.width : -20) + 10"
+            [attr.cy]="box.y + (grip === 'se' || grip === 'sw' ? box.height : -20) + 10"
+            r="6"
+            fill="none"
+            stroke="none"
+            stroke-width="1"
+            [attr.cursor]="'rotate_' + grip | gripCursor : box.rotation"
+          ></circle>
+        </ng-container>
       </g>
       }
     </g>

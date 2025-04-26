@@ -46,8 +46,8 @@ describe('TextTool', () => {
       getConfig: jest.fn().mockReturnValue(config),
       getCanvas: jest.fn().mockReturnValue(mockCanvas),
       getData: jest.fn().mockReturnValue([]),
-      addElement: jest.fn(),
-      updateElement: jest.fn(),
+      addElements: jest.fn(),
+      updateElements: jest.fn(),
       removeElements: jest.fn(),
       hasElement: jest.fn().mockReturnValue(false),
       pushToUndo: jest.fn(),
@@ -69,7 +69,7 @@ describe('TextTool', () => {
 
     expect(textTool.getPointerPosition).toHaveBeenCalledWith(mockEvent);
     expect(mockCanvas.parentElement.querySelector).toHaveBeenCalledWith('#textInput');
-    expect(dataService.addElement).not.toHaveBeenCalled();
+    expect(dataService.addElements).not.toHaveBeenCalled();
   });
 
   it('should handle pointer down and edit an existing text element', () => {
@@ -81,7 +81,7 @@ describe('TextTool', () => {
     textTool.handlePointerDown(mockEvent);
 
     expect(mockCanvas.parentElement.querySelector).toHaveBeenCalledWith('#textInput');
-    expect(dataService.updateElement).not.toHaveBeenCalled();
+    expect(dataService.updateElements).not.toHaveBeenCalled();
   });
 
   it('should handle pointer up and focus on the text input', () => {
@@ -104,7 +104,7 @@ describe('TextTool', () => {
 
     expect(mockInput.style.width).toBe('12ch');
     expect(mockTextElement.text).toBe('Updated Text');
-    expect(dataService.updateElement).toHaveBeenCalledWith(mockTextElement);
+    expect(dataService.updateElements).toHaveBeenCalledWith(mockTextElement);
   });
 
   it('should create a new text element when handlePointerDown is called', () => {
@@ -176,7 +176,7 @@ describe('TextTool', () => {
 
     expect(mockInput.style.width).toBe('12ch');
     expect(mockTextElement.text).toBe('Updated Text');
-    expect(dataService.updateElement).toHaveBeenCalledWith(mockTextElement);
+    expect(dataService.updateElements).toHaveBeenCalledWith(mockTextElement);
   });
 
   it('should finish text input and add the element if valid', () => {
@@ -187,7 +187,7 @@ describe('TextTool', () => {
 
     textTool['finishTextInput']();
 
-    expect(dataService.addElement).toHaveBeenCalledWith(mockTextElement);
+    expect(dataService.addElements).toHaveBeenCalledWith(mockTextElement);
     expect(dataService.pushToUndo).toHaveBeenCalled();
     expect(mockInput.style.display).toBe('none');
     expect(textTool['textInput']).toBeNull();

@@ -38,9 +38,9 @@ describe('NgWhiteboardComponent', () => {
       getData$: jest.fn(() => of([])),
       getActiveTool: jest.fn(),
       setActiveTool: jest.fn(),
-      selectElement: jest.fn(),
+      selectElements: jest.fn(),
       centerCanvas: jest.fn(),
-      getSelectedElement: jest.fn(() => null),
+      getSelectedElements: jest.fn(() => []),
     };
     TestBed.overrideComponent(NgWhiteboardComponent, {
       set: {
@@ -87,10 +87,9 @@ describe('NgWhiteboardComponent', () => {
       expect(dataService.setData).toHaveBeenCalled();
     });
 
-    it('should update selected tool and clear selection', () => {
+    it('should update selected tool', () => {
       component.selectedTool = ToolType.Line;
       expect(dataService.setActiveTool).toHaveBeenCalledWith(ToolType.Line);
-      expect(dataService.selectElement).toHaveBeenCalledWith(null);
     });
   });
 

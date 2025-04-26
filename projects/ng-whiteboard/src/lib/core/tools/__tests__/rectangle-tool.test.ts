@@ -2,10 +2,14 @@ import { RectangleTool } from '../rectangle-tool';
 import { ElementType, LineCap, LineJoin, ToolType, WhiteboardConfig } from '../../types';
 import { createElement } from '../../elements/element.utils';
 import { DataService } from '../../data/data.service';
-import { snapToAngle, snapToGrid } from '../../utils/utils';
+import { snapToGrid } from '../../utils/geometry';
+import { ITEM_PREFIX } from '../../constants';
 
 jest.mock('../../elements/element.utils');
-jest.mock('../../utils/utils');
+jest.mock('../../utils/geometry', () => ({
+  snapToGrid: jest.fn((value, gridSize) => Math.round(value / gridSize) * gridSize),
+}));
+
 describe('RectangleTool', () => {
   let rectangleTool: RectangleTool;
   let dataService: DataService;
@@ -125,6 +129,28 @@ describe('RectangleTool', () => {
           height: 100,
           x: 0,
           y: 0,
+        })
+      );
+    });
+
+    it('should snap dimensions and position to grid if snapToGrid is enabled', () => {
+      rectangleTool.whiteboardConfig.snapToGrid = true;
+      rectangleTool.whiteboardConfig.gridSize = 20;
+      rectangleTool.activate();
+      rectangleTool.startPoint = { x: 50, y: 50 };
+      rectangleTool.element = { width: 0, height: 0, x: 0, y: 0 } as any;
+
+      const mockEvent = { clientX: 105, clientY: 115 } as PointerEvent;
+      jest.spyOn(rectangleTool, 'getPointerPosition').mockReturnValue({ x: 105, y: 115 });
+
+      rectangleTool.handlePointerMove(mockEvent);
+
+      expect(rectangleTool.element).toEqual(
+        expect.objectContaining({
+          width: 60,
+          height: 60,
+          x: 60,
+          y: 60,
         })
       );
     });
@@ -349,7 +375,6 @@ describe('RectangleTool', () => {
 
       const mockEvent = { clientX: 105, clientY: 115 } as PointerEvent;
       jest.spyOn(rectangleTool, 'getPointerPosition').mockReturnValue({ x: 105, y: 115 });
-      (snapToGrid as jest.Mock).mockImplementation((value, gridSize) => Math.round(value / gridSize) * gridSize);
 
       rectangleTool.handlePointerMove(mockEvent);
 

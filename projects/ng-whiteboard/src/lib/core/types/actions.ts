@@ -10,8 +10,12 @@ export enum ActionType {
   AddElement = 'addElement',
   UpdateElement = 'updateElement',
   RemoveElements = 'removeElements',
-  SelectElement = 'selectElement',
-  UpdateSelectedElement = 'updateSelectedElement',
+  SelectElements = 'selectElements',
+  ToggleSelection = 'toggleSelection',
+  DeselectElement = 'deselectElement',
+  SelectAll = 'selectAll',
+  ClearSelection = 'clearSelection',
+  UpdateSelectedElements = 'updateSelectedElements',
   SetActiveTool = 'setActiveTool',
   SetCanvasDimensions = 'setCanvasDimensions',
   SetCanvasPosition = 'setCanvasPosition',
@@ -32,8 +36,15 @@ export type WhiteboardAction =
   | { type: ActionType.AddElement; payload: { element: WhiteboardElement } }
   | { type: ActionType.UpdateElement; payload: { element: WhiteboardElement } }
   | { type: ActionType.RemoveElements; payload: { ids: string[] } }
-  | { type: ActionType.SelectElement; payload: { element: WhiteboardElement | null } }
-  | { type: ActionType.UpdateSelectedElement; payload: { partialElement: Partial<WhiteboardElement> } }
+  | {
+      type: ActionType.SelectElements;
+      payload: { elementsOrIds: WhiteboardElement | WhiteboardElement[] | string | string[] };
+    }
+  | { type: ActionType.ToggleSelection; payload: { elementOrId: WhiteboardElement | string } }
+  | { type: ActionType.DeselectElement; payload: { elementOrId: WhiteboardElement | string } }
+  | { type: ActionType.SelectAll }
+  | { type: ActionType.ClearSelection }
+  | { type: ActionType.UpdateSelectedElements; payload: { partialElement: Partial<WhiteboardElement> } }
   | { type: ActionType.SetActiveTool; payload: { tool: ToolType } }
   | { type: ActionType.SetCanvasDimensions; payload: { width: number; height: number } }
   | { type: ActionType.SetCanvasPosition; payload: { x: number; y: number } }

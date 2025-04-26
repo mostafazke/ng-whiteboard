@@ -1,11 +1,14 @@
 import { LineTool } from '../line-tool';
 import { createElement } from '../../elements/element.utils';
-import { ElementType, LineCap, LineJoin, ToolType, WhiteboardConfig } from '../../types';
-import { snapToAngle } from '../../utils/utils';
+import { LineCap, LineJoin, ToolType, WhiteboardConfig } from '../../types';
+import { snapToAngle } from '../../utils/geometry';
 import { DataService } from '../../data/data.service';
 
 jest.mock('../../elements/element.utils');
-jest.mock('../../utils/utils');
+jest.mock('../../utils/geometry', () => ({
+  snapToGrid: jest.fn((value, gridSize) => Math.round(value / gridSize) * gridSize),
+  snapToAngle: jest.fn(),
+}));
 
 describe('LineTool', () => {
   let lineTool: LineTool;
@@ -100,22 +103,22 @@ describe('LineTool', () => {
 
   it('should snap to grid when pointer moves if snapToGrid is enabled', () => {
     config.snapToGrid = true;
-    config.gridSize = 10;
+    config.gridSize = 20;
 
     const downEvent = {
-      clientX: 103,
-      clientY: 157,
+      clientX: 100,
+      clientY: 150,
     } as PointerEvent;
     const moveEvent = {
-      clientX: 208,
-      clientY: 263,
+      clientX: 210,
+      clientY: 260,
       shiftKey: false,
     } as PointerEvent;
 
     jest
       .spyOn(lineTool, 'getPointerPosition')
-      .mockReturnValueOnce({ x: 103, y: 157 })
-      .mockReturnValueOnce({ x: 208, y: 263 });
+      .mockReturnValueOnce({ x: 100, y: 150 })
+      .mockReturnValueOnce({ x: 210, y: 260 });
 
     (createElement as jest.Mock).mockReturnValue({
       x1: 100,
@@ -128,8 +131,10 @@ describe('LineTool', () => {
     lineTool.handlePointerDown(downEvent);
     lineTool.handlePointerMove(moveEvent);
 
-    expect(lineTool.element?.x2).toBe(100);
-    expect(lineTool.element?.y2).toBe(160);
+    // With gridSize 20, 210 should snap to 220
+    expect(lineTool.element?.x2).toBe(220);
+    // With gridSize 20, 260 should snap to 260
+    expect(lineTool.element?.y2).toBe(260);
   });
 
   it('should snap to angle when shift key is pressed during pointer move', () => {

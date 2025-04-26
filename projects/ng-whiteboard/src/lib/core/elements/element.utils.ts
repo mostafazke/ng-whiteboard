@@ -15,7 +15,7 @@ const elementUtilsMap: Record<ElementType, ElementUtil<WhiteboardElement>> = {
   [ElementType.Pen]: new PenElementUtil(),
   [ElementType.Rectangle]: new RectangleElementUtil(),
   [ElementType.Text]: new TextElementUtil(),
-};
+} as const;
 
 export function getElementUtil(type: ElementType) {
   return elementUtilsMap[type];

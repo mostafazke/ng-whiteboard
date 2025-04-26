@@ -2,14 +2,18 @@ import { RendererFactory2 } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { ConfigService } from '../config/config.service';
 import { MAX_STACK_SIZE } from '../constants';
-import { RectangleElement } from '../elements';
+import { ImageElement, RectangleElement } from '../elements';
 import { EventBusService } from '../event-bus/event-bus.service';
 import { AddImage, ElementType, FormatType, ToolType, WhiteboardElement, WhiteboardEvent } from '../types';
-import * as utils from '../utils';
 import { DataService } from './data.service';
 
-jest.mock('../utils', () => ({
-  ...jest.requireActual('../utils'),
+import * as fileUtils from '../utils/common/file';
+
+jest.mock('../utils/common', () => ({
+  ...jest.requireActual('../utils/common'),
+}));
+
+jest.mock('../utils/drawing', () => ({
   svgToBase64: jest.fn().mockResolvedValue('data:image/png;base64,...'),
 }));
 
@@ -136,7 +140,7 @@ describe('DataService', () => {
     it('should add an image element to the whiteboard', () => {
       // Arrange
       jest.spyOn(eventBusMock, 'emit');
-      service.selectElement = jest.fn();
+      service.selectElements = jest.fn();
 
       // Act
       service.addImage(mockImage);
@@ -145,33 +149,6 @@ describe('DataService', () => {
       // Assert
       expect(service.getData().length).toBe(1);
       expect(eventBusMock.emit).toHaveBeenCalledWith(WhiteboardEvent.ImageAdded, mockImage.image);
-    });
-  });
-
-  describe('save', () => {
-    it('should save the whiteboard as an image', async () => {
-      // Arrange
-      const svgContainer = document.createElementNS('http://www.w3.org/2000/svg', 'svg') as SVGSVGElement;
-      svgContainer.setAttribute('id', 'svgcontent');
-
-      const selectorParentGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      selectorParentGroup.setAttribute('id', 'selectorParentGroup');
-      svgContainer.appendChild(selectorParentGroup);
-
-      const contentBackground = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      contentBackground.setAttribute('id', 'contentBackground');
-      contentBackground.setAttribute('opacity', '0.5');
-      svgContainer.appendChild(contentBackground);
-
-      jest.spyOn(service, 'getCanvas').mockReturnValue(svgContainer);
-      jest.spyOn(utils, 'downloadFile').mockImplementation(jest.fn());
-
-      // Act
-      await service.save(FormatType.Png, 'Test board');
-
-      // Assert
-      expect(utils.downloadFile).toHaveBeenCalledWith('data:image/png;base64,...', 'Test board');
-      expect(eventBusMock.emit).toHaveBeenCalledWith(WhiteboardEvent.Save, 'data:image/png;base64,...');
     });
   });
 
@@ -307,7 +284,7 @@ describe('DataService', () => {
     });
 
     it('should undo last operation', () => {
-      service.addElement(mockElement);
+      service.addElements(mockElement);
       service.undo();
       expect(service.getData().length).toBe(0);
       expect(eventBusMock.emit).toHaveBeenCalledWith(WhiteboardEvent.Undo);
@@ -318,7 +295,7 @@ describe('DataService', () => {
     });
 
     it('should redo last undone operation', () => {
-      service.addElement(mockElement);
+      service.addElements(mockElement);
       service.pushToUndo();
       service.undo();
       service.redo();
@@ -331,7 +308,7 @@ describe('DataService', () => {
     });
 
     it('should clear all data and emit Clear event', () => {
-      service.addElement(mockElement);
+      service.addElements(mockElement);
       service.clear();
       expect(service.getData().length).toBe(0);
       expect(eventBusMock.emit).toHaveBeenCalledWith(WhiteboardEvent.Clear);
@@ -339,11 +316,11 @@ describe('DataService', () => {
   });
 
   describe('Element Management', () => {
-    it('should add element to data array and emit ElementAdded event', () => {
-      service.addElement(mockElement);
+    it('should add element to data array and emit ElementsAdded event', () => {
+      service.addElements(mockElement);
       expect(service.getData()).toContain(mockElement);
       expect(service.getData().length).toBe(1);
-      expect(eventBusMock.emit).toHaveBeenCalledWith(WhiteboardEvent.ElementAdded, mockElement);
+      expect(eventBusMock.emit).toHaveBeenCalledWith(WhiteboardEvent.ElementsAdded, [mockElement]);
     });
 
     it('should add elements to the current data', () => {
@@ -454,22 +431,35 @@ describe('DataService', () => {
     });
 
     it('should update existing element and emit ElementUpdated event', () => {
-      service.addElement(mockElement);
+      // Clear any previous calls to emit
+      jest.clearAllMocks();
+
+      // Add the element first
+      service.addElements(mockElement);
+      jest.clearAllMocks(); // Clear the events from addElements
+
+      // Update the element
       const updatedElement: RectangleElement = { ...mockElement, width: 200, style: { ...mockElement.style } };
-      service.updateElement(updatedElement);
+      service.updateElements(updatedElement);
+
+      // Verify the data was updated
       expect((service.getData()[0] as RectangleElement).width).toBe(200);
-      expect(eventBusMock.emit).toHaveBeenCalledWith(WhiteboardEvent.ElementUpdated, updatedElement);
+
+      // Verify the events were emitted in the correct order
+      expect(eventBusMock.emit).toHaveBeenCalledTimes(2);
+      expect(eventBusMock.emit).toHaveBeenNthCalledWith(1, WhiteboardEvent.DataChange, expect.any(Array));
+      expect(eventBusMock.emit).toHaveBeenNthCalledWith(2, WhiteboardEvent.ElementsUpdated, [updatedElement]);
     });
 
     it('should not modify array when updating non-existent element', () => {
-      service.addElement(mockElement);
+      service.addElements(mockElement);
       const nonExistentElement = { ...mockElement, id: '2', width: 200 };
-      service.updateElement(nonExistentElement);
+      service.updateElements(nonExistentElement);
       expect((service.getData()[0] as RectangleElement).width).toBe(100);
     });
 
     it('should remove existing element from data array and emit ElementsDeleted event', () => {
-      service.addElement(mockElement);
+      service.addElements(mockElement);
       service.removeElements([mockElement.id]);
       expect(service.getData()).not.toContain(mockElement);
       expect(service.getData().length).toBe(0);
@@ -477,7 +467,7 @@ describe('DataService', () => {
     });
 
     it('should not modify array when removing non-existent element', () => {
-      service.addElement(mockElement);
+      service.addElements(mockElement);
       const nonExistentElement = { ...mockElement, id: '2' };
       service.removeElements([nonExistentElement.id]);
       expect(service.getData().length).toBe(1);
@@ -521,27 +511,6 @@ describe('DataService', () => {
       // Assert
       expect(result).toBe(false);
     });
-
-    it('should return bounding box when element is found', () => {
-      // Arrange
-      const svgContainer = document.createElementNS('http://www.w3.org/2000/svg', 'svg') as SVGSVGElement;
-      service.initializeWhiteboard(svgContainer);
-      service.showGrips = jest.fn();
-
-      const element = { id: '1', type: ElementType.Rectangle } as WhiteboardElement;
-      const mockElement = document.createElementNS('http://www.w3.org/2000/svg', 'rect') as SVGGraphicsElement;
-      mockElement.id = 'item_1';
-      mockElement.getBBox = jest.fn().mockReturnValue({ x: 10, y: 20, width: 30, height: 40 });
-
-      svgContainer.appendChild(mockElement);
-
-      // Act
-      const bbox = service.getElementBbox(element);
-
-      // Assert
-      expect(mockElement.getBBox).toHaveBeenCalled();
-      expect(bbox).toEqual({ x: 10, y: 20, width: 30, height: 40 });
-    });
   });
 
   describe('Tool management', () => {
@@ -551,218 +520,303 @@ describe('DataService', () => {
     });
 
     it('should select and deselect an element', () => {
-      service.getElementBbox = jest.fn();
-      service.showGrips = jest.fn();
+      service.addElements(mockElement);
+      service.selectElements(mockElement);
+      expect(service.getSelectedIds()[0]).toBe(mockElement.id);
 
-      service.addElement(mockElement);
-      service.selectElement(mockElement);
-      expect(service.getSelectedElement()).toBe(mockElement);
-
-      service.selectElement(null);
-      expect(service.getSelectedElement()).toBeNull();
+      service.clearSelection();
+      expect(service.getSelectedIds()).toEqual([]);
     });
 
     it('should update the selected element', () => {
-      service.getElementBbox = jest.fn();
-      service.showGrips = jest.fn();
-
-      service.addElement(mockElement);
-      service.selectElement(mockElement);
-      service.updateSelectedElement({ width: 200 });
-      expect((service.getSelectedElement() as RectangleElement).width).toBe(200);
+      service.addElements(mockElement);
+      service.selectElements(mockElement);
+      service.updateSelectedElements({ width: 200 });
+      expect((service.getSelectedElements()[0] as RectangleElement).width).toBe(200);
     });
   });
+
   describe('Visual Elements Management', () => {
-    it('should update the rubberBox configuration when an element is selected', () => {
-      // Arrange
-      service.getElementBbox = jest.fn().mockReturnValue({ x: 10, y: 20, width: 100, height: 200 });
-
-      service.selectElement({
-        id: '1',
-        style: {
-          strokeWidth: 2,
-        },
-      } as WhiteboardElement);
-
-      const bbox = { x: 10, y: 20, width: 100, height: 200 } as DOMRect;
-      const expectedConfig = {
-        rubberBox: {
-          x: bbox.x - 2 * 0.5,
-          y: bbox.y - 2 * 0.5,
-          width: bbox.width + 2,
-          height: bbox.height + 2,
-          display: 'block',
-        },
-      };
-
-      // Act
-      service.showGrips(bbox);
-
-      // Assert
-      expect(configMock.updateConfig).toHaveBeenCalledWith(expectedConfig);
+    describe('setCanvasDimensions', () => {
+      it('should update canvas dimensions in the config', () => {
+        service.setCanvasDimensions(1024, 768);
+        expect(configMock.updateConfig).toHaveBeenCalledWith({ canvasWidth: 1024, canvasHeight: 768 });
+      });
     });
 
-    it('should not update the rubberBox configuration if no element is selected', () => {
-      // Arrange
-      service.getSelectedElement = jest.fn(() => null);
-      const bbox = { x: 10, y: 20, width: 100, height: 200 } as DOMRect;
-
-      // Act
-      service.showGrips(bbox);
-
-      // Assert
-      expect(configMock.updateConfig).not.toHaveBeenCalled(); // It should not call updateConfig
+    describe('setCanvasPosition', () => {
+      it('should update canvas position in the config', () => {
+        service.setCanvasPosition(100, 200);
+        expect(configMock.updateConfig).toHaveBeenCalledWith({ x: 100, y: 200 });
+      });
     });
 
-    it('should calculate rubberBox correctly when strokeWidth is 0', () => {
-      // Arrange
-      const elementWithNoStrokeWidth = {
-        id: '2',
-        style: {
-          strokeWidth: 0,
-        },
-      } as WhiteboardElement;
-      service.getSelectedElement = jest.fn(() => elementWithNoStrokeWidth);
-      const bbox = { x: 10, y: 20, width: 100, height: 200 } as DOMRect;
-      const expectedConfig = {
-        rubberBox: {
-          x: bbox.x,
-          y: bbox.y,
-          width: bbox.width,
-          height: bbox.height,
-          display: 'block',
-        },
-      };
-
-      // Act
-      service.showGrips(bbox);
-
-      // Assert
-      expect(configMock.updateConfig).toHaveBeenCalledWith(expectedConfig);
+    describe('updateGridTranslation', () => {
+      it('should update grid translation in the config', () => {
+        service.updateGridTranslation(10, 20);
+        expect(configMock.updateConfig).toHaveBeenCalledWith({ gridTranslation: { x: 10, y: 20 } });
+      });
     });
-    // showGrips(bbox: DOMRect) {
-    //   const currentElement = this.getSelectedElement();
-    //   if (!currentElement) {
-    //     return;
-    //   }
-    //   this.configService.updateConfig({
-    //     rubberBox: {
-    //       x: bbox.x - ((currentElement.style.strokeWidth as number) || 0) * 0.5,
-    //       y: bbox.y - ((currentElement.style.strokeWidth as number) || 0) * 0.5,
-    //       width: bbox.width + (currentElement.style.strokeWidth as number) || 0,
-    //       height: bbox.height + (currentElement.style.strokeWidth as number) || 0,
-    //       display: 'block',
-    //     },
-    //   });
-    // }
-    // resetGrips(): void {
-    //   this.configService.updateConfig({
-    //     rubberBox: {
-    //       x: 0,
-    //       y: 0,
-    //       width: 0,
-    //       height: 0,
-    //       display: 'none',
-    //     },
-    //   });
-    // }
-    // setCanvasDimensions(width: number, height: number): void {
-    //   this.configService.updateConfig({ canvasWidth: width, canvasHeight: height });
-    // }
-    // setCanvasPosition(x: number, y: number): void {
-    //   this.configService.updateConfig({ x, y });
-    // }
-    // updateGridTranslation(dx: number, dy: number): void {
-    //   this.configService.updateConfig({ gridTranslation: { x: dx, y: dy } });
-    // }
-    // updateElementsTranslation(dx: number, dy: number): void {
-    //   this.configService.updateConfig({ elementsTranslation: { x: dx, y: dy } });
-    // }
-    // fullScreen(): void {
-    //   const containerWidth = this.svgContainer?.clientWidth || 0;
-    //   const containerHeight = this.svgContainer?.clientHeight || 0;
-    //   this.setCanvasDimensions(containerWidth, containerHeight);
-    // }
-    // centerCanvas(): void {
-    //   const { canvasWidth, canvasHeight, zoom } = this.getConfig();
-    //   const containerWidth = this.svgContainer?.clientWidth || 0;
-    //   const containerHeight = this.svgContainer?.clientHeight || 0;
-    //   const centerX = (containerWidth - canvasWidth * zoom) / 2;
-    //   const centerY = (containerHeight - canvasHeight * zoom) / 2;
-    //   this.setCanvasPosition(centerX, centerY);
-    // }
-    // toggleGrid(): void {
-    //   const { enableGrid } = this.getConfig();
-    //   this.configService.updateConfig({ enableGrid: !enableGrid });
-    // }
+
+    describe('updateElementsTranslation', () => {
+      it('should update elements translation in the config', () => {
+        service.updateElementsTranslation(15, 25);
+        expect(configMock.updateConfig).toHaveBeenCalledWith({ elementsTranslation: { x: 15, y: 25 } });
+      });
+    });
+
+    describe('fullScreen', () => {
+      it('should set canvas dimensions to match container dimensions', () => {
+        const svgContainer = document.createElementNS('http://www.w3.org/2000/svg', 'svg') as SVGSVGElement;
+        Object.defineProperty(svgContainer, 'clientWidth', { value: 1920 });
+        Object.defineProperty(svgContainer, 'clientHeight', { value: 1080 });
+        service.initializeWhiteboard(svgContainer);
+
+        service.fullScreen();
+
+        expect(configMock.updateConfig).toHaveBeenCalledWith({ canvasWidth: 1920, canvasHeight: 1080 });
+      });
+    });
+
+    describe('centerCanvas', () => {
+      it('should center the canvas within the container', () => {
+        const svgContainer = document.createElementNS('http://www.w3.org/2000/svg', 'svg') as SVGSVGElement;
+        Object.defineProperty(svgContainer, 'clientWidth', { value: 1200 });
+        Object.defineProperty(svgContainer, 'clientHeight', { value: 800 });
+        service.initializeWhiteboard(svgContainer);
+
+        configMock.getConfig.mockReturnValue({
+          canvasWidth: 1000,
+          canvasHeight: 600,
+          zoom: 1,
+        });
+
+        service.centerCanvas();
+
+        expect(configMock.updateConfig).toHaveBeenCalledWith({ x: 100, y: 100 });
+      });
+    });
+
+    describe('toggleGrid', () => {
+      it('should toggle the grid visibility', () => {
+        configMock.getConfig.mockReturnValue({ enableGrid: false });
+
+        service.toggleGrid();
+
+        expect(configMock.updateConfig).toHaveBeenCalledWith({ enableGrid: true });
+      });
+
+      it('should toggle the grid visibility off', () => {
+        configMock.getConfig.mockReturnValue({ enableGrid: true });
+
+        service.toggleGrid();
+
+        expect(configMock.updateConfig).toHaveBeenCalledWith({ enableGrid: false });
+      });
+    });
   });
   describe('Actions', () => {
-    // addImage(imageInfo: AddImage): void {
-    //   const tempImg = new Image();
-    //   tempImg.onload = () => {
-    //     const svgHeight = this.getConfig().canvasHeight;
-    //     const imageWidth = tempImg.width;
-    //     const imageHeight = tempImg.height;
-    //     const aspectRatio = tempImg.width / tempImg.height;
-    //     const height = imageHeight > svgHeight ? svgHeight - 40 : imageHeight;
-    //     const width = height === svgHeight - 40 ? (svgHeight - 40) * aspectRatio : imageWidth;
-    //     let x = imageInfo.x || (imageWidth - width) * (imageInfo.x || 0);
-    //     let y = imageInfo.y || (imageHeight - height) * (imageInfo.y || 0);
-    //     if (x < 0) {
-    //       x = 0;
-    //     }
-    //     if (y < 0) {
-    //       y = 0;
-    //     }
-    //     const element = createElement(ElementType.Image, {
-    //       src: imageInfo.image,
-    //       width,
-    //       height,
-    //       x,
-    //       y,
-    //     });
-    //     this.addElement(element);
-    //     this.selectElement(element);
-    //     this.pushToUndo();
-    //     this.EventBusService.emit(WhiteboardEvent.ImageAdded, element.src);
-    //   };
-    //   tempImg.src = imageInfo.image as string;
-    // }
-    //  save(format: FormatType, name = 'New board'): Promise<void> {
-    //   const svgElement = this.getCanvas().getElementById('svgcontent') as SVGSVGElement;
-    //   const svgClone = svgElement.cloneNode(true) as SVGSVGElement;
-    //   const selectorParentGroup = svgClone.querySelector('#selectorParentGroup');
-    //   if (selectorParentGroup) {
-    //     selectorParentGroup.remove();
-    //   }
-    //   const contentBackground = svgClone.querySelector('#contentBackground');
-    //   if (contentBackground) {
-    //     contentBackground.removeAttribute('opacity');
-    //   }
-    //   svgClone.setAttribute('x', '0');
-    //   svgClone.setAttribute('y', '0');
-    //   const svgString = new XMLSerializer().serializeToString(svgClone);
-    //   const imageString = await svgToBase64(
-    //     svgString,
-    //     this.getConfig().canvasWidth,
-    //     this.getConfig().canvasHeight,
-    //     format
-    //   );
-    //   switch (format) {
-    //     case FormatType.Base64:
-    //       this.EventBusService.emit(WhiteboardEvent.Save, imageString);
-    //       break;
-    //     case FormatType.Svg: {
-    //       const imgSrc = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
-    //       downloadFile(imgSrc, name);
-    //       this.EventBusService.emit(WhiteboardEvent.Save, imgSrc);
-    //       break;
-    //     }
-    //     default:
-    //       downloadFile(imageString, name);
-    //       this.EventBusService.emit(WhiteboardEvent.Save, imageString);
-    //       break;
-    //   }
-    // }
+    describe('addImage', () => {
+      let mockImage: AddImage;
+      let imageOnload: () => void;
+
+      beforeEach(() => {
+        mockImage = { image: 'https://via.placeholder.com/150', x: 10, y: 20 };
+
+        Object.defineProperty(Image.prototype, 'onload', {
+          configurable: true,
+          get() {
+            return this._onload;
+          },
+          set(fn) {
+            imageOnload = fn;
+            this._onload = fn;
+          },
+        });
+      });
+
+      it('should add an image element to the whiteboard', () => {
+        // Arrange
+        jest.spyOn(eventBusMock, 'emit');
+        service.selectElements = jest.fn();
+
+        // Act
+        service.addImage(mockImage);
+        imageOnload?.();
+
+        // Assert
+        expect(service.getData().length).toBe(1);
+        expect(eventBusMock.emit).toHaveBeenCalledWith(WhiteboardEvent.ImageAdded, mockImage.image);
+      });
+
+      it('should calculate correct dimensions for the image', () => {
+        // Arrange
+        jest.spyOn(eventBusMock, 'emit');
+        service.selectElements = jest.fn();
+        Object.defineProperty(Image.prototype, 'width', { value: 300 });
+        Object.defineProperty(Image.prototype, 'height', { value: 600 });
+
+        // Act
+        service.addImage(mockImage);
+        imageOnload?.();
+
+        // Assert
+        const addedImage = service.getData()[0] as ImageElement;
+        expect(addedImage.width).toBe(300);
+        expect(addedImage.height).toBe(600);
+      });
+
+      it('should calculate correct dimensions for the image when it fits within canvas height', () => {
+        // Arrange
+        jest.spyOn(eventBusMock, 'emit');
+        service.selectElements = jest.fn();
+        Object.defineProperty(Image.prototype, 'width', { value: 200 });
+        Object.defineProperty(Image.prototype, 'height', { value: 100 });
+
+        // Act
+        service.addImage(mockImage);
+        imageOnload?.();
+
+        // Assert
+        const addedImage = service.getData()[0] as ImageElement;
+        expect(addedImage.width).toBe(200);
+        expect(addedImage.height).toBe(100);
+      });
+
+      it('should set x and y to 0 if calculated values are negative', () => {
+        // Arrange
+        jest.spyOn(eventBusMock, 'emit');
+        service.selectElements = jest.fn();
+        Object.defineProperty(Image.prototype, 'width', { value: 300 });
+        Object.defineProperty(Image.prototype, 'height', { value: 600 });
+
+        const negativePositionImage = { image: 'https://via.placeholder.com/150', x: -10, y: -20 };
+
+        // Act
+        service.addImage(negativePositionImage);
+        imageOnload?.();
+
+        // Assert
+        const addedImage = service.getData()[0];
+        expect(addedImage.x).toBe(0);
+        expect(addedImage.y).toBe(0);
+      });
+
+      it('should emit ImageAdded event with the correct image source', () => {
+        // Arrange
+        jest.spyOn(eventBusMock, 'emit');
+
+        // Act
+        service.addImage(mockImage);
+        imageOnload?.();
+
+        // Assert
+        expect(eventBusMock.emit).toHaveBeenCalledWith(WhiteboardEvent.ImageAdded, mockImage.image);
+      });
+
+      it('should call selectElements with the newly added image', () => {
+        // Arrange
+        const selectElementsSpy = jest.spyOn(service, 'selectElements');
+
+        // Act
+        service.addImage(mockImage);
+        imageOnload?.();
+
+        // Assert
+        const addedImage = service.getData()[0];
+        expect(selectElementsSpy).toHaveBeenCalledWith(addedImage);
+      });
+
+      it('should push the new image to the undo stack', () => {
+        // Arrange
+        const pushToUndoSpy = jest.spyOn(service, 'pushToUndo');
+
+        // Act
+        service.addImage(mockImage);
+        imageOnload?.();
+
+        // Assert
+        expect(pushToUndoSpy).toHaveBeenCalled();
+      });
+    });
+    describe('save', () => {
+      let svgContainer: SVGSVGElement;
+      let selectorParentGroup: SVGGElement;
+      let contentBackground: SVGRectElement;
+
+      beforeEach(() => {
+        svgContainer = document.createElementNS('http://www.w3.org/2000/svg', 'svg') as SVGSVGElement;
+        svgContainer.setAttribute('id', 'svgcontent');
+
+        selectorParentGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        selectorParentGroup.setAttribute('id', 'selectorParentGroup');
+        svgContainer.appendChild(selectorParentGroup);
+
+        contentBackground = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        contentBackground.setAttribute('id', 'contentBackground');
+        contentBackground.setAttribute('opacity', '0.5');
+        svgContainer.appendChild(contentBackground);
+
+        jest.spyOn(service, 'getCanvas').mockReturnValue(svgContainer);
+        jest.spyOn(fileUtils, 'downloadFile').mockImplementation(jest.fn());
+      });
+
+      it('should save the whiteboard as a Base64 image', () => {
+        // Act
+        service.save(FormatType.Base64, 'Test board').then(() => {
+          // Assert
+          expect(eventBusMock.emit).toHaveBeenCalledWith(WhiteboardEvent.Save, 'data:image/png;base64,...');
+        });
+      });
+
+      it('should save the whiteboard as an SVG file', () => {
+        // Act
+        service.save(FormatType.Svg, 'Test board').then(() => {
+          // Assert
+          expect(fileUtils.downloadFile).toHaveBeenCalledWith(
+            expect.stringContaining('data:image/svg+xml;base64,'),
+            'Test board'
+          );
+          expect(eventBusMock.emit).toHaveBeenCalledWith(
+            WhiteboardEvent.Save,
+            expect.stringContaining('data:image/svg+xml;base64,')
+          );
+        });
+      });
+
+      it('should save the whiteboard as a PNG file by default', () => {
+        // Act
+        service.save(FormatType.Png, 'Test board').then(() => {
+          // Assert
+          expect(fileUtils.downloadFile).toHaveBeenCalledWith('data:image/png;base64,...', 'Test board');
+          expect(eventBusMock.emit).toHaveBeenCalledWith(WhiteboardEvent.Save, 'data:image/png;base64,...');
+        });
+      });
+
+      it('should remove the selectorParentGroup element from the SVG before saving', () => {
+        // Act
+        service.save(FormatType.Png, 'Test board').then(() => {
+          // Assert
+          expect(svgContainer.querySelector('#selectorParentGroup')).toBeNull();
+        });
+      });
+
+      it('should remove the opacity attribute from the contentBackground element before saving', () => {
+        // Act
+        service.save(FormatType.Png, 'Test board').then(() => {
+          // Assert
+          expect(contentBackground.getAttribute('opacity')).toBeNull();
+        });
+      });
+
+      it('should set the x and y attributes of the SVG to 0 before saving', () => {
+        // Act
+        service.save(FormatType.Png, 'Test board').then(() => {
+          // Assert
+          expect(svgContainer.getAttribute('x')).toBe('0');
+          expect(svgContainer.getAttribute('y')).toBe('0');
+        });
+      });
+    });
   });
 });

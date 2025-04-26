@@ -1,18 +1,18 @@
 import { getElementUtil } from '../elements/element.utils';
 import { Point, ToolType, WhiteboardElement } from '../types';
-import { isBoundsIntersect } from '../utils';
+import { isBoundsIntersect } from '../utils/geometry';
 import { BaseTool } from './base-tool';
 
 export class EraserTool extends BaseTool {
   type = ToolType.Eraser;
   private isErasing = false;
-  private hoveredElements: Set<WhiteboardElement> = new Set();
+  private readonly hoveredElementIds: Set<string> = new Set();
   private lastPosition: Point | null = null;
 
   override handlePointerDown(event: PointerEvent): void {
     if (!this.active) return;
 
-    this.hoveredElements.clear();
+    this.hoveredElementIds.clear();
 
     const position = this.getPointerPosition(event);
     this.isErasing = true;
@@ -31,22 +31,22 @@ export class EraserTool extends BaseTool {
   override handlePointerUp(): void {
     if (!this.active) return;
 
-    if (this.hoveredElements.size > 0) {
-      const elementsToRemove = Array.from(this.hoveredElements);
+    if (this.hoveredElementIds.size > 0) {
+      const elementsToRemove = Array.from(this.hoveredElementIds);
 
-      elementsToRemove.forEach((element) => {
-        element.isDeleting = false;
-      });
-
-      this.dataService.patchElements(elementsToRemove, false);
-      this.dataService.removeElements(elementsToRemove.map((element) => element.id));
+      this.dataService.updateElements(
+        elementsToRemove.map((id) => ({ id, isDeleting: false })),
+        false
+      );
+      this.dataService.removeElements(elementsToRemove);
     }
 
     // Clear state
-    this.hoveredElements.clear();
+    this.hoveredElementIds.clear();
     this.isErasing = false;
     this.lastPosition = null;
   }
+
   private eraseElementsAt(lastPosition: Point, position: Point, isAltPressed = false): void {
     const elements = this.dataService.getData();
     const zoom = this.dataService.getConfig()?.zoom || 1;
@@ -62,17 +62,20 @@ export class EraserTool extends BaseTool {
 
       if (this.isPointInElement(element, lastPosition, position, dynamicThreshold)) {
         if (isAltPressed) {
-          this.hoveredElements.delete(element);
+          this.hoveredElementIds.delete(element.id);
           element.isDeleting = false;
-        } else {
-          this.hoveredElements.add(element);
+        }
+
+        if (!isAltPressed && !this.hoveredElementIds.has(element.id)) {
+          this.hoveredElementIds.add(element.id);
           element.isDeleting = true;
         }
 
-        this.dataService.updateElement(element, false);
+        this.dataService.updateElements(element, false);
       }
     }
   }
+
   private isPointInElement(
     element: WhiteboardElement,
     lastPosition: Point,

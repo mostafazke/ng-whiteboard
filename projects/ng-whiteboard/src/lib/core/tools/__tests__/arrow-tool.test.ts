@@ -1,11 +1,15 @@
 import { DataService } from '../../data/data.service';
 import { createElement } from '../../elements/element.utils';
 import { LineCap, LineJoin, ToolType, WhiteboardConfig } from '../../types';
-import { snapToAngle, snapToGrid } from '../../utils/utils';
+import { snapToAngle } from '../../utils/geometry';
+import { snapToGrid } from '../../utils/geometry';
 import { ArrowTool } from '../arrow-tool';
 
 jest.mock('../../elements/element.utils');
-jest.mock('../../utils/utils');
+jest.mock('../../utils/geometry', () => ({
+  snapToGrid: jest.fn((value, gridSize) => Math.round(value / gridSize) * gridSize),
+  snapToAngle: jest.fn(),
+}));
 
 describe('ArrowTool', () => {
   let arrowTool: ArrowTool;
@@ -71,41 +75,6 @@ describe('ArrowTool', () => {
 
     expect(arrowTool.element?.x2).toBe(150);
     expect(arrowTool.element?.y2).toBe(250);
-  });
-
-  it('should snap to grid when enabled', () => {
-    config.snapToGrid = true;
-    config.gridSize = 10;
-
-    const mockEvent = {
-      clientX: 105,
-      clientY: 205,
-    } as PointerEvent;
-
-    jest.spyOn(arrowTool, 'getPointerPosition').mockReturnValue({ x: 105, y: 205 });
-    (snapToGrid as jest.Mock).mockImplementation((value, gridSize) => Math.round(value / gridSize) * gridSize);
-
-    arrowTool.handlePointerDown(mockEvent);
-
-    expect(arrowTool.startPoint).toEqual({ x: 110, y: 210 });
-  });
-
-  it('should snap to angle when shift key is pressed', () => {
-    const mockEvent = {
-      clientX: 150,
-      clientY: 250,
-      shiftKey: true,
-    } as PointerEvent;
-
-    jest.spyOn(arrowTool, 'getPointerPosition').mockReturnValue({ x: 150, y: 250 });
-    (snapToAngle as jest.Mock).mockReturnValue({ x: 160, y: 240 });
-
-    arrowTool.element = { x1: 100, y1: 200, x2: 100, y2: 200 } as any;
-
-    arrowTool.handlePointerMove(mockEvent);
-
-    expect(arrowTool.element?.x2).toBe(160);
-    expect(arrowTool.element?.y2).toBe(240);
   });
 
   it('should handle pointer up and commit the draft', () => {

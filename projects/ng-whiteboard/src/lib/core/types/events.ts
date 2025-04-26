@@ -12,9 +12,9 @@ export enum WhiteboardEvent {
   DrawStart = 'drawStart',
   Drawing = 'drawing',
   DrawEnd = 'drawEnd',
-  ElementAdded = 'elementAdded',
-  ElementUpdated = 'elementUpdated',
-  ElementSelected = 'elementSelected',
+  ElementsAdded = 'elementsAdded',
+  ElementsUpdated = 'elementsUpdated',
+  ElementsSelected = 'elementsSelected',
   ElementsDeleted = 'elementsDeleted',
   Undo = 'undo',
   Redo = 'redo',
@@ -34,9 +34,9 @@ export type WhiteboardEventPayloads = {
   [WhiteboardEvent.Drawing]: { x: number; y: number };
   [WhiteboardEvent.DrawEnd]: void;
 
-  [WhiteboardEvent.ElementAdded]: WhiteboardElement;
-  [WhiteboardEvent.ElementUpdated]: WhiteboardElement;
-  [WhiteboardEvent.ElementSelected]: WhiteboardElement | null;
+  [WhiteboardEvent.ElementsAdded]: WhiteboardElement[];
+  [WhiteboardEvent.ElementsUpdated]: WhiteboardElement[];
+  [WhiteboardEvent.ElementsSelected]: WhiteboardElement[] | null;
   [WhiteboardEvent.ElementsDeleted]: void;
 
   [WhiteboardEvent.Undo]: void;
@@ -57,9 +57,9 @@ export type WhiteboardEventType =
   | [WhiteboardEvent.DrawStart]
   | [WhiteboardEvent.Drawing]
   | [WhiteboardEvent.DrawEnd]
-  | [WhiteboardEvent.ElementAdded]
-  | [WhiteboardEvent.ElementUpdated]
-  | [WhiteboardEvent.ElementSelected]
+  | [WhiteboardEvent.ElementsAdded]
+  | [WhiteboardEvent.ElementsUpdated]
+  | [WhiteboardEvent.ElementsSelected]
   | [WhiteboardEvent.ElementsDeleted]
   | [WhiteboardEvent.Undo]
   | [WhiteboardEvent.Redo]

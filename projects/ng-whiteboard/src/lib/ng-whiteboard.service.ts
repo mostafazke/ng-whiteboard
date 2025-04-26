@@ -12,9 +12,9 @@ export class NgWhiteboardService {
   private readonly BUFFER_SIZE = 1000;
   private readonly BATCH_INTERVAL = 16;
 
-  private actionDispatcher = new Subject<WhiteboardAction>();
-  private priorityDispatcher = new BehaviorSubject<{ action: WhiteboardAction; priority: Priority }[]>([]);
-  private actionBuffer: WhiteboardAction[] = [];
+  private readonly actionDispatcher = new Subject<WhiteboardAction>();
+  private readonly priorityDispatcher = new BehaviorSubject<{ action: WhiteboardAction; priority: Priority }[]>([]);
+  private readonly actionBuffer: WhiteboardAction[] = [];
 
   // Observable that emits batches of actions after a specified interval
   actions$ = this.actionDispatcher.pipe(
@@ -140,17 +140,63 @@ export class NgWhiteboardService {
   }
 
   /**
-   * Select an element on the whiteboard.
-   * @param {WhiteboardElement | null} element - The element to select. Pass null to deselect any selected element.
+   * Select element(s) on the whiteboard.
+   * @param {WhiteboardElement | WhiteboardElement[] | string | string[]} elementsOrIds - The element(s) or their IDs to select.
+   * This can be a single element, an array of elements, a single ID, or an array of IDs.
    */
-  public selectElement(element: WhiteboardElement | null): void {
+  public selectElements(elementsOrIds: WhiteboardElement | WhiteboardElement[] | string | string[]): void {
     this.dispatchWithPriority(
       {
-        type: ActionType.SelectElement,
-        payload: { element },
+        type: ActionType.SelectElements,
+        payload: { elementsOrIds },
       },
       'normal'
     );
+  }
+
+  /**
+   * Deselect an element on the whiteboard.
+   * @param {WhiteboardElement | string} elementOrId - The element or its ID to deselect.
+   */
+  public deselectElement(elementOrId: WhiteboardElement | string): void {
+    this.dispatchWithPriority(
+      {
+        type: ActionType.DeselectElement,
+        payload: { elementOrId },
+      },
+      'normal'
+    );
+  }
+
+  /**
+   * Toggle the selection of an element on the whiteboard.
+   * @param {WhiteboardElement | string} elementOrId - The element or its ID to toggle selection.
+   * If the element is already selected, it will be deselected; otherwise, it will be selected.
+   */
+  public toggleSelection(elementOrId: WhiteboardElement | string): void {
+    this.dispatchWithPriority(
+      {
+        type: ActionType.ToggleSelection,
+        payload: { elementOrId },
+      },
+      'normal'
+    );
+  }
+
+  /**
+   * Select all elements on the whiteboard.
+   * This method selects all elements currently present on the whiteboard.
+   */
+  public selectAll(): void {
+    this.dispatchWithPriority({ type: ActionType.SelectAll }, 'normal');
+  }
+
+  /**
+   * Clear the selection of elements on the whiteboard.
+   * This method clears any currently selected elements on the whiteboard.
+   */
+  public clearSelection(): void {
+    this.dispatchWithPriority({ type: ActionType.ClearSelection }, 'normal');
   }
 
   /**
@@ -219,10 +265,10 @@ export class NgWhiteboardService {
    * @param {Partial<WhiteboardElement>} partialElement - An object containing the properties to update on the selected element.
    * The properties can include any subset of the properties of a WhiteboardElement.
    */
-  public updateSelectedElement(partialElement: Partial<WhiteboardElement>): void {
+  public updateSelectedElements(partialElement: Partial<WhiteboardElement>): void {
     this.dispatchWithPriority(
       {
-        type: ActionType.UpdateSelectedElement,
+        type: ActionType.UpdateSelectedElements,
         payload: { partialElement },
       },
       'normal'
