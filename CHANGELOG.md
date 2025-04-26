@@ -1,3 +1,15 @@
+# [4.2.0](https://github.com/mostafazke/ng-whiteboard/compare/v4.1.0...v4.2.0) (2025-04-26)
+
+
+### Bug Fixes
+
+* upgrade firebase from 11.1.0 to 11.5.0 ([0406c3d](https://github.com/mostafazke/ng-whiteboard/commit/0406c3de11f177c38a8983432220fd597aee473a))
+
+
+### Features
+
+* **whiteboard:** 🎸 add multi-selection support ([0cb9568](https://github.com/mostafazke/ng-whiteboard/commit/0cb9568433177d0f5ddbfba33423072e7d583c7d))
+
 # [4.1.0](https://github.com/mostafazke/ng-whiteboard/compare/v4.0.2...v4.1.0) (2025-04-03)
 
 
