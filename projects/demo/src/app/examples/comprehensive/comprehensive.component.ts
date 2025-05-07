@@ -8,8 +8,14 @@ import {
   ToolType,
   WhiteboardElement,
   WhiteboardOptions,
+  NgWhiteboardComponent,
 } from 'ng-whiteboard';
 import { strokeDashArrayOptions } from '../../shared/strokeDashArrayOptions';
+import { DragInputDirective } from './directives/drag-input.directive';
+import { DragInputCursorPipe } from './pipes/drag-input-cursor.pipe';
+import { FindDashArrayPipe } from './pipes/find-dash-array.pipe';
+import { NgxColorsModule } from 'ngx-colors';
+import { CommonModule } from '@angular/common';
 
 type ColorProperty = 'fill' | 'strokeColor' | 'backgroundColor';
 
@@ -17,6 +23,15 @@ type ColorProperty = 'fill' | 'strokeColor' | 'backgroundColor';
   selector: 'app-comprehensive-component',
   templateUrl: './comprehensive.component.html',
   styleUrls: ['./comprehensive.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    NgWhiteboardComponent,
+    NgxColorsModule,
+    DragInputDirective,
+    DragInputCursorPipe,
+    FindDashArrayPipe,
+  ],
   providers: [NgWhiteboardService],
   encapsulation: ViewEncapsulation.ShadowDom,
 })

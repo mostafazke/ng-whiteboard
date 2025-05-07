@@ -3,6 +3,7 @@ import { DataService } from '../data/data.service';
 
 @Directive({
   selector: '[resizeHandler]',
+  standalone: true,
 })
 export class ResizeHandlerDirective implements OnInit, OnDestroy {
   private resizeObserver!: ResizeObserver;

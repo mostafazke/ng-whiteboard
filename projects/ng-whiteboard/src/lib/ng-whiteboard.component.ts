@@ -15,7 +15,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { ActionHandlerService } from './core/action-handler/action-handler.service';
 import { ConfigService } from './core/config/config.service';
 import { DataService } from './core/data/data.service';
@@ -32,9 +32,10 @@ import {
   WhiteboardOptions,
 } from './core/types';
 import { WhiteboardEvent } from './core/types/events';
-import { InputConfig } from './decorators/input-config.decorator';
 import { NgWhiteboardService } from './ng-whiteboard.service';
 import { GripCursorPipe } from './core/pipes';
+import { SvgDirective } from './core/svg/svg.directive';
+import { ResizeHandlerDirective } from './core/directives/resize-handler.directive';
 
 /**
  * The `NgWhiteboardComponent` is the main component for the ng-whiteboard library. It provides a whiteboard canvas with various drawing tools and configuration options.
@@ -46,6 +47,8 @@ import { GripCursorPipe } from './core/pipes';
  */
 @Component({
   selector: 'ng-whiteboard',
+  standalone: true,
+  imports: [CommonModule, GripCursorPipe, SvgDirective, ResizeHandlerDirective],
   templateUrl: './ng-whiteboard.component.html',
   styleUrls: ['./ng-whiteboard.component.scss'],
   providers: [SvgService, DataService, ToolManagerService, EventBusService, ConfigService, ActionHandlerService],
@@ -93,109 +96,186 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
    * Indicates whether drawing is enabled on the whiteboard.
    * @type {boolean}
    */
-  @Input() @InputConfig() drawingEnabled!: boolean;
+  @Input() set drawingEnabled(value: boolean) {
+    this.setConfigValue('drawingEnabled', value);
+  }
   /**
    * The width of the canvas element.
    * @type {number}
    */
-  @Input() @InputConfig() canvasWidth!: number;
+  @Input() set canvasWidth(value: number) {
+    this.setConfigValue('canvasWidth', value);
+  }
+  get canvasWidth(): number {
+    return this.getConfigValue('canvasWidth');
+  }
   /**
    * The height of the canvas element.
    * @type {number}
    */
-  @Input() @InputConfig() canvasHeight!: number;
+  @Input() set canvasHeight(value: number) {
+    this.setConfigValue('canvasHeight', value);
+  }
+  get canvasHeight(): number {
+    return this.getConfigValue('canvasHeight');
+  }
   /**
    * Indicates whether the whiteboard should be displayed in full screen mode.
    * @type {boolean}
    */
-  @Input() @InputConfig() fullScreen!: boolean;
+  @Input() set fullScreen(value: boolean) {
+    this.setConfigValue('fullScreen', value);
+  }
+  get fullScreen(): boolean {
+    return this.getConfigValue('fullScreen');
+  }
   /**
    * Indicates whether the whiteboard content should be centered.
    * @type {boolean}
    */
-  @Input() @InputConfig() center!: boolean;
+  @Input() set center(value: boolean) {
+    this.setConfigValue('center', value);
+  }
+  get center(): boolean {
+    return this.getConfigValue('center');
+  }
   /**
    * The color of the stroke to be used in the whiteboard.
    * @type {string}
    */
-  @Input() @InputConfig() strokeColor!: string;
+  @Input() set strokeColor(value: string) {
+    this.setConfigValue('strokeColor', value);
+  }
   /**
    * The width of the stroke to be used in the whiteboard.
    * @type {number}
    */
-  @Input() @InputConfig() strokeWidth!: number;
+  @Input() set strokeWidth(value: number) {
+    this.setConfigValue('strokeWidth', value);
+  }
   /**
    * The background color of the whiteboard component.
    * @type {string}
    */
-  @Input() @InputConfig() backgroundColor!: string;
+  @Input() set backgroundColor(value: string) {
+    this.setConfigValue('backgroundColor', value);
+  }
+  get backgroundColor(): string {
+    return this.getConfigValue('backgroundColor');
+  }
   /**
    * Specifies the type of corner created when two lines meet.
    * @type {LineJoin}
    */
-  @Input() @InputConfig() lineJoin!: LineJoin;
+  @Input() set lineJoin(value: LineJoin) {
+    this.setConfigValue('lineJoin', value);
+  }
   /**
    * Specifies the shape to be used at the end of open sub-paths when they are stroked.
    *
    * @type {LineCap}
    */
-  @Input() @InputConfig() lineCap!: LineCap;
+  @Input() set lineCap(value: LineCap) {
+    this.setConfigValue('lineCap', value);
+  }
   /**
    * The fill property specifies the fill color for the whiteboard component.
    * @type {string}
    */
-  @Input() @InputConfig() fill!: string;
+  @Input() set fill(value: string) {
+    this.setConfigValue('fill', value);
+  }
   /**
    * The zoom level for the whiteboard component.
    * @type {number}
    */
-  @Input() @InputConfig() zoom!: number;
+  @Input() set zoom(value: number) {
+    this.setConfigValue('zoom', value);
+  }
+  get zoom(): number {
+    return this.getConfigValue('zoom');
+  }
   /**
    * The font family to be used for the whiteboard text.
    * @type {string}
    */
-  @Input() @InputConfig() fontFamily!: string;
+  @Input() set fontFamily(value: string) {
+    this.setConfigValue('fontFamily', value);
+  }
+  get fontFamily(): string {
+    return this.getConfigValue('fontFamily');
+  }
   /**
    * The font size to be used in the whiteboard component.
    * @type {number}
    */
-  @Input() @InputConfig() fontSize!: number;
+  @Input() set fontSize(value: number) {
+    this.setConfigValue('fontSize', value);
+  }
+  get fontSize(): number {
+    return this.getConfigValue('fontSize');
+  }
   /**
    * Specifies the pattern of dashes and gaps used to stroke paths.
    * @type {string}
    */
-  @Input() @InputConfig() dasharray!: string;
+  @Input() set dasharray(value: string) {
+    this.setConfigValue('dasharray', value);
+  }
   /**
    * The dashoffset property for the whiteboard component.
    * @type {number}
    */
-  @Input() @InputConfig() dashoffset!: number;
+  @Input() set dashoffset(value: number) {
+    this.setConfigValue('dashoffset', value);
+  }
   /**
    * The x coordinate for the whiteboard component.
    * @type {number}
    */
-  @Input() @InputConfig() x!: number;
+  @Input() set x(value: number) {
+    this.setConfigValue('x', value);
+  }
+  get x(): number {
+    return this.getConfigValue('x');
+  }
   /**
    * The y coordinate for the whiteboard component.
    * @type {number}
    */
-  @Input() @InputConfig() y!: number;
+  @Input() set y(value: number) {
+    this.setConfigValue('y', value);
+  }
+  get y(): number {
+    return this.getConfigValue('y');
+  }
   /**
    * Enables or disables the grid overlay in the whiteboard component.
    * @type {boolean}
    */
-  @Input() @InputConfig() enableGrid!: boolean;
+  @Input() set enableGrid(value: boolean) {
+    this.setConfigValue('enableGrid', value);
+  }
+  get enableGrid(): boolean {
+    return this.getConfigValue('enableGrid');
+  }
   /**
    * The size of the grid for the whiteboard component.
    * @type {number}
    */
-  @Input() @InputConfig() gridSize!: number;
+  @Input() set gridSize(value: number) {
+    this.setConfigValue('gridSize', value);
+  }
+  get gridSize(): number {
+    return this.getConfigValue('gridSize');
+  }
   /**
    * Determines whether the whiteboard should snap drawn elements to a grid.
    * @type {boolean}
    */
-  @Input() @InputConfig() snapToGrid!: boolean;
-
+  @Input() set snapToGrid(value: boolean) {
+    this.setConfigValue('snapToGrid', value);
+  }
   /**
    * Emits when the whiteboard component is ready.
    * @event
@@ -437,7 +517,10 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
   private initObservables(): void {
     this.eventBusService
       .listen()
-      .pipe(takeUntilDestroyed())
+      .pipe(
+        takeUntilDestroyed(),
+        tap(() => this.cd.markForCheck())
+      )
       .subscribe({
         next: (event) => {
           if (event.payload) {
@@ -445,7 +528,6 @@ export class NgWhiteboardComponent implements OnInit, OnChanges, AfterViewInit, 
           } else {
             this.eventsMap[event.type].emit();
           }
-          this.cd.detectChanges();
         },
         error: (err) => console.error('Error occurred while listening to events:', err),
       });

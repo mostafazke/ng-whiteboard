@@ -1,9 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { HomeComponent } from './home.component';
-import { SharedModule } from '../shared/shared.module';
-import { NgWhiteboardModule } from 'ng-whiteboard';
-import { RouterTestingModule } from '@angular/router/testing';
+import { NgWhiteboardComponent } from 'ng-whiteboard';
+import { RouterModule } from '@angular/router';
 
 describe('HomeComponent', () => {
   let component: HomeComponent;
@@ -11,8 +10,7 @@ describe('HomeComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [HomeComponent],
-      imports: [RouterTestingModule, SharedModule, NgWhiteboardModule],
+      imports: [RouterModule, NgWhiteboardComponent, HomeComponent],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HomeComponent);

@@ -1,11 +1,14 @@
 import { Component } from '@angular/core';
-import { FormatType, NgWhiteboardService, ToolType } from 'ng-whiteboard';
+import { FormatType, NgWhiteboardComponent, NgWhiteboardService, ToolType } from 'ng-whiteboard';
 import data from './data';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-basic-component',
   templateUrl: './basic.component.html',
   styleUrls: ['./basic.component.scss'],
+  standalone: true,
+  imports: [CommonModule, NgWhiteboardComponent],
   providers: [NgWhiteboardService],
 })
 export class BasicComponent {

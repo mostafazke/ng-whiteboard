@@ -3,6 +3,7 @@ import { strokeDashArrayOptions } from '../../../shared/strokeDashArrayOptions';
 
 @Pipe({
   name: 'findDashArray',
+  standalone: true,
 })
 export class FindDashArrayPipe implements PipeTransform {
   transform(value: string): string {

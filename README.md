@@ -49,14 +49,34 @@ or npm:
 npm install ng-whiteboard
 ```
 
-Import the module in your `app.module.ts`:
+## 🔧 Integration
+
+### For Standalone Components
+
+Import the component directly in your standalone component:
 
 ```typescript
-import { NgWhiteboardModule } from 'ng-whiteboard';
+import { Component } from '@angular/core';
+import { NgWhiteboardComponent } from 'ng-whiteboard';
+
+@Component({
+  selector: 'my-component',
+  imports: [NgWhiteboardComponent],
+  template: '<ng-whiteboard></ng-whiteboard>',
+})
+export class MyComponent {}
+```
+
+### For NgModules
+
+Import the component in your `app.module.ts`:
+
+```typescript
+import { NgWhiteboardComponent } from 'ng-whiteboard';
 
 @NgModule({
-  imports: [BrowserModule, NgWhiteboardModule],
-  bootstrap: [AppComponent],
+  imports: [NgWhiteboardComponent],
+  // other imports
 })
 export class AppModule {}
 ```

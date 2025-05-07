@@ -2,8 +2,8 @@ import { Directive, ElementRef, AfterViewInit } from '@angular/core';
 import * as hljs from 'highlight.js';
 
 @Directive({
-  // eslint-disable-next-line @angular-eslint/directive-selector
   selector: 'code[highlight]',
+  standalone: true,
 })
 export class HighlightCodeDirective implements AfterViewInit {
 

@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { LiveAppComponent } from './live-app.component';
-import { NgWhiteboardModule } from 'ng-whiteboard';
+import { NgWhiteboardComponent } from 'ng-whiteboard';
 
 describe('LiveAppComponent', () => {
   let component: LiveAppComponent;
@@ -9,8 +9,7 @@ describe('LiveAppComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [LiveAppComponent],
-      imports: [NgWhiteboardModule],
+      imports: [NgWhiteboardComponent, LiveAppComponent],
     }).compileComponents();
 
     fixture = TestBed.createComponent(LiveAppComponent);

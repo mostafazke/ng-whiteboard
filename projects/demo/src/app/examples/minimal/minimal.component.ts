@@ -1,5 +1,6 @@
+import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { WhiteboardElement } from 'ng-whiteboard';
+import { NgWhiteboardComponent, WhiteboardElement } from 'ng-whiteboard';
 const PersistKey = 'whiteboardData';
 
 @Component({
@@ -7,6 +8,8 @@ const PersistKey = 'whiteboardData';
   template: `<div class="demo">
     <ng-whiteboard [data]="data" (dataChange)="onDataChange($event)"></ng-whiteboard>
   </div>`,
+  standalone: true,
+  imports: [CommonModule, NgWhiteboardComponent],
 })
 export class MinimalComponent implements OnInit {
   data = [];
