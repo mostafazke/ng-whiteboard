@@ -3,7 +3,7 @@ export const strokeDashArrayOptions = [
   { value: '5 5', label: 'Dotted', pattern: '• • • • •' },
   { value: '15 10', label: 'Dashed', pattern: '— — —' },
   { value: '20 10', label: 'Long Dash', pattern: '—— ——' },
-  { value: '15 10', label: 'Short Dash', pattern: '– – – –' },
+  { value: '15 15', label: 'Short Dash', pattern: '– – – –' },
   { value: '5 10 5 15', label: 'Triple Dot', pattern: '• •   • •' },
   { value: '10 2 2 2 2 2 10 2', label: 'Morse Code', pattern: '— • • • — •' },
   { value: '20 10 10 10', label: 'Zebra Stripes', pattern: '— – – —' },

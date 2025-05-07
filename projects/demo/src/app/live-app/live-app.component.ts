@@ -3,11 +3,15 @@ import { initializeApp } from 'firebase/app';
 import { getDatabase, onValue, ref, set } from 'firebase/database';
 import { NgWhiteboardService, WhiteboardElement } from 'ng-whiteboard';
 import { environment } from '../../environments/environment';
+import { ComprehensiveComponent } from '../examples/comprehensive/comprehensive.component';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-whiteboard-live-app',
   templateUrl: './live-app.component.html',
   styleUrls: ['./live-app.component.scss'],
+  standalone: true,
+  imports: [CommonModule, ComprehensiveComponent],
   providers: [NgWhiteboardService],
 })
 export class LiveAppComponent implements OnInit {

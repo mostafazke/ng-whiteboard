@@ -2,6 +2,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
   name: 'dragInputCursor',
+  standalone: true,
 })
 export class DragInputCursorPipe implements PipeTransform {
   transform(value: number): number {

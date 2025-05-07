@@ -2,6 +2,7 @@ import { Directive, EventEmitter, HostListener, Input, Output } from '@angular/c
 
 @Directive({
   selector: '[dragInput]',
+  standalone: true,
 })
 export class DragInputDirective {
   @Input() min?: number;

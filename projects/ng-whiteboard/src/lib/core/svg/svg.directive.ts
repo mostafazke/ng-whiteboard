@@ -3,6 +3,7 @@ import { SvgService } from './svg.service';
 
 @Directive({
   selector: '[svg]',
+  standalone: true,
 })
 export class SvgDirective {
   lastX!: number;

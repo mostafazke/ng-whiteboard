@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, SimpleChanges, SimpleChange } from '@angular/core';
+import { ChangeDetectorRef, SimpleChanges, SimpleChange, ElementRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActionHandlerService } from './core/action-handler/action-handler.service';
 import { ConfigService } from './core/config/config.service';
@@ -8,6 +8,11 @@ import { WhiteboardElement, ElementType, ToolType, WhiteboardEvent, WhiteboardOp
 import { NgWhiteboardComponent } from './ng-whiteboard.component';
 import { NgWhiteboardService } from './ng-whiteboard.service';
 import { of } from 'rxjs';
+import { SvgService } from './core/svg/svg.service';
+import { ToolManagerService } from './core/tools/tool-manager.service';
+import { GripCursorPipe } from './core/pipes';
+import { SvgDirective } from './core/svg/svg.directive';
+import { ResizeHandlerDirective } from './core/directives/resize-handler.directive';
 
 describe('NgWhiteboardComponent', () => {
   let component: NgWhiteboardComponent;
@@ -15,8 +20,13 @@ describe('NgWhiteboardComponent', () => {
   let dataService: Partial<DataService>;
   let eventBusService: Partial<EventBusService>;
   let configService: Partial<ConfigService>;
+  let mockElementRef: ElementRef;
+  let resizeCallback: (entries: ResizeObserverEntry[]) => void;
 
   beforeEach(() => {
+    const element = document.createElement('div');
+    mockElementRef = new ElementRef(element);
+
     configService = {
       getConfig: jest.fn(),
       updateConfigValue: jest.fn(),
@@ -28,6 +38,14 @@ describe('NgWhiteboardComponent', () => {
       emit: jest.fn(),
       listen: jest.fn().mockReturnValue(of({})),
     };
+
+    global.ResizeObserver = jest.fn().mockImplementation((callback) => {
+      resizeCallback = callback;
+      return {
+        observe: jest.fn(),
+        disconnect: jest.fn(),
+      };
+    }) as unknown as typeof ResizeObserver;
   });
 
   beforeEach(async () => {
@@ -57,9 +75,11 @@ describe('NgWhiteboardComponent', () => {
       },
     });
     await TestBed.configureTestingModule({
-      declarations: [NgWhiteboardComponent],
+      imports: [NgWhiteboardComponent, GripCursorPipe, SvgDirective, ResizeHandlerDirective],
       providers: [
         NgWhiteboardService,
+        SvgService,
+        ToolManagerService,
         ActionHandlerService,
         ConfigService,
         EventBusService,
@@ -77,6 +97,8 @@ describe('NgWhiteboardComponent', () => {
 
   describe('Input Setters', () => {
     it('should update data when new data is set', () => {
+      resizeCallback([{ target: mockElementRef.nativeElement } as ResizeObserverEntry]);
+
       const testData: WhiteboardElement[] = [
         {
           id: '1',

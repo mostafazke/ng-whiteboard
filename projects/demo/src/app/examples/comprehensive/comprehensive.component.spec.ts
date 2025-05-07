@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ComprehensiveComponent } from './comprehensive.component';
-import { NgWhiteboardModule } from 'ng-whiteboard';
+import { NgWhiteboardComponent } from 'ng-whiteboard';
 
 describe('ComprehensiveComponent', () => {
   let component: ComprehensiveComponent;
@@ -9,8 +9,7 @@ describe('ComprehensiveComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ComprehensiveComponent],
-      imports: [NgWhiteboardModule],
+      imports: [NgWhiteboardComponent, ComprehensiveComponent],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ComprehensiveComponent);

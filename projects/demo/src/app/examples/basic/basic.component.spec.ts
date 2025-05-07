@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { BasicComponent } from './basic.component';
-import { NgWhiteboardModule } from 'ng-whiteboard';
+import { NgWhiteboardComponent } from 'ng-whiteboard';
 
 describe('BasicComponent', () => {
   let component: BasicComponent;
@@ -9,8 +9,7 @@ describe('BasicComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [BasicComponent],
-      imports: [NgWhiteboardModule],
+      imports: [NgWhiteboardComponent, BasicComponent],
     }).compileComponents();
 
     fixture = TestBed.createComponent(BasicComponent);
