@@ -1,3 +1,10 @@
+## [4.2.2](https://github.com/mostafazke/ng-whiteboard/compare/v4.2.1...v4.2.2) (2025-08-25)
+
+
+### Bug Fixes
+
+* upgrade firebase from 11.5.0 to 11.6.0 ([e3b7262](https://github.com/mostafazke/ng-whiteboard/commit/e3b7262980e75b09ab5c3d31784853e84c490bff))
+
 ## [4.2.1](https://github.com/mostafazke/ng-whiteboard/compare/v4.2.0...v4.2.1) (2025-05-07)
 
 
