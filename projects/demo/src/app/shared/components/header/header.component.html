@@ -1,11 +1,48 @@
-<section class="page-header internal">
-  <h1 class="project-name"><a routerLink="/">ng-whiteboard</a></h1>
-  <h2 class="project-tagline">{{ tagline }}</h2>
+<header class="header">
+  <div class="header-content">
+    <a routerLink="/" class="logo">
+      <h1>ng-<span>whiteboard</span></h1>
+    </a>
 
-  <a routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" routerLink="/" class="btn">Home</a>
-  <a routerLinkActive="active" routerLink="/quick-start" class="btn">Quick Start</a>
-  <a routerLinkActive="active" routerLink="/examples" class="btn">Examples</a>
-  <a routerLinkActive="active" routerLink="/documentation" class="btn">Documentation</a>
-  <a class="btn special-btn" routerLinkActive="active" routerLink="/live">Live app</a>
-  <a target="_blank" href="https://github.com/mostafazke/ng-whiteboard" class="btn">View on GitHub</a>
-</section>
+    <div class="nav-wrapper">
+      <nav>
+        <a routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" routerLink="/"> Home </a>
+        <a routerLinkActive="active" routerLink="/quick-start"> Quick Start </a>
+        <a routerLinkActive="active" routerLink="/examples"> Examples </a>
+        <a routerLinkActive="active" routerLink="/documentation"> Documentation </a>
+        <a routerLinkActive="active" routerLink="/live" class="highlight"> Live Demo </a>
+        <a target="_blank" href="https://github.com/mostafazke/ng-whiteboard" rel="noopener"> GitHub </a>
+      </nav>
+
+      <button
+        class="theme-toggle"
+        (click)="themeService.toggleTheme()"
+        [attr.aria-label]="'Switch to ' + (themeService.theme() === 'light' ? 'dark' : 'light') + ' theme'"
+      >
+        {{ themeService.theme() === 'light' ? '🌙' : '☀️' }}
+      </button>
+
+      <button class="mobile-menu-btn" (click)="toggleMobileMenu()" aria-label="Toggle menu">☰</button>
+    </div>
+  </div>
+</header>
+
+<div class="mobile-menu" [ngClass]="{ open: mobileMenuOpen() }">
+  <div class="mobile-menu-header">
+    <h2>Menu</h2>
+    <button class="close-btn" (click)="closeMobileMenu()" aria-label="Close menu">×</button>
+  </div>
+
+  <nav>
+    <a routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" routerLink="/" (click)="closeMobileMenu()">
+      Home
+    </a>
+    <a routerLinkActive="active" routerLink="/quick-start" (click)="closeMobileMenu()"> Quick Start </a>
+    <a routerLinkActive="active" routerLink="/examples" (click)="closeMobileMenu()"> Examples </a>
+    <a routerLinkActive="active" routerLink="/documentation" (click)="closeMobileMenu()"> Documentation </a>
+    <a routerLinkActive="active" routerLink="/live" class="highlight" (click)="closeMobileMenu()"> Live Demo </a>
+    <a target="_blank" href="https://github.com/mostafazke/ng-whiteboard" rel="noopener" (click)="closeMobileMenu()">
+      GitHub
+    </a>
+  </nav>
+</div>

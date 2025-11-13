@@ -1,0 +1,187 @@
+// Mixins
+
+// Container
+@mixin container {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--spacing-lg);
+  padding-right: var(--spacing-lg);
+}
+
+// Flexbox utilities
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+// Card
+@mixin card {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+}
+
+@mixin card-hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  border-color: var(--color-accent);
+}
+
+// Button
+@mixin button-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-family: var(--font-family-base);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+  white-space: nowrap;
+
+  &:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+@mixin button-primary {
+  @include button-base;
+  background: var(--color-accent);
+  color: white;
+
+  &:hover:not(:disabled) {
+    background: var(--color-accent-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+}
+
+@mixin button-secondary {
+  @include button-base;
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-primary);
+
+  &:hover:not(:disabled) {
+    background: var(--color-bg-secondary);
+    border-color: var(--color-accent);
+  }
+}
+
+@mixin button-ghost {
+  @include button-base;
+  background: transparent;
+  color: var(--color-text-primary);
+
+  &:hover:not(:disabled) {
+    background: var(--color-bg-tertiary);
+  }
+}
+
+// Typography
+@mixin heading-1 {
+  font-size: var(--font-size-5xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-lg);
+}
+
+@mixin heading-2 {
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-md);
+}
+
+@mixin heading-3 {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-md);
+}
+
+@mixin body-text {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-secondary);
+}
+
+// Responsive breakpoints
+@mixin tablet {
+  @media (min-width: 768px) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (min-width: 1024px) {
+    @content;
+  }
+}
+
+@mixin wide {
+  @media (min-width: 1280px) {
+    @content;
+  }
+}
+
+// Animations
+@mixin fade-in {
+  animation: fadeIn var(--transition-base) ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@mixin slide-in-up {
+  animation: slideInUp var(--transition-base) ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

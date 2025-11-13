@@ -1,4 +1,4 @@
-.editor {
+.com_editor {
   /* red */ /* yellow */ /* green */
   --z0: #111827;
   --z1: #1e2433;
@@ -62,7 +62,7 @@
   --transition: all var(--transition-duration) ease;
 }
 
-.editor {
+.com_editor {
   background: var(--z1);
   font: 14px/120% -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell,
     'Helvetica Neue', sans-serif;
@@ -85,7 +85,7 @@
   color: #fff; /* Firefox */
 }
 
-.editor {
+.com_editor {
   overscroll-behavior-x: none;
   overflow: hidden;
   width: 100%;
@@ -462,7 +462,7 @@ button.cancel {
   left: 14px;
 }
 
-.editor.dragging .draginput .angle {
+.com_editor.dragging .draginput .angle {
   background-color: var(--z1);
 }
 

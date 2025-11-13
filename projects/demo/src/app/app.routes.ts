@@ -8,6 +8,32 @@ export const appRoutes: Routes = [
   {
     path: 'documentation',
     loadComponent: () => import('./documentation/documentation.component').then((m) => m.DocumentationComponent),
+    children: [
+      {
+        path: '',
+        redirectTo: 'getting-started',
+        pathMatch: 'full',
+      },
+      {
+        path: 'getting-started',
+        loadComponent: () =>
+          import('./documentation/pages/getting-started/getting-started.component').then(
+            (m) => m.GettingStartedComponent
+          ),
+      },
+      {
+        path: 'api-reference',
+        loadComponent: () =>
+          import('./documentation/pages/api-reference/api-reference.component').then((m) => m.ApiReferenceComponent),
+      },
+      {
+        path: 'keyboard-shortcuts',
+        loadComponent: () =>
+          import('./documentation/pages/keyboard-shortcuts/keyboard-shortcuts.component').then(
+            (m) => m.KeyboardShortcutsComponent
+          ),
+      },
+    ],
   },
   {
     path: 'examples',

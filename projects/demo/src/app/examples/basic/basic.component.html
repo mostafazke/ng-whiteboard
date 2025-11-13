@@ -1,112 +1,417 @@
-<div class="demo">
-  <ng-whiteboard
-    [data]="data"
-    [strokeColor]="color"
-    [fill]="color"
-    [backgroundColor]="backgroundColor"
-    [strokeWidth]="size"
-    (save)="onSave($event)"
-  ></ng-whiteboard>
-  <div class="tools">
-    <div class="size-dropdown">
-      <button (click)="$event.preventDefault(); $event.stopPropagation(); isSaveActive = !isSaveActive">Save as</button>
-      <ul class="dropdown" [ngClass]="{ active: isSaveActive }">
-        <li class="dropdown-item" tabindex="0" (click)="save(formatType.Svg)" (keydown.enter)="save(formatType.Svg)">
-          Svg
-        </li>
-        <li class="dropdown-item" tabindex="0" (click)="save(formatType.Png)" (keydown.enter)="save(formatType.Png)">
-          Png
-        </li>
-        <li class="dropdown-item" tabindex="0" (click)="save(formatType.Jpeg)" (keydown.enter)="save(formatType.Jpeg)">
-          Jpeg
-        </li>
-        <li
-          class="dropdown-item"
-          tabindex="0"
-          (click)="save(formatType.Base64)"
-          (keydown.enter)="save(formatType.Base64)"
-        >
-          Base 64
-        </li>
-      </ul>
+<div class="basic-demo" [class.fullscreen-mode]="isFullscreen()">
+  <!-- Top Floating Bar: Board Name & Layers -->
+  <div class="toolbar-top">
+    <!-- Layers Management -->
+    <div class="layers-section" #layersSection>
+      <button class="layers-menu-btn" (click)="toggleLayersMenu()" title="Layers">
+        <span class="material-icons">layers</span>
+      </button>
+
+      @if (showLayersMenu()) {
+      <div
+        class="layers-dropdown"
+        (click)="$event.stopPropagation()"
+        (keyup)="$event.stopPropagation()"
+        tabindex="-1"
+        role="dialog"
+        aria-label="Layers menu"
+      >
+        <div class="layers-dropdown-header">
+          <span class="layers-dropdown-title">Layers</span>
+          <button class="header-action-btn" (click)="addLayer()" title="Add New Layer">
+            <span class="material-icons">add</span>
+          </button>
+        </div>
+
+        <div class="layers-list" cdkDropList (cdkDropListDropped)="onLayerDrop($event)" (scroll)="onLayersListScroll()">
+          @for (layer of layers(); track layer.id) {
+          <div
+            class="layer-item"
+            cdkDrag
+            [class.active]="activeLayerId() === layer.id"
+            [class.locked-layer]="layer.locked"
+            [attr.data-locked]="layer.locked"
+            [attr.data-visible]="layer.visible"
+            tabindex="0"
+            role="button"
+            [attr.aria-label]="'Switch to ' + layer.name + (layer.locked ? ' (locked - no editing allowed)' : '')"
+          >
+            <div
+              class="layer-item-left"
+              (click)="switchToLayer(layer.id)"
+              (keyup.enter)="switchToLayer(layer.id)"
+              (keyup.space)="switchToLayer(layer.id)"
+              tabindex="0"
+              role="button"
+            >
+              <div class="layer-drag-handle" cdkDragHandle>
+                <span class="material-icons">drag_indicator</span>
+              </div>
+
+              <div class="layer-info">
+                @if (editingLayerId() === layer.id) {
+                <input
+                  type="text"
+                  [value]="layer.name"
+                  (blur)="finishRenameLayer($event, layer.id)"
+                  (keyup.enter)="finishRenameLayer($event, layer.id)"
+                  (click)="$event.stopPropagation()"
+                  class="layer-name-input"
+                  #layerNameInput
+                />
+                } @else {
+                <span class="layer-name">{{ layer.name }}</span>
+                }
+                <span class="layer-meta">{{ layer.elements.length }} elements</span>
+
+                <!-- Opacity Control -->
+                <div class="layer-opacity-control">
+                  <span class="opacity-label">{{ getLayerOpacityPercent(layer.id) }}%</span>
+                  <input
+                    type="range"
+                    class="opacity-slider-inline"
+                    min="0"
+                    max="100"
+                    [value]="getLayerOpacityPercent(layer.id)"
+                    (input)="setLayerOpacity(layer.id, $any($event.target).value / 100)"
+                    (pointerdown)="$event.stopPropagation()"
+                    (click)="$event.stopPropagation()"
+                    [disabled]="layer.locked"
+                    [attr.aria-label]="'Layer opacity: ' + getLayerOpacityPercent(layer.id) + '%'"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="layer-item-right">
+              <button
+                class="layer-action-btn"
+                (click)="toggleLayerVisibility(layer.id); $event.stopPropagation()"
+                [title]="layer.visible ? 'Hide layer' : 'Show layer'"
+              >
+                <span class="material-icons">{{ layer.visible ? 'visibility' : 'visibility_off' }}</span>
+              </button>
+
+              <button
+                class="layer-action-btn"
+                (click)="toggleLayerLock(layer.id); $event.stopPropagation()"
+                [title]="layer.locked ? 'Unlock layer (allow editing)' : 'Lock layer (prevent editing)'"
+              >
+                <span class="material-icons">{{ layer.locked ? 'lock' : 'lock_open' }}</span>
+              </button>
+
+              <button
+                class="layer-action-btn layer-more-btn"
+                cdkOverlayOrigin
+                #overlayOrigin="cdkOverlayOrigin"
+                (click)="toggleLayerContextMenu(layer.id); $event.stopPropagation()"
+                title="More options"
+              >
+                <span class="material-icons">more_vert</span>
+              </button>
+
+              <ng-template
+                cdkConnectedOverlay
+                [cdkConnectedOverlayOrigin]="overlayOrigin"
+                [cdkConnectedOverlayOpen]="showLayerContextMenu() === layer.id"
+                [cdkConnectedOverlayHasBackdrop]="true"
+                [cdkConnectedOverlayBackdropClass]="'cdk-overlay-transparent-backdrop'"
+                (backdropClick)="closeLayerContextMenu()"
+                [cdkConnectedOverlayPositions]="contextMenuPositions"
+                [cdkConnectedOverlayScrollStrategy]="overlayScrollStrategy"
+              >
+                <div class="layer-context-menu-overlay" role="menu" tabindex="-1">
+                  <button class="context-menu-item" (click)="startRenameLayer(layer.id)" role="menuitem">
+                    <span class="material-icons">edit</span>
+                    Rename
+                  </button>
+                  <div class="context-menu-divider"></div>
+                  <button
+                    class="context-menu-item danger"
+                    (click)="deleteLayer(layer.id)"
+                    [disabled]="layers().length === 1"
+                  >
+                    <span class="material-icons">delete</span>
+                    Delete
+                  </button>
+                  <div class="context-menu-divider"></div>
+                  <div class="context-menu-section">
+                    <div class="context-menu-label">
+                      <span class="material-icons">layers</span>
+                      Blend Mode
+                    </div>
+                    <select
+                      class="blend-mode-select"
+                      [value]="getLayerBlendMode(layer.id)"
+                      (change)="setLayerBlendMode(layer.id, $any($event.target).value)"
+                      (click)="$event.stopPropagation()"
+                    >
+                      @for (category of blendModeCategories; track category.name) {
+                      <optgroup [label]="category.name">
+                        @for (mode of category.modes; track mode.value) {
+                        <option [value]="mode.value" [title]="mode.description">
+                          {{ mode.label }}
+                        </option>
+                        }
+                      </optgroup>
+                      }
+                    </select>
+                  </div>
+                </div>
+              </ng-template>
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+      }
     </div>
-    <div class="size-dropdown">
-      <button (click)="$event.preventDefault(); $event.stopPropagation(); isSizeActive = !isSizeActive">Size</button>
-      <ul class="dropdown" [ngClass]="{ active: isSizeActive }">
-        <li
-          class="dropdown-item"
-          tabindex="0"
-          (click)="setSize(2)"
-          (keydown.enter)="setSize(2)"
-          [class.selected]="size === 2"
-        >
-          <svg height="100%" width="100%">
-            <line x1="0" y1="50%" x2="100" y2="50%" style="stroke-width: 2.5px" [ngStyle]="{ stroke: color }" />
-          </svg>
-        </li>
-        <li
-          class="dropdown-item"
-          tabindex="0"
-          (click)="setSize(5)"
-          (keydown.enter)="setSize(5)"
-          [class.selected]="size === 5"
-        >
-          <svg height="100%" width="100%">
-            <line x1="0" y1="50%" x2="100" y2="50%" style="stroke-width: 5px" [ngStyle]="{ stroke: color }" />
-          </svg>
-        </li>
-        <li
-          class="dropdown-item"
-          tabindex="0"
-          (click)="setSize(10)"
-          (keydown.enter)="setSize(10)"
-          [class.selected]="size === 10"
-        >
-          <svg height="100%" width="100%">
-            <line x1="0" y1="50%" x2="100" y2="50%" style="stroke-width: 10px" [ngStyle]="{ stroke: color }" />
-          </svg>
-        </li>
-        <li
-          class="dropdown-item"
-          tabindex="0"
-          (click)="setSize(15)"
-          (keydown.enter)="setSize(15)"
-          [class.selected]="size === 15"
-        >
-          <svg height="100%" width="100%">
-            <line x1="0" y1="50%" x2="100" y2="50%" style="stroke-width: 15px" [ngStyle]="{ stroke: color }" />
-          </svg>
-        </li>
-      </ul>
+
+    <!-- Board Name -->
+    <div class="board-name-section">
+      @if (isEditingTitle()) {
+      <input
+        type="text"
+        [value]="boardTitle()"
+        (blur)="finishEditingTitle($event)"
+        (keyup.enter)="finishEditingTitle($event)"
+        class="board-name-input"
+        #titleInput
+      />
+      } @else {
+      <button (click)="startEditingTitle()" class="board-name-display" title="Click to edit board name">
+        <span class="material-icons">dashboard</span>
+        <span class="board-name-text">{{ boardTitle() }}</span>
+        <span class="material-icons edit-icon">edit</span>
+      </button>
+      }
     </div>
 
-    <button (click)="erase()">Erase</button>
-    <button (click)="undo()">Undo</button>
-    <button (click)="redo()">Redo</button>
+    <div class="toolbar-separator"></div>
 
-    <input id="colorInput" class="color-input" type="color" [value]="color" (input)="setColor($event)" />
-    <label for="colorInput" class="color-label" [ngStyle]="{ 'background-color': color }"></label>
+    <!-- More Menu -->
+    <div class="more-menu-wrapper">
+      <button class="layer-btn" (click)="toggleMoreMenu()" title="More Options">
+        <span class="material-icons">more_vert</span>
+      </button>
 
-    <input
-      id="backgroundInput"
-      class="color-input"
-      type="color"
-      [value]="backgroundColor"
-      (input)="setBackgroundColor($event)"
-    />
-    <label for="backgroundInput" class="color-label" [ngStyle]="{ 'background-color': backgroundColor }"></label>
+      @if (showMoreMenu()) {
+      <div class="more-menu">
+        <button class="menu-item" (click)="toggleFullscreen()">
+          <span class="material-icons">{{ isFullscreen() ? 'fullscreen_exit' : 'fullscreen' }}</span>
+          {{ isFullscreen() ? 'Exit Fullscreen' : 'Enter Fullscreen' }}
+        </button>
 
-    <input type="file" class="color-input" id="photoInput" (change)="addImage($event.target)" />
-    <label
-      for="photoInput"
-      class="color-label"
-      [ngStyle]="{
-        'background-image':
-          'url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAACHElEQVRYhe3XsWtUQRAG8N+G45ADJUUIFiHYaCESTArTWKRSSSVpRSvxL5A0VuJ/YorUFmlsxUKTYCVGhRRBEMHYJKjJmTyLN6fv4uVuDy+JhXMMj7f77czH7De771KhcJI2dKLZ/wUCtVxgkk7hAsYdTnwfG3hXKL5nBS4yf3iETRQ9fBMPs+NmJp/JSHzQr+bE7ljKJA0lqRbewK2scrbb7SQ1KnE65mrTQJJquINpNGK4HhXo125iGLvx/jVJL/C4UPz4haqU+SyW9F/qfn0Jo39oAPNoHgOBJuY7aeC6PtryL6wWudDez8OZAdbxAJM4HT4ZY+uZMX7nqmzBqu6l21Pu30QQP4NzyoOpEWMTgdnrEWu1kwZ6EXiO8cq58ARv8RoLuBhz44EdKIEmpgJ3AzsdMJsVElO6C7pvAstR4lE864JbqGzHcg6B3NtwpVDsB4HLXXBTGAnsSk7gXALbFXy3Vq1VYm53wfVNYCyeX7DWBbcWmOqa7papgY/KO2EI9w7B7GAmYtVjzUDbcB61wN7FK3zDllKYszFXC+zAz4FPyhuutc9jyoPnkrhcYm4usAMn0CJxH/UOHy31mOuVvI1AisXirr4izz7gKd7H+3lckys8XhaKabRVYDGD+aB8sdMWzCoFddTJt4RgDxJoCeiNo/kwaUbsOdFNbRpoWZLGMaIU1SBtF58LxUZbvoMEjttO/K/ZfwI/AfTgP/XC4sIdAAAAAElFTkSuQmCC)',
-        'background-position': 'center',
-        'background-size': 'cover',
-        'box-shadow': 'none'
-      }"
-    ></label>
+        <div class="menu-divider"></div>
+
+        <button class="menu-item" (click)="toggleGrid()">
+          <span class="material-icons">{{ config().enableGrid ? 'check_box' : 'check_box_outline_blank' }}</span>
+          Toggle Grid
+        </button>
+
+        <button class="menu-item" (click)="clear()">
+          <span class="material-icons">clear_all</span>
+          Clear Board
+        </button>
+        <button class="menu-item" (click)="saveAsImage()">
+          <span class="material-icons">download</span>
+          Save as PNG
+        </button>
+        <button class="menu-item" (click)="exportBoard()">
+          <span class="material-icons">file_download</span>
+          Export Board
+        </button>
+
+        <input
+          type="file"
+          id="importFile"
+          accept=".json"
+          (change)="importBoard($event)"
+          class="hidden-input"
+          #importFileInput
+        />
+        <button class="menu-item" (click)="importFileInput.click()">
+          <span class="material-icons">file_upload</span>
+          Import Board
+        </button>
+
+        <input
+          type="file"
+          id="imageFile"
+          accept="image/*"
+          (change)="uploadImage($event)"
+          class="hidden-input"
+          #imageFileInput
+        />
+        <button class="menu-item" (click)="imageFileInput.click()">
+          <span class="material-icons">image</span>
+          Add Image
+        </button>
+      </div>
+      }
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="app-content">
+    <!-- Canvas Area -->
+    <main class="canvas-area">
+      <ng-whiteboard
+        [boardId]="boardId"
+        (dataChange)="onDataChange($event)"
+        [config]="config()"
+        (configChange)="config.set($event)"
+        (save)="onSave()"
+        (ready)="onReady()"
+        class="whiteboard-canvas"
+      ></ng-whiteboard>
+
+      <!-- Fullscreen Hint -->
+      @if (showFullscreenHint()) {
+      <div class="fullscreen-hint">
+        <p>Press <kbd>ESC</kbd> or click <span class="material-icons">close</span> to exit fullscreen</p>
+      </div>
+      }
+    </main>
+  </div>
+  <!-- Left Floating Bar: Undo/Redo -->
+  <div class="toolbar-bottom-left">
+    <button class="bottom-btn" (click)="undo()" [disabled]="!canUndo()" title="Undo (Ctrl+Z)">
+      <span class="material-icons">undo</span>
+    </button>
+    <button class="bottom-btn" (click)="redo()" [disabled]="!canRedo()" title="Redo (Ctrl+Y)">
+      <span class="material-icons">redo</span>
+    </button>
+  </div>
+
+  <!-- Center Floating Bar: Main Tools -->
+  <div class="toolbar-bottom-center">
+    @for (tool of primaryTools(); track tool.type) {
+    <button
+      class="bottom-btn"
+      [class.active]="selectedTool() === tool.type"
+      (click)="selectTool(tool.type)"
+      [title]="tool.name"
+      [innerHTML]="tool.icon"
+    ></button>
+    }
+
+    <div class="separator"></div>
+
+    @for (tool of shapeTools(); track tool.type) {
+    <button
+      class="bottom-btn"
+      [class.active]="selectedTool() === tool.type"
+      (click)="selectTool(tool.type)"
+      [title]="tool.name"
+      [innerHTML]="tool.icon"
+    ></button>
+    }
+  </div>
+
+  <!-- Right Floating Bar: Zoom Controls -->
+  <div class="toolbar-bottom-right">
+    <button class="bottom-btn" (click)="zoomOut()" title="Zoom Out">
+      <span class="material-icons">zoom_out</span>
+    </button>
+    <button class="bottom-btn zoom-reset-btn" (click)="resetZoom()" title="Reset Zoom (100%)">
+      {{ zoomLevel() }}%
+    </button>
+    <button class="bottom-btn" (click)="zoomIn()" title="Zoom In">
+      <span class="material-icons">zoom_in</span>
+    </button>
+  </div>
+
+  <!-- Floating Properties Bar (Top Center) -->
+  <div class="toolbar-properties">
+    <!-- Stroke Color -->
+    <div class="prop-group">
+      <span class="prop-label">Stroke</span>
+      <button
+        class="prop-color-btn"
+        [style.background]="selectedColor()"
+        (click)="toggleColorPalette()"
+        title="Stroke Color"
+      >
+        <span class="color-preview" [style.background]="selectedColor()"></span>
+      </button>
+
+      @if (showColorPalette()) {
+      <div class="floating-color-palette">
+        <div class="palette-grid">
+          @for (color of quickColors; track color) {
+          <button
+            class="palette-color-item"
+            [style.background]="color"
+            [class.selected]="selectedColor() === color"
+            (click)="selectColor(color)"
+            [title]="color"
+          >
+            @if (selectedColor() === color) {
+            <span class="material-icons check-icon">check</span>
+            }
+          </button>
+          }
+        </div>
+      </div>
+      }
+    </div>
+
+    <div class="prop-separator"></div>
+
+    <!-- Background Color -->
+    <div class="prop-group">
+      <span class="prop-label">BG</span>
+      <button
+        class="prop-color-btn"
+        [style.background]="config().backgroundColor || '#ffffff'"
+        (click)="toggleBackgroundPalette()"
+        title="Canvas Background Color"
+      >
+        <span class="color-preview" [style.background]="config().backgroundColor || '#ffffff'"></span>
+      </button>
+
+      @if (showBackgroundPalette()) {
+      <div class="floating-color-palette">
+        <div class="palette-grid">
+          @for (color of quickColors; track color) {
+          <button
+            class="palette-color-item"
+            [style.background]="color"
+            [class.selected]="config().backgroundColor === color"
+            (click)="selectBackgroundColor(color)"
+            [title]="color"
+          >
+            @if (config().backgroundColor === color) {
+            <span class="material-icons check-icon">check</span>
+            }
+          </button>
+          }
+        </div>
+      </div>
+      }
+    </div>
+
+    <div class="prop-separator"></div>
+
+    <!-- Stroke Width -->
+    <div class="prop-group">
+      <span class="prop-label">Size</span>
+      <button class="prop-width-btn" (click)="toggleWidthMenu()" title="Stroke Width">
+        <div class="width-preview-line" [style.height.px]="selectedWidth()" [style.background]="selectedColor()"></div>
+        <span class="width-value">{{ selectedWidth() }}px</span>
+      </button>
+
+      @if (showWidthMenu()) {
+      <div class="floating-width-menu">
+        @for (width of strokeWidths; track width) {
+        <button class="width-menu-item" [class.selected]="selectedWidth() === width" (click)="selectWidth(width)">
+          <div class="width-menu-preview" [style.height.px]="width" [style.background]="selectedColor()"></div>
+          <span class="width-menu-label">{{ width }}px</span>
+        </button>
+        }
+      </div>
+      }
+    </div>
   </div>
 </div>
