@@ -163,7 +163,50 @@ export class WhiteboardContainerComponent implements OnInit {
 
 ## 📖 API Reference
 
+### Important: Multi-Instance Support
+
+**ng-whiteboard** supports multiple independent whiteboard instances. When using `WhiteboardService`, you must specify which board you're working with:
+
+```typescript
+import { Component, AfterViewInit, inject } from '@angular/core';
+import { NgWhiteboardService } from 'ng-whiteboard';
+
+@Component({
+  template: ` <ng-whiteboard [boardId]="boardId"></ng-whiteboard> `,
+  providers: [NgWhiteboardService],
+})
+export class MyWhiteboardComponent implements AfterViewInit {
+  private whiteboardService = inject(NgWhiteboardService);
+  boardId = 'my-unique-board-id';
+
+  ngAfterViewInit() {
+    // IMPORTANT: Set the active board before using service methods
+    this.whiteboardService.setActiveBoard(this.boardId);
+  }
+
+  clearBoard() {
+    // Now this works on the correct board
+    this.whiteboardService.clear();
+  }
+}
+```
+
 ### `WhiteboardService` Methods
+
+### 🔀 Multi-Instance Management
+
+- **`setActiveBoard(boardId: string)`** Sets the specified board as active. All service operations will target this board.
+- **`activeBoard()`** Returns the ID of the currently active board, or `null` if no board is active.
+- **`clearActiveBoard()`** Clears the active board.
+- **`getAllBoards()`** Returns an array of all registered board IDs.
+- **`getBoardCount()`** Returns the total number of registered boards.
+- **`hasBoard(boardId: string)`** Checks if a board with the specified ID exists.
+
+### 📊 Reactive Signals (Active Board)
+
+- **`elements: Signal<WhiteboardElement[]>`** Returns elements from the active board.
+- **`elementsCount: Signal<number>`** Returns the number of elements on the active board.
+- **`hasElements: Signal<boolean>`** Returns `true` if the active board has any elements.
 
 ### 📌 Element Management
 
