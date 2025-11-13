@@ -42,7 +42,14 @@ export interface BaseElement {
   style: WhiteboardElementStyle;
   rotation: number;
   opacity: number;
+  zIndex: number;
+  scaleX?: number;
+  scaleY?: number;
+  layerId?: string;
+  groupId?: string;
+  locked?: boolean;
   isDeleting?: boolean;
+  selectAfterDraw?: boolean;
 }
 
 export interface ElementUtil<T> {

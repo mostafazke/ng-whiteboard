@@ -23,6 +23,8 @@ export class EllipseElementUtil implements ElementUtil<EllipseElement> {
       ry: 1,
       rotation: 0,
       opacity: 100,
+      zIndex: 1, // Default zIndex, will be overridden by tools
+      selectAfterDraw: true, // Ellipses should be selected after drawing by default
       ...props,
       style: {
         ...defaultElementStyle,

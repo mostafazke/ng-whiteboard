@@ -1,5 +1,5 @@
 import { ChangeDetectorRef, Directive, ElementRef, OnDestroy, OnInit } from '@angular/core';
-import { DataService } from '../data/data.service';
+import { ApiService } from '../api/api.service';
 
 @Directive({
   selector: '[resizeHandler]',
@@ -8,20 +8,22 @@ import { DataService } from '../data/data.service';
 export class ResizeHandlerDirective implements OnInit, OnDestroy {
   private resizeObserver!: ResizeObserver;
 
-  constructor(private elementRef: ElementRef, private dataService: DataService, private _cd: ChangeDetectorRef) {}
+  constructor(private elementRef: ElementRef, private apiService: ApiService, private _cd: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.resizeObserver = new ResizeObserver(([entry]) => {
       if (entry.target === this.elementRef.nativeElement) {
-        const { fullScreen, center } = this.dataService.getConfig();
+        const { fullScreen, center } = this.apiService.getConfig();
 
-        if (fullScreen) {
-          this.dataService.fullScreen();
-        }
-        if (center && !fullScreen) {
-          this.dataService.centerCanvas();
-        }
-        this._cd.detectChanges();
+        setTimeout(() => {
+          if (fullScreen) {
+            this.apiService.fullScreen();
+          }
+          if (center && !fullScreen) {
+            this.apiService.centerCanvas();
+          }
+          this._cd.detectChanges();
+        }, 0);
       }
     });
     this.resizeObserver.observe(this.elementRef.nativeElement);

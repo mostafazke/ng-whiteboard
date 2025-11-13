@@ -1,15 +1,17 @@
 import { getElementUtil } from '../elements/element.utils';
-import { Point, ToolType, WhiteboardElement } from '../types';
+import { Point, PointerInfo, ToolType, WhiteboardElement } from '../types';
+import { CursorType } from '../types/cursors';
 import { isBoundsIntersect } from '../utils/geometry';
 import { BaseTool } from './base-tool';
 
 export class EraserTool extends BaseTool {
   type = ToolType.Eraser;
+  override baseCursor = CursorType.Eraser;
   private isErasing = false;
   private readonly hoveredElementIds: Set<string> = new Set();
   private lastPosition: Point | null = null;
 
-  override handlePointerDown(event: PointerEvent): void {
+  override handlePointerDown(event: PointerInfo): void {
     if (!this.active) return;
 
     this.hoveredElementIds.clear();
@@ -20,7 +22,7 @@ export class EraserTool extends BaseTool {
     this.lastPosition = position;
   }
 
-  override handlePointerMove(event: PointerEvent): void {
+  override handlePointerMove(event: PointerInfo): void {
     if (!this.active || !this.isErasing || !this.lastPosition) return;
 
     const position = this.getPointerPosition(event);
@@ -32,24 +34,26 @@ export class EraserTool extends BaseTool {
     if (!this.active) return;
 
     if (this.hoveredElementIds.size > 0) {
-      const elementsToRemove = Array.from(this.hoveredElementIds);
+      const elementsToRemoveIds = Array.from(this.hoveredElementIds);
+      const expandedIds = this.expandToIncludeGroups(elementsToRemoveIds);
 
-      this.dataService.updateElements(
-        elementsToRemove.map((id) => ({ id, isDeleting: false })),
-        false
-      );
-      this.dataService.removeElements(elementsToRemove);
+      const elementsToRemove = this.apiService.getElements().filter((el) => expandedIds.includes(el.id));
+      elementsToRemove.forEach((el) => {
+        el.isDeleting = false;
+      });
+
+      this.apiService.updateElements(elementsToRemove);
+      this.apiService.removeElements(elementsToRemove);
     }
 
-    // Clear state
     this.hoveredElementIds.clear();
     this.isErasing = false;
     this.lastPosition = null;
   }
 
   private eraseElementsAt(lastPosition: Point, position: Point, isAltPressed = false): void {
-    const elements = this.dataService.getData();
-    const zoom = this.dataService.getConfig()?.zoom || 1;
+    const elements = this.apiService.getElements();
+    const zoom = this.apiService.getConfig()?.zoom || 1;
     const distance = Math.hypot(position.x - lastPosition.x, position.y - lastPosition.y);
 
     const baseThreshold = 10 / zoom;
@@ -62,16 +66,26 @@ export class EraserTool extends BaseTool {
 
       if (this.isPointInElement(element, lastPosition, position, dynamicThreshold)) {
         if (isAltPressed) {
-          this.hoveredElementIds.delete(element.id);
-          element.isDeleting = false;
+          const groupedIds = this.expandToIncludeGroups([element.id]);
+          groupedIds.forEach((id) => {
+            this.hoveredElementIds.delete(id);
+            const el = elements.find((e) => e.id === id);
+            if (el) el.isDeleting = false;
+          });
         }
 
         if (!isAltPressed && !this.hoveredElementIds.has(element.id)) {
-          this.hoveredElementIds.add(element.id);
-          element.isDeleting = true;
+          const groupedIds = this.expandToIncludeGroups([element.id]);
+          groupedIds.forEach((id) => {
+            this.hoveredElementIds.add(id);
+            const el = elements.find((e) => e.id === id);
+            if (el) el.isDeleting = true;
+          });
         }
 
-        this.dataService.updateElements(element, false);
+        const affectedIds = this.expandToIncludeGroups([element.id]);
+        const affectedElements = elements.filter((el) => affectedIds.includes(el.id));
+        this.apiService.updateElements(affectedElements);
       }
     }
   }
@@ -83,5 +97,26 @@ export class EraserTool extends BaseTool {
     threshold: number
   ): boolean {
     return getElementUtil(element.type).hitTest(element, lastPosition, position, threshold);
+  }
+
+  private expandToIncludeGroups(elementIds: string[]): string[] {
+    const allElements = this.apiService.getElements();
+    const elementsToExpand = allElements.filter((el) => elementIds.includes(el.id));
+
+    const groupIds = new Set(
+      elementsToExpand
+        .map((el) => el.groupId)
+        .filter((groupId): groupId is string => groupId !== undefined && groupId !== null)
+    );
+
+    if (groupIds.size === 0) {
+      return elementIds;
+    }
+
+    const expandedElements = allElements.filter((el) => {
+      return elementIds.includes(el.id) || (el.groupId && groupIds.has(el.groupId));
+    });
+
+    return expandedElements.map((el) => el.id);
   }
 }

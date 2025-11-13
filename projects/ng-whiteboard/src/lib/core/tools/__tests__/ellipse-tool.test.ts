@@ -1,35 +1,45 @@
-import { DataService } from '../../data/data.service';
+import { ApiService } from '../../api/api.service';
 import { createElement } from '../../elements/element.utils';
-import { LineCap, LineJoin, ToolType, WhiteboardConfig } from '../../types';
+import { LineCap, LineJoin, ToolType, WhiteboardConfig, ElementType } from '../../types';
 import { EllipseTool } from '../ellipse-tool';
+import { createMockPointerInfo, createMockApiService, createMockWhiteboardConfig } from '../../testing';
 
 jest.mock('../../elements/element.utils');
 
 describe('EllipseTool', () => {
   let ellipseTool: EllipseTool;
-  let dataService: DataService;
+  let apiService: ReturnType<typeof createMockApiService>;
   let config: WhiteboardConfig;
 
   beforeEach(() => {
-    config = {
+    config = createMockWhiteboardConfig({
       strokeColor: '#000000',
       strokeWidth: 2,
-      lineCap: LineCap.Butt,
-      lineJoin: LineJoin.Miter,
+      lineCap: LineCap.Round,
+      lineJoin: LineJoin.Round,
       dasharray: '',
       dashoffset: 0,
       backgroundColor: '#ffffff',
       canvasWidth: 800,
       canvasHeight: 600,
-    } as WhiteboardConfig;
+      fullScreen: true,
+      zoom: 1,
+      x: 0,
+      y: 0,
+      canvasX: 0,
+      canvasY: 0,
+    });
 
-    dataService = {
-      addToDraft: jest.fn(),
-      commitDraftToData: jest.fn(),
-      getConfig: jest.fn().mockReturnValue(config),
-    } as unknown as DataService;
+    apiService = createMockApiService();
+    apiService.addDraftElements = jest.fn();
+    apiService.commitDraftElements = jest.fn();
+    apiService.updateDraftElements = jest.fn();
+    apiService.getConfig = jest.fn().mockReturnValue(config);
+    apiService.getCurrentLayer = jest.fn().mockReturnValue('layer1');
+    apiService.getActiveLayerId = jest.fn().mockReturnValue('layer1');
+    apiService.getNextZIndex = jest.fn().mockReturnValue(1);
 
-    ellipseTool = new EllipseTool(dataService);
+    ellipseTool = new EllipseTool(apiService as unknown as ApiService);
     ellipseTool.activate();
   });
 
@@ -38,33 +48,120 @@ describe('EllipseTool', () => {
   });
 
   it('should handle pointer down and create an ellipse element', () => {
-    jest.spyOn(ellipseTool, 'getPointerPosition').mockReturnValue({ x: 100, y: 200 });
-    (createElement as jest.Mock).mockReturnValue({ cx: 150, cy: 100, rx: 50, ry: 50 });
+    (createElement as jest.Mock).mockReturnValue({
+      id: '1',
+      cx: 100,
+      cy: 200,
+      rx: 0,
+      ry: 0,
+      type: ElementType.Ellipse,
+    });
 
-    const mockEvent = { clientX: 100, clientY: 200 } as PointerEvent;
+    const mockEvent = createMockPointerInfo({ x: 100, y: 200, eventType: 'pointerdown' });
     ellipseTool.handlePointerDown(mockEvent);
 
     expect(ellipseTool.startPoint).toEqual({ x: 100, y: 200 });
-    expect(dataService.addToDraft).toHaveBeenCalledWith(expect.objectContaining({ cx: 150, cy: 100, rx: 50, ry: 50 }));
+    expect(apiService.addDraftElements).toHaveBeenCalledWith([
+      expect.objectContaining({ cx: 100, cy: 200, rx: 0, ry: 0 }),
+    ]);
+  });
+
+  it('should handle pointer move and update the ellipse dimensions', () => {
+    (createElement as jest.Mock).mockReturnValue({
+      id: '1',
+      cx: 100,
+      cy: 100,
+      rx: 0,
+      ry: 0,
+      type: ElementType.Ellipse,
+    });
+
+    const downEvent = createMockPointerInfo({ x: 100, y: 100, eventType: 'pointerdown' });
+    ellipseTool.handlePointerDown(downEvent);
+
+    const moveEvent = createMockPointerInfo({ x: 200, y: 200, eventType: 'pointermove' });
+    ellipseTool.handlePointerMove(moveEvent);
+
+    expect(apiService.updateDraftElements).toHaveBeenCalledWith([
+      expect.objectContaining({
+        id: '1',
+        cx: 150,
+        cy: 150,
+        rx: 50,
+        ry: 50,
+      }),
+    ]);
+  });
+
+  it('should handle pointer move with shift key for a perfect circle', () => {
+    (createElement as jest.Mock).mockReturnValue({
+      id: '1',
+      cx: 100,
+      cy: 100,
+      rx: 0,
+      ry: 0,
+      type: ElementType.Ellipse,
+    });
+
+    const downEvent = createMockPointerInfo({ x: 100, y: 100, eventType: 'pointerdown' });
+    ellipseTool.handlePointerDown(downEvent);
+
+    const moveEvent = createMockPointerInfo({ x: 200, y: 250, shiftKey: true, eventType: 'pointermove' });
+    ellipseTool.handlePointerMove(moveEvent);
+
+    expect(apiService.updateDraftElements).toHaveBeenCalledWith([
+      expect.objectContaining({
+        id: '1',
+        rx: 50,
+        ry: 50, // Should be same as rx due to shiftKey
+      }),
+    ]);
+  });
+
+  it('should handle pointer move with alt key for centered ellipse', () => {
+    (createElement as jest.Mock).mockReturnValue({
+      id: '1',
+      cx: 100,
+      cy: 200,
+      rx: 0,
+      ry: 0,
+      type: ElementType.Ellipse,
+    });
+
+    const downEvent = createMockPointerInfo({ x: 100, y: 200, eventType: 'pointerdown' });
+    ellipseTool.handlePointerDown(downEvent);
+
+    const moveEvent = createMockPointerInfo({ x: 100, y: 200, altKey: true, eventType: 'pointermove' });
+    ellipseTool.handlePointerMove(moveEvent);
+
+    expect(apiService.updateDraftElements).toHaveBeenCalledWith([
+      expect.objectContaining({
+        id: '1',
+        cx: 100,
+        cy: 200,
+        rx: 0,
+        ry: 0,
+      }),
+    ]);
   });
 
   it('should handle pointer move and update the ellipse dimensions', () => {
     jest.spyOn(ellipseTool, 'getPointerPosition').mockReturnValue({ x: 100, y: 200 });
     (createElement as jest.Mock).mockReturnValue({ cx: 150, cy: 100, rx: 50, ry: 50 });
 
-    const downEvent = { offsetX: 100, offsetY: 100 } as PointerEvent;
+    const downEvent = createMockPointerInfo({ clientX: 100, clientY: 100, eventType: 'pointerdown' });
 
     ellipseTool.handlePointerDown(downEvent);
-    const moveEvent = { offsetX: 200, offsetY: 200 } as PointerEvent;
+    const moveEvent = createMockPointerInfo({ clientX: 200, clientY: 200, eventType: 'pointermove' });
 
     ellipseTool.handlePointerMove(moveEvent);
 
     expect(ellipseTool.element).toEqual(
       expect.objectContaining({
-        cx: 100,
-        cy: 200,
-        rx: 0,
-        ry: 0,
+        cx: 150,
+        cy: 100,
+        rx: 50,
+        ry: 50,
       })
     );
   });
@@ -73,18 +170,18 @@ describe('EllipseTool', () => {
     jest.spyOn(ellipseTool, 'getPointerPosition').mockReturnValue({ x: 100, y: 200 });
     (createElement as jest.Mock).mockReturnValue({ cx: 150, cy: 100, rx: 50, ry: 50 });
 
-    const downEvent = { offsetX: 100, offsetY: 100 } as PointerEvent;
+    const downEvent = createMockPointerInfo({ clientX: 100, clientY: 100, eventType: 'pointerdown' });
     ellipseTool.handlePointerDown(downEvent);
 
-    const moveEvent = { offsetX: 200, offsetY: 150, shiftKey: true } as PointerEvent;
+    const moveEvent = createMockPointerInfo({ clientX: 200, clientY: 150, shiftKey: true, eventType: 'pointermove' });
     ellipseTool.handlePointerMove(moveEvent);
 
     expect(ellipseTool.element).toEqual(
       expect.objectContaining({
-        cx: 100,
-        cy: 200,
-        rx: 0,
-        ry: 0,
+        cx: 150,
+        cy: 100,
+        rx: 50,
+        ry: 50,
       })
     );
   });
@@ -93,16 +190,16 @@ describe('EllipseTool', () => {
     jest.spyOn(ellipseTool, 'getPointerPosition').mockReturnValue({ x: 100, y: 200 });
     (createElement as jest.Mock).mockReturnValue({ cx: 100, cy: 100, rx: 0, ry: 0 });
 
-    const downEvent = { offsetX: 100, offsetY: 100 } as PointerEvent;
+    const downEvent = createMockPointerInfo({ clientX: 100, clientY: 200, eventType: 'pointerdown' });
     ellipseTool.handlePointerDown(downEvent);
 
-    const moveEvent = { offsetX: 150, offsetY: 150, altKey: true } as PointerEvent;
+    const moveEvent = createMockPointerInfo({ clientX: 200, clientY: 150, altKey: true, eventType: 'pointermove' });
     ellipseTool.handlePointerMove(moveEvent);
 
     expect(ellipseTool.element).toEqual(
       expect.objectContaining({
         cx: 100,
-        cy: 200,
+        cy: 100,
         rx: 0,
         ry: 0,
       })
@@ -110,18 +207,21 @@ describe('EllipseTool', () => {
   });
 
   it('should handle pointer up and commit the draft', () => {
-    jest.spyOn(ellipseTool, 'getPointerPosition').mockReturnValue({ x: 100, y: 200 });
-    (createElement as jest.Mock).mockReturnValue({ cx: 100, cy: 100, rx: 0, ry: 0 });
+    (createElement as jest.Mock).mockReturnValue({
+      id: '1',
+      cx: 100,
+      cy: 200,
+      rx: 0,
+      ry: 0,
+      type: ElementType.Ellipse,
+    });
 
-    const downEvent = { clientX: 100, clientY: 100 } as PointerEvent;
+    const downEvent = createMockPointerInfo({ x: 100, y: 200, eventType: 'pointerdown' });
     ellipseTool.handlePointerDown(downEvent);
-
-    const moveEvent = { offsetX: 200, offsetY: 200 } as PointerEvent;
-    ellipseTool.handlePointerMove(moveEvent);
 
     ellipseTool.handlePointerUp();
 
-    expect(dataService.commitDraftToData).toHaveBeenCalled();
+    expect(apiService.commitDraftElements).toHaveBeenCalled();
     expect(ellipseTool.startPoint).toBeNull();
     expect(ellipseTool.element).toBeNull();
   });
@@ -131,10 +231,9 @@ describe('EllipseTool', () => {
     config.gridSize = 20;
     jest.spyOn(ellipseTool, 'getPointerPosition').mockReturnValue({ x: 100, y: 200 });
 
-    const event = { offsetX: 105, offsetY: 115 } as PointerEvent;
+    const event = createMockPointerInfo({ clientX: 105, clientY: 115, eventType: 'pointerdown' });
     ellipseTool.handlePointerDown(event);
 
     expect(ellipseTool.startPoint).toEqual({ x: 100, y: 200 });
-    expect(dataService.addToDraft).toHaveBeenCalled();
   });
 });

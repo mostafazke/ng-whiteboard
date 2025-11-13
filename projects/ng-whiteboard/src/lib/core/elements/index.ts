@@ -5,3 +5,6 @@ export * from './arrow-element';
 export * from './text-element';
 export * from './ellipse-element';
 export * from './rectangle-element';
+export * from './elements.service';
+export * from './layer-management.service';
+export * from './selection.service';

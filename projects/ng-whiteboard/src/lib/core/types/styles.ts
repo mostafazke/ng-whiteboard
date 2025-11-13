@@ -17,6 +17,7 @@ export interface WhiteboardElementStyle {
 
   dasharray?: string;
   dashoffset?: number;
+  opacity?: number;
 }
 
 export const defaultElementStyle: WhiteboardElementStyle = {
@@ -24,8 +25,8 @@ export const defaultElementStyle: WhiteboardElementStyle = {
   strokeColor: '#000000',
   fill: '#000000',
 
-  lineJoin: LineJoin.Miter,
-  lineCap: LineCap.Butt,
+  lineJoin: LineJoin.Round,
+  lineCap: LineCap.Round,
 
   dasharray: '',
   dashoffset: 0,

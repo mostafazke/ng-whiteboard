@@ -1,50 +1,70 @@
 import { Canvas } from 'canvas';
 
-// Mock PointerEvent using MouseEvent
+// Mock crypto.randomUUID for Node.js environments that don't have it
+if (!globalThis.crypto) {
+  Object.defineProperty(globalThis, 'crypto', {
+    value: {},
+    writable: true,
+  });
+}
+if (!globalThis.crypto.randomUUID) {
+  globalThis.crypto.randomUUID = (() => {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  }) as () => `${string}-${string}-${string}-${string}-${string}`;
+}
+
+// Polyfill PointerEvent for jsdom
 class MockPointerEvent extends MouseEvent {
   public pointerId: number;
-  public pointerType: string;
+  public width: number;
+  public height: number;
   public pressure: number;
   public tiltX: number;
   public tiltY: number;
-  public width: number;
-  public height: number;
+  public pointerType: string;
   public isPrimary: boolean;
+  public tangentialPressure: number;
+  public twist: number;
+  public altitudeAngle: number;
+  public azimuthAngle: number;
 
-  constructor(type: string, eventInitDict?: PointerEventInit) {
-    super(type, {
-      bubbles: true,
-      cancelable: true,
-      composed: true,
-      ...eventInitDict,
-    });
+  constructor(type: string, params: PointerEventInit = {}) {
+    super(type, params);
+    this.pointerId = params.pointerId ?? 0;
+    this.width = params.width ?? 1;
+    this.height = params.height ?? 1;
+    this.pressure = params.pressure ?? 0;
+    this.tiltX = params.tiltX ?? 0;
+    this.tiltY = params.tiltY ?? 0;
+    this.pointerType = params.pointerType ?? '';
+    this.isPrimary = params.isPrimary ?? false;
+    this.tangentialPressure = params.tangentialPressure ?? 0;
+    this.twist = params.twist ?? 0;
+    this.altitudeAngle = 0;
+    this.azimuthAngle = 0;
+  }
 
-    this.pointerId = eventInitDict?.pointerId ?? 1;
-    this.pointerType = eventInitDict?.pointerType ?? 'mouse';
-    this.pressure = eventInitDict?.pressure ?? 0.5;
-    this.tiltX = eventInitDict?.tiltX ?? 0;
-    this.tiltY = eventInitDict?.tiltY ?? 0;
-    this.width = eventInitDict?.width ?? 1;
-    this.height = eventInitDict?.height ?? 1;
-    this.isPrimary = eventInitDict?.isPrimary ?? true;
+  public getCoalescedEvents(): PointerEvent[] {
+    return [];
+  }
+
+  public getPredictedEvents(): PointerEvent[] {
+    return [];
   }
 }
 
-declare global {
-  interface Window {
-    HTMLCanvasElement: {
-      prototype: HTMLCanvasElement;
-    };
-  }
-}
-
-// Set up PointerEvent mock
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (window as any).PointerEvent = MockPointerEvent;
 
-// Configure canvas for JSDOM
+// Mock Canvas context - use 'canvas' package for Node.js environment
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (window.HTMLCanvasElement.prototype as any).getContext = function (contextType: string) {
   if (contextType === '2d') {
-    return new Canvas(this.width, this.height).getContext('2d');
+    return new Canvas(200, 200).getContext('2d');
   }
   return null;
 };

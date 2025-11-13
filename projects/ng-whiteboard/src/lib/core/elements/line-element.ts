@@ -23,6 +23,8 @@ export class LineElementUtil implements ElementUtil<LineElement> {
       y2: 0,
       rotation: 0,
       opacity: 100,
+      zIndex: 1, // Default zIndex, will be overridden by tools
+      selectAfterDraw: true, // Lines should be selected after drawing by default
       ...props,
       style: {
         ...defaultElementStyle,

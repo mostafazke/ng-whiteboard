@@ -1,20 +1,21 @@
 import { ImageTool } from '../image-tool';
 import { LineCap, LineJoin, ToolType, WhiteboardConfig } from '../../types';
-import { DataService } from '../../data/data.service';
+import { ApiService } from '../../api/api.service';
+import { createMockPointerInfo } from '../../testing';
 
 jest.mock('../../elements/element.utils');
 
 describe('ImageTool', () => {
   let imageTool: ImageTool;
-  let dataService: DataService;
+  let apiService: ApiService;
   let config: WhiteboardConfig;
 
   beforeEach(() => {
     config = {
       strokeColor: '#000000',
       strokeWidth: 2,
-      lineCap: LineCap.Butt,
-      lineJoin: LineJoin.Miter,
+      lineCap: LineCap.Round,
+      lineJoin: LineJoin.Round,
       dasharray: '',
       dashoffset: 0,
       backgroundColor: '#ffffff',
@@ -22,14 +23,12 @@ describe('ImageTool', () => {
       canvasHeight: 600,
     } as WhiteboardConfig;
 
-    dataService = {
-      addToDraft: jest.fn(),
-      commitDraftToData: jest.fn(),
+    apiService = {
       getConfig: jest.fn().mockReturnValue(config),
       addImage: jest.fn(),
-    } as unknown as DataService;
+    } as unknown as ApiService;
 
-    imageTool = new ImageTool(dataService);
+    imageTool = new ImageTool(apiService);
     imageTool.activate();
   });
 
@@ -38,10 +37,11 @@ describe('ImageTool', () => {
   });
 
   it('should handle pointer down and upload an image', () => {
-    const mockEvent = {
+    const mockEvent = createMockPointerInfo({
       clientX: 100,
       clientY: 200,
-    } as PointerEvent;
+      eventType: 'pointerdown',
+    });
 
     jest.spyOn(imageTool, 'getPointerPosition').mockReturnValue({ x: 100, y: 200 });
     const inputSpy = jest.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
@@ -89,7 +89,7 @@ describe('ImageTool', () => {
       target: { result: mockImageData },
     } as ProgressEvent<FileReader>);
 
-    expect(dataService.addImage).toHaveBeenCalledWith({
+    expect(apiService.addImage).toHaveBeenCalledWith({
       image: mockImageData,
       x: 100,
       y: 200,

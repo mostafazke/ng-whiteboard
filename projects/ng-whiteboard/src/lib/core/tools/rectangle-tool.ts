@@ -1,15 +1,17 @@
 import { RectangleElement } from '../elements';
 import { createElement } from '../elements/element.utils';
-import { ElementType, Point, ToolType, WhiteboardElementStyle } from '../types';
+import { ElementType, Point, PointerInfo, ToolType, WhiteboardElementStyle } from '../types';
 import { snapToGrid } from '../utils/geometry';
 import { BaseTool } from './base-tool';
+import { CursorType } from '../types/cursors';
 
 export class RectangleTool extends BaseTool {
   type = ToolType.Rectangle;
+  override baseCursor = CursorType.Crosshair;
   element: RectangleElement | null = null;
   startPoint: Point | null = null;
 
-  override handlePointerDown(event: PointerEvent): void {
+  override handlePointerDown(event: PointerInfo): void {
     if (!this.active) return;
 
     let { x, y } = this.getPointerPosition(event);
@@ -22,16 +24,21 @@ export class RectangleTool extends BaseTool {
     }
     this.startPoint = { x, y };
 
-    this.element = createElement(ElementType.Rectangle, {
-      x,
-      y,
-      style: this.getElementStyle(),
-    });
+    this.element = createElement(
+      ElementType.Rectangle,
+      {
+        x,
+        y,
+        style: this.getElementStyle(),
+        zIndex: this.apiService.getNextZIndex(),
+      },
+      this.apiService.getActiveLayerId()
+    );
 
-    this.dataService.addToDraft(this.element);
+    this.apiService.addDraftElements([this.element]);
   }
 
-  override handlePointerMove(event: PointerEvent): void {
+  override handlePointerMove(event: PointerInfo): void {
     if (!this.active || !this.element || !this.startPoint) return;
 
     const { x, y } = this.getPointerPosition(event);
@@ -66,16 +73,20 @@ export class RectangleTool extends BaseTool {
       new_y = snapToGrid(new_y, gridSize);
     }
 
-    this.element.width = w;
-    this.element.height = h;
-    this.element.x = new_x;
-    this.element.y = new_y;
+    this.apiService.updateDraftElements([{ id: this.element.id, width: w, height: h, x: new_x, y: new_y }]);
   }
 
   override handlePointerUp(): void {
     if (!this.active) return;
     if (this.element && this.startPoint) {
-      this.dataService.commitDraftToData();
+      const element = this.element;
+      this.apiService.commitDraftElements();
+
+      // Handle selection based on element's selectAfterDraw property
+      if (element.selectAfterDraw) {
+        this.apiService.selectElements([element.id]);
+      }
+
       this.startPoint = null;
       this.element = null;
     }

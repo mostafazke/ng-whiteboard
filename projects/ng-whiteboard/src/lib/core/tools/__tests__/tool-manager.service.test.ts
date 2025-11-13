@@ -1,24 +1,21 @@
 import { TestBed } from '@angular/core/testing';
-import { ToolManagerService } from '../tool-manager.service';
-import { DataService } from '../../data/data.service';
-import { Tool, ToolType } from '../../types';
-import { HandTool } from '../hand-tool';
-import { PenTool } from '../pen-tool';
-import { BehaviorSubject } from 'rxjs';
+import { ToolsService } from '../tools.service';
+import { ApiService } from '../../api/api.service';
+import { ToolType } from '../../types';
+import { createMockApiService } from '../../testing';
 
-describe('ToolManagerService', () => {
-  let service: ToolManagerService;
-  let mockDataService: jest.Mocked<DataService>;
+describe('ToolsService', () => {
+  let service: ToolsService;
+  let mockApiService: ReturnType<typeof createMockApiService>;
 
   beforeEach(() => {
-    mockDataService = {
-      selectedTool$: new BehaviorSubject<ToolType>(ToolType.Hand),
-    } as unknown as jest.Mocked<DataService>;
+    mockApiService = createMockApiService();
 
     TestBed.configureTestingModule({
-      providers: [ToolManagerService, { provide: DataService, useValue: mockDataService }],
+      providers: [ToolsService, { provide: ApiService, useValue: mockApiService }],
     });
-    service = TestBed.inject(ToolManagerService);
+    service = TestBed.inject(ToolsService);
+    service.setApiService(mockApiService as unknown as ApiService);
   });
 
   it('should be created', () => {
@@ -26,67 +23,66 @@ describe('ToolManagerService', () => {
   });
 
   it('should initialize default tools', () => {
-    expect(() => service.getTool(ToolType.Hand)).not.toThrow();
-    expect(() => service.getTool(ToolType.Pen)).not.toThrow();
+    expect(() => service.getToolInstance(ToolType.Hand)).not.toThrow();
+    expect(() => service.getToolInstance(ToolType.Pen)).not.toThrow();
   });
 
-  it('should register a new tool', () => {
-    const mockTool: Tool = { type: ToolType.Hand, activate: jest.fn(), deactivate: jest.fn() };
-    service.clearRegistry();
-    service.registerTool(ToolType.Hand, mockTool);
-    expect(service.getTool(ToolType.Hand)).toBe(mockTool);
+  it('should get a tool instance', () => {
+    const handTool = service.getToolInstance(ToolType.Hand);
+    expect(handTool).toBeDefined();
+    expect(handTool.type).toBe(ToolType.Hand);
   });
 
-  it('should throw an error when registering a tool with an existing type', () => {
-    const mockTool: Tool = { type: ToolType.Hand, activate: jest.fn(), deactivate: jest.fn() };
-    service.clearRegistry();
-    service.registerTool(ToolType.Hand, mockTool);
-    expect(() => service.registerTool(ToolType.Hand, mockTool)).toThrowError(
-      `Tool of type '${ToolType.Hand}' is already registered.`
-    );
+  it('should cache tool instances', () => {
+    const handTool1 = service.getToolInstance(ToolType.Hand);
+    const handTool2 = service.getToolInstance(ToolType.Hand);
+    expect(handTool1).toBe(handTool2);
   });
 
-  it('should set the current tool', () => {
-    const mockTool: Tool = { type: ToolType.Pen, activate: jest.fn(), deactivate: jest.fn() };
-    service.clearRegistry();
-    service.registerTool(ToolType.Pen, mockTool);
-    service.setCurrentTool(ToolType.Pen);
-    expect(service.getCurrentTool()).toBe(mockTool);
-    expect(mockTool.activate).toHaveBeenCalled();
+  it('should set the active tool', () => {
+    service.setActiveTool(ToolType.Pen);
+    expect(service.getActiveToolType()).toBe(ToolType.Pen);
   });
 
-  it('should deactivate the previous tool when setting a new tool', () => {
-    const mockTool1: Tool = { type: ToolType.Hand, activate: jest.fn(), deactivate: jest.fn() };
-    const mockTool2: Tool = { type: ToolType.Pen, activate: jest.fn(), deactivate: jest.fn() };
-    service.clearRegistry();
-    service.registerTool(ToolType.Hand, mockTool1);
-    service.registerTool(ToolType.Pen, mockTool2);
-
-    service.setCurrentTool(ToolType.Hand);
-    service.setCurrentTool(ToolType.Pen);
-
-    expect(mockTool1.deactivate).toHaveBeenCalled();
-    expect(mockTool2.activate).toHaveBeenCalled();
+  it('should check if a tool is active', () => {
+    service.setActiveTool(ToolType.Hand);
+    expect(service.isToolActive(ToolType.Hand)).toBe(true);
+    expect(service.isToolActive(ToolType.Pen)).toBe(false);
   });
 
-  it('should throw an error when setting a tool that is not registered', () => {
-    service.clearRegistry();
-    expect(() => service.setCurrentTool(ToolType.Arrow)).toThrow(`Tool of type '${ToolType.Arrow}' not found.`);
+  it('should switch between tools', () => {
+    service.setActiveTool(ToolType.Hand);
+    expect(service.getActiveToolType()).toBe(ToolType.Hand);
+
+    service.setActiveTool(ToolType.Pen);
+    expect(service.getActiveToolType()).toBe(ToolType.Pen);
   });
 
-  it('should get the current tool type', () => {
-    const mockTool: Tool = { type: ToolType.Pen, activate: jest.fn(), deactivate: jest.fn() };
-    service.clearRegistry();
-    service.registerTool(ToolType.Pen, mockTool);
-    service.setCurrentTool(ToolType.Pen);
-    expect(service.getCurrentToolType()).toBe(ToolType.Pen);
+  it('should throw an error when getting a tool instance for unregistered type', () => {
+    // First unregister all tools with the specific type
+    const configs = service.getToolConfigs();
+    configs.forEach((config) => {
+      if (config.type === ToolType.Arrow) {
+        service.unregisterTool(config.id);
+      }
+    });
+
+    expect(() => service.getToolInstance(ToolType.Arrow)).toThrow();
   });
 
-  it('should clear the tool registry', () => {
-    const mockTool: Tool = { type: ToolType.Hand, activate: jest.fn(), deactivate: jest.fn() };
-    service.clearRegistry();
-    service.registerTool(ToolType.Hand, mockTool);
-    service.clearRegistry();
-    expect(() => service.getTool(ToolType.Hand)).toThrowError(`Tool of type '${ToolType.Hand}' not found.`);
+  it('should get the active tool type', () => {
+    service.setActiveTool(ToolType.Pen);
+    expect(service.getActiveToolType()).toBe(ToolType.Pen);
+  });
+
+  it('should check if a tool is registered', () => {
+    expect(service.isToolRegistered(ToolType.Hand)).toBe(true);
+    expect(service.isToolRegistered(ToolType.Pen)).toBe(true);
+  });
+
+  it('should get registered tool types', () => {
+    const toolTypes = service.getRegisteredToolTypes();
+    expect(toolTypes).toContain(ToolType.Hand);
+    expect(toolTypes).toContain(ToolType.Pen);
   });
 });

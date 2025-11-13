@@ -1,20 +1,24 @@
-import { DataService } from '../data/data.service';
-import { Point, Tool, ToolType, WhiteboardConfig } from '../types';
+import { ApiService } from '../api/api.service';
+import { Point, PointerInfo, Tool, ToolType, WhiteboardConfig } from '../types';
+import { CursorType } from '../types/cursors';
 import { getCanvasCoordinates } from '../utils/geometry';
 
 export abstract class BaseTool implements Tool {
   abstract type: ToolType;
   protected active = false;
+  // Base cursor for this tool (used when tool becomes active)
+  baseCursor: CursorType = CursorType.Default;
 
-  constructor(protected dataService: DataService) {}
+  constructor(protected apiService: ApiService) {}
 
   get whiteboardConfig(): WhiteboardConfig {
-    return this.dataService?.getConfig();
+    return this.apiService?.getConfig();
   }
 
-  getPointerPosition(event: PointerEvent): Point {
-    return getCanvasCoordinates(this.dataService.getConfig(), { x: event.offsetX, y: event.offsetY });
+  getPointerPosition({ x, y }: PointerInfo): Point {
+    return getCanvasCoordinates(this.apiService.getConfig(), { x, y });
   }
+
   activate(): void {
     this.active = true;
     this.onActivate?.();
@@ -25,13 +29,23 @@ export abstract class BaseTool implements Tool {
     this.onDeactivate?.();
   }
 
+  protected setCursor(cursor: CursorType) {
+    this.apiService.setCursor(cursor);
+  }
+
+  protected resetCursor() {
+    this.apiService.resetCursor();
+  }
+
   get isActive() {
     return this.active;
   }
 
-  handlePointerDown?(event: PointerEvent): void;
-  handlePointerMove?(event: PointerEvent): void;
-  handlePointerUp?(event: PointerEvent): void;
+  handlePointerDown?(event: PointerInfo): void;
+  handlePointerMove?(event: PointerInfo): void;
+  handlePointerUp?(event: PointerInfo): void;
+  handleKeyDown?(event: KeyboardEvent): void;
+  handleKeyUp?(event: KeyboardEvent): void;
   onActivate?(): void;
   onDeactivate?(): void;
 }

@@ -15,7 +15,6 @@ describe('PenElementUtil', () => {
     expect(penElement.x).toBe(0);
     expect(penElement.y).toBe(0);
     expect(penElement.points).toEqual([]);
-    expect(penElement.path).toBe('');
     expect(penElement.rotation).toBe(0);
     expect(penElement.opacity).toBe(100);
     expect(penElement.style).toBeDefined();
@@ -29,7 +28,6 @@ describe('PenElementUtil', () => {
         [0, 0],
         [10, 10],
       ],
-      path: 'M0 0 L10 10',
       rotation: 45,
       opacity: 80,
       style: { strokeColor: 'red', strokeWidth: 2 },
@@ -43,7 +41,6 @@ describe('PenElementUtil', () => {
       [0, 0],
       [10, 10],
     ]);
-    expect(penElement.path).toBe('M0 0 L10 10');
     expect(penElement.rotation).toBe(45);
     expect(penElement.opacity).toBe(80);
     expect(penElement.style.strokeColor).toBe('red');

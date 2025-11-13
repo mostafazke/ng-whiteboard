@@ -21,6 +21,8 @@ export class ImageElementUtil implements ElementUtil<ImageElement> {
       src: '',
       rotation: 0,
       opacity: 100,
+      zIndex: 1, // Default zIndex, will be overridden by tools
+      selectAfterDraw: true, // Images should be selected after drawing by default
       ...props,
       style: {
         ...defaultElementStyle,

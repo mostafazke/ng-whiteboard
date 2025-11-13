@@ -1,4 +1,4 @@
-import { LineCap, LineJoin } from '.';
+import { LineCap, LineJoin, PenType } from '.';
 
 export interface WhiteboardConfig {
   drawingEnabled: boolean;
@@ -6,6 +6,8 @@ export interface WhiteboardConfig {
   canvasHeight: number;
   fullScreen: boolean;
   center: boolean;
+  canvasX: number;
+  canvasY: number;
   strokeColor: string;
   strokeWidth: number;
   backgroundColor: string;
@@ -22,6 +24,76 @@ export interface WhiteboardConfig {
   enableGrid: boolean;
   gridSize: number;
   snapToGrid: boolean;
-  gridTranslation: { x: number; y: number };
-  elementsTranslation: { x: number; y: number };
+  keyboardShortcutsEnabled: boolean;
+  penType: PenType;
+}
+
+export interface EditorConfig {
+  title: string;
+  showTitle: boolean;
+  showZoom: boolean;
+  showLayers: boolean;
+  showTools: boolean;
+  showGrid: boolean;
+  showBackground: boolean;
+  showStroke: boolean;
+  showFill: boolean;
+  showOpacity: boolean;
+  showFont: boolean;
+  showDash: boolean;
+  showEraser: boolean;
+  showUndo: boolean;
+  showRedo: boolean;
+  showClear: boolean;
+  showSave: boolean;
+  showLoad: boolean;
+  showExport: boolean;
+  showImport: boolean;
+  showShare: boolean;
+  showSettings: boolean;
+  showHelp: boolean;
+  showAbout: boolean;
+  showFeedback: boolean;
+  showSupport: boolean;
+  showContact: boolean;
+  showPrivacy: boolean;
+  showTerms: boolean;
+  showLicense: boolean;
+  showAttribution: boolean;
+  showCredits: boolean;
+  showChangelog: boolean;
+  showReleaseNotes: boolean;
+  showRoadmap: boolean;
+  showBlog: boolean;
+  showForum: boolean;
+  showCommunity: boolean;
+  showEvents: boolean;
+  showWebinars: boolean;
+  showWorkshops: boolean;
+  showTutorials: boolean;
+  showDocumentation: boolean;
+  showAPI: boolean;
+  showSDK: boolean;
+  showCLI: boolean;
+  showPlugins: boolean;
+  showExtensions: boolean;
+  showIntegrations: boolean;
+  showAddons: boolean;
+  showThemes: boolean;
+  showTemplates: boolean;
+  showSnippets: boolean;
+  showExamples: boolean;
+  showDemos: boolean;
+  showSamples: boolean;
+  showShowcases: boolean;
+  showPortfolios: boolean;
+  showCaseStudies: boolean;
+  showSuccessStories: boolean;
+  showTestimonials: boolean;
+  showReviews: boolean;
+  showRatings: boolean;
+  showComparisons: boolean;
+  showAlternatives: boolean;
+  showInsights: boolean;
+  enableEditor: boolean;
 }

@@ -1,48 +1,28 @@
-import { calculatePath, getSvgPathFromStroke } from './path';
+import { getSvgPathFromStroke } from './path';
 
 describe('Path Utils', () => {
-  describe('calculatePath', () => {
-    it('should generate path data for simple points', () => {
-      const points: [number, number][] = [
-        [0, 0],
-        [10, 0],
-        [10, 10],
-        [0, 10],
-      ];
-      const result = calculatePath(points);
-      expect(result).toBeTruthy();
-      expect(typeof result).toBe('string');
-      expect(result).toContain('M'); // Move command
-      expect(result).toContain('Q'); // Quadratic curve command
-      expect(result).toContain('T'); // Smooth quadratic curve command
-      expect(result).toContain('Z'); // Close path command
-    });
-
-    it('should handle custom size parameter', () => {
-      const points: [number, number][] = [
-        [0, 0],
-        [10, 0],
-        [10, 10],
-        [0, 10],
-      ];
-      const result = calculatePath(points, 2);
-      expect(result).toBeTruthy();
-      expect(typeof result).toBe('string');
-    });
-  });
-
   describe('getSvgPathFromStroke', () => {
-    it('should return empty string for too few points', () => {
-      const points: [number, number][] = [
+    it('should return circle path for single point', () => {
+      const points: number[][] = [[5, 10]];
+      const result = getSvgPathFromStroke(points);
+      expect(result).toBeTruthy();
+      expect(result).toContain('M 5 10');
+      expect(result).toContain('a'); // Arc command for circle
+    });
+
+    it('should return line for two points', () => {
+      const points: number[][] = [
         [0, 0],
         [10, 10],
       ];
       const result = getSvgPathFromStroke(points);
-      expect(result).toBe('');
+      expect(result).toBeTruthy();
+      expect(result).toContain('M');
+      expect(result).toContain('L');
     });
 
     it('should generate path data for sufficient points', () => {
-      const points: [number, number][] = [
+      const points: number[][] = [
         [0, 0],
         [5, 5],
         [10, 10],
@@ -56,7 +36,7 @@ describe('Path Utils', () => {
     });
 
     it('should handle closed path option', () => {
-      const points: [number, number][] = [
+      const points: number[][] = [
         [0, 0],
         [5, 5],
         [10, 10],
@@ -70,17 +50,30 @@ describe('Path Utils', () => {
     });
 
     it('should format numbers with fixed precision', () => {
-      const points: [number, number][] = [
-        [0.12345, 0.12345],
-        [5.12345, 5.12345],
-        [10.12345, 10.12345],
-        [15.12345, 15.12345],
+      const points: number[][] = [
+        [0.123456, 0.123456],
+        [5.123456, 5.123456],
+        [10.123456, 10.123456],
+        [15.123456, 15.123456],
       ];
       const result = getSvgPathFromStroke(points);
       const numbers = result.match(/\d+\.\d+/g);
       numbers?.forEach((num) => {
-        expect(num.split('.')[1].length).toBeLessThanOrEqual(2);
+        const decimals = num.split('.')[1];
+        expect(decimals.length).toBeLessThanOrEqual(4);
       });
+    });
+
+    it('should handle three points correctly', () => {
+      const points: number[][] = [
+        [0, 0],
+        [5, 5],
+        [10, 10],
+      ];
+      const result = getSvgPathFromStroke(points);
+      expect(result).toBeTruthy();
+      expect(result).toContain('M');
+      expect(result).toContain('Q');
     });
   });
 });

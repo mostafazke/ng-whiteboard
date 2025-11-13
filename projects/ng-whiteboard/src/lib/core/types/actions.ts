@@ -1,4 +1,4 @@
-import { FormatType, AddImage, WhiteboardElement, ToolType } from '.';
+import { FormatType, AddImage, WhiteboardElement, ToolType, WhiteboardConfig } from '.';
 
 export enum ActionType {
   Save = 'save',
@@ -10,6 +10,7 @@ export enum ActionType {
   AddElement = 'addElement',
   UpdateElement = 'updateElement',
   RemoveElements = 'removeElements',
+  RemoveSelectedElements = 'removeSelectedElements',
   SelectElements = 'selectElements',
   ToggleSelection = 'toggleSelection',
   DeselectElement = 'deselectElement',
@@ -23,7 +24,26 @@ export enum ActionType {
   UpdateElementsTranslation = 'updateElementsTranslation',
   FullScreen = 'fullScreen',
   CenterCanvas = 'centerCanvas',
+  ZoomIn = 'zoomIn',
+  ZoomOut = 'zoomOut',
+  Zoom = 'zoom',
+  ZoomToFit = 'zoomToFit',
+  ZoomToSelection = 'zoomToSelection',
+  ResetZoom = 'resetZoom',
+  SetBackgroundColor = 'setBackgroundColor',
+  UpdateConfig = 'updateConfig',
   Batch = 'batch',
+  // Layer Management Actions
+  AddLayer = 'addLayer',
+  RemoveLayer = 'removeLayer',
+  RenameLayer = 'renameLayer',
+  SetActiveLayer = 'setActiveLayer',
+  ToggleLayerVisibility = 'toggleLayerVisibility',
+  ToggleLayerLock = 'toggleLayerLock',
+  SetLayerOpacity = 'setLayerOpacity',
+  SetLayerBlendMode = 'setLayerBlendMode',
+  MoveLayerUp = 'moveLayerUp',
+  MoveLayerDown = 'moveLayerDown',
 }
 
 export type WhiteboardAction =
@@ -36,6 +56,7 @@ export type WhiteboardAction =
   | { type: ActionType.AddElement; payload: { element: WhiteboardElement } }
   | { type: ActionType.UpdateElement; payload: { element: WhiteboardElement } }
   | { type: ActionType.RemoveElements; payload: { ids: string[] } }
+  | { type: ActionType.RemoveSelectedElements }
   | {
       type: ActionType.SelectElements;
       payload: { elementsOrIds: WhiteboardElement | WhiteboardElement[] | string | string[] };
@@ -52,6 +73,25 @@ export type WhiteboardAction =
   | { type: ActionType.UpdateElementsTranslation; payload: { dx: number; dy: number } }
   | { type: ActionType.FullScreen }
   | { type: ActionType.CenterCanvas }
-  | { type: ActionType.Batch; payload: WhiteboardAction[] };
+  | { type: ActionType.ZoomIn }
+  | { type: ActionType.ZoomOut }
+  | { type: ActionType.Zoom; payload: { zoom: number } }
+  | { type: ActionType.ZoomToFit }
+  | { type: ActionType.ZoomToSelection }
+  | { type: ActionType.ResetZoom }
+  | { type: ActionType.SetBackgroundColor; payload: { color: string } }
+  | { type: ActionType.UpdateConfig; payload: { config: Partial<WhiteboardConfig> } }
+  | { type: ActionType.Batch; payload: WhiteboardAction[] }
+  // Layer Management Actions
+  | { type: ActionType.AddLayer; payload: { name?: string } }
+  | { type: ActionType.RemoveLayer; payload: { id: string } }
+  | { type: ActionType.RenameLayer; payload: { id: string; name: string } }
+  | { type: ActionType.SetActiveLayer; payload: { id: string } }
+  | { type: ActionType.ToggleLayerVisibility; payload: { id: string } }
+  | { type: ActionType.ToggleLayerLock; payload: { id: string } }
+  | { type: ActionType.SetLayerOpacity; payload: { id: string; opacity: number } }
+  | { type: ActionType.SetLayerBlendMode; payload: { id: string; blendMode: string } }
+  | { type: ActionType.MoveLayerUp; payload: { id: string } }
+  | { type: ActionType.MoveLayerDown; payload: { id: string } };
 
 export type Priority = 'high' | 'normal' | 'low';
