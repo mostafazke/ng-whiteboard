@@ -1,26 +1,54 @@
-<app-header tagline="Examples"></app-header>
+<app-header tagline="Interactive Examples"></app-header>
 
-<section class="main-content">
-  <h3>
-    <a id="minimal" class="anchor" href="#minimal" aria-hidden="true"
-      ><span aria-hidden="true" class="octicon octicon-link"></span></a
-    >Minimal
-  </h3>
-  <app-minimal-component></app-minimal-component>
+<section class="examples-page">
+  <div class="container">
+    <div class="intro">
+      <h1>Examples</h1>
+      <p class="lead">
+        Explore different implementation examples showcasing various features and configurations of ng-whiteboard. From
+        minimal setups to comprehensive implementations.
+      </p>
+    </div>
 
-  <h3>
-    <a id="basic" class="anchor" href="#basic" aria-hidden="true"
-      ><span aria-hidden="true" class="octicon octicon-link"></span></a
-    >Basic
-  </h3>
-  <app-basic-component></app-basic-component>
+    <div class="example-section">
+      <div class="example-header">
+        <h2 id="minimal">
+          <a class="anchor" href="#minimal" aria-label="Minimal example">#</a>
+          Minimal Example
+        </h2>
+        <p>A simple, bare-bones implementation with minimal configuration.</p>
+      </div>
+      <div class="example-content">
+        <app-minimal-component></app-minimal-component>
+      </div>
+    </div>
 
-  <h3>
-    <a id="comprehensive" class="anchor" href="#comprehensive" aria-hidden="true"
-      ><span aria-hidden="true" class="octicon octicon-link"></span></a
-    >Comprehensive
-  </h3>
-  <div class="demo">
-    <app-comprehensive-component></app-comprehensive-component>
+    <div class="example-section">
+      <div class="example-header">
+        <h2 id="basic">
+          <a class="anchor" href="#basic" aria-label="Basic example">#</a>
+          Basic Example
+        </h2>
+        <p>A standard implementation with common features and controls.</p>
+      </div>
+      <div class="example-content">
+        <app-basic-component></app-basic-component>
+      </div>
+    </div>
+
+    <div class="example-section">
+      <div class="example-header">
+        <h2 id="comprehensive">
+          <a class="anchor" href="#comprehensive" aria-label="Comprehensive example">#</a>
+          Comprehensive Example
+        </h2>
+        <p>A full-featured implementation showcasing all available tools and options.</p>
+      </div>
+      <div class="example-content">
+        <div class="demo">
+          <app-comprehensive-component></app-comprehensive-component>
+        </div>
+      </div>
+    </div>
   </div>
 </section>

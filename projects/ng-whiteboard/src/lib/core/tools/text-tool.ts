@@ -1,16 +1,18 @@
 import { TextElement } from '../elements';
 import { createElement } from '../elements/element.utils';
-import { ElementType, ToolType, WhiteboardElementStyle } from '../types';
+import { ElementType, PointerInfo, ToolType, WhiteboardElementStyle } from '../types';
 import { getTargetElement } from '../utils/dom';
 import { snapToGrid } from '../utils/geometry';
 import { BaseTool } from './base-tool';
+import { CursorType } from '../types/cursors';
 
 export class TextTool extends BaseTool {
   type = ToolType.Text;
+  override baseCursor = CursorType.Text;
   private textElement: TextElement | null = null;
-  private textInput: HTMLInputElement | null = null;
+  private textInput: HTMLTextAreaElement | null = null;
 
-  override handlePointerDown(event: PointerEvent): void {
+  override handlePointerDown(event: PointerInfo): void {
     if (!this.active) return;
 
     if (this.textInput) {
@@ -18,18 +20,18 @@ export class TextTool extends BaseTool {
       return;
     }
 
-    // Check if the user clicked on an existing text element
-    const targetElement = getTargetElement(event, this.dataService.getData());
+    const targetElement = getTargetElement(event, this.apiService.getElements());
     if (targetElement && targetElement.type === ElementType.Text) {
       this.textElement = targetElement;
       this.createTextInput(targetElement.x, targetElement.y, targetElement.text);
       return;
     }
 
-    // Create a new text element
     const { x, y } = this.getPointerPosition(event);
-    this.textElement = this.createTextElement(x, y);
-    this.createTextInput(x, y);
+    const fontSize = this.whiteboardConfig.fontSize || 16;
+    const adjustedY = y + fontSize * 0.8;
+    this.textElement = this.createTextElement(x, adjustedY);
+    this.createTextInput(x, adjustedY, '', event);
   }
 
   override handlePointerUp(): void {
@@ -40,55 +42,129 @@ export class TextTool extends BaseTool {
   }
   private createTextElement(x: number, y: number): TextElement {
     const { snapToGrid: allowedSnap, gridSize } = this.whiteboardConfig;
-    return createElement(ElementType.Text, {
-      x: allowedSnap ? snapToGrid(x, gridSize) : x,
-      y: allowedSnap ? snapToGrid(y, gridSize) : y,
-      text: '',
-      style: this.getElementStyle(),
-    });
+    return createElement(
+      ElementType.Text,
+      {
+        x: allowedSnap ? snapToGrid(x, gridSize) : x,
+        y: allowedSnap ? snapToGrid(y, gridSize) : y,
+        text: '',
+        style: this.getElementStyle(),
+        zIndex: this.apiService.getNextZIndex(),
+      },
+      this.apiService.getActiveLayerId()
+    );
   }
 
-  private createTextInput(x: number, y: number, initialValue = ''): void {
-    const { zoom, elementsTranslation } = this.whiteboardConfig;
-    const input = this.dataService.getCanvas().parentElement?.querySelector('#textInput') as HTMLInputElement;
+  private createTextInput(x: number, y: number, initialValue = '', event?: PointerInfo): void {
+    const borderOffset = 1;
+    const fontSize = this.textElement?.style?.fontSize || 16;
+    const baselineOffset = fontSize * 0.8;
 
-    input.value = initialValue;
-    input.style.left = `${(x - Math.abs(elementsTranslation.x)) * zoom}px`;
-    input.style.top = `${(y - Math.abs(elementsTranslation.y)) * zoom}px`;
-    input.style.fontFamily = this.textElement?.style.fontFamily || this.whiteboardConfig.fontFamily;
-    input.style.fontSize = `${this.textElement?.style.fontSize || this.whiteboardConfig.fontSize}px`;
-    input.style.color = this.textElement?.style.color || this.whiteboardConfig.strokeColor;
-    input.style.transform = `scale(${this.textElement?.scaleX || 1}, ${this.textElement?.scaleY || 1})`;
-    input.style.display = 'block';
+    const svgElement = this.apiService.getCanvas();
+    const container = svgElement.parentElement;
 
-    input.addEventListener('input', () => this.handleTextInput(input));
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') this.finishTextInput();
+    if (!container) {
+      console.error('Cannot find whiteboard container');
+      return;
+    }
+
+    const containerRect = container.getBoundingClientRect();
+
+    let calculatedLeft: number;
+    let calculatedTop: number;
+
+    if (event) {
+      calculatedLeft = event.clientX - containerRect.left - borderOffset;
+      calculatedTop = event.clientY - containerRect.top - borderOffset;
+    } else {
+      const config = this.whiteboardConfig;
+      calculatedLeft = config.canvasX + (x + config.x) * config.zoom - borderOffset;
+      calculatedTop = config.canvasY + (y + config.y) * config.zoom - borderOffset - baselineOffset * config.zoom;
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.id = 'whiteboard-text-input';
+    textarea.setAttribute('aria-label', 'Text input');
+
+    textarea.style.position = 'absolute';
+    textarea.style.left = `${calculatedLeft}px`;
+    textarea.style.top = `${calculatedTop}px`;
+    textarea.style.fontSize = `${this.textElement?.style?.fontSize || 16}px`;
+    textarea.style.fontFamily = this.textElement?.style?.fontFamily || 'Arial';
+    textarea.style.color = this.textElement?.style?.color || '#000000';
+    textarea.style.fontWeight = this.textElement?.style?.fontWeight || 'normal';
+    textarea.style.fontStyle = this.textElement?.style?.fontStyle || 'normal';
+    textarea.style.border = '1px dashed #000';
+    textarea.style.background = 'white';
+    textarea.style.outline = 'none';
+    textarea.style.resize = 'none';
+    textarea.style.overflow = 'hidden';
+    textarea.style.lineHeight = '1.2';
+    textarea.style.whiteSpace = 'pre-wrap';
+    textarea.style.margin = '0';
+    textarea.style.padding = '2px';
+    textarea.style.boxSizing = 'border-box';
+    textarea.style.zIndex = '10000';
+    textarea.style.pointerEvents = 'auto';
+    textarea.value = initialValue;
+    textarea.rows = 1;
+
+    textarea.addEventListener('input', () => this.handleTextInput(textarea));
+    textarea.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && e.ctrlKey) {
+        e.preventDefault();
+        this.finishTextInput();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        this.finishTextInput();
+      }
     });
-    this.textInput = input;
+
+    if (container) {
+      container.appendChild(textarea);
+    } else {
+      document.body.appendChild(textarea);
+    }
+    textarea.focus();
+
+    this.textInput = textarea;
+    this.handleTextInput(textarea);
   }
 
-  private handleTextInput(input: HTMLInputElement): void {
-    input.style.width = `${input.value.length}ch`;
+  private handleTextInput(input: HTMLTextAreaElement): void {
+    const lines = input.value.split('\n');
+    const maxLineLength = lines.reduce((max, line) => Math.max(max, line.length), 0);
+    input.style.width = `${Math.max(maxLineLength, 10)}ch`;
+    input.rows = Math.max(lines.length, 1);
 
     if (this.textElement) {
       this.textElement.text = input.value;
-      this.dataService.updateElements(this.textElement);
+      this.apiService.updateElements([this.textElement]);
     }
   }
 
   private finishTextInput(): void {
     if (this.textInput && this.textElement) {
       if (this.textInput.value.trim()) {
-        if (!this.dataService.hasElement(this.textElement)) {
-          this.dataService.addElements(this.textElement);
-          this.dataService.pushToUndo();
+        if (!this.apiService.elementExists(this.textElement.id)) {
+          this.apiService.addElements([this.textElement]);
+
+          if (this.textElement.selectAfterDraw) {
+            this.apiService.selectElements([this.textElement.id]);
+          }
         }
       } else {
-        this.dataService.removeElements([this.textElement.id]);
+        this.apiService.removeElements([this.textElement]);
       }
 
-      this.textInput.style.display = 'none';
+      try {
+        if (this.textInput.parentElement) {
+          this.textInput.parentElement.removeChild(this.textInput);
+        }
+      } catch {
+        // Textarea already removed
+      }
+
       this.textInput = null;
       this.textElement = null;
     }

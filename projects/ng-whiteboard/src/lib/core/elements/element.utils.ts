@@ -21,6 +21,19 @@ export function getElementUtil(type: ElementType) {
   return elementUtilsMap[type];
 }
 
-export function createElement<T extends ElementType>(type: T, props: Partial<ElementByType<T>>) {
-  return elementUtilsMap[type].create(props) as ElementByType<T>;
+// Global active layer provider (set by EditorStateService)
+let getActiveLayerId: (() => string) | null = null;
+
+export function setActiveLayerProvider(provider: () => string) {
+  getActiveLayerId = provider;
+}
+
+export function createElement<T extends ElementType>(
+  type: T,
+  props: Partial<ElementByType<T>>,
+  layerId?: string
+): ElementByType<T> {
+  const targetLayerId = layerId || (getActiveLayerId ? getActiveLayerId() : '');
+  const elementProps = { ...props, layerId: targetLayerId } as Partial<ElementByType<T>>;
+  return elementUtilsMap[type].create(elementProps) as ElementByType<T>;
 }

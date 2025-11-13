@@ -1,6 +1,5 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-// Cursor types
 const CURSOR_NW_RESIZE = 'nw-resize';
 const CURSOR_NE_RESIZE = 'ne-resize';
 const CURSOR_NS_RESIZE = 'ns-resize';
@@ -8,11 +7,9 @@ const CURSOR_EW_RESIZE = 'ew-resize';
 const CURSOR_GRAB = 'grab';
 const CURSOR_DEFAULT = 'default';
 
-// Rotation thresholds
 const MIN_ANGLE_THRESHOLD = 45;
 const MAX_ANGLE_THRESHOLD = 135;
 
-// Grip identifiers
 const ROTATE_IDENTIFIER = 'rotate';
 
 @Pipe({

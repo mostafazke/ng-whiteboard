@@ -1,15 +1,17 @@
 import { EllipseElement } from '../elements';
 import { createElement } from '../elements/element.utils';
-import { ToolType, ElementType, WhiteboardElementStyle, Point } from '../types';
+import { ToolType, ElementType, WhiteboardElementStyle, Point, PointerInfo } from '../types';
 import { snapToGrid } from '../utils/geometry';
 import { BaseTool } from './base-tool';
+import { CursorType } from '../types/cursors';
 
 export class EllipseTool extends BaseTool {
   type = ToolType.Ellipse;
+  override baseCursor = CursorType.Crosshair;
   element: EllipseElement | null = null;
   startPoint: Point | null = null;
 
-  override handlePointerDown(event: PointerEvent): void {
+  override handlePointerDown(event: PointerInfo): void {
     if (!this.active) return;
 
     let { x, y } = this.getPointerPosition(event);
@@ -22,47 +24,60 @@ export class EllipseTool extends BaseTool {
     }
     this.startPoint = { x, y };
 
-    this.element = createElement(ElementType.Ellipse, {
-      cx: x,
-      cy: y,
-      style: this.getElementStyle(),
-    });
+    this.element = createElement(
+      ElementType.Ellipse,
+      {
+        cx: x,
+        cy: y,
+        style: this.getElementStyle(),
+        zIndex: this.apiService.getNextZIndex(),
+      },
+      this.apiService.getActiveLayerId()
+    );
 
-    this.dataService.addToDraft(this.element);
+    this.apiService.addDraftElements([this.element]);
   }
 
-  override handlePointerMove(event: PointerEvent): void {
+  override handlePointerMove(event: PointerInfo): void {
     if (!this.active || !this.element || !this.startPoint) return;
 
     const { x, y } = this.getPointerPosition(event);
-    const start_x = this.startPoint.x;
-    const start_y = this.startPoint.y;
-    let cx = Math.abs(start_x + (x - start_x) / 2);
-    let cy = Math.abs(start_y + (y - start_y) / 2);
-    let rx = Math.abs(start_x - cx);
-    let ry = Math.abs(start_y - cy);
+    const { x: startX, y: startY } = this.startPoint;
 
-    if (event.shiftKey) {
-      ry = rx;
-      cy = y > start_y ? start_y + rx : start_y - rx;
-    }
+    let cx: number, cy: number, rx: number, ry: number;
+
     if (event.altKey) {
-      cx = start_x;
-      cy = start_y;
+      // Draw from center
+      cx = startX;
+      cy = startY;
       rx = Math.abs(x - cx);
       ry = event.shiftKey ? rx : Math.abs(y - cy);
+    } else {
+      // Draw from corner
+      cx = (startX + x) / 2;
+      cy = (startY + y) / 2;
+      rx = Math.abs(startX - x) / 2;
+      ry = event.shiftKey ? rx : Math.abs(startY - y) / 2;
+
+      if (event.shiftKey) {
+        cy = y > startY ? startY + rx : startY - rx;
+      }
     }
 
-    this.element.rx = rx;
-    this.element.ry = ry;
-    this.element.cx = cx;
-    this.element.cy = cy;
+    this.apiService.updateDraftElements([{ id: this.element.id, rx, ry, cx, cy }]);
   }
 
   override handlePointerUp(): void {
     if (!this.active) return;
     if (this.element && this.startPoint) {
-      this.dataService.commitDraftToData();
+      const element = this.element;
+      this.apiService.commitDraftElements();
+
+      // Handle selection based on element's selectAfterDraw property
+      if (element.selectAfterDraw) {
+        this.apiService.selectElements([element.id]);
+      }
+
       this.startPoint = null;
       this.element = null;
     }

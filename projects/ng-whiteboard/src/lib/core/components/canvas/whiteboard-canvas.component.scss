@@ -1,0 +1,55 @@
+:host {
+  width: inherit;
+  height: inherit;
+  min-width: inherit;
+  min-height: inherit;
+  max-width: inherit;
+  max-height: inherit;
+  .svgroot {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    user-select: none;
+    outline: none; // Remove focus outline for better UX
+
+    // Ensure the SVG can receive focus for keyboard events
+    &:focus {
+      outline: none;
+    }
+    width: inherit;
+    height: inherit;
+    min-width: inherit;
+    min-height: inherit;
+    max-width: inherit;
+    max-height: inherit;
+    background-size: cover;
+    background-position: 50%;
+    background-repeat: no-repeat;
+    touch-action: none;
+
+    .wb_element,
+    .selectorGroup {
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+    .text {
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .handlers {
+      display: none;
+    }
+    .onMove {
+      cursor: move;
+      .handlers {
+        display: block;
+      }
+    }
+  }
+
+  .select .wb_element {
+    cursor: pointer;
+  }
+}

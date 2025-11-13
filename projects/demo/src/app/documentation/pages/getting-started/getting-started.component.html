@@ -1,0 +1,139 @@
+<div class="doc-section">
+  <h2><span class="material-icons">rocket_launch</span> Getting Started</h2>
+
+  <section class="subsection">
+    <h3><span class="material-icons">download</span> Installation</h3>
+    <p>Install ng-whiteboard via npm or yarn:</p>
+    <pre><code>npm install ng-whiteboard
+# or
+yarn add ng-whiteboard</code></pre>
+  </section>
+
+  <section class="subsection">
+    <h3><span class="material-icons">build</span> Basic Setup</h3>
+    <h4>For Standalone Components</h4>
+    <p>Import the component directly in your standalone component:</p>
+    <pre><code>import &#123; Component &#125; from '&#64;angular/core';
+import &#123; NgWhiteboardComponent &#125; from 'ng-whiteboard';
+
+&#64;Component(&#123;
+  selector: 'app-my-component',
+  standalone: true,
+  imports: [NgWhiteboardComponent],
+  template: '&lt;ng-whiteboard&gt;&lt;/ng-whiteboard&gt;'
+&#125;)
+export class MyComponent &#123;&#125;</code></pre>
+
+    <h4>For NgModules</h4>
+    <p>Import the component in your module:</p>
+    <pre><code>import &#123; NgWhiteboardComponent &#125; from 'ng-whiteboard';
+
+&#64;NgModule(&#123;
+  imports: [NgWhiteboardComponent],
+  // other imports
+&#125;)
+export class AppModule &#123;&#125;</code></pre>
+  </section>
+
+  <section class="subsection">
+    <h3>💻 Basic Usage</h3>
+    <p>Here's a simple working example:</p>
+    <pre><code>&lt;ng-whiteboard&gt;&lt;/ng-whiteboard&gt;</code></pre>
+  </section>
+
+  <section class="subsection">
+    <h3><span class="material-icons">settings</span> Configuration Example</h3>
+    <p>Configure the whiteboard with custom options:</p>
+    <pre><code>import &#123; Component &#125; from '&#64;angular/core';
+import &#123; NgWhiteboardComponent, WhiteboardConfig &#125; from 'ng-whiteboard';
+
+&#64;Component(&#123;
+  selector: 'app-configured-whiteboard',
+  standalone: true,
+  imports: [NgWhiteboardComponent],
+  template: `
+    &lt;ng-whiteboard
+      [config]="whiteboardConfig"
+      (ready)="onReady()"
+      (dataChange)="onDataChange($event)"
+    &gt;&lt;/ng-whiteboard&gt;
+  `
+&#125;)
+export class ConfiguredWhiteboardComponent &#123;
+  whiteboardConfig: Partial&lt;WhiteboardConfig&gt; = &#123;
+    canvasWidth: 1024,
+    canvasHeight: 768,
+    fullScreen: false,
+    strokeColor: '#2c80b1',
+    strokeWidth: 3,
+    backgroundColor: '#ffffff'
+  &#125;;
+
+  onReady() &#123;
+    console.log('Whiteboard is ready!');
+  &#125;
+
+  onDataChange(data: any[]) &#123;
+    console.log('Data changed:', data);
+  &#125;
+&#125;</code></pre>
+  </section>
+
+  <section class="subsection">
+    <h3><span class="material-icons">track_changes</span> Using the Service API</h3>
+    <p>For programmatic control, inject <code>NgWhiteboardService</code>:</p>
+    <pre><code>import &#123; Component, inject &#125; from '&#64;angular/core';
+import &#123; NgWhiteboardComponent, NgWhiteboardService &#125; from 'ng-whiteboard';
+
+&#64;Component(&#123;
+  selector: 'app-interactive-whiteboard',
+  standalone: true,
+  imports: [NgWhiteboardComponent],
+  providers: [NgWhiteboardService],
+  template: `
+    &lt;ng-whiteboard [boardId]="boardId"&gt;&lt;/ng-whiteboard&gt;
+    &lt;button (click)="undo()"&gt;Undo&lt;/button&gt;
+    &lt;button (click)="redo()"&gt;Redo&lt;/button&gt;
+    &lt;button (click)="clear()"&gt;Clear&lt;/button&gt;
+  `
+&#125;)
+export class InteractiveWhiteboardComponent &#123;
+  private whiteboardService = inject(NgWhiteboardService);
+  boardId = 'my-board';
+
+  ngOnInit() &#123;
+    this.whiteboardService.setActiveBoard(this.boardId);
+  &#125;
+
+  undo() &#123;
+    this.whiteboardService.undo();
+  &#125;
+
+  redo() &#123;
+    this.whiteboardService.redo();
+  &#125;
+
+  clear() &#123;
+    this.whiteboardService.clear();
+  &#125;
+&#125;</code></pre>
+  </section>
+
+  <section class="subsection">
+    <h3>📚 Next Steps</h3>
+    <ul>
+      <li>
+        Explore the <a routerLink="/documentation/api-reference">API Reference</a> for all available inputs, outputs,
+        and methods
+      </li>
+      <li>
+        Check out <a routerLink="/documentation/keyboard-shortcuts">Keyboard Shortcuts</a> to boost your productivity
+      </li>
+      <li>View <a routerLink="/examples">Examples</a> for more complex use cases and implementations</li>
+      <li>
+        Visit our <a href="https://github.com/mostafazke/ng-whiteboard" target="_blank">GitHub repository</a> for issues
+        and contributions
+      </li>
+    </ul>
+  </section>
+</div>

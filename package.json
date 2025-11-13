@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@angular/animations": "^17.3.0",
+    "@angular/cdk": "^17.3.0",
     "@angular/common": "^17.3.0",
     "@angular/compiler": "^17.3.0",
     "@angular/core": "^17.3.0",
@@ -37,7 +38,6 @@
     "firebase": "11.10.0",
     "highlight.js": "~11.11.0",
     "ngx-colors": "^3.6.0",
-    "perfect-freehand": "^1.2.2",
     "rxjs": "~7.8.0",
     "zone.js": "~0.15.1"
   },

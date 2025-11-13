@@ -1,18 +1,20 @@
 import { LineElement } from '../elements';
 import { createElement } from '../elements/element.utils';
-import { ElementType, Point, ToolType, WhiteboardElementStyle } from '../types';
+import { ElementType, Point, PointerInfo, ToolType, WhiteboardElementStyle } from '../types';
 import { snapToAngle, snapToGrid } from '../utils/geometry';
 import { BaseTool } from './base-tool';
+import { CursorType } from '../types/cursors';
 
 export class LineTool extends BaseTool {
   type = ToolType.Line;
+  override baseCursor = CursorType.Crosshair;
   element: LineElement | null = null;
   startPoint: Point | null = null;
   private lastX = 0;
   private lastY = 0;
   private readonly MIN_LENGTH = 2;
 
-  override handlePointerDown(event: PointerEvent): void {
+  override handlePointerDown(event: PointerInfo): void {
     if (!this.active) return;
 
     let { x, y } = this.getPointerPosition(event);
@@ -28,18 +30,23 @@ export class LineTool extends BaseTool {
     this.lastX = x;
     this.lastY = y;
 
-    this.element = createElement(ElementType.Line, {
-      x1: x,
-      y1: y,
-      x2: x,
-      y2: y,
-      style: this.getElementStyle(),
-    });
+    this.element = createElement(
+      ElementType.Line,
+      {
+        x1: x,
+        y1: y,
+        x2: x,
+        y2: y,
+        style: this.getElementStyle(),
+        zIndex: this.apiService.getNextZIndex(),
+      },
+      this.apiService.getActiveLayerId()
+    );
 
-    this.dataService.addToDraft(this.element);
+    this.apiService.addDraftElements([this.element]);
   }
 
-  override handlePointerMove(event: PointerEvent): void {
+  override handlePointerMove(event: PointerInfo): void {
     if (!this.active || !this.element) return;
 
     const coords = this.getPointerPosition(event);
@@ -62,8 +69,7 @@ export class LineTool extends BaseTool {
 
     // Only update if the movement is significant
     if (Math.abs(x2 - this.lastX) > this.MIN_LENGTH || Math.abs(y2 - this.lastY) > this.MIN_LENGTH) {
-      this.element.x2 = x2;
-      this.element.y2 = y2;
+      this.apiService.updateDraftElements([{ id: this.element.id, x2, y2 }]);
       this.lastX = x2;
       this.lastY = y2;
     }
@@ -73,7 +79,14 @@ export class LineTool extends BaseTool {
     if (!this.active) return;
 
     if (this.element && this.startPoint) {
-      this.dataService.commitDraftToData();
+      const element = this.element;
+      this.apiService.commitDraftElements();
+
+      // Handle selection based on element's selectAfterDraw property
+      if (element.selectAfterDraw) {
+        this.apiService.selectElements([element.id]);
+      }
+
       this.startPoint = null;
       this.element = null;
     }

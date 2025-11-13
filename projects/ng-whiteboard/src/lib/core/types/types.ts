@@ -5,6 +5,17 @@ export enum FormatType {
   Base64 = 'base64',
 }
 
+export enum AlignmentType {
+  Left = 'left',
+  Center = 'center',
+  Right = 'right',
+  Top = 'top',
+  Middle = 'middle',
+  Bottom = 'bottom',
+  DistributeHorizontally = 'distribute-horizontally',
+  DistributeVertically = 'distribute-vertically',
+}
+
 export enum LineCap {
   Round = 'round',
   Butt = 'butt',
