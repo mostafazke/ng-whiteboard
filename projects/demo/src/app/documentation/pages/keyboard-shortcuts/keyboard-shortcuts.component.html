@@ -1,0 +1,61 @@
+<div class="doc-section">
+  <h2><span class="material-icons">keyboard</span> Keyboard Shortcuts</h2>
+
+  <div class="intro">
+    <p>Boost your productivity with these keyboard shortcuts. All shortcuts work when the canvas is focused.</p>
+    <div class="note">
+      <strong><span class="material-icons">info</span> Note:</strong> On macOS, use <kbd>Cmd</kbd> (⌘) instead of
+      <kbd>Ctrl</kbd>
+    </div>
+  </div>
+  <div class="shortcuts-container">
+    <div class="shortcuts-grid">
+      @for (category of shortcutCategories; track category.title) {
+      <div class="category-group">
+        <h4 class="category-title">{{ category.title }}</h4>
+        @for (shortcut of category.shortcuts; track shortcut.action) {
+        <div class="shortcut-item">
+          <div class="shortcut-keys">
+            @if (shortcut.arrowKeys && shortcut.arrowKeys.length > 0) {
+            <!-- Has arrow keys - render modifiers first -->
+            @for (modifier of shortcut.modifierKeys || []; track modifier) {
+            <kbd>{{ modifier }}</kbd>
+            <span class="separator">+</span>
+            }
+            <!-- Then render arrows with / separator -->
+            @for (arrow of shortcut.arrowKeys; track arrow; let isLast = $last) {
+            <kbd>{{ arrow }}</kbd>
+            @if (!isLast) {
+            <span class="separator">/</span>
+            } } } @else {
+            <!-- No arrow keys - normal display -->
+            @for (key of shortcut.keys; track key; let isLast = $last) {
+            <kbd>{{ key }}</kbd>
+            @if (!isLast) {
+            <span class="separator">+</span>
+            } } }
+          </div>
+          <span class="shortcut-action">{{ shortcut.action }}</span>
+        </div>
+        }
+      </div>
+      }
+    </div>
+  </div>
+  <div class="footer-info">
+    <div class="info-card">
+      <span class="material-icons">settings</span>
+      <div>
+        <strong>Toggle Shortcuts</strong>
+        <p>Set <code>keyboardShortcutsEnabled: false</code> in config to disable</p>
+      </div>
+    </div>
+    <div class="info-card">
+      <span class="material-icons">lightbulb</span>
+      <div>
+        <strong>Pro Tip</strong>
+        <p>Hold <kbd>Space</kbd> to temporarily activate the Hand tool for panning</p>
+      </div>
+    </div>
+  </div>
+</div>

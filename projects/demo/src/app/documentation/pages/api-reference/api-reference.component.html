@@ -1,0 +1,950 @@
+<div class="doc-section api-reference">
+  <h2><span class="material-icons">menu_book</span> API Reference</h2>
+
+  <div class="note-section">
+    <div class="note info">
+      <strong><span class="material-icons">info</span> Multi-Instance Support:</strong>
+      <p>
+        ng-whiteboard supports multiple independent whiteboard instances. When using <code>NgWhiteboardService</code>,
+        you must specify which board you're working with using <code>setActiveBoard(boardId)</code>.
+      </p>
+    </div>
+  </div>
+
+  <div class="tabs-container">
+    <div class="tabs-nav">
+      @for (tab of tabs; track tab.id) {
+      <button class="tab-button" [class.active]="activeTab === tab.id" (click)="setActiveTab(tab.id)">
+        <span class="material-icons">{{ tab.icon }}</span>
+        {{ tab.label }}
+      </button>
+      }
+    </div>
+
+    <div class="tabs-content">
+      @switch (activeTab) { @case ('component') {
+      <div class="tab-pane">
+        <h3><span class="material-icons">input</span> Component Inputs</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Input</th>
+                <th>Type</th>
+                <th>Default</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>boardId</code></td>
+                <td><code>string</code></td>
+                <td><code>auto-generated UUID</code></td>
+                <td>Unique identifier for this whiteboard instance</td>
+              </tr>
+              <tr>
+                <td><code>config</code></td>
+                <td><code>Partial&lt;WhiteboardConfig&gt;</code></td>
+                <td><code>see defaults</code></td>
+                <td>Whiteboard configuration (see Configuration tab for all properties and defaults)</td>
+              </tr>
+              <tr>
+                <td><code>data</code></td>
+                <td><code>WhiteboardElement[]</code></td>
+                <td><code>[]</code></td>
+                <td>Initial whiteboard data/elements to load</td>
+              </tr>
+              <tr>
+                <td><code>selectedTool</code></td>
+                <td><code>ToolType</code></td>
+                <td><code>-</code></td>
+                <td>The currently selected drawing tool (use ToolType enum values)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="mt-3"><span class="material-icons">output</span> Component Outputs/Events</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Event</th>
+                <th>Payload</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>(ready)</code></td>
+                <td><code>void</code></td>
+                <td>Whiteboard is initialized and ready</td>
+              </tr>
+              <tr>
+                <td><code>(destroyed)</code></td>
+                <td><code>void</code></td>
+                <td>Whiteboard component is destroyed</td>
+              </tr>
+              <tr>
+                <td><code>(drawStart)</code></td>
+                <td><code>&#123; x: number, y: number &#125;</code></td>
+                <td>User started drawing</td>
+              </tr>
+              <tr>
+                <td><code>(drawing)</code></td>
+                <td><code>&#123; x: number, y: number &#125;</code></td>
+                <td>User is currently drawing</td>
+              </tr>
+              <tr>
+                <td><code>(drawEnd)</code></td>
+                <td><code>void</code></td>
+                <td>User stopped drawing</td>
+              </tr>
+              <tr>
+                <td><code>(elementsAdded)</code></td>
+                <td><code>WhiteboardElement[]</code></td>
+                <td>New elements were added</td>
+              </tr>
+              <tr>
+                <td><code>(elementsUpdated)</code></td>
+                <td><code>WhiteboardElement[]</code></td>
+                <td>Elements were modified</td>
+              </tr>
+              <tr>
+                <td><code>(elementsSelected)</code></td>
+                <td><code>WhiteboardElement[]</code></td>
+                <td>Elements were selected/deselected</td>
+              </tr>
+              <tr>
+                <td><code>(elementsRemoved)</code></td>
+                <td><code>WhiteboardElement[]</code></td>
+                <td>Elements were deleted</td>
+              </tr>
+              <tr>
+                <td><code>(elementDoubleClicked)</code></td>
+                <td><code>&#123; target, clientX, clientY &#125;</code></td>
+                <td>Element was double-clicked</td>
+              </tr>
+              <tr>
+                <td><code>(undo)</code></td>
+                <td><code>void</code></td>
+                <td>Undo action performed</td>
+              </tr>
+              <tr>
+                <td><code>(redo)</code></td>
+                <td><code>void</code></td>
+                <td>Redo action performed</td>
+              </tr>
+              <tr>
+                <td><code>(clear)</code></td>
+                <td><code>void</code></td>
+                <td>Whiteboard was cleared</td>
+              </tr>
+              <tr>
+                <td><code>(dataChange)</code></td>
+                <td><code>WhiteboardElement[]</code></td>
+                <td>Whiteboard data changed</td>
+              </tr>
+              <tr>
+                <td><code>(save)</code></td>
+                <td><code>string</code></td>
+                <td>Whiteboard content saved</td>
+              </tr>
+              <tr>
+                <td><code>(imageAdded)</code></td>
+                <td><code>File</code></td>
+                <td>Image was added</td>
+              </tr>
+              <tr>
+                <td><code>(selectedToolChange)</code></td>
+                <td><code>ToolType</code></td>
+                <td>Active tool changed</td>
+              </tr>
+              <tr>
+                <td><code>(configChange)</code></td>
+                <td><code>Partial&lt;WhiteboardConfig&gt;</code></td>
+                <td>Configuration changed</td>
+              </tr>
+              <tr>
+                <td><code>(zoomChange)</code></td>
+                <td><code>&#123; zoom, center, canvasWidth, canvasHeight &#125;</code></td>
+                <td>Zoom settings changed</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      } @case ('config') {
+      <div class="tab-pane">
+        <h3><span class="material-icons">settings</span> WhiteboardConfig Properties</h3>
+        <p>
+          The <code>config</code> input accepts a <code>WhiteboardConfig</code> object with the following properties:
+        </p>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>Type</th>
+                <th>Default</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>drawingEnabled</code></td>
+                <td><code>boolean</code></td>
+                <td><code>true</code></td>
+                <td>Enable or disable drawing on the canvas</td>
+              </tr>
+              <tr>
+                <td><code>canvasWidth</code></td>
+                <td><code>number</code></td>
+                <td><code>800</code></td>
+                <td>Width of the whiteboard canvas in pixels</td>
+              </tr>
+              <tr>
+                <td><code>canvasHeight</code></td>
+                <td><code>number</code></td>
+                <td><code>600</code></td>
+                <td>Height of the whiteboard canvas in pixels</td>
+              </tr>
+              <tr>
+                <td><code>fullScreen</code></td>
+                <td><code>boolean</code></td>
+                <td><code>true</code></td>
+                <td>If true, canvas automatically fits the parent container</td>
+              </tr>
+              <tr>
+                <td><code>center</code></td>
+                <td><code>boolean</code></td>
+                <td><code>true</code></td>
+                <td>Center canvas in parent (works with fullScreen: false)</td>
+              </tr>
+              <tr>
+                <td><code>canvasX</code></td>
+                <td><code>number</code></td>
+                <td><code>0</code></td>
+                <td>X position of canvas (when center is false)</td>
+              </tr>
+              <tr>
+                <td><code>canvasY</code></td>
+                <td><code>number</code></td>
+                <td><code>0</code></td>
+                <td>Y position of canvas (when center is false)</td>
+              </tr>
+              <tr>
+                <td><code>strokeColor</code></td>
+                <td><code>string</code></td>
+                <td><code>#333333</code></td>
+                <td>Default stroke/border color for drawing</td>
+              </tr>
+              <tr>
+                <td><code>strokeWidth</code></td>
+                <td><code>number</code></td>
+                <td><code>2</code></td>
+                <td>Default stroke width in pixels</td>
+              </tr>
+              <tr>
+                <td><code>backgroundColor</code></td>
+                <td><code>string</code></td>
+                <td><code>#F8F9FA</code></td>
+                <td>Canvas background color</td>
+              </tr>
+              <tr>
+                <td><code>lineJoin</code></td>
+                <td><code>LineJoin</code></td>
+                <td><code>LineJoin.Round</code></td>
+                <td>Style of line joins (Round, Bevel, Miter)</td>
+              </tr>
+              <tr>
+                <td><code>lineCap</code></td>
+                <td><code>LineCap</code></td>
+                <td><code>LineCap.Round</code></td>
+                <td>Style of line caps (Round, Butt, Square)</td>
+              </tr>
+              <tr>
+                <td><code>fill</code></td>
+                <td><code>string</code></td>
+                <td><code>transparent</code></td>
+                <td>Default fill color for shapes</td>
+              </tr>
+              <tr>
+                <td><code>zoom</code></td>
+                <td><code>number</code></td>
+                <td><code>1</code></td>
+                <td>Zoom level (1 = 100%, 2 = 200%, etc.)</td>
+              </tr>
+              <tr>
+                <td><code>x</code></td>
+                <td><code>number</code></td>
+                <td><code>0</code></td>
+                <td>Viewport X offset for panning</td>
+              </tr>
+              <tr>
+                <td><code>y</code></td>
+                <td><code>number</code></td>
+                <td><code>0</code></td>
+                <td>Viewport Y offset for panning</td>
+              </tr>
+              <tr>
+                <td><code>fontFamily</code></td>
+                <td><code>string</code></td>
+                <td><code>sans-serif</code></td>
+                <td>Default font family for text elements</td>
+              </tr>
+              <tr>
+                <td><code>fontSize</code></td>
+                <td><code>number</code></td>
+                <td><code>24</code></td>
+                <td>Default font size in pixels</td>
+              </tr>
+              <tr>
+                <td><code>dasharray</code></td>
+                <td><code>string</code></td>
+                <td><code>''</code></td>
+                <td>SVG dasharray pattern for dashed lines (e.g., '5,5')</td>
+              </tr>
+              <tr>
+                <td><code>dashoffset</code></td>
+                <td><code>number</code></td>
+                <td><code>0</code></td>
+                <td>SVG dashoffset for dashed line patterns</td>
+              </tr>
+              <tr>
+                <td><code>enableGrid</code></td>
+                <td><code>boolean</code></td>
+                <td><code>false</code></td>
+                <td>Show or hide grid pattern on canvas</td>
+              </tr>
+              <tr>
+                <td><code>gridSize</code></td>
+                <td><code>number</code></td>
+                <td><code>10</code></td>
+                <td>Size of grid cells in pixels</td>
+              </tr>
+              <tr>
+                <td><code>snapToGrid</code></td>
+                <td><code>boolean</code></td>
+                <td><code>true</code></td>
+                <td>Snap elements to grid when enabled</td>
+              </tr>
+              <tr>
+                <td><code>keyboardShortcutsEnabled</code></td>
+                <td><code>boolean</code></td>
+                <td><code>true</code></td>
+                <td>Enable keyboard shortcuts (Ctrl+Z, Ctrl+Y, Delete, etc.)</td>
+              </tr>
+              <tr>
+                <td><code>penType</code></td>
+                <td><code>PenType</code></td>
+                <td><code>PenType.Pen</code></td>
+                <td>Type of pen tool (Pen, Highlighter, etc.)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      } @case ('service') {
+      <div class="tab-pane">
+        <h3><span class="material-icons">build_circle</span> NgWhiteboardService Methods</h3>
+        <p>Inject <code>NgWhiteboardService</code> to programmatically control the whiteboard.</p>
+
+        <h4><span class="material-icons">swap_horiz</span> Board Management</h4>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Method</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>setActiveBoard(boardId)</code></td>
+                <td>Set the specified board as active for subsequent service operations</td>
+              </tr>
+              <tr>
+                <td><code>getActiveBoard()</code></td>
+                <td>Returns the ID of the currently active board (or null)</td>
+              </tr>
+              <tr>
+                <td><code>getAllBoards()</code></td>
+                <td>Returns array of all registered board IDs</td>
+              </tr>
+              <tr>
+                <td><code>getBoardCount()</code></td>
+                <td>Returns total number of registered boards</td>
+              </tr>
+              <tr>
+                <td><code>hasBoard(boardId)</code></td>
+                <td>Checks if a board with the specified ID exists</td>
+              </tr>
+              <tr>
+                <td><code>signals(boardId)</code></td>
+                <td>Get reactive signals for a specific board (elements, layers, config, etc.)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 class="mt-3"><span class="material-icons">dashboard</span> Element Management</h4>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Method</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>addElement(element)</code></td>
+                <td>Add a single element to the whiteboard</td>
+              </tr>
+              <tr>
+                <td><code>addElements(elements)</code></td>
+                <td>Add multiple elements at once</td>
+              </tr>
+              <tr>
+                <td><code>updateElement(element)</code></td>
+                <td>Update an existing element</td>
+              </tr>
+              <tr>
+                <td><code>updateElements(elements)</code></td>
+                <td>Update multiple elements at once</td>
+              </tr>
+              <tr>
+                <td><code>removeElements(elements)</code></td>
+                <td>Remove elements from the whiteboard</td>
+              </tr>
+              <tr>
+                <td><code>removeElementsByIds(ids)</code></td>
+                <td>Remove elements by their IDs</td>
+              </tr>
+              <tr>
+                <td><code>getElementById(id)</code></td>
+                <td>Get a specific element by ID</td>
+              </tr>
+              <tr>
+                <td><code>getElementsByIds(ids)</code></td>
+                <td>Get multiple elements by their IDs</td>
+              </tr>
+              <tr>
+                <td><code>getElements()</code></td>
+                <td>Get all elements on the whiteboard</td>
+              </tr>
+              <tr>
+                <td><code>setElements(elements)</code></td>
+                <td>Replace all elements on the whiteboard</td>
+              </tr>
+              <tr>
+                <td><code>getNextZIndex()</code></td>
+                <td>Get the next available z-index for layering</td>
+              </tr>
+              <tr>
+                <td><code>elementExists(id)</code></td>
+                <td>Check if an element with the given ID exists</td>
+              </tr>
+              <tr>
+                <td><code>addImage(imageInfo)</code></td>
+                <td>Add an image element with positioning options</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 class="mt-3"><span class="material-icons">check_box</span> Selection</h4>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Method</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>selectElements(elements, append?)</code></td>
+                <td>Select one or more elements (append mode optional)</td>
+              </tr>
+              <tr>
+                <td><code>deselectElement(elementOrId)</code></td>
+                <td>Deselect a specific element</td>
+              </tr>
+              <tr>
+                <td><code>toggleSelection(elementOrId)</code></td>
+                <td>Toggle selection state of an element</td>
+              </tr>
+              <tr>
+                <td><code>selectAll()</code></td>
+                <td>Select all elements on the whiteboard</td>
+              </tr>
+              <tr>
+                <td><code>clearSelection()</code></td>
+                <td>Clear all selected elements</td>
+              </tr>
+              <tr>
+                <td><code>getSelectedElements()</code></td>
+                <td>Get array of currently selected elements</td>
+              </tr>
+              <tr>
+                <td><code>isSelected(elementOrId)</code></td>
+                <td>Check if an element is currently selected</td>
+              </tr>
+              <tr>
+                <td><code>updateSelectedElements(partial)</code></td>
+                <td>Update properties of all selected elements</td>
+              </tr>
+              <tr>
+                <td><code>removeSelectedElements()</code></td>
+                <td>Remove all currently selected elements</td>
+              </tr>
+              <tr>
+                <td><code>setSelectionBox(box)</code></td>
+                <td>Set the selection box dimensions</td>
+              </tr>
+              <tr>
+                <td><code>clearSelectionBox()</code></td>
+                <td>Clear the selection box</td>
+              </tr>
+              <tr>
+                <td><code>updateBoundingBox()</code></td>
+                <td>Update the bounding box for selected elements</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 class="mt-3"><span class="material-icons">content_copy</span> Clipboard & Arrangement</h4>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Method</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>copyElements()</code></td>
+                <td>Copy selected elements to clipboard</td>
+              </tr>
+              <tr>
+                <td><code>cutElements()</code></td>
+                <td>Cut selected elements to clipboard</td>
+              </tr>
+              <tr>
+                <td><code>pasteElements()</code></td>
+                <td>Paste elements from clipboard</td>
+              </tr>
+              <tr>
+                <td><code>duplicateElements()</code></td>
+                <td>Duplicate selected elements</td>
+              </tr>
+              <tr>
+                <td><code>deleteSelectedElements()</code></td>
+                <td>Delete selected elements</td>
+              </tr>
+              <tr>
+                <td><code>bringToFront()</code></td>
+                <td>Bring selected elements to front (highest z-index)</td>
+              </tr>
+              <tr>
+                <td><code>bringForward()</code></td>
+                <td>Bring selected elements forward one level</td>
+              </tr>
+              <tr>
+                <td><code>sendBackward()</code></td>
+                <td>Send selected elements backward one level</td>
+              </tr>
+              <tr>
+                <td><code>sendToBack()</code></td>
+                <td>Send selected elements to back (lowest z-index)</td>
+              </tr>
+              <tr>
+                <td><code>groupSelectedElements()</code></td>
+                <td>Group selected elements together</td>
+              </tr>
+              <tr>
+                <td><code>ungroupSelectedElements()</code></td>
+                <td>Ungroup selected grouped elements</td>
+              </tr>
+              <tr>
+                <td><code>lockElements()</code></td>
+                <td>Lock selected elements (prevent editing)</td>
+              </tr>
+              <tr>
+                <td><code>unlockElements()</code></td>
+                <td>Unlock selected elements</td>
+              </tr>
+              <tr>
+                <td><code>alignElements(alignment)</code></td>
+                <td>Align selected elements (left, center, right, top, middle, bottom)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 class="mt-3"><span class="material-icons">history</span> History & State</h4>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Method</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>undo(): boolean</code></td>
+                <td>Undo the last action (returns true if successful)</td>
+              </tr>
+              <tr>
+                <td><code>redo(): boolean</code></td>
+                <td>Redo the last undone action (returns true if successful)</td>
+              </tr>
+              <tr>
+                <td><code>clear()</code></td>
+                <td>Clear all elements from the whiteboard</td>
+              </tr>
+              <tr>
+                <td><code>save(format?, name?)</code></td>
+                <td>Save whiteboard in specified format (Base64, JSON, SVG)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 class="mt-3"><span class="material-icons">palette</span> Canvas & Viewport</h4>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Method</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>getCanvas()</code></td>
+                <td>Get the SVG canvas element</td>
+              </tr>
+              <tr>
+                <td><code>setCanvasDimensions(width, height)</code></td>
+                <td>Set canvas width and height in pixels</td>
+              </tr>
+              <tr>
+                <td><code>centerCanvas()</code></td>
+                <td>Center the canvas in the viewport</td>
+              </tr>
+              <tr>
+                <td><code>fullScreen()</code></td>
+                <td>Enter full-screen mode</td>
+              </tr>
+              <tr>
+                <td><code>exitFullScreen(width?, height?)</code></td>
+                <td>Exit full-screen mode with optional dimensions</td>
+              </tr>
+              <tr>
+                <td><code>resetCanvas()</code></td>
+                <td>Reset canvas to default state</td>
+              </tr>
+              <tr>
+                <td><code>setZoom(level)</code></td>
+                <td>Set zoom to a specific level (1 = 100%)</td>
+              </tr>
+              <tr>
+                <td><code>zoomIn()</code></td>
+                <td>Increase zoom level</td>
+              </tr>
+              <tr>
+                <td><code>zoomOut()</code></td>
+                <td>Decrease zoom level</td>
+              </tr>
+              <tr>
+                <td><code>resetZoom()</code></td>
+                <td>Reset zoom to 100%</td>
+              </tr>
+              <tr>
+                <td><code>zoomToFit()</code></td>
+                <td>Zoom to fit all elements in view</td>
+              </tr>
+              <tr>
+                <td><code>zoomToSelection()</code></td>
+                <td>Zoom to fit selected elements</td>
+              </tr>
+              <tr>
+                <td><code>pan(dx, dy)</code></td>
+                <td>Pan the viewport by delta x and y</td>
+              </tr>
+              <tr>
+                <td><code>panTo(x, y)</code></td>
+                <td>Pan the viewport to specific coordinates</td>
+              </tr>
+              <tr>
+                <td><code>resetPan()</code></td>
+                <td>Reset pan to origin (0, 0)</td>
+              </tr>
+              <tr>
+                <td><code>screenToCanvas(x, y)</code></td>
+                <td>Convert screen coordinates to canvas coordinates</td>
+              </tr>
+              <tr>
+                <td><code>canvasToScreen(x, y)</code></td>
+                <td>Convert canvas coordinates to screen coordinates</td>
+              </tr>
+              <tr>
+                <td><code>toggleGrid()</code></td>
+                <td>Toggle grid visibility on/off</td>
+              </tr>
+              <tr>
+                <td><code>toggleSnapToGrid()</code></td>
+                <td>Toggle snap-to-grid feature</td>
+              </tr>
+              <tr>
+                <td><code>setGridSize(size)</code></td>
+                <td>Set the grid cell size in pixels</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 class="mt-3"><span class="material-icons">layers</span> Layer Management</h4>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Method</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>addLayer(name?)</code></td>
+                <td>Add a new layer with optional name</td>
+              </tr>
+              <tr>
+                <td><code>removeLayer(id)</code></td>
+                <td>Remove a layer by ID</td>
+              </tr>
+              <tr>
+                <td><code>renameLayer(id, name)</code></td>
+                <td>Rename a layer</td>
+              </tr>
+              <tr>
+                <td><code>setActiveLayer(id)</code></td>
+                <td>Set the active layer by ID</td>
+              </tr>
+              <tr>
+                <td><code>getActiveLayerId()</code></td>
+                <td>Get the ID of the currently active layer</td>
+              </tr>
+              <tr>
+                <td><code>toggleLayerVisibility(id)</code></td>
+                <td>Toggle layer visibility on/off</td>
+              </tr>
+              <tr>
+                <td><code>toggleLayerLock(id)</code></td>
+                <td>Toggle layer lock state (locked layers can't be edited)</td>
+              </tr>
+              <tr>
+                <td><code>setLayerOpacity(id, opacity)</code></td>
+                <td>Set layer opacity (0 to 1)</td>
+              </tr>
+              <tr>
+                <td><code>setLayerBlendMode(id, mode)</code></td>
+                <td>Set layer blend mode (e.g., 'normal', 'multiply')</td>
+              </tr>
+              <tr>
+                <td><code>moveLayerUp(id)</code></td>
+                <td>Move layer up in z-order</td>
+              </tr>
+              <tr>
+                <td><code>moveLayerDown(id)</code></td>
+                <td>Move layer down in z-order</td>
+              </tr>
+              <tr>
+                <td><code>reorderLayersByIndex(from, to)</code></td>
+                <td>Reorder layers by moving from one index to another</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 class="mt-3"><span class="material-icons">edit</span> Tools & Configuration</h4>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Method</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>setActiveTool(tool)</code></td>
+                <td>Set the active drawing tool (use ToolType enum)</td>
+              </tr>
+              <tr>
+                <td><code>getActiveTool()</code></td>
+                <td>Get the currently active tool</td>
+              </tr>
+              <tr>
+                <td><code>getConfig()</code></td>
+                <td>Get the current whiteboard configuration</td>
+              </tr>
+              <tr>
+                <td><code>updateConfig(config)</code></td>
+                <td>Update whiteboard configuration (partial updates supported)</td>
+              </tr>
+              <tr>
+                <td><code>setCursor(cursor)</code></td>
+                <td>Set the cursor type (use CursorType enum)</td>
+              </tr>
+              <tr>
+                <td><code>resetCursor()</code></td>
+                <td>Reset cursor to default</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 class="mt-3"><span class="material-icons">upload_file</span> Import/Export & Data</h4>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Method</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>exportData()</code></td>
+                <td>Export whiteboard data as JSON string</td>
+              </tr>
+              <tr>
+                <td><code>importData(jsonData)</code></td>
+                <td>Import whiteboard data from JSON string</td>
+              </tr>
+              <tr>
+                <td><code>save(format?, name?)</code></td>
+                <td>Save whiteboard in specified format (Base64, JSON, SVG, PDF)</td>
+              </tr>
+              <tr>
+                <td><code>clear()</code></td>
+                <td>Clear all elements from the active whiteboard</td>
+              </tr>
+              <tr>
+                <td><code>clearAll()</code></td>
+                <td>Clear all elements from all whiteboards</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 class="mt-3"><span class="material-icons">signal_cellular_alt</span> Reactive Signals</h4>
+        <p>
+          Use <code>signals(boardId)</code> to get reactive signals for a specific board. These signals update
+          automatically when the data changes.
+        </p>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Signal</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>elements</code></td>
+                <td>All elements on the whiteboard</td>
+              </tr>
+              <tr>
+                <td><code>selectedElements</code></td>
+                <td>Currently selected elements</td>
+              </tr>
+              <tr>
+                <td><code>layers</code></td>
+                <td>All layers</td>
+              </tr>
+              <tr>
+                <td><code>activeLayer</code></td>
+                <td>The currently active layer</td>
+              </tr>
+              <tr>
+                <td><code>config</code></td>
+                <td>Current whiteboard configuration</td>
+              </tr>
+              <tr>
+                <td><code>activeTool</code></td>
+                <td>Currently active drawing tool</td>
+              </tr>
+              <tr>
+                <td><code>canUndo</code></td>
+                <td>Whether undo is available</td>
+              </tr>
+              <tr>
+                <td><code>canRedo</code></td>
+                <td>Whether redo is available</td>
+              </tr>
+              <tr>
+                <td><code>selectionBox</code></td>
+                <td>Current selection box bounds</td>
+              </tr>
+              <tr>
+                <td><code>boundingBox</code></td>
+                <td>Bounding box of selected elements</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4 class="mt-3"><span class="material-icons">label</span> Available Tool Types</h4>
+        <p>
+          Use these <code>ToolType</code> values with <code>selectedTool</code> input or
+          <code>setActiveTool()</code> method:
+        </p>
+        <ul>
+          <li><code>ToolType.Select</code> - Selection tool</li>
+          <li><code>ToolType.Pen</code> - Freehand drawing</li>
+          <li><code>ToolType.Eraser</code> - Erase elements</li>
+          <li><code>ToolType.Hand</code> - Pan the canvas</li>
+          <li><code>ToolType.Line</code> - Draw straight lines</li>
+          <li><code>ToolType.Arrow</code> - Draw arrows</li>
+          <li><code>ToolType.Rectangle</code> - Draw rectangles</li>
+          <li><code>ToolType.Ellipse</code> - Draw ellipses/circles</li>
+          <li><code>ToolType.Text</code> - Add text</li>
+        </ul>
+      </div>
+      } @case ('examples') {
+      <div class="tab-pane">
+        <h3><span class="material-icons">lightbulb</span> Usage Examples</h3>
+
+        <h4>Example: Basic Setup with Signals</h4>
+        <app-code-block [code]="basicSetupCode" language="typescript" title="my-whiteboard.component.ts" />
+
+        <h4>Example: Multi-Board Management</h4>
+        <app-code-block [code]="multiBoardCode" language="typescript" title="multi-whiteboard.component.ts" />
+
+        <h4>Example: Working with Elements</h4>
+        <app-code-block [code]="elementsCode" language="typescript" title="elements.component.ts" />
+
+        <h4>Example: Layer Management</h4>
+        <app-code-block [code]="layerCode" language="typescript" title="layer.component.ts" />
+
+        <h4>Example: Canvas Control & Zoom</h4>
+        <app-code-block [code]="canvasControlCode" language="typescript" title="canvas-control.component.ts" />
+
+        <h4>Example: Save, Export & Import</h4>
+        <app-code-block [code]="dataCode" language="typescript" title="data.component.ts" />
+
+        <h4>Example: Clipboard Operations</h4>
+        <app-code-block [code]="clipboardCode" language="typescript" title="clipboard.component.ts" />
+      </div>
+      } }
+    </div>
+  </div>
+</div>

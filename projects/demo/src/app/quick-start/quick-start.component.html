@@ -1,52 +1,97 @@
-<app-header tagline="Quick Start & Demo"></app-header>
-<section class="main-content">
-  <h2 id="getting-started">🚀 Getting Started</h2>
-  <p>Hello and Welcome!</p>
+<app-header tagline="Quick Start & Setup Guide"></app-header>
 
-  <h3 id="installation">📦 Installation</h3>
-  <p>The library is available as an npm package. You can install it using one of the following commands:</p>
+<div class="quick-start-page">
+  <div class="content">
+    <h1>🚀 Getting Started</h1>
+    <p>
+      Welcome! This guide will help you integrate ng-whiteboard into your Angular application in just a few minutes.
+      Follow the simple steps below to get started.
+    </p>
 
-  <pre><code class="bash">npm install ng-whiteboard --save</code></pre>
+    <h2 id="installation">📦 Installation</h2>
+    <p>The library is available as an npm package. Install it using one of the following commands:</p>
 
-  <p>or with Yarn:</p>
+    <pre><code class="bash">npm install ng-whiteboard --save</code></pre>
 
-  <pre><code class="bash">yarn add ng-whiteboard --save</code></pre>
+    <p>or with Yarn:</p>
 
-  <p>
-    This command will add the package to your <code>package.json</code> and install it in the
-    <code>node_modules</code> folder.
-  </p>
+    <pre><code class="bash">yarn add ng-whiteboard</code></pre>
 
-  <h3 id="minimal-setup">⚡ Minimal Setup Example</h3>
+    <div class="info-box">
+      <p>
+        💡 <strong>Tip:</strong> This command will add the package to your <code>package.json</code> and install it in
+        the <code>node_modules</code> folder.
+      </p>
+    </div>
 
-  <h4>Standalone Component</h4>
-  <p>Import the <code>NgWhiteboardComponent</code> directly in your standalone component:</p>
+    <h2 id="setup">⚡ Setup</h2>
 
-  <pre><code class="typescript">{{standaloneImportCode}}</code></pre>
+    <h3 id="standalone">Standalone Component (Recommended)</h3>
+    <p>
+      For Angular 14+ applications using standalone components, import
+      <code>NgWhiteboardComponent</code> directly:
+    </p>
 
-  <p>Then, add it to the imports array of your component:</p>
+    <pre><code class="typescript">{{standaloneComponentCode}}</code></pre>
 
-  <pre><code class="typescript">{{standaloneComponentCode}}</code></pre>
+    <h3 id="ngmodule">NgModule Setup</h3>
+    <p>If you're using NgModule-based applications, import and add to your module:</p>
 
-  <h4>NgModule Setup</h4>
-  <p>First, import the <code>NgWhiteboardComponent</code> in your module:</p>
+    <pre><code class="typescript">{{NgModuleCode}}</code></pre>
 
-  <pre><code class="typescript">{{libraryImportCode}}</code></pre>
+    <h2 id="usage">🎨 Basic Usage</h2>
+    <p>Add the whiteboard component to your template. It's that simple!</p>
 
-  <p>Then, add it to the imports list in your module:</p>
+    <pre><code class="html">&lt;ng-whiteboard&gt;&lt;/ng-whiteboard&gt;</code></pre>
 
-  <pre><code class="typescript">{{NgModuleCode}}</code></pre>
+    <div class="demo-preview">
+      <p class="demo-label">Live Preview</p>
+      <div class="whiteboard-container">
+        <ng-whiteboard></ng-whiteboard>
+      </div>
+    </div>
 
-  <p>Finally, add the <code>ng-whiteboard</code> component to your template:</p>
+    <h2 id="next-steps">📚 Next Steps</h2>
+    <p>Now that you have a basic whiteboard setup, explore more features:</p>
 
-  <pre><code class="html">&lt;ng-whiteboard&gt;&lt;/ng-whiteboard&gt;</code></pre>
+    <ul>
+      <li>
+        <a routerLink="/documentation">📖 Full Documentation</a> - Learn about all available options, methods, and
+        events
+      </li>
+      <li>
+        <a routerLink="/examples">📌 Examples</a> - See various implementation examples from minimal to comprehensive
+      </li>
+      <li><a routerLink="/live">🎮 Live Demo</a> - Try out the interactive demo with all features</li>
+      <li>
+        <a routerLink="/documentation/api-reference">🔧 API Reference</a> - Complete API documentation with all
+        properties and methods
+      </li>
+      <li>
+        <a routerLink="/documentation/keyboard-shortcuts">⌨️ Keyboard Shortcuts</a> - Learn the keyboard shortcuts for
+        efficient workflow
+      </li>
+    </ul>
 
-  <p>At this step, you have a minimal whiteboard ready to use. It should look like this:</p>
+    <h2 id="support">💬 Need Help?</h2>
+    <p>If you encounter any issues or have questions, feel free to:</p>
 
-  <div class="whiteboard-container">
-    <ng-whiteboard></ng-whiteboard>
+    <ul>
+      <li>
+        <a href="https://github.com/mostafazke/ng-whiteboard/issues" target="_blank" rel="noopener">
+          Open an issue on GitHub
+        </a>
+      </li>
+      <li>
+        <a href="https://github.com/mostafazke/ng-whiteboard/discussions" target="_blank" rel="noopener">
+          Start a discussion
+        </a>
+      </li>
+      <li>
+        <a href="https://github.com/mostafazke/ng-whiteboard" target="_blank" rel="noopener">
+          Check out the repository
+        </a>
+      </li>
+    </ul>
   </div>
-
-  <p>📖 Full component documentation is available <a href="/documentation">here</a>.</p>
-  <p>📌 More examples can be found <a href="/examples">here</a>.</p>
-</section>
+</div>
