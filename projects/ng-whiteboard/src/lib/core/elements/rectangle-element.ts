@@ -21,6 +21,8 @@ export class RectangleElementUtil implements ElementUtil<RectangleElement> {
       rx: 5,
       rotation: 0,
       opacity: 100,
+      zIndex: 1, // Default zIndex, will be overridden by tools
+      selectAfterDraw: true, // Rectangles should be selected after drawing by default
       ...props,
       style: {
         ...defaultElementStyle,

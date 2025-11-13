@@ -1,4 +1,4 @@
-import { WhiteboardElement } from '../../types';
+import { PointerInfo, WhiteboardElement } from '../../types';
 import {
   SELECTOR_GROUP_ID,
   ITEM_PREFIX,
@@ -8,10 +8,8 @@ import {
   DATA_ID,
 } from '../../constants';
 
-/**
- * Get the target element from a pointer event.
- */
-export function getTargetElement(info: PointerEvent, data: WhiteboardElement[]): WhiteboardElement | null {
+/** Get the target element from a pointer event. */
+export function getTargetElement(info: PointerInfo, data: WhiteboardElement[]): WhiteboardElement | null {
   const mouseTarget = getMouseTarget(info);
   if (mouseTarget) {
     if (mouseTarget.id === SELECTOR_GROUP_ID) {
@@ -24,10 +22,8 @@ export function getTargetElement(info: PointerEvent, data: WhiteboardElement[]):
   return null;
 }
 
-/**
- * Get the mouse target element from a pointer event.
- */
-export function getMouseTarget(info: PointerEvent): SVGGraphicsElement | null {
+/** Get the mouse target element from a pointer event. */
+export function getMouseTarget(info: PointerInfo): SVGGraphicsElement | null {
   if (!info?.target) {
     return null;
   }

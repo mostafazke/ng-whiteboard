@@ -1,20 +1,21 @@
 import { getElementUtil } from '../../elements/element.utils';
 import { ElementType, ToolType, WhiteboardElement } from '../../types';
 import { EraserTool } from '../eraser-tool';
+import { createMockPointerInfo, createMockApiService } from '../../testing';
+import { ApiService } from '../../api/api.service';
 
 describe('EraserTool', () => {
   let eraserTool: EraserTool;
-  let mockDataService: any;
+  let mockApiService: ReturnType<typeof createMockApiService>;
 
   beforeEach(() => {
-    mockDataService = {
-      getData: jest.fn(),
-      getConfig: jest.fn(),
-      removeElements: jest.fn(),
-      patchElements: jest.fn(),
-      updateElements: jest.fn(),
-    };
-    eraserTool = new EraserTool(mockDataService);
+    mockApiService = createMockApiService();
+    mockApiService.getElements = jest.fn().mockReturnValue([]) as unknown as typeof mockApiService.getElements;
+    mockApiService.getConfig = jest.fn() as unknown as typeof mockApiService.getConfig;
+    mockApiService.removeElements = jest.fn();
+    mockApiService.updateElements = jest.fn();
+
+    eraserTool = new EraserTool(mockApiService as unknown as ApiService);
   });
 
   it('should initialize with the correct type', () => {
@@ -24,8 +25,8 @@ describe('EraserTool', () => {
   describe('handlePointerDown', () => {
     it('should start erasing and set the last position', () => {
       const mockElement = { id: '1', type: ElementType.Rectangle, opacity: 100 } as WhiteboardElement;
-      mockDataService.getData.mockReturnValue([mockElement]);
-      const mockEvent = { clientX: 100, clientY: 200 } as PointerEvent;
+      (mockApiService.getElements as jest.Mock).mockReturnValue([mockElement]);
+      const mockEvent = createMockPointerInfo({ clientX: 100, clientY: 200, eventType: 'pointerdown' });
       jest.spyOn(eraserTool, 'getPointerPosition').mockReturnValue({ x: 100, y: 200 });
 
       eraserTool.activate();
@@ -36,7 +37,7 @@ describe('EraserTool', () => {
     });
 
     it('should not start erasing if the tool is not active', () => {
-      const mockEvent = { clientX: 100, clientY: 200 } as PointerEvent;
+      const mockEvent = createMockPointerInfo({ clientX: 100, clientY: 200, eventType: 'pointerdown' });
 
       eraserTool.deactivate();
       eraserTool.handlePointerDown(mockEvent);
@@ -49,11 +50,12 @@ describe('EraserTool', () => {
   describe('handlePointerMove', () => {
     it('should erase elements when moving the pointer', () => {
       const mockElement = { id: '1', type: ElementType.Rectangle, opacity: 100 } as WhiteboardElement;
-      mockDataService.getData.mockReturnValue([mockElement]);
+      (mockApiService.getElements as jest.Mock).mockReturnValue([mockElement]);
 
-      const mockEvent = { clientX: 150, clientY: 250, altKey: false } as PointerEvent;
+      const mockEvent = createMockPointerInfo({ clientX: 150, clientY: 250, altKey: false, eventType: 'pointermove' });
       jest.spyOn(eraserTool, 'getPointerPosition').mockReturnValue({ x: 150, y: 250 });
-      jest.spyOn<any, any>(eraserTool, 'eraseElementsAt');
+      // @ts-expect-error - spying on private method
+      jest.spyOn(eraserTool, 'eraseElementsAt');
 
       eraserTool.activate();
       eraserTool['isErasing'] = true;
@@ -66,7 +68,7 @@ describe('EraserTool', () => {
     });
 
     it('should not erase elements if the tool is not active or erasing', () => {
-      const mockEvent = { clientX: 150, clientY: 250 } as PointerEvent;
+      const mockEvent = createMockPointerInfo({ clientX: 150, clientY: 250, eventType: 'pointermove' });
 
       eraserTool.deactivate();
       eraserTool.handlePointerMove(mockEvent);
@@ -77,13 +79,14 @@ describe('EraserTool', () => {
 
   describe('handlePointerUp', () => {
     it('should remove hovered elements and reset state', () => {
-      const mockElement = { id: '1' } as WhiteboardElement;
+      const mockElement = { id: '1', type: ElementType.Rectangle } as WhiteboardElement;
       eraserTool['hoveredElementIds'].add(mockElement.id);
+      (mockApiService.getElements as jest.Mock).mockReturnValue([mockElement]);
 
       eraserTool.activate();
       eraserTool.handlePointerUp();
 
-      expect(mockDataService.removeElements).toHaveBeenCalledWith(['1']);
+      expect(mockApiService.removeElements).toHaveBeenCalledWith([mockElement]);
       expect(eraserTool['hoveredElementIds'].size).toBe(0);
       expect(eraserTool['isErasing']).toBe(false);
       expect(eraserTool['lastPosition']).toBeNull();
@@ -93,7 +96,7 @@ describe('EraserTool', () => {
       eraserTool.deactivate();
       eraserTool.handlePointerUp();
 
-      expect(mockDataService.removeElements).not.toHaveBeenCalled();
+      expect(mockApiService.removeElements).not.toHaveBeenCalled();
     });
   });
 
@@ -101,10 +104,11 @@ describe('EraserTool', () => {
     it('should update elements based on erasing logic', () => {
       const mockElement = { id: '1', type: ElementType.Rectangle, opacity: 100 } as WhiteboardElement;
       const mockBounds = { minX: 0, minY: 0, maxX: 100, maxY: 100, width: 100, height: 100 };
-      jest.spyOn<any, any>(eraserTool, 'isPointInElement').mockReturnValue(true);
-      jest.spyOn<any, any>(eraserTool, 'getPointerPosition');
-      mockDataService.getData.mockReturnValue([mockElement]);
-      mockDataService.getConfig.mockReturnValue({ zoom: 1 });
+      // @ts-expect-error - spying on private method
+      jest.spyOn(eraserTool, 'isPointInElement').mockReturnValue(true);
+      jest.spyOn(eraserTool, 'getPointerPosition');
+      (mockApiService.getElements as jest.Mock).mockReturnValue([mockElement]);
+      (mockApiService.getConfig as jest.Mock).mockReturnValue({ zoom: 1 });
 
       jest.spyOn(getElementUtil(mockElement.type), 'getBounds').mockReturnValue(mockBounds);
 
@@ -112,7 +116,7 @@ describe('EraserTool', () => {
 
       expect(eraserTool['hoveredElementIds'].has(mockElement.id)).toBe(true);
       expect(mockElement.isDeleting).toBe(true);
-      expect(mockDataService.updateElements).toHaveBeenCalledWith(mockElement, false);
+      expect(mockApiService.updateElements).toHaveBeenCalledWith([mockElement]);
     });
   });
 });

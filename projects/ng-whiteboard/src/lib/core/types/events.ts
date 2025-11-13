@@ -2,10 +2,7 @@ import { WhiteboardConfig } from './config';
 import { WhiteboardElement } from './elements';
 import { ToolType } from './tools';
 
-/**
- * Enum representing the different types of events that can occur in ng-whiteboard.
- * These events are used to communicate the state changes and user interactions with the whiteboard.
- */
+/** Event types that can occur in ng-whiteboard. */
 export enum WhiteboardEvent {
   Ready = 'ready',
   Destroyed = 'destroyed',
@@ -15,7 +12,8 @@ export enum WhiteboardEvent {
   ElementsAdded = 'elementsAdded',
   ElementsUpdated = 'elementsUpdated',
   ElementsSelected = 'elementsSelected',
-  ElementsDeleted = 'elementsDeleted',
+  ElementsRemoved = 'elementsRemoved',
+  ElementDoubleClicked = 'elementDoubleClicked',
   Undo = 'undo',
   Redo = 'redo',
   Clear = 'clear',
@@ -24,6 +22,7 @@ export enum WhiteboardEvent {
   ImageAdded = 'imageAdded',
   ToolChange = 'toolChange',
   ConfigChange = 'configChange',
+  ZoomChange = 'zoomChange',
 }
 
 export type WhiteboardEventPayloads = {
@@ -37,7 +36,8 @@ export type WhiteboardEventPayloads = {
   [WhiteboardEvent.ElementsAdded]: WhiteboardElement[];
   [WhiteboardEvent.ElementsUpdated]: WhiteboardElement[];
   [WhiteboardEvent.ElementsSelected]: WhiteboardElement[] | null;
-  [WhiteboardEvent.ElementsDeleted]: void;
+  [WhiteboardEvent.ElementsRemoved]: WhiteboardElement[];
+  [WhiteboardEvent.ElementDoubleClicked]: { target: EventTarget | null; clientX: number; clientY: number };
 
   [WhiteboardEvent.Undo]: void;
   [WhiteboardEvent.Redo]: void;
@@ -48,7 +48,8 @@ export type WhiteboardEventPayloads = {
   [WhiteboardEvent.ImageAdded]: string | ArrayBuffer;
 
   [WhiteboardEvent.ToolChange]: ToolType;
-  [WhiteboardEvent.ConfigChange]: Partial<WhiteboardConfig>;
+  [WhiteboardEvent.ConfigChange]: WhiteboardConfig;
+  [WhiteboardEvent.ZoomChange]: { zoom: number };
 };
 
 export type WhiteboardEventType =
@@ -60,7 +61,8 @@ export type WhiteboardEventType =
   | [WhiteboardEvent.ElementsAdded]
   | [WhiteboardEvent.ElementsUpdated]
   | [WhiteboardEvent.ElementsSelected]
-  | [WhiteboardEvent.ElementsDeleted]
+  | [WhiteboardEvent.ElementsRemoved]
+  | [WhiteboardEvent.ElementDoubleClicked]
   | [WhiteboardEvent.Undo]
   | [WhiteboardEvent.Redo]
   | [WhiteboardEvent.Clear]
@@ -68,4 +70,5 @@ export type WhiteboardEventType =
   | [WhiteboardEvent.Save]
   | [WhiteboardEvent.ImageAdded]
   | [WhiteboardEvent.ToolChange]
-  | [WhiteboardEvent.ConfigChange];
+  | [WhiteboardEvent.ConfigChange]
+  | [WhiteboardEvent.ZoomChange];

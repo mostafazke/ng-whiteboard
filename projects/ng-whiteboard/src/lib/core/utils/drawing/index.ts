@@ -1,3 +1,3 @@
 export * from './hit-test';
-export * from './path';
-export * from './svg';
+export * from './vector';
+export * from './stroke-types';

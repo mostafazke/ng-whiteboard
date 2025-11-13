@@ -1,43 +1,48 @@
 import { Point, WhiteboardConfig } from '../../types';
 
-/**
- * Get the canvas coordinates from screen coordinates.
- * @param config - The whiteboard configuration.
- * @param coordinates - The screen coordinates.
- * @returns The canvas coordinates.
- */
-export function getCanvasCoordinates(config: WhiteboardConfig, { x, y }: Point): Point {
-  const { zoom, x: configX, y: configY, elementsTranslation } = config;
-  const translatedX = (x - configX) / zoom - elementsTranslation.x;
-  const translatedY = (y - configY) / zoom - elementsTranslation.y;
-  return { x: translatedX, y: translatedY };
+/** Coordinate transformation utilities for screen ↔ canvas conversion with zoom, pan, and grid snapping. */
+
+/** Converts screen coordinates to canvas coordinates accounting for zoom and pan. */
+export function getCanvasCoordinates(config: WhiteboardConfig, point: Point): Point {
+  const { zoom, x, y, canvasX, canvasY, fullScreen } = config;
+
+  if (fullScreen) {
+    const realX = point.x / zoom - x;
+    const realY = point.y / zoom - y;
+    return { x: realX, y: realY };
+  }
+
+  const relativeToInnerX = point.x - canvasX;
+  const relativeToInnerY = point.y - canvasY;
+  const realX = relativeToInnerX / zoom - x;
+  const realY = relativeToInnerY / zoom - y;
+
+  return { x: realX, y: realY };
 }
 
-/**
- * Snaps a point (x2, y2) to the closest 45-degree angle relative to (x1, y1).
- */
+/** Snaps a point to the closest 45-degree angle relative to an origin point. */
 export function snapToAngle(x1: number, y1: number, x2: number, y2: number): { x: number; y: number; a: number } {
-  const snap = Math.PI / 4; // 45 degrees
+  const SNAP_ANGLE = Math.PI / 4;
+
   const dx = x2 - x1;
   const dy = y2 - y1;
   const angle = Math.atan2(dy, dx);
-  const dist = Math.sqrt(dx * dx + dy * dy);
-  const snapangle = Math.round(angle / snap) * snap;
-  const x = x1 + dist * Math.cos(snapangle);
-  const y = y1 + dist * Math.sin(snapangle);
-  return { x, y, a: snapangle };
+  const distance = Math.sqrt(dx * dx + dy * dy);
+
+  const snappedAngle = Math.round(angle / SNAP_ANGLE) * SNAP_ANGLE;
+
+  const x = x1 + distance * Math.cos(snappedAngle);
+  const y = y1 + distance * Math.sin(snappedAngle);
+
+  return { x, y, a: snappedAngle };
 }
 
-/**
- * Snaps a given number to the nearest grid point.
- */
+/** Snaps a single numeric value to the nearest grid point. */
 export function snapToGrid(n: number, gridSize: number): number {
   return Math.round(n / gridSize) * gridSize;
 }
 
-/**
- * Snaps a point to the nearest grid intersection.
- */
+/** Snaps a 2D point to the nearest grid intersection. */
 export function snapPointToGrid(point: Point, gridSize: number): Point {
   return {
     x: snapToGrid(point.x, gridSize),

@@ -31,8 +31,14 @@ Lightweight angular whiteboard.
 - ⚡ **Optimized performance** for smooth interactions
 - 📦 **Modular, tree-shakable, and lightweight architecture**
 - 🛠️ **Comprehensive Public API** via `WhiteboardService` and component bindings
-- 📏 **Undo/Redo, Zoom, and Save functionalities**
-- 🖊️ **Multiple drawing tools** (pen, shapes, text, etc.)
+- 📏 **Undo/Redo, Zoom, Pan, and Save functionalities**
+- 🖊️ **Multiple drawing tools** (pen, shapes, text, eraser, hand tool, etc.)
+- 🔄 **Multi-instance support** - Run multiple independent whiteboards simultaneously
+- ⌨️ **Keyboard shortcuts** - Full keyboard support for common operations
+- 📋 **Context menu** - Right-click menu for quick actions
+- 📑 **Layer management** - Control element z-index and stacking order
+- ✂️ **Copy/Paste/Cut** - Full clipboard support for elements
+- 🎯 **Selection tools** - Select, move, resize, and rotate elements
 - 🏗 **Future-proof and scalable design**
 
 ## 📦 Installation
@@ -163,7 +169,50 @@ export class WhiteboardContainerComponent implements OnInit {
 
 ## 📖 API Reference
 
+### Important: Multi-Instance Support
+
+**ng-whiteboard** supports multiple independent whiteboard instances. When using `WhiteboardService`, you must specify which board you're working with:
+
+```typescript
+import { Component, AfterViewInit, inject } from '@angular/core';
+import { NgWhiteboardService } from 'ng-whiteboard';
+
+@Component({
+  template: ` <ng-whiteboard [boardId]="boardId"></ng-whiteboard> `,
+  providers: [NgWhiteboardService],
+})
+export class MyWhiteboardComponent implements AfterViewInit {
+  private whiteboardService = inject(NgWhiteboardService);
+  boardId = 'my-unique-board-id';
+
+  ngAfterViewInit() {
+    // IMPORTANT: Set the active board before using service methods
+    this.whiteboardService.setActiveBoard(this.boardId);
+  }
+
+  clearBoard() {
+    // Now this works on the correct board
+    this.whiteboardService.clear();
+  }
+}
+```
+
 ### `WhiteboardService` Methods
+
+### 🔀 Multi-Instance Management
+
+- **`setActiveBoard(boardId: string)`** Sets the specified board as active. All service operations will target this board.
+- **`activeBoard()`** Returns the ID of the currently active board, or `null` if no board is active.
+- **`clearActiveBoard()`** Clears the active board.
+- **`getAllBoards()`** Returns an array of all registered board IDs.
+- **`getBoardCount()`** Returns the total number of registered boards.
+- **`hasBoard(boardId: string)`** Checks if a board with the specified ID exists.
+
+### 📊 Reactive Signals (Active Board)
+
+- **`elements: Signal<WhiteboardElement[]>`** Returns elements from the active board.
+- **`elementsCount: Signal<number>`** Returns the number of elements on the active board.
+- **`hasElements: Signal<boolean>`** Returns `true` if the active board has any elements.
 
 ### 📌 Element Management
 
@@ -197,6 +246,119 @@ export class WhiteboardContainerComponent implements OnInit {
 - **`fullScreen()`** Toggles full-screen mode for the whiteboard.
 - **`toggleGrid()`** Enables or disables the background grid for alignment.
 - **`dispatchBatch(actions: WhiteboardAction[])`** Dispatches a batch of actions to the whiteboard.
+
+### 📑 Layer Management
+
+- **`bringToFront(elementOrId: WhiteboardElement | string)`** Brings the specified element to the front (highest z-index).
+- **`bringForward(elementOrId: WhiteboardElement | string)`** Moves the element one layer forward.
+- **`sendToBack(elementOrId: WhiteboardElement | string)`** Sends the specified element to the back (lowest z-index).
+- **`sendBackward(elementOrId: WhiteboardElement | string)`** Moves the element one layer backward.
+- **`setZIndex(elementOrId: WhiteboardElement | string, zIndex: number)`** Sets the exact z-index for an element.
+- **`getZIndex(elementOrId: WhiteboardElement | string)`** Returns the current z-index of an element.
+
+### ✂️ Clipboard Operations
+
+- **`copy()`** Copies the currently selected elements to the clipboard.
+- **`cut()`** Cuts the currently selected elements (copies and removes them).
+- **`paste()`** Pastes elements from the clipboard at the current cursor position.
+- **`duplicate()`** Duplicates the currently selected elements.
+
+### 🔍 Viewport Control
+
+- **`zoomIn()`** Increases the zoom level.
+- **`zoomOut()`** Decreases the zoom level.
+- **`setZoom(level: number)`** Sets the zoom level to a specific value.
+- **`resetZoom()`** Resets the zoom level to 100%.
+- **`pan(deltaX: number, deltaY: number)`** Pans the canvas by the specified offset.
+- **`resetPan()`** Resets the canvas to its original position.
+
+## ⌨️ Keyboard Shortcuts
+
+The whiteboard supports comprehensive keyboard shortcuts for enhanced productivity:
+
+### Selection & Editing
+
+| Shortcut | Action |
+| --- | --- |
+| `Ctrl/Cmd + A` | Select all elements |
+| `Escape` | Clear selection |
+| `Delete` / `Backspace` | Delete selected elements |
+| `Ctrl/Cmd + C` | Copy selected elements |
+| `Ctrl/Cmd + X` | Cut selected elements |
+| `Ctrl/Cmd + V` | Paste elements |
+| `Ctrl/Cmd + D` | Duplicate selected elements |
+
+### Undo/Redo
+
+| Shortcut | Action |
+| --- | --- |
+| `Ctrl/Cmd + Z` | Undo last action |
+| `Ctrl/Cmd + Shift + Z` / `Ctrl/Cmd + Y` | Redo last undone action |
+
+### Layer Management
+
+| Shortcut | Action |
+| --- | --- |
+| `Ctrl/Cmd + Shift + ]` | Bring to front |
+| `Ctrl/Cmd + ]` | Bring forward |
+| `Ctrl/Cmd + Shift + [` | Send to back |
+| `Ctrl/Cmd + [` | Send backward |
+
+### Tools
+
+| Shortcut | Action |
+| --- | --- |
+| `V` | Select tool |
+| `P` | Pen tool |
+| `L` | Line tool |
+| `R` | Rectangle tool |
+| `E` | Ellipse tool |
+| `A` | Arrow tool |
+| `T` | Text tool |
+| `I` | Image tool |
+| `H` | Hand tool (pan) |
+| `D` | Eraser tool |
+
+### Viewport
+
+| Shortcut | Action |
+| --- | --- |
+| `Ctrl/Cmd + +` / `Ctrl/Cmd + =` | Zoom in |
+| `Ctrl/Cmd + -` | Zoom out |
+| `Ctrl/Cmd + 0` | Reset zoom (100%) |
+| `Space + Drag` | Pan canvas (when not in hand tool mode) |
+
+### Modifiers
+
+| Shortcut | Action |
+| --- | --- |
+| `Shift + Drag` | Constrain proportions (drawing shapes) |
+| `Alt/Option + Drag` | Draw from center (shapes) |
+| `Ctrl/Cmd + Drag` | Duplicate while dragging |
+
+> **Note:** `Ctrl` is used on Windows/Linux, `Cmd` (⌘) is used on macOS.
+
+## 📋 Context Menu
+
+Right-click on the canvas or elements to access the context menu with quick actions:
+
+### Canvas Context Menu
+- **Paste** - Paste copied elements
+- **Select All** - Select all elements on canvas
+- **Clear Canvas** - Remove all elements
+
+### Element Context Menu
+- **Cut** - Cut selected element(s)
+- **Copy** - Copy selected element(s)
+- **Paste** - Paste from clipboard
+- **Duplicate** - Create a copy of selected element(s)
+- **Delete** - Remove selected element(s)
+- **Bring to Front** - Move to top layer
+- **Bring Forward** - Move one layer up
+- **Send to Back** - Move to bottom layer
+- **Send Backward** - Move one layer down
+
+The context menu is context-aware and shows relevant options based on the current selection and clipboard state.
 
 ## 📢 Whiteboard Events (Outputs)
 

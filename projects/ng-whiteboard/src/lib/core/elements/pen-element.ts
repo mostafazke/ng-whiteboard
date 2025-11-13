@@ -1,12 +1,14 @@
 import { BaseElement, Bounds, ElementType, ElementUtil, Point, defaultElementStyle } from '../types';
 import { generateId } from '../utils/common';
-import { calculatePath, hitTestPen } from '../utils/drawing';
-import { calculateBoundingBox } from '../utils/geometry';
+import { hitTestPen, StrokeOptions } from '../utils/drawing';
+import { calculateBoundingBox } from '../utils/geometry/bounds';
 
 export interface PenElement extends BaseElement {
   type: ElementType.Pen;
   points: [number, number][];
-  path: string;
+  pathOptions?: StrokeOptions;
+  isComplete?: boolean;
+  isClosed?: boolean;
 }
 
 export class PenElementUtil implements ElementUtil<PenElement> {
@@ -17,9 +19,10 @@ export class PenElementUtil implements ElementUtil<PenElement> {
       x: 0,
       y: 0,
       points: [],
-      path: '',
       rotation: 0,
       opacity: 100,
+      zIndex: 1, // Default zIndex, will be overridden by tools
+      selectAfterDraw: false, // Pen strokes should NOT be selected after drawing by default
       ...props,
       style: {
         ...defaultElementStyle,
@@ -45,7 +48,6 @@ export class PenElementUtil implements ElementUtil<PenElement> {
       centerX + (point[0] - centerX) * scaleX,
       centerY + (point[1] - centerY) * scaleY,
     ]);
-    element.path = calculatePath(element.points);
 
     return element;
   }

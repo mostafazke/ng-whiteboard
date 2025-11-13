@@ -1,13 +1,12 @@
-<div class="editor">
+<div class="com_editor">
   <div id="workarea">
     <div id="svgcanvas">
       <ng-whiteboard
         #whiteboard
+        [boardId]="boardId"
         [data]="data"
         [(selectedTool)]="selectedTool"
-        [options]="options"
-        [x]="x"
-        [y]="y"
+        [(config)]="options"
         (save)="onSave($event)"
         (elementsSelected)="selectElements($event)"
         (elementsUpdated)="selectElements($event)"

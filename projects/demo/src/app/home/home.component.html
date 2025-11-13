@@ -1,40 +1,159 @@
-<app-header tagline="Lightweight angular whiteboard."></app-header>
+<div class="home">
+  <app-header></app-header>
 
-<section class="main-content">
-  <div class="whiteboard-container">
-    <ng-whiteboard></ng-whiteboard>
-  </div>
-
-  <section id="features">
-    <h2>✨ Features</h2>
-    <ul>
-      <li>🎨 SVG-based rendering for high-quality visuals</li>
-      <li>⚡ Optimized performance for smooth interactions</li>
-      <li>📦 Modular, tree-shakable, and lightweight architecture</li>
-      <li>🛠️ Comprehensive Public API via WhiteboardService and component bindings</li>
-      <li>📏 Undo/Redo, Zoom, and Save functionalities</li>
-      <li>🖊️ Multiple drawing tools (pen, shapes, text, etc.)</li>
-    </ul>
-  </section>
-  <section id="contributing">
-    <h2>🤝 Contributing</h2>
-    <p>The project is open to contributions. You can:</p>
-    <ul>
-      <li>Create pull requests</li>
-      <li>Submit bug reports</li>
-      <li>Suggest new features</li>
-    </ul>
-    <p>
-      If you find this project helpful, consider giving it a ⭐ star on
-      <a href="https://github.com/mostafazke/ng-whiteboard" target="_blank">GitHub</a>.
-    </p>
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Powerful <span class="accent">Whiteboard</span> for Angular</h1>
+      <p class="tagline">
+        A lightweight, high-performance whiteboard library with SVG-based rendering, comprehensive tools, and a modern
+        architecture designed for Angular applications.
+      </p>
+      <div class="cta-buttons">
+        <a routerLink="/quick-start" class="btn-primary"> Get Started → </a>
+        <a routerLink="/live" class="btn-secondary"> Try Live Demo </a>
+      </div>
+      <div class="badges">
+        <a href="https://www.npmjs.com/package/ng-whiteboard" target="_blank" rel="noopener">
+          <img src="https://img.shields.io/npm/v/ng-whiteboard.svg" alt="npm version" />
+        </a>
+        <a href="https://github.com/mostafazke/ng-whiteboard" target="_blank" rel="noopener">
+          <img src="https://img.shields.io/github/stars/mostafazke/ng-whiteboard" alt="GitHub stars" />
+        </a>
+        <a href="https://github.com/mostafazke/ng-whiteboard/blob/master/LICENSE" target="_blank" rel="noopener">
+          <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" />
+        </a>
+      </div>
+    </div>
   </section>
 
-  <section id="license">
-    <h2>📜 License</h2>
-    <p>
-      <strong>ng-whiteboard</strong> is released under the <strong>MIT License</strong>. This means you are free to use,
-      modify, and distribute it as you wish.
-    </p>
+  <!-- Interactive Demo Section -->
+  <section class="demo-section">
+    <div class="demo-content">
+      <h2>See It In Action</h2>
+      <p class="demo-description">
+        Try drawing, creating shapes, and exploring the interactive features right here. This is the actual whiteboard
+        component in action!
+      </p>
+      <div class="whiteboard-container">
+        <ng-whiteboard></ng-whiteboard>
+      </div>
+    </div>
   </section>
-</section>
+
+  <!-- Features Section -->
+  <section class="features">
+    <div class="features-content">
+      <h2>Why Choose ng-whiteboard?</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <span class="icon">🎨</span>
+          <h3>SVG-Based Rendering</h3>
+          <p>High-quality, scalable graphics that look sharp at any zoom level</p>
+        </div>
+
+        <div class="feature-card">
+          <span class="icon">⚡</span>
+          <h3>Optimized Performance</h3>
+          <p>Smooth interactions with efficient rendering and change detection</p>
+        </div>
+
+        <div class="feature-card">
+          <span class="icon">📦</span>
+          <h3>Lightweight & Modular</h3>
+          <p>Tree-shakable architecture that keeps your bundle size minimal</p>
+        </div>
+
+        <div class="feature-card">
+          <span class="icon">🛠️</span>
+          <h3>Rich API</h3>
+          <p>Comprehensive public API with services and component bindings</p>
+        </div>
+
+        <div class="feature-card">
+          <span class="icon">🎯</span>
+          <h3>Multiple Tools</h3>
+          <p>Drawing tools, shapes, text, eraser, and more out of the box</p>
+        </div>
+
+        <div class="feature-card">
+          <span class="icon">♿</span>
+          <h3>Accessibility</h3>
+          <p>Keyboard shortcuts and accessible controls built-in</p>
+        </div>
+
+        <div class="feature-card">
+          <span class="icon">💾</span>
+          <h3>Save & Export</h3>
+          <p>Save drawings as images, JSON, or SVG for later use</p>
+        </div>
+
+        <div class="feature-card">
+          <span class="icon">↩️</span>
+          <h3>Undo/Redo</h3>
+          <p>Full history management with undo and redo support</p>
+        </div>
+
+        <div class="feature-card">
+          <span class="icon">🔍</span>
+          <h3>Zoom & Pan</h3>
+          <p>Navigate large canvases with smooth zoom and pan controls</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="stats">
+    <div class="stats-content">
+      <div class="stats-grid">
+        <div class="stat-item">
+          <span class="stat-value">{{ stats().stars }}</span>
+          <span class="stat-label">GitHub Stars</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">{{ stats().downloads }}+</span>
+          <span class="stat-label">Weekly Downloads</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">{{ stats().forks }}</span>
+          <span class="stat-label">Forks</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">{{ stats().angularVersion }}</span>
+          <span class="stat-label">Angular Support</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="cta-section">
+    <div class="cta-content">
+      <h2>Ready to Get Started?</h2>
+      <p>
+        Join developers worldwide who are building amazing whiteboard experiences with ng-whiteboard. It's free,
+        open-source, and easy to integrate.
+      </p>
+      <div class="cta-buttons">
+        <a routerLink="/quick-start" class="btn-primary"> Read Documentation </a>
+        <a href="https://github.com/mostafazke/ng-whiteboard" target="_blank" rel="noopener" class="btn-secondary">
+          View on GitHub
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <p>
+        Made with ❤️ by <a href="https://github.com/mostafazke" target="_blank" rel="noopener">Mostafa Zaki</a> |
+        <a href="https://github.com/mostafazke/ng-whiteboard/blob/master/LICENSE" target="_blank" rel="noopener"
+          >MIT License</a
+        >
+        | <a href="https://github.com/mostafazke/ng-whiteboard" target="_blank" rel="noopener">Contribute on GitHub</a>
+      </p>
+    </div>
+  </footer>
+</div>

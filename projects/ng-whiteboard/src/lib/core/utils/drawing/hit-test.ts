@@ -1,9 +1,7 @@
 import { Bounds, Point } from '../../types';
 import { lineSegmentsIntersect, pointToLineDistance } from '../geometry/geometry';
 
-/**
- * Tests if a line segment intersects with a bounding box
- */
+/** Tests if a line segment intersects with a bounding box. */
 export function hitTestBoundingBox(bounds: Bounds, pointA: Point, pointB: Point, threshold: number): boolean {
   const edges: [Point, Point][] = [
     [
@@ -33,9 +31,7 @@ export function hitTestBoundingBox(bounds: Bounds, pointA: Point, pointB: Point,
   return false;
 }
 
-/**
- * Tests if a line segment intersects with an ellipse
- */
+/** Tests if a line segment intersects with an ellipse. */
 export function hitTestEllipse(
   cx: number,
   cy: number,
@@ -48,9 +44,7 @@ export function hitTestEllipse(
   return pointToLineDistance(cx, cy, pointA, pointB) <= Math.max(rx, ry) + threshold;
 }
 
-/**
- * Tests if a line segment intersects with another line segment
- */
+/** Tests if a line segment intersects with another line segment. */
 export function hitTestLine(
   x1: number,
   y1: number,
@@ -69,9 +63,7 @@ export function hitTestLine(
   );
 }
 
-/**
- * Tests if a line segment intersects with a pen stroke
- */
+/** Tests if a line segment intersects with a pen stroke. */
 export function hitTestPen(points: [number, number][], pointA: Point, pointB: Point, threshold: number): boolean {
   for (let i = 0; i < points.length - 1; i++) {
     const segmentStart: Point = { x: points[i][0], y: points[i][1] };

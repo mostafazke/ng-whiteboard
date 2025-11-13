@@ -1,10 +1,12 @@
-import { ToolType } from '../types';
+import { PointerInfo, ToolType } from '../types';
+import { CursorType } from '../types/cursors';
 import { BaseTool } from './base-tool';
 
 export class ImageTool extends BaseTool {
   type = ToolType.Image;
+  override baseCursor = CursorType.Image;
 
-  override handlePointerDown(event: PointerEvent): void {
+  override handlePointerDown(event: PointerInfo): void {
     const { x, y } = this.getPointerPosition(event);
     const input = document.createElement('input');
     input.type = 'file';
@@ -15,7 +17,7 @@ export class ImageTool extends BaseTool {
         const reader = new FileReader();
         reader.onload = (e: ProgressEvent) => {
           const image = (e.target as FileReader).result as string;
-          this.dataService.addImage({ image, x, y });
+          this.apiService.addImage({ image, x, y });
         };
         reader.readAsDataURL(files[0]);
       }

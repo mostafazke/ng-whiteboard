@@ -1,4 +1,4 @@
-import { Component, Output, ViewEncapsulation, EventEmitter, Input } from '@angular/core';
+import { Component, Output, ViewEncapsulation, EventEmitter, Input, inject } from '@angular/core';
 import {
   ElementType,
   FormatType,
@@ -7,7 +7,7 @@ import {
   NgWhiteboardService,
   ToolType,
   WhiteboardElement,
-  WhiteboardOptions,
+  WhiteboardConfig,
   NgWhiteboardComponent,
 } from 'ng-whiteboard';
 import { strokeDashArrayOptions } from '../../shared/strokeDashArrayOptions';
@@ -32,14 +32,16 @@ type ColorProperty = 'fill' | 'strokeColor' | 'backgroundColor';
     DragInputCursorPipe,
     FindDashArrayPipe,
   ],
-  providers: [NgWhiteboardService],
   encapsulation: ViewEncapsulation.ShadowDom,
+  providers: [NgWhiteboardService],
 })
 export class ComprehensiveComponent {
+  private whiteboardService = inject(NgWhiteboardService);
+  boardId = 'comprehensive-board';
   selectedTool: ToolType = ToolType.Pen;
   selectedElements: WhiteboardElement[] = [];
   dashArrays = strokeDashArrayOptions;
-  options: WhiteboardOptions = {
+  options: Partial<WhiteboardConfig> = {
     drawingEnabled: true,
     strokeColor: '#333333',
     strokeWidth: 5,
@@ -48,16 +50,18 @@ export class ComprehensiveComponent {
     canvasHeight: 600,
     canvasWidth: 800,
     dasharray: '',
-    lineJoin: LineJoin.Miter,
-    lineCap: LineCap.Butt,
+    lineJoin: LineJoin.Round,
+    lineCap: LineCap.Round,
     zoom: 1,
     fullScreen: false,
     center: true,
     enableGrid: false,
+    fontSize: 16,
+    dashoffset: 0,
+    gridSize: 20,
+    snapToGrid: false,
+    keyboardShortcutsEnabled: true,
   };
-
-  x = 0;
-  y = 0;
 
   toolType = ToolType;
   elementType = ElementType;
@@ -66,7 +70,9 @@ export class ComprehensiveComponent {
   @Input() data: WhiteboardElement[] = [];
   @Output() dataChange = new EventEmitter<WhiteboardElement[]>();
 
-  constructor(private whiteboardService: NgWhiteboardService) {}
+  constructor() {
+    this.whiteboardService.setActiveBoard(this.boardId);
+  }
 
   onDataChange(data: WhiteboardElement[]) {
     this.dataChange.emit(data);
@@ -78,7 +84,7 @@ export class ComprehensiveComponent {
   }
 
   saveAs(format: FormatType) {
-    this.whiteboardService.save(format);
+    this.whiteboardService.save(format, undefined);
   }
 
   // Tool selection methods
@@ -95,9 +101,10 @@ export class ComprehensiveComponent {
     this.whiteboardService.redo();
   }
 
-  // Grid toggle method
   toggleGrid() {
-    this.whiteboardService.toggleGrid();
+    this.whiteboardService.updateConfig({
+      enableGrid: !this.options.enableGrid,
+    });
   }
 
   // Image handling method
@@ -108,7 +115,9 @@ export class ComprehensiveComponent {
         const reader = new FileReader();
         reader.onload = (e: ProgressEvent) => {
           const image = (e.target as FileReader).result;
-          this.whiteboardService.addImage(image as string);
+          if (image) {
+            this.whiteboardService.addImage({ image });
+          }
         };
         reader.readAsDataURL(files[0]);
       }
@@ -264,7 +273,6 @@ export class ComprehensiveComponent {
 
   // Element selection method
   selectElements(elements: WhiteboardElement[]) {
-    console.log('🚀 ~ ComprehensiveComponent ~ selectElements ~ elements:', elements);
     this.selectedElements = elements;
   }
 

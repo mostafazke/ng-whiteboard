@@ -1,40 +1,57 @@
 import { RectangleTool } from '../rectangle-tool';
 import { ElementType, LineCap, LineJoin, ToolType, WhiteboardConfig } from '../../types';
+import { RectangleElement } from '../../elements';
 import { createElement } from '../../elements/element.utils';
-import { DataService } from '../../data/data.service';
+import { ApiService } from '../../api/api.service';
 import { snapToGrid } from '../../utils/geometry';
-import { ITEM_PREFIX } from '../../constants';
+import { createMockPointerInfo } from '../../testing';
 
 jest.mock('../../elements/element.utils');
 jest.mock('../../utils/geometry', () => ({
   snapToGrid: jest.fn((value, gridSize) => Math.round(value / gridSize) * gridSize),
+  getCanvasCoordinates: jest.fn((config, point) => point),
 }));
 
 describe('RectangleTool', () => {
   let rectangleTool: RectangleTool;
-  let dataService: DataService;
+  let apiService: ApiService;
   let config: WhiteboardConfig;
 
   beforeEach(() => {
     config = {
       strokeColor: '#000000',
       strokeWidth: 2,
-      lineCap: LineCap.Butt,
-      lineJoin: LineJoin.Miter,
+      lineCap: LineCap.Round,
+      lineJoin: LineJoin.Round,
       dasharray: '',
       dashoffset: 0,
       backgroundColor: '#ffffff',
       canvasWidth: 800,
       canvasHeight: 600,
+      fullScreen: true,
+      zoom: 1,
+      x: 0,
+      y: 0,
+      canvasX: 0,
+      canvasY: 0,
     } as WhiteboardConfig;
 
-    dataService = {
-      addToDraft: jest.fn(),
-      commitDraftToData: jest.fn(),
+    apiService = {
+      addDraftElements: jest.fn(),
+      updateDraftElements: jest.fn((updates) => {
+        // Mock implementation that updates the element properties
+        if (rectangleTool.element && updates && updates.length > 0) {
+          Object.assign(rectangleTool.element, updates[0]);
+        }
+      }),
+      commitDraftElements: jest.fn(),
       getConfig: jest.fn().mockReturnValue(config),
-    } as unknown as DataService;
+      getNextZIndex: jest.fn().mockReturnValue(1),
+      getActiveLayerId: jest.fn().mockReturnValue('layer-1'),
+      selectElements: jest.fn(),
+    } as unknown as ApiService;
 
-    rectangleTool = new RectangleTool(dataService);
+    rectangleTool = new RectangleTool(apiService);
     rectangleTool.activate();
   });
 
@@ -44,26 +61,24 @@ describe('RectangleTool', () => {
 
   describe('handlePointerDown', () => {
     it('should create a rectangle element and add it to draft', () => {
-      const mockEvent = { clientX: 100, clientY: 200 } as PointerEvent;
-      jest.spyOn(rectangleTool, 'getPointerPosition').mockReturnValue({ x: 100, y: 200 });
-      (createElement as jest.Mock).mockReturnValue({ type: ElementType.Rectangle });
+      const mockEvent = createMockPointerInfo({ x: 100, y: 200, eventType: 'pointerdown' });
+      (createElement as jest.Mock).mockReturnValue({ id: '1', type: ElementType.Rectangle });
 
       rectangleTool.activate();
       rectangleTool.handlePointerDown(mockEvent);
 
       expect(rectangleTool.startPoint).toEqual({ x: 100, y: 200 });
-      expect(createElement).toHaveBeenCalledWith(ElementType.Rectangle, expect.any(Object));
-      expect(dataService.addToDraft).toHaveBeenCalledWith(expect.any(Object));
+      expect(createElement).toHaveBeenCalledWith(ElementType.Rectangle, expect.any(Object), 'layer-1');
+      expect(apiService.addDraftElements).toHaveBeenCalledWith([expect.any(Object)]);
     });
 
     it('should snap to grid if enabled', () => {
       rectangleTool.whiteboardConfig.snapToGrid = true;
       rectangleTool.whiteboardConfig.gridSize = 20;
 
-      const mockEvent = { clientX: 105, clientY: 215 } as PointerEvent;
-      jest.spyOn(rectangleTool, 'getPointerPosition').mockReturnValue({ x: 105, y: 215 });
+      const mockEvent = createMockPointerInfo({ x: 105, y: 215, eventType: 'pointerdown' });
       (snapToGrid as jest.Mock).mockImplementation((value, gridSize) => Math.round(value / gridSize) * gridSize);
-      (createElement as jest.Mock).mockReturnValue({ type: ElementType.Rectangle });
+      (createElement as jest.Mock).mockReturnValue({ id: '1', type: ElementType.Rectangle });
 
       rectangleTool.activate();
       rectangleTool.handlePointerDown(mockEvent);
@@ -76,10 +91,9 @@ describe('RectangleTool', () => {
     it('should update the rectangle dimensions and position', () => {
       rectangleTool.activate();
       rectangleTool.startPoint = { x: 50, y: 50 };
-      rectangleTool.element = { width: 0, height: 0, x: 0, y: 0 } as any;
+      rectangleTool.element = { id: '1', width: 0, height: 0, x: 0, y: 0 } as unknown as RectangleElement;
 
-      const mockEvent = { clientX: 100, clientY: 100 } as PointerEvent;
-      jest.spyOn(rectangleTool, 'getPointerPosition').mockReturnValue({ x: 100, y: 100 });
+      const mockEvent = createMockPointerInfo({ x: 100, y: 100, eventType: 'pointermove' });
 
       rectangleTool.handlePointerMove(mockEvent);
 
@@ -96,10 +110,9 @@ describe('RectangleTool', () => {
     it('should maintain square dimensions when shift key is pressed', () => {
       rectangleTool.activate();
       rectangleTool.startPoint = { x: 50, y: 50 };
-      rectangleTool.element = { width: 0, height: 0, x: 0, y: 0 } as any;
+      rectangleTool.element = { id: '1', width: 0, height: 0, x: 0, y: 0 } as unknown as RectangleElement;
 
-      const mockEvent = { clientX: 100, clientY: 80, shiftKey: true } as PointerEvent;
-      jest.spyOn(rectangleTool, 'getPointerPosition').mockReturnValue({ x: 100, y: 80 });
+      const mockEvent = createMockPointerInfo({ x: 100, y: 80, shiftKey: true, eventType: 'pointermove' });
 
       rectangleTool.handlePointerMove(mockEvent);
 
@@ -116,10 +129,9 @@ describe('RectangleTool', () => {
     it('should double dimensions and center when alt key is pressed', () => {
       rectangleTool.activate();
       rectangleTool.startPoint = { x: 50, y: 50 };
-      rectangleTool.element = { width: 0, height: 0, x: 0, y: 0 } as any;
+      rectangleTool.element = { id: '1', width: 0, height: 0, x: 0, y: 0 } as unknown as RectangleElement;
 
-      const mockEvent = { clientX: 100, clientY: 100, altKey: true } as PointerEvent;
-      jest.spyOn(rectangleTool, 'getPointerPosition').mockReturnValue({ x: 100, y: 100 });
+      const mockEvent = createMockPointerInfo({ x: 100, y: 100, altKey: true, eventType: 'pointermove' });
 
       rectangleTool.handlePointerMove(mockEvent);
 
@@ -138,10 +150,9 @@ describe('RectangleTool', () => {
       rectangleTool.whiteboardConfig.gridSize = 20;
       rectangleTool.activate();
       rectangleTool.startPoint = { x: 50, y: 50 };
-      rectangleTool.element = { width: 0, height: 0, x: 0, y: 0 } as any;
+      rectangleTool.element = { id: '1', width: 0, height: 0, x: 0, y: 0 } as unknown as RectangleElement;
 
-      const mockEvent = { clientX: 105, clientY: 115 } as PointerEvent;
-      jest.spyOn(rectangleTool, 'getPointerPosition').mockReturnValue({ x: 105, y: 115 });
+      const mockEvent = createMockPointerInfo({ x: 105, y: 115, eventType: 'pointerdown' });
 
       rectangleTool.handlePointerMove(mockEvent);
 
@@ -160,58 +171,56 @@ describe('RectangleTool', () => {
     it('should commit the draft to data and reset state', () => {
       rectangleTool.activate();
       rectangleTool.startPoint = { x: 50, y: 50 };
-      rectangleTool.element = { width: 50, height: 50, x: 50, y: 50 } as any;
+      rectangleTool.element = { id: '1', width: 50, height: 50, x: 50, y: 50 } as unknown as RectangleElement;
 
       rectangleTool.handlePointerUp();
 
-      expect(dataService.commitDraftToData).toHaveBeenCalled();
+      expect(apiService.commitDraftElements).toHaveBeenCalled();
       expect(rectangleTool.startPoint).toBeNull();
       expect(rectangleTool.element).toBeNull();
     });
 
     it('should not proceed if the tool is not active', () => {
       rectangleTool.deactivate();
-      const mockEvent = { clientX: 100, clientY: 200 } as PointerEvent;
+      const mockEvent = createMockPointerInfo({ x: 100, y: 200, eventType: 'pointerdown' });
 
       rectangleTool.handlePointerDown(mockEvent);
 
       expect(rectangleTool.startPoint).toBeNull();
       expect(rectangleTool.element).toBeNull();
-      expect(dataService.addToDraft).not.toHaveBeenCalled();
+      expect(apiService.addDraftElements).not.toHaveBeenCalled();
     });
 
     it('should calculate pointer position correctly', () => {
-      const mockEvent = { clientX: 150, clientY: 250 } as PointerEvent;
-      jest.spyOn(rectangleTool, 'getPointerPosition').mockReturnValue({ x: 150, y: 250 });
-      (createElement as jest.Mock).mockReturnValue({ type: ElementType.Rectangle });
+      const mockEvent = createMockPointerInfo({ x: 150, y: 250, eventType: 'pointerdown' });
+      (createElement as jest.Mock).mockReturnValue({ id: '1', type: ElementType.Rectangle });
 
       rectangleTool.handlePointerDown(mockEvent);
 
       expect(rectangleTool.startPoint).toEqual({ x: 150, y: 250 });
-      expect(createElement).toHaveBeenCalledWith(ElementType.Rectangle, expect.any(Object));
-      expect(dataService.addToDraft).toHaveBeenCalledWith(expect.any(Object));
+      expect(createElement).toHaveBeenCalledWith(ElementType.Rectangle, expect.any(Object), 'layer-1');
+      expect(apiService.addDraftElements).toHaveBeenCalledWith([expect.any(Object)]);
     });
 
     it('should snap pointer position to grid if snapToGrid is enabled', () => {
       rectangleTool.whiteboardConfig.snapToGrid = true;
       rectangleTool.whiteboardConfig.gridSize = 20;
 
-      const mockEvent = { clientX: 105, clientY: 215 } as PointerEvent;
-      jest.spyOn(rectangleTool, 'getPointerPosition').mockReturnValue({ x: 105, y: 215 });
+      const mockEvent = createMockPointerInfo({ x: 105, y: 215, eventType: 'pointerdown' });
       (snapToGrid as jest.Mock).mockImplementation((value, gridSize) => Math.round(value / gridSize) * gridSize);
-      (createElement as jest.Mock).mockReturnValue({ type: ElementType.Rectangle });
+      (createElement as jest.Mock).mockReturnValue({ id: '1', type: ElementType.Rectangle });
 
       rectangleTool.handlePointerDown(mockEvent);
 
       expect(rectangleTool.startPoint).toEqual({ x: 100, y: 220 });
-      expect(createElement).toHaveBeenCalledWith(ElementType.Rectangle, expect.any(Object));
-      expect(dataService.addToDraft).toHaveBeenCalledWith(expect.any(Object));
+      expect(createElement).toHaveBeenCalledWith(ElementType.Rectangle, expect.any(Object), 'layer-1');
+      expect(apiService.addDraftElements).toHaveBeenCalledWith([expect.any(Object)]);
     });
 
     it('should create a rectangle element with the correct style', () => {
-      const mockEvent = { clientX: 100, clientY: 200 } as PointerEvent;
-      jest.spyOn(rectangleTool, 'getPointerPosition').mockReturnValue({ x: 100, y: 200 });
-      jest.spyOn(rectangleTool as any, 'getElementStyle').mockReturnValue({
+      const mockEvent = createMockPointerInfo({ x: 100, y: 200, eventType: 'pointerdown' });
+      // @ts-expect-error - spying on private method
+      jest.spyOn(rectangleTool, 'getElementStyle').mockReturnValue({
         strokeColor: '#000000',
         strokeWidth: 2,
         lineJoin: LineJoin.Miter,
@@ -219,68 +228,71 @@ describe('RectangleTool', () => {
         dasharray: '',
         dashoffset: 0,
       });
-      (createElement as jest.Mock).mockReturnValue({ type: ElementType.Rectangle });
+      (createElement as jest.Mock).mockReturnValue({ id: '1', type: ElementType.Rectangle });
 
       rectangleTool.handlePointerDown(mockEvent);
 
-      expect(createElement).toHaveBeenCalledWith(ElementType.Rectangle, {
-        x: 100,
-        y: 200,
-        style: {
-          strokeColor: '#000000',
-          strokeWidth: 2,
-          lineJoin: LineJoin.Miter,
-          fill: '#ffffff',
-          dasharray: '',
-          dashoffset: 0,
+      expect(createElement).toHaveBeenCalledWith(
+        ElementType.Rectangle,
+        {
+          x: 100,
+          y: 200,
+          style: {
+            strokeColor: '#000000',
+            strokeWidth: 2,
+            lineJoin: LineJoin.Miter,
+            fill: '#ffffff',
+            dasharray: '',
+            dashoffset: 0,
+          },
+          zIndex: 1,
         },
-      });
+        'layer-1'
+      );
     });
 
     it('should not proceed if the tool is not active', () => {
       rectangleTool.deactivate();
-      const mockEvent = { clientX: 100, clientY: 200 } as PointerEvent;
+      const mockEvent = createMockPointerInfo({ x: 100, y: 200, eventType: 'pointerdown' });
 
       rectangleTool.handlePointerDown(mockEvent);
 
       expect(rectangleTool.startPoint).toBeNull();
       expect(rectangleTool.element).toBeNull();
-      expect(dataService.addToDraft).not.toHaveBeenCalled();
+      expect(apiService.addDraftElements).not.toHaveBeenCalled();
     });
 
     it('should set startPoint and create a rectangle element', () => {
-      const mockEvent = { clientX: 150, clientY: 250 } as PointerEvent;
-      jest.spyOn(rectangleTool, 'getPointerPosition').mockReturnValue({ x: 150, y: 250 });
-      (createElement as jest.Mock).mockReturnValue({ type: ElementType.Rectangle });
+      const mockEvent = createMockPointerInfo({ x: 150, y: 250, eventType: 'pointerdown' });
+      (createElement as jest.Mock).mockReturnValue({ id: '1', type: ElementType.Rectangle });
 
       rectangleTool.handlePointerDown(mockEvent);
 
       expect(rectangleTool.startPoint).toEqual({ x: 150, y: 250 });
-      expect(createElement).toHaveBeenCalledWith(ElementType.Rectangle, expect.any(Object));
-      expect(dataService.addToDraft).toHaveBeenCalledWith(expect.any(Object));
+      expect(createElement).toHaveBeenCalledWith(ElementType.Rectangle, expect.any(Object), 'layer-1');
+      expect(apiService.addDraftElements).toHaveBeenCalledWith([expect.any(Object)]);
     });
 
     it('should snap pointer position to grid if snapToGrid is enabled', () => {
       rectangleTool.whiteboardConfig.snapToGrid = true;
       rectangleTool.whiteboardConfig.gridSize = 20;
 
-      const mockEvent = { clientX: 105, clientY: 215 } as PointerEvent;
-      jest.spyOn(rectangleTool, 'getPointerPosition').mockReturnValue({ x: 105, y: 215 });
+      const mockEvent = createMockPointerInfo({ x: 105, y: 215, eventType: 'pointerdown' });
       (snapToGrid as jest.Mock).mockImplementation((value, gridSize) => Math.round(value / gridSize) * gridSize);
 
-      (createElement as jest.Mock).mockReturnValue({ type: ElementType.Rectangle });
+      (createElement as jest.Mock).mockReturnValue({ id: '1', type: ElementType.Rectangle });
 
       rectangleTool.handlePointerDown(mockEvent);
 
       expect(rectangleTool.startPoint).toEqual({ x: 100, y: 220 });
-      expect(createElement).toHaveBeenCalledWith(ElementType.Rectangle, expect.any(Object));
-      expect(dataService.addToDraft).toHaveBeenCalledWith(expect.any(Object));
+      expect(createElement).toHaveBeenCalledWith(ElementType.Rectangle, expect.any(Object), 'layer-1');
+      expect(apiService.addDraftElements).toHaveBeenCalledWith([expect.any(Object)]);
     });
 
     it('should create a rectangle element with the correct style', () => {
-      const mockEvent = { clientX: 100, clientY: 200 } as PointerEvent;
-      jest.spyOn(rectangleTool, 'getPointerPosition').mockReturnValue({ x: 100, y: 200 });
-      jest.spyOn(rectangleTool as any, 'getElementStyle').mockReturnValue({
+      const mockEvent = createMockPointerInfo({ x: 100, y: 200, eventType: 'pointerdown' });
+      // @ts-expect-error - spying on private method
+      jest.spyOn(rectangleTool, 'getElementStyle').mockReturnValue({
         strokeColor: '#000000',
         strokeWidth: 2,
         lineJoin: LineJoin.Miter,
@@ -288,31 +300,35 @@ describe('RectangleTool', () => {
         dasharray: '',
         dashoffset: 0,
       });
-      (createElement as jest.Mock).mockReturnValue({ type: ElementType.Rectangle });
+      (createElement as jest.Mock).mockReturnValue({ id: '1', type: ElementType.Rectangle });
 
       rectangleTool.handlePointerDown(mockEvent);
 
-      expect(createElement).toHaveBeenCalledWith(ElementType.Rectangle, {
-        x: 100,
-        y: 200,
-        style: {
-          strokeColor: '#000000',
-          strokeWidth: 2,
-          lineJoin: LineJoin.Miter,
-          fill: '#ffffff',
-          dasharray: '',
-          dashoffset: 0,
+      expect(createElement).toHaveBeenCalledWith(
+        ElementType.Rectangle,
+        {
+          x: 100,
+          y: 200,
+          style: {
+            strokeColor: '#000000',
+            strokeWidth: 2,
+            lineJoin: LineJoin.Miter,
+            fill: '#ffffff',
+            dasharray: '',
+            dashoffset: 0,
+          },
+          zIndex: 1,
         },
-      });
+        'layer-1'
+      );
     });
 
     it('should update the rectangle dimensions and position based on pointer movement', () => {
       rectangleTool.activate();
       rectangleTool.startPoint = { x: 50, y: 50 };
-      rectangleTool.element = { width: 0, height: 0, x: 0, y: 0 } as any;
+      rectangleTool.element = { id: '1', width: 0, height: 0, x: 0, y: 0 } as unknown as RectangleElement;
 
-      const mockEvent = { clientX: 100, clientY: 100 } as PointerEvent;
-      jest.spyOn(rectangleTool, 'getPointerPosition').mockReturnValue({ x: 100, y: 100 });
+      const mockEvent = createMockPointerInfo({ x: 100, y: 100, eventType: 'pointerdown' });
 
       rectangleTool.handlePointerMove(mockEvent);
 
@@ -329,10 +345,9 @@ describe('RectangleTool', () => {
     it('should maintain square dimensions when shift key is pressed', () => {
       rectangleTool.activate();
       rectangleTool.startPoint = { x: 50, y: 50 };
-      rectangleTool.element = { width: 0, height: 0, x: 0, y: 0 } as any;
+      rectangleTool.element = { id: '1', width: 0, height: 0, x: 0, y: 0 } as unknown as RectangleElement;
 
-      const mockEvent = { clientX: 100, clientY: 80, shiftKey: true } as PointerEvent;
-      jest.spyOn(rectangleTool, 'getPointerPosition').mockReturnValue({ x: 100, y: 80 });
+      const mockEvent = createMockPointerInfo({ x: 100, y: 80, shiftKey: true, eventType: 'pointermove' });
 
       rectangleTool.handlePointerMove(mockEvent);
 
@@ -349,10 +364,9 @@ describe('RectangleTool', () => {
     it('should double dimensions and center when alt key is pressed', () => {
       rectangleTool.activate();
       rectangleTool.startPoint = { x: 50, y: 50 };
-      rectangleTool.element = { width: 0, height: 0, x: 0, y: 0 } as any;
+      rectangleTool.element = { id: '1', width: 0, height: 0, x: 0, y: 0 } as unknown as RectangleElement;
 
-      const mockEvent = { clientX: 100, clientY: 100, altKey: true } as PointerEvent;
-      jest.spyOn(rectangleTool, 'getPointerPosition').mockReturnValue({ x: 100, y: 100 });
+      const mockEvent = createMockPointerInfo({ x: 100, y: 100, altKey: true, eventType: 'pointermove' });
 
       rectangleTool.handlePointerMove(mockEvent);
 
@@ -371,10 +385,9 @@ describe('RectangleTool', () => {
       rectangleTool.whiteboardConfig.gridSize = 20;
       rectangleTool.activate();
       rectangleTool.startPoint = { x: 50, y: 50 };
-      rectangleTool.element = { width: 0, height: 0, x: 0, y: 0 } as any;
+      rectangleTool.element = { id: '1', width: 0, height: 0, x: 0, y: 0 } as unknown as RectangleElement;
 
-      const mockEvent = { clientX: 105, clientY: 115 } as PointerEvent;
-      jest.spyOn(rectangleTool, 'getPointerPosition').mockReturnValue({ x: 105, y: 115 });
+      const mockEvent = createMockPointerInfo({ x: 105, y: 115, eventType: 'pointerdown' });
 
       rectangleTool.handlePointerMove(mockEvent);
 
@@ -391,10 +404,9 @@ describe('RectangleTool', () => {
     it('should not update dimensions or position if the tool is inactive', () => {
       rectangleTool.deactivate();
       rectangleTool.startPoint = { x: 50, y: 50 };
-      rectangleTool.element = { width: 0, height: 0, x: 0, y: 0 } as any;
+      rectangleTool.element = { id: '1', width: 0, height: 0, x: 0, y: 0 } as unknown as RectangleElement;
 
-      const mockEvent = { clientX: 100, clientY: 100 } as PointerEvent;
-      jest.spyOn(rectangleTool, 'getPointerPosition').mockReturnValue({ x: 100, y: 100 });
+      const mockEvent = createMockPointerInfo({ x: 100, y: 100, eventType: 'pointerdown' });
 
       rectangleTool.handlePointerMove(mockEvent);
 
@@ -411,10 +423,9 @@ describe('RectangleTool', () => {
     it('should not update dimensions or position if startPoint is null', () => {
       rectangleTool.activate();
       rectangleTool.startPoint = null;
-      rectangleTool.element = { width: 0, height: 0, x: 0, y: 0 } as any;
+      rectangleTool.element = { id: '1', width: 0, height: 0, x: 0, y: 0 } as unknown as RectangleElement;
 
-      const mockEvent = { clientX: 100, clientY: 100 } as PointerEvent;
-      jest.spyOn(rectangleTool, 'getPointerPosition').mockReturnValue({ x: 100, y: 100 });
+      const mockEvent = createMockPointerInfo({ x: 100, y: 100, eventType: 'pointerdown' });
 
       rectangleTool.handlePointerMove(mockEvent);
 
