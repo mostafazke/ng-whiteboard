@@ -29,8 +29,5 @@
     "@angular/common": ">=17.3.0 <20.0.0",
     "rxjs": "~7.8.0"
   },
-  "dependencies": {
-    "perfect-freehand": "^1.2.2"
-  },
   "sideEffects": false
 }

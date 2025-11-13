@@ -15,6 +15,7 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@core/*": ["projects/ng-whiteboard/src/lib/core/*"],
       "ng-whiteboard": ["projects/ng-whiteboard/src/index.ts"]
     }
   },
