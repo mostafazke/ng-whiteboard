@@ -1,3 +1,10 @@
+## [5.0.1](https://github.com/mostafazke/ng-whiteboard/compare/v5.0.0...v5.0.1) (2025-11-14)
+
+
+### Bug Fixes
+
+* resolve [@core](https://github.com/core) path alias issues and improve component flexibility ([2f84101](https://github.com/mostafazke/ng-whiteboard/commit/2f84101e7665381b1651f1e63940421f9e8ebda3)), closes [#293](https://github.com/mostafazke/ng-whiteboard/issues/293)
+
 # [5.0.0](https://github.com/mostafazke/ng-whiteboard/compare/v4.2.4...v5.0.0) (2025-11-13)
 
 
