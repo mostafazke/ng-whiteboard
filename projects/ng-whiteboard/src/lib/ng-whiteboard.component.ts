@@ -43,6 +43,19 @@ import { PanService, WheelHandlerService, ZoomService } from './core/viewport';
       <wb-context-menu></wb-context-menu>
     </div>
   `,
+  styles: [
+    `
+      :host {
+        display: block;
+        width: inherit;
+        height: inherit;
+        min-width: inherit;
+        min-height: inherit;
+        max-width: inherit;
+        max-height: inherit;
+      }
+    `,
+  ],
   providers: [
     SvgService,
     ApiService,

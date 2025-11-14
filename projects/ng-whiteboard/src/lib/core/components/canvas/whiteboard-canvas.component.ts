@@ -8,17 +8,17 @@ import {
   inject,
   ViewChild,
 } from '@angular/core';
-import { ConfigService } from '@core/config/config.service';
-import { GlobalKeyboardDirective, ResizeHandlerDirective } from '@core/directives';
+import { ConfigService } from '../../config/config.service';
+import { GlobalKeyboardDirective, ResizeHandlerDirective } from '../../directives';
 
-import { SvgDirective } from '@core/svg/svg.directive';
-import { SvgService } from '@core/svg/svg.service';
-import { ElementType, ToolType, WhiteboardElement } from '@core/types';
-import { ApiService } from '@core/api';
-import { CanvasService } from '@core/canvas';
-import { SelectionService } from '@core/elements';
-import { GripCursorPipe, ElementOpacityPipe, PointsToPathPipe } from '@core/pipes';
-import { ToolsService } from '@core/tools';
+import { SvgDirective } from '../../svg/svg.directive';
+import { SvgService } from '../../svg/svg.service';
+import { ElementType, ToolType, WhiteboardElement } from '../../types';
+import { ApiService } from '../../api';
+import { CanvasService } from '../../canvas';
+import { SelectionService } from '../../elements';
+import { GripCursorPipe, ElementOpacityPipe, PointsToPathPipe } from '../../pipes';
+import { ToolsService } from '../../tools';
 
 @Component({
   selector: 'ng-whiteboard-canvas',
