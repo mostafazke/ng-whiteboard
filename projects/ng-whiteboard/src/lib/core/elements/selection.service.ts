@@ -1,5 +1,5 @@
 import { computed, Injectable, signal, Signal } from '@angular/core';
-import { EventBusService } from '@core/event-bus';
+import { EventBusService } from '../event-bus';
 import { CanvasService } from '../canvas/canvas.service';
 import { ClipboardService } from '../input/clipboard.service';
 import { ToolsService } from '../tools/tools.service';

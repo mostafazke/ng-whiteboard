@@ -278,63 +278,63 @@ The whiteboard supports comprehensive keyboard shortcuts for enhanced productivi
 
 ### Selection & Editing
 
-| Shortcut | Action |
-| --- | --- |
-| `Ctrl/Cmd + A` | Select all elements |
-| `Escape` | Clear selection |
-| `Delete` / `Backspace` | Delete selected elements |
-| `Ctrl/Cmd + C` | Copy selected elements |
-| `Ctrl/Cmd + X` | Cut selected elements |
-| `Ctrl/Cmd + V` | Paste elements |
-| `Ctrl/Cmd + D` | Duplicate selected elements |
+| Shortcut               | Action                      |
+| ---------------------- | --------------------------- |
+| `Ctrl/Cmd + A`         | Select all elements         |
+| `Escape`               | Clear selection             |
+| `Delete` / `Backspace` | Delete selected elements    |
+| `Ctrl/Cmd + C`         | Copy selected elements      |
+| `Ctrl/Cmd + X`         | Cut selected elements       |
+| `Ctrl/Cmd + V`         | Paste elements              |
+| `Ctrl/Cmd + D`         | Duplicate selected elements |
 
 ### Undo/Redo
 
-| Shortcut | Action |
-| --- | --- |
-| `Ctrl/Cmd + Z` | Undo last action |
+| Shortcut                                | Action                  |
+| --------------------------------------- | ----------------------- |
+| `Ctrl/Cmd + Z`                          | Undo last action        |
 | `Ctrl/Cmd + Shift + Z` / `Ctrl/Cmd + Y` | Redo last undone action |
 
 ### Layer Management
 
-| Shortcut | Action |
-| --- | --- |
+| Shortcut               | Action         |
+| ---------------------- | -------------- |
 | `Ctrl/Cmd + Shift + ]` | Bring to front |
-| `Ctrl/Cmd + ]` | Bring forward |
-| `Ctrl/Cmd + Shift + [` | Send to back |
-| `Ctrl/Cmd + [` | Send backward |
+| `Ctrl/Cmd + ]`         | Bring forward  |
+| `Ctrl/Cmd + Shift + [` | Send to back   |
+| `Ctrl/Cmd + [`         | Send backward  |
 
 ### Tools
 
-| Shortcut | Action |
-| --- | --- |
-| `V` | Select tool |
-| `P` | Pen tool |
-| `L` | Line tool |
-| `R` | Rectangle tool |
-| `E` | Ellipse tool |
-| `A` | Arrow tool |
-| `T` | Text tool |
-| `I` | Image tool |
-| `H` | Hand tool (pan) |
-| `D` | Eraser tool |
+| Shortcut | Action          |
+| -------- | --------------- |
+| `V`      | Select tool     |
+| `P`      | Pen tool        |
+| `L`      | Line tool       |
+| `R`      | Rectangle tool  |
+| `E`      | Ellipse tool    |
+| `A`      | Arrow tool      |
+| `T`      | Text tool       |
+| `I`      | Image tool      |
+| `H`      | Hand tool (pan) |
+| `D`      | Eraser tool     |
 
 ### Viewport
 
-| Shortcut | Action |
-| --- | --- |
-| `Ctrl/Cmd + +` / `Ctrl/Cmd + =` | Zoom in |
-| `Ctrl/Cmd + -` | Zoom out |
-| `Ctrl/Cmd + 0` | Reset zoom (100%) |
-| `Space + Drag` | Pan canvas (when not in hand tool mode) |
+| Shortcut                        | Action                                  |
+| ------------------------------- | --------------------------------------- |
+| `Ctrl/Cmd + +` / `Ctrl/Cmd + =` | Zoom in                                 |
+| `Ctrl/Cmd + -`                  | Zoom out                                |
+| `Ctrl/Cmd + 0`                  | Reset zoom (100%)                       |
+| `Space + Drag`                  | Pan canvas (when not in hand tool mode) |
 
 ### Modifiers
 
-| Shortcut | Action |
-| --- | --- |
-| `Shift + Drag` | Constrain proportions (drawing shapes) |
-| `Alt/Option + Drag` | Draw from center (shapes) |
-| `Ctrl/Cmd + Drag` | Duplicate while dragging |
+| Shortcut            | Action                                 |
+| ------------------- | -------------------------------------- |
+| `Shift + Drag`      | Constrain proportions (drawing shapes) |
+| `Alt/Option + Drag` | Draw from center (shapes)              |
+| `Ctrl/Cmd + Drag`   | Duplicate while dragging               |
 
 > **Note:** `Ctrl` is used on Windows/Linux, `Cmd` (⌘) is used on macOS.
 
@@ -343,11 +343,13 @@ The whiteboard supports comprehensive keyboard shortcuts for enhanced productivi
 Right-click on the canvas or elements to access the context menu with quick actions:
 
 ### Canvas Context Menu
+
 - **Paste** - Paste copied elements
 - **Select All** - Select all elements on canvas
 - **Clear Canvas** - Remove all elements
 
 ### Element Context Menu
+
 - **Cut** - Cut selected element(s)
 - **Copy** - Copy selected element(s)
 - **Paste** - Paste from clipboard

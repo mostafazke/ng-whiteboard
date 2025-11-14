@@ -1,7 +1,7 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { StrokeOptions } from '../utils/drawing';
-import { getStrokePoints } from '@core/utils/drawing/stroke-points';
-import { getSvgPathFromStroke } from '@core/utils/drawing/path';
+import { getStrokePoints } from '../utils/drawing/stroke-points';
+import { getSvgPathFromStroke } from '../utils/drawing/path';
 
 @Pipe({
   name: 'pointsToPath',

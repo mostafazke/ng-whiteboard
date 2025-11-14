@@ -110,7 +110,7 @@ const DEFAULT_TOOLS: ReadonlyArray<ToolConfig> = [
 export class ToolsService {
   private readonly eventBusService = inject(EventBusService);
   private readonly toolFactory = inject(ToolFactory);
-  private apiServiceCache?: ApiService;
+  private readonly _apiServiceCache = signal<ApiService | undefined>(undefined);
 
   private readonly _selectedTool = signal<ToolType>(ToolType.Pen);
   private readonly _toolConfigs = signal<ReadonlyMap<string, ToolConfig>>(new Map());
@@ -143,14 +143,21 @@ export class ToolsService {
     effect(
       () => {
         const toolType = this.effectiveTool();
-        this.updateCurrentToolInstance(toolType);
+        const apiService = this._apiServiceCache();
+        // Only update tool instance after ApiService is initialized
+        if (apiService) {
+          this.updateCurrentToolInstance(toolType);
+        }
       },
       { allowSignalWrites: true }
     );
 
     effect(
       () => {
-        this.updateCursorForActiveTool();
+        // Only update cursor after tool instance is available
+        if (this._currentToolInstance()) {
+          this.updateCursorForActiveTool();
+        }
       },
       { allowSignalWrites: true }
     );
@@ -219,10 +226,11 @@ export class ToolsService {
     }
 
     if (!this.toolInstanceCache.has(toolType)) {
-      if (!this.apiServiceCache) {
+      const apiService = this._apiServiceCache();
+      if (!apiService) {
         throw new Error('ApiService not set. Call setApiService() first.');
       }
-      const tool = this.toolFactory.createTool(toolType, this.apiServiceCache);
+      const tool = this.toolFactory.createTool(toolType, apiService);
       this.toolInstanceCache.set(toolType, tool);
     }
 
@@ -393,6 +401,6 @@ export class ToolsService {
   }
 
   setApiService(apiService: ApiService): void {
-    this.apiServiceCache = apiService;
+    this._apiServiceCache.set(apiService);
   }
 }

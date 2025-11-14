@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { signal } from '@angular/core';
 import { ToolsService } from './tools.service';
 import { ToolFactory } from './tool-factory.service';
 import { EventBusService } from '../event-bus/event-bus.service';
@@ -118,7 +117,8 @@ describe('ToolsService', () => {
       // Create a new service instance via TestBed but don't set ApiService
       const newService = TestBed.inject(ToolsService);
       // Clear the apiServiceCache to simulate not being set
-      (newService as any).apiServiceCache = undefined;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (newService as any)._apiServiceCache.set(undefined);
 
       expect(() => newService.getToolInstance(ToolType.Hand)).toThrow(
         'ApiService not set. Call setApiService() first.'
@@ -136,6 +136,8 @@ describe('ToolsService', () => {
     it('should throw error when no active tool instance', () => {
       // Create a service and manually clear the current tool instance
       const testService = TestBed.inject(ToolsService);
+      // Reset the signal to null for testing
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (testService as any)._currentToolInstance.set(null);
 
       expect(() => testService.getActiveToolInstance()).toThrow('No active tool instance found.');
@@ -323,12 +325,16 @@ describe('ToolsService', () => {
     it('should enable/disable tool', () => {
       const configs = service.getToolConfigs();
       const handConfig = configs.find((c) => c.type === ToolType.Hand);
-      expect(handConfig).toBeDefined();
 
-      const result = service.setToolEnabled(handConfig!.id, false);
+      if (!handConfig) {
+        fail('Hand config should be defined');
+        return;
+      }
+
+      const result = service.setToolEnabled(handConfig.id, false);
       expect(result).toBe(true);
 
-      const updatedConfig = service.getToolConfig(handConfig!.id);
+      const updatedConfig = service.getToolConfig(handConfig.id);
       expect(updatedConfig?.enabled).toBe(false);
     });
 
@@ -341,8 +347,13 @@ describe('ToolsService', () => {
       const configs = service.getToolConfigs();
       const handConfig = configs.find((c) => c.type === ToolType.Hand);
 
+      if (!handConfig) {
+        fail('Hand config should be defined');
+        return;
+      }
+
       service.setActiveTool(ToolType.Hand);
-      service.setToolEnabled(handConfig!.id, false);
+      service.setToolEnabled(handConfig.id, false);
 
       expect(service.getActiveToolType()).toBe(ToolType.Pen);
     });
@@ -366,10 +377,15 @@ describe('ToolsService', () => {
       const configs = service.getToolConfigs();
       const handConfig = configs.find((c) => c.type === ToolType.Hand);
 
-      service.setToolEnabled(handConfig!.id, false);
+      if (!handConfig) {
+        fail('Hand config should be defined');
+        return;
+      }
+
+      service.setToolEnabled(handConfig.id, false);
       const available = service.availableTools();
 
-      expect(available.some((t) => t.id === handConfig!.id)).toBe(false);
+      expect(available.some((t) => t.id === handConfig.id)).toBe(false);
     });
   });
 
