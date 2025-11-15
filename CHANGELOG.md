@@ -1,3 +1,10 @@
+## [5.0.2](https://github.com/mostafazke/ng-whiteboard/compare/v5.0.1...v5.0.2) (2025-11-15)
+
+
+### Bug Fixes
+
+* update peerDependencies to remove upper version limits for Angular ([a7a5593](https://github.com/mostafazke/ng-whiteboard/commit/a7a5593bee07da04bb7c7d7cc206bcabb73a07f9))
+
 ## [5.0.1](https://github.com/mostafazke/ng-whiteboard/compare/v5.0.0...v5.0.1) (2025-11-14)
 
 
