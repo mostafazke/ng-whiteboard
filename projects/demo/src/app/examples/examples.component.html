@@ -13,33 +13,39 @@
     <div class="example-section">
       <div class="example-header">
         <h2 id="minimal">
-          <a class="anchor" href="#minimal" aria-label="Minimal example">#</a>
+          <a class="anchor" [routerLink]="['/examples']" fragment="minimal" aria-label="Minimal example">#</a>
           Minimal Example
         </h2>
         <p>A simple, bare-bones implementation with minimal configuration.</p>
       </div>
       <div class="example-content">
-        <app-minimal-component></app-minimal-component>
+        <div class="demo">
+          <app-minimal-component></app-minimal-component>
+        </div>
       </div>
     </div>
 
     <div class="example-section">
       <div class="example-header">
         <h2 id="basic">
-          <a class="anchor" href="#basic" aria-label="Basic example">#</a>
+          <a class="anchor" [routerLink]="['/examples']" fragment="basic" aria-label="Basic example">#</a>
           Basic Example
         </h2>
         <p>A standard implementation with common features and controls.</p>
       </div>
       <div class="example-content">
-        <app-basic-component></app-basic-component>
+        <div class="demo">
+          <app-basic-component></app-basic-component>
+        </div>
       </div>
     </div>
 
     <div class="example-section">
       <div class="example-header">
         <h2 id="comprehensive">
-          <a class="anchor" href="#comprehensive" aria-label="Comprehensive example">#</a>
+          <a class="anchor" [routerLink]="['/examples']" fragment="comprehensive" aria-label="Comprehensive example"
+            >#</a
+          >
           Comprehensive Example
         </h2>
         <p>A full-featured implementation showcasing all available tools and options.</p>
