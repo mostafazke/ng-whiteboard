@@ -95,7 +95,7 @@ export class SvgService {
     // ---------------- [Begin of fix code] ----------------
     // Check whether the target is an input box, textarea, or an editable element
     const target = event.target as HTMLElement;
-    if(target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable){
+    if(target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)){
       return;
     }
     // ---------------- [End of fix code] ----------------
