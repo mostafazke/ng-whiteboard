@@ -1,3 +1,14 @@
+## [5.0.3](https://github.com/mostafazke/ng-whiteboard/compare/v5.0.2...v5.0.3) (2025-11-29)
+
+
+### Bug Fixes
+
+* handle Unicode characters in save function ([4c3b15c](https://github.com/mostafazke/ng-whiteboard/commit/4c3b15c2381aedf217b4752ad05e122cf93136b0))
+* Spacebar shortcut conflicts with text tool typing ([12327c0](https://github.com/mostafazke/ng-whiteboard/commit/12327c06a3380925cbfe1001e375549a64df4ad9))
+* Spacebar shortcut conflicts with text tool typing ([ba885d5](https://github.com/mostafazke/ng-whiteboard/commit/ba885d587cddbc7f2b836b7e02a707cdaa3d7694))
+* Spacebar shortcut conflicts with text tool typing ([007ed73](https://github.com/mostafazke/ng-whiteboard/commit/007ed73706d55518dd6e8f66d5428c990ac05987))
+* update SVG encoding test to use URL-encoded data URI format ([2cddabc](https://github.com/mostafazke/ng-whiteboard/commit/2cddabc211a8227746e51e176a19d888a79953a0))
+
 ## [5.0.2](https://github.com/mostafazke/ng-whiteboard/compare/v5.0.1...v5.0.2) (2025-11-15)
 
 
