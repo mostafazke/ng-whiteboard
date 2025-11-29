@@ -1,3 +1,10 @@
+# [5.1.0](https://github.com/mostafazke/ng-whiteboard/compare/v5.0.3...v5.1.0) (2025-11-29)
+
+
+### Features
+
+* refactor input handling and constants for improved readability and maintainability ([9dd7567](https://github.com/mostafazke/ng-whiteboard/commit/9dd7567687f0aabeadc1ef3e1683bc920aa2d77f))
+
 ## [5.0.3](https://github.com/mostafazke/ng-whiteboard/compare/v5.0.2...v5.0.3) (2025-11-29)
 
 
