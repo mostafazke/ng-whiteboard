@@ -36,4 +36,5 @@ export type Tool = {
   handleKeyUp?(event: KeyboardEvent): void;
   onActivate?(): void;
   onDeactivate?(): void;
+  isEditing?: boolean;
 };

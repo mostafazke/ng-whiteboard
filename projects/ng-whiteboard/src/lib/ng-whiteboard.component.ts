@@ -8,9 +8,9 @@ import {
   OnDestroy,
   OnInit,
   Output,
-  effect,
   inject,
 } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { ApiService } from './core/api';
 import { CanvasService, InstanceService } from './core/canvas';
 import { WhiteboardCanvasComponent } from './core/components/canvas/whiteboard-canvas.component';
@@ -244,26 +244,34 @@ export class NgWhiteboardComponent implements OnInit, OnDestroy {
     [WhiteboardEvent.ZoomChange]: this.zoomChange,
   };
 
-  private readonly forwardEventsEffect = effect(() => {
-    const whiteboardEvent = this.eventBusService.getAllEventsSignal();
-    const last = whiteboardEvent();
-    if (!last) return;
-    const emitter = this.eventsMap[last.type] as EventEmitter<unknown> | undefined;
-    if (!emitter) return;
-    if (last.payload !== undefined) {
-      emitter.emit(last.payload as unknown);
-    } else {
-      emitter.emit();
-    }
-    this.cd.markForCheck();
-  });
+  private eventsSubscription?: Subscription;
 
   ngOnInit(): void {
     this.instanceService.register(this.boardId, this.apiService);
+
+    // Subscribe to the observable stream instead of using a signal effect
+    // This ensures all synchronously emitted events are captured,
+    // preventing events from being swallowed when multiple events fire in the same cycle
+    this.eventsSubscription = this.eventBusService.listen().subscribe((event) => {
+      const emitter = this.eventsMap[event.type] as EventEmitter<unknown> | undefined;
+      if (emitter) {
+        if (event.payload !== undefined) {
+          emitter.emit(event.payload as unknown);
+        } else {
+          emitter.emit();
+        }
+        this.cd.markForCheck();
+      }
+    });
   }
 
   ngOnDestroy(): void {
     this.instanceService.unregister(this.boardId);
     this.eventBusService.emit(WhiteboardEvent.Destroyed);
+
+    // Clean up subscription
+    if (this.eventsSubscription) {
+      this.eventsSubscription.unsubscribe();
+    }
   }
 }

@@ -86,11 +86,6 @@ export class SelectionService {
 
     this.removeElementsFn(selectedElements, true);
     this.clearSelection();
-
-    // Emit granular event for elements removal
-    this.eventBus.emit(WhiteboardEvent.ElementsRemoved, selectedElements);
-    // Emit data change event
-    this.eventBus.emit(WhiteboardEvent.DataChange, this.elementsService.getElements());
   }
 
   getSelectedIds(): string[] {

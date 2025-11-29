@@ -5,12 +5,17 @@ import { getTargetElement } from '../utils/dom';
 import { snapToGrid } from '../utils/geometry';
 import { BaseTool } from './base-tool';
 import { CursorType } from '../types/cursors';
+import { KEY } from '../constants';
 
 export class TextTool extends BaseTool {
   type = ToolType.Text;
   override baseCursor = CursorType.Text;
   private textElement: TextElement | null = null;
   private textInput: HTMLTextAreaElement | null = null;
+
+  get isEditing(): boolean {
+    return this.textInput !== null;
+  }
 
   override handlePointerDown(event: PointerInfo): void {
     if (!this.active) return;
@@ -111,10 +116,10 @@ export class TextTool extends BaseTool {
 
     textarea.addEventListener('input', () => this.handleTextInput(textarea));
     textarea.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && e.ctrlKey) {
+      if (e.key === KEY.ENTER && e.ctrlKey) {
         e.preventDefault();
         this.finishTextInput();
-      } else if (e.key === 'Escape') {
+      } else if (e.key === KEY.ESCAPE) {
         e.preventDefault();
         this.finishTextInput();
       }

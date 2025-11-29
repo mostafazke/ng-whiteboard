@@ -71,6 +71,7 @@ describe('SvgService', () => {
 
   beforeEach(() => {
     const toolsServiceMock = {
+      getActiveToolType: jest.fn().mockReturnValue(ToolType.Pen),
       getActiveToolInstance: jest.fn().mockReturnValue(currentTool),
       getToolInstance: jest.fn().mockReturnValue(currentTool),
       hasTemporaryOverride: jest.fn().mockReturnValue(false),

@@ -1,6 +1,7 @@
 import { Directive, HostListener, ElementRef, inject } from '@angular/core';
 import { SvgService } from './svg.service';
 import { PointerInfo } from '../types';
+import { MOUSE_BUTTON } from '../constants';
 
 @Directive({
   selector: '[svg]',
@@ -21,7 +22,7 @@ export class SvgDirective {
 
   @HostListener('pointerdown', ['$event'])
   onPointerDown(event: PointerEvent): void {
-    if (event.button !== 2) {
+    if (event.button !== MOUSE_BUTTON.RIGHT) {
       event.preventDefault();
     }
 
@@ -29,7 +30,7 @@ export class SvgDirective {
       (event.currentTarget as Element).setPointerCapture(event.pointerId);
     }
 
-    if (event.button === 2) return;
+    if (event.button === MOUSE_BUTTON.RIGHT) return;
 
     const currentTime = Date.now();
     const currentX = event.clientX;
@@ -76,7 +77,7 @@ export class SvgDirective {
       (event.currentTarget as Element).releasePointerCapture(event.pointerId);
     }
 
-    if (event.button === 2) return;
+    if (event.button === MOUSE_BUTTON.RIGHT) return;
     const pointerInfo = this.createPointerInfo(event);
     this.svgService.onPointerUp(pointerInfo);
   }

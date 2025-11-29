@@ -4,6 +4,7 @@ import { ConfigService } from '../config/config.service';
 import { WhiteboardElement, ElementType } from '../types';
 import { createElement } from '../elements/element.utils';
 import { getCanvasCoordinates } from '../utils/geometry';
+import { FILE_TYPE_PREFIX } from '../constants';
 
 @Injectable({ providedIn: 'root' })
 export class DragDropService {
@@ -11,7 +12,7 @@ export class DragDropService {
 
   handleFiles(files: FileList): void {
     Array.from(files).forEach((file) => {
-      if (file.type.startsWith('image/')) {
+      if (file.type.startsWith(FILE_TYPE_PREFIX.IMAGE)) {
         const reader = new FileReader();
         reader.onload = (e) => {
           const src = e.target?.result as string;

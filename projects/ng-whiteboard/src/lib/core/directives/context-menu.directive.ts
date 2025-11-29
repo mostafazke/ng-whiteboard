@@ -1,4 +1,5 @@
 import { Directive, ElementRef, EventEmitter, inject, OnDestroy, OnInit, Output } from '@angular/core';
+import { MOUSE_BUTTON, KEY } from '../constants';
 
 export interface ContextMenuEvent {
   x: number;
@@ -43,13 +44,13 @@ export class ContextMenuDirective implements OnInit, OnDestroy {
     };
 
     this.clickListener = (event: MouseEvent) => {
-      if (event.button === 0) {
+      if (event.button === MOUSE_BUTTON.LEFT) {
         this.contextMenuHidden.emit();
       }
     };
 
     this.keydownListener = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === KEY.ESCAPE) {
         this.contextMenuHidden.emit();
       }
     };
