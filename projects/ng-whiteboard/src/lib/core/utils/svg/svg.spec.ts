@@ -216,7 +216,7 @@ describe('SVG Utils', () => {
       expect(args[4]).toBe(height);
     });
 
-    it('should encode SVG as base64 in image src', async () => {
+    it('should encode SVG as URL-encoded data URI in image src', async () => {
       const svgString = '<svg width="100" height="100"><rect width="50" height="50"/></svg>';
       let capturedSrc = '';
 
@@ -242,10 +242,11 @@ describe('SVG Utils', () => {
 
       await svgToBase64(svgString, 100, 100);
 
-      expect(capturedSrc).toContain('data:image/svg+xml;base64,');
-      // Verify the base64 encoded SVG
-      const base64Part = capturedSrc.replace('data:image/svg+xml;base64,', '');
-      expect(base64Part).toBeTruthy();
+      expect(capturedSrc).toContain('data:image/svg+xml;charset=utf-8,');
+      const encodedPart = capturedSrc.replace('data:image/svg+xml;charset=utf-8,', '');
+      expect(encodedPart).toBeTruthy();
+      const decoded = decodeURIComponent(encodedPart);
+      expect(decoded).toBe(svgString);
     });
 
     it('should reject on image load error', async () => {
