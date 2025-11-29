@@ -1,3 +1,89 @@
+## [5.0.2](https://github.com/mostafazke/ng-whiteboard/compare/v5.0.1...v5.0.2) (2025-11-15)
+
+
+### Bug Fixes
+
+* update peerDependencies to remove upper version limits for Angular ([a7a5593](https://github.com/mostafazke/ng-whiteboard/commit/a7a5593bee07da04bb7c7d7cc206bcabb73a07f9))
+
+## [5.0.1](https://github.com/mostafazke/ng-whiteboard/compare/v5.0.0...v5.0.1) (2025-11-14)
+
+
+### Bug Fixes
+
+* resolve [@core](https://github.com/core) path alias issues and improve component flexibility ([2f84101](https://github.com/mostafazke/ng-whiteboard/commit/2f84101e7665381b1651f1e63940421f9e8ebda3)), closes [#293](https://github.com/mostafazke/ng-whiteboard/issues/293)
+
+# [5.0.0](https://github.com/mostafazke/ng-whiteboard/compare/v4.2.4...v5.0.0) (2025-11-13)
+
+
+### Code Refactoring
+
+* **whiteboard:** modernize core architecture and components ([df58e22](https://github.com/mostafazke/ng-whiteboard/commit/df58e2211e92027deb1a280aad8da55102b7493f))
+
+
+### Features
+
+* **demo:** enhance UI with new components and styling system ([f87b888](https://github.com/mostafazke/ng-whiteboard/commit/f87b88857d86fd8c324b6da5c0ec63a0b9af1136))
+* **demo:** redesign documentation with new pages and structure ([fc09a08](https://github.com/mostafazke/ng-whiteboard/commit/fc09a0891b812f216d6b65a43a65ed7e0db943ab))
+* **whiteboard:** add new service architecture for multi-instance support ([44b606f](https://github.com/mostafazke/ng-whiteboard/commit/44b606f5b3e13484cf00c66cd971a3a229a60daf))
+
+
+### BREAKING CHANGES
+
+* **whiteboard:** Component and service API completely redesigned
+
+Refactor NgWhiteboardComponent to container pattern
+
+Refactor NgWhiteboardService with multi-instance API
+
+Update all tool classes for new architecture
+
+Refactor event bus with Angular signals
+
+Enhance configuration service with validation
+
+Add new types: cursors, layers, pointer, pen-presets, clipboard
+
+Add new pipes: ElementOpacityPipe, PointsToPathPipe
+
+Add new directives: ContextMenuDirective, GlobalKeyboardDirective
+
+Refactor geometry and drawing utilities
+
+Add vector math and stroke point utilities
+
+Add transform utilities for SVG manipulations
+
+Remove deprecated services: action-handler, data, tool-manager
+
+Remove old cursor SVG assets
+
+Update all element classes for new rendering
+
+Enhance SVG service and directive
+* **whiteboard:** Complete service layer redesign
+
+Add ApiService for multi-instance whiteboard management
+
+Add CanvasService and InstanceService for canvas lifecycle
+
+Add ElementsService, SelectionService, LayerManagementService
+
+Add HistoryService for undo/redo functionality
+
+Add ClipboardService, DragDropService, IOService
+
+Add KeyboardShortcutService for keyboard interactions
+
+Add ZoomService, PanService, WheelHandlerService for viewport
+
+Add ToolsService and ToolFactory for tool management
+
+Add ContextMenuService and ContextMenuComponent
+
+Add WhiteboardCanvasComponent for rendering
+
+Add comprehensive test helpers and utilities
+
 ## [4.2.4](https://github.com/mostafazke/ng-whiteboard/compare/v4.2.3...v4.2.4) (2025-10-17)
 
 

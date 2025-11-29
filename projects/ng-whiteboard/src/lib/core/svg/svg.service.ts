@@ -91,6 +91,13 @@ export class SvgService {
   }
 
   onKeyDown(event: KeyboardEvent) {
+    
+    // Check whether the target is an input box, textarea, or an editable element
+    const target = event.target as HTMLElement;
+    if(target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)){
+      return;
+    }
+    // ---------------- [End of fix code] ----------------
     if (event.code === 'Space' && !this.isSpaceHeld) {
       this.isSpaceHeld = true;
       this.toolsService.pushTemporaryTool(ToolType.Hand, 'pan-space');
