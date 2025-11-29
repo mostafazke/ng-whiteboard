@@ -8,6 +8,7 @@ import { svgToBase64 } from '../utils/svg';
 import { CanvasService } from '../canvas/canvas.service';
 import { ElementsService } from '../elements/elements.service';
 import { SelectionService } from '../elements/selection.service';
+import { FILE_TYPE_PREFIX } from '../constants';
 import { PanService } from '../viewport/pan.service';
 import { ZoomService } from '../viewport/zoom.service';
 import { LayerManagementService } from '../elements/layer-management.service';
@@ -74,7 +75,7 @@ export class IOService {
 
   importImageFile(file: File, x?: number, y?: number): Promise<void> {
     return new Promise((resolve, reject) => {
-      if (!file.type.startsWith('image/')) {
+      if (!file.type.startsWith(FILE_TYPE_PREFIX.IMAGE)) {
         reject(new Error('Invalid file type. Only images are supported.'));
         return;
       }

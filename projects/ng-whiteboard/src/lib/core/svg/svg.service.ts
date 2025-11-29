@@ -1,15 +1,16 @@
 import { Injectable, signal, WritableSignal } from '@angular/core';
-import { WhiteboardEvent, PointerInfo } from '../types';
-import { EventBusService } from '../event-bus/event-bus.service';
+import { ApiService } from '../api/api.service';
+import { ContextMenuService } from '../components/context-menu';
 import { ConfigService } from '../config/config.service';
+import { DROP_EFFECT, KEY, MIME_TYPE, MOUSE_BUTTON, TEMPORARY_TOOL_ID } from '../constants';
+import { EventBusService } from '../event-bus/event-bus.service';
+import { DragDropService } from '../input/drag-drop.service';
 import { KeyboardShortcutService } from '../input/keyboard-shortcut.service';
 import { ToolsService } from '../tools/tools.service';
-import { DragDropService } from '../input/drag-drop.service';
-import { WheelHandlerService } from '../viewport/wheel-handler.service';
-import { ApiService } from '../api/api.service';
-import { ToolType, Tool } from '../types/tools';
-import { ContextMenuService } from '../components/context-menu';
+import { PointerInfo, WhiteboardEvent } from '../types';
+import { Tool, ToolType } from '../types/tools';
 import { getTargetElement } from '../utils/dom/target';
+import { WheelHandlerService } from '../viewport/wheel-handler.service';
 
 @Injectable({ providedIn: 'root' })
 export class SvgService {
@@ -31,13 +32,13 @@ export class SvgService {
   ) {}
 
   onPointerDown(info: PointerInfo) {
-    if (info.button === 1) {
-      this.toolsService.pushTemporaryTool(ToolType.Hand, 'pan-middle');
+    if (info.button === MOUSE_BUTTON.MIDDLE) {
+      this.toolsService.pushTemporaryTool(ToolType.Hand, TEMPORARY_TOOL_ID.PAN_MIDDLE);
       const hand = this.safeGetHandTool();
       hand?.handlePointerDown?.(info);
       return;
     }
-    if (info.button === 2) {
+    if (info.button === MOUSE_BUTTON.RIGHT) {
       return;
     }
 
@@ -76,9 +77,9 @@ export class SvgService {
   }
 
   onPointerUp(info: PointerInfo) {
-    if (info.button === 1 && this.toolsService.hasTemporaryOverride()) {
+    if (info.button === MOUSE_BUTTON.MIDDLE && this.toolsService.hasTemporaryOverride()) {
       this.safeGetHandTool()?.handlePointerUp?.(info);
-      this.toolsService.popTemporaryTool('pan-middle');
+      this.toolsService.popTemporaryTool(TEMPORARY_TOOL_ID.PAN_MIDDLE);
       return;
     }
 
@@ -91,16 +92,9 @@ export class SvgService {
   }
 
   onKeyDown(event: KeyboardEvent) {
-    
-    // Check whether the target is an input box, textarea, or an editable element
-    const target = event.target as HTMLElement;
-    if(target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)){
-      return;
-    }
-    // ---------------- [End of fix code] ----------------
-    if (event.code === 'Space' && !this.isSpaceHeld) {
+    if (event.code === KEY.SPACE && !this.isSpaceHeld && !this.isTextToolEditing()) {
       this.isSpaceHeld = true;
-      this.toolsService.pushTemporaryTool(ToolType.Hand, 'pan-space');
+      this.toolsService.pushTemporaryTool(ToolType.Hand, TEMPORARY_TOOL_ID.PAN_SPACE);
       event.preventDefault();
       return;
     }
@@ -113,9 +107,9 @@ export class SvgService {
   }
 
   onKeyUp(event: KeyboardEvent) {
-    if (event.code === 'Space' && this.isSpaceHeld) {
+    if (event.code === KEY.SPACE && this.isSpaceHeld && !this.isTextToolEditing()) {
       this.isSpaceHeld = false;
-      this.toolsService.popTemporaryTool('pan-space');
+      this.toolsService.popTemporaryTool(TEMPORARY_TOOL_ID.PAN_SPACE);
       event.preventDefault();
       return;
     }
@@ -138,7 +132,7 @@ export class SvgService {
   onDragOver(event: DragEvent) {
     if (!this.canDraw()) return;
     if (event.dataTransfer) {
-      event.dataTransfer.dropEffect = 'copy';
+      event.dataTransfer.dropEffect = DROP_EFFECT.COPY;
     }
   }
 
@@ -151,19 +145,19 @@ export class SvgService {
       return;
     }
 
-    const html = event.dataTransfer?.getData('text/html');
+    const html = event.dataTransfer?.getData(MIME_TYPE.HTML);
     if (html) {
       this.dragDropService.handleText(html, event, true);
       return;
     }
 
-    const text = event.dataTransfer?.getData('text/plain');
+    const text = event.dataTransfer?.getData(MIME_TYPE.PLAIN);
     if (text) {
       this.dragDropService.handleText(text, event, false);
       return;
     }
 
-    const json = event.dataTransfer?.getData('application/json');
+    const json = event.dataTransfer?.getData(MIME_TYPE.JSON);
     if (json) {
       try {
         const elements = JSON.parse(json);
@@ -205,6 +199,14 @@ export class SvgService {
   }
   private canUseKeyboardShortcuts(): boolean {
     return this.configService.getConfig().keyboardShortcutsEnabled;
+  }
+
+  private isTextToolEditing(): boolean {
+    const activeToolType = this.toolsService.getActiveToolType();
+    if (activeToolType !== ToolType.Text) return false;
+
+    const activeToolInstance = this.toolsService.getActiveToolInstance();
+    return activeToolInstance?.isEditing === true;
   }
 
   private safeGetHandTool(): Tool | null {

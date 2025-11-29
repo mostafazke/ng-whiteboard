@@ -38,7 +38,6 @@ export class LiveAppComponent implements OnInit {
 
     // Listen to Firebase changes and update whiteboard
     onValue(starCountRef, (snapshot) => {
-      console.log('🚀 ~ LiveAppComponent ~ ngOnInit ~ snapshot:', snapshot);
       const data = snapshot.val();
       const elements = data || [];
 

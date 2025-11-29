@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { ApiService } from '../api';
 import { ConfigService } from '../config/config.service';
-import { ToolType, AlignmentType } from '../types';
+import { KEY_LOWER, MOVEMENT } from '../constants';
+import { AlignmentType, ToolType } from '../types';
 
 @Injectable({ providedIn: 'root' })
 export class KeyboardShortcutService {
@@ -97,7 +98,7 @@ export class KeyboardShortcutService {
       this.apiService.selectAll();
       return true;
     }
-    if (key === 'escape') {
+    if (key === KEY_LOWER.ESCAPE) {
       this.apiService.clearSelection();
       return true;
     }
@@ -121,7 +122,7 @@ export class KeyboardShortcutService {
     }
 
     // Delete
-    if (key === 'delete' || key === 'backspace') {
+    if (key === KEY_LOWER.DELETE || key === KEY_LOWER.BACKSPACE) {
       this.apiService.deleteSelectedElements();
       return true;
     }
@@ -227,11 +228,16 @@ export class KeyboardShortcutService {
       !ctrl &&
       !shift &&
       !alt &&
-      (key === 'arrowup' || key === 'arrowdown' || key === 'arrowleft' || key === 'arrowright')
+      (key === KEY_LOWER.ARROW_UP ||
+        key === KEY_LOWER.ARROW_DOWN ||
+        key === KEY_LOWER.ARROW_LEFT ||
+        key === KEY_LOWER.ARROW_RIGHT)
     ) {
       // Move selected elements by 1 pixel
-      const dx = key === 'arrowright' ? 1 : key === 'arrowleft' ? -1 : 0;
-      const dy = key === 'arrowdown' ? 1 : key === 'arrowup' ? -1 : 0;
+      const dx =
+        key === KEY_LOWER.ARROW_RIGHT ? MOVEMENT.SMALL_STEP : key === KEY_LOWER.ARROW_LEFT ? -MOVEMENT.SMALL_STEP : 0;
+      const dy =
+        key === KEY_LOWER.ARROW_DOWN ? MOVEMENT.SMALL_STEP : key === KEY_LOWER.ARROW_UP ? -MOVEMENT.SMALL_STEP : 0;
       this.apiService.moveSelectedElements(dx, dy);
       return true;
     }
@@ -241,11 +247,16 @@ export class KeyboardShortcutService {
       !ctrl &&
       shift &&
       !alt &&
-      (key === 'arrowup' || key === 'arrowdown' || key === 'arrowleft' || key === 'arrowright')
+      (key === KEY_LOWER.ARROW_UP ||
+        key === KEY_LOWER.ARROW_DOWN ||
+        key === KEY_LOWER.ARROW_LEFT ||
+        key === KEY_LOWER.ARROW_RIGHT)
     ) {
       // Move selected elements by 10 pixels
-      const dx = key === 'arrowright' ? 10 : key === 'arrowleft' ? -10 : 0;
-      const dy = key === 'arrowdown' ? 10 : key === 'arrowup' ? -10 : 0;
+      const dx =
+        key === KEY_LOWER.ARROW_RIGHT ? MOVEMENT.LARGE_STEP : key === KEY_LOWER.ARROW_LEFT ? -MOVEMENT.LARGE_STEP : 0;
+      const dy =
+        key === KEY_LOWER.ARROW_DOWN ? MOVEMENT.LARGE_STEP : key === KEY_LOWER.ARROW_UP ? -MOVEMENT.LARGE_STEP : 0;
       this.apiService.moveSelectedElements(dx, dy);
       return true;
     }
