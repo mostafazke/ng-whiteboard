@@ -90,7 +90,8 @@ export class SvgService {
     this.pointerUpSig.set(info);
   }
 
-  onKeyDown(event: KeyboardEvent) {    
+  onKeyDown(event: KeyboardEvent) {
+    
     // Check whether the target is an input box, textarea, or an editable element
     const target = event.target as HTMLElement;
     if(target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)){

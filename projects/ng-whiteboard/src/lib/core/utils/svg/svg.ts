@@ -31,7 +31,10 @@ export function svgToBase64(
     const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
 
     const img = new Image();
-    img.src = `data:image/svg+xml;base64,${btoa(svgString)}`;
+    
+    const encodedSvg = encodeURIComponent(svgString);
+    img.src = `data:image/svg+xml;charset=utf-8,${encodedSvg}`;
+
     img.onload = () => {
       ctx.drawImage(img, 0, 0, width, height);
       const base64 = canvas.toDataURL(`image/${format}`);
