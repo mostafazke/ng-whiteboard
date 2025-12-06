@@ -1,53 +1,46 @@
 # [5.1.0](https://github.com/mostafazke/ng-whiteboard/compare/v5.0.3...v5.1.0) (2025-11-29)
 
-
 ### Features
 
-* refactor input handling and constants for improved readability and maintainability ([9dd7567](https://github.com/mostafazke/ng-whiteboard/commit/9dd7567687f0aabeadc1ef3e1683bc920aa2d77f))
+- refactor input handling and constants for improved readability and maintainability ([9dd7567](https://github.com/mostafazke/ng-whiteboard/commit/9dd7567687f0aabeadc1ef3e1683bc920aa2d77f))
 
 ## [5.0.3](https://github.com/mostafazke/ng-whiteboard/compare/v5.0.2...v5.0.3) (2025-11-29)
 
-
 ### Bug Fixes
 
-* handle Unicode characters in save function ([4c3b15c](https://github.com/mostafazke/ng-whiteboard/commit/4c3b15c2381aedf217b4752ad05e122cf93136b0))
-* Spacebar shortcut conflicts with text tool typing ([12327c0](https://github.com/mostafazke/ng-whiteboard/commit/12327c06a3380925cbfe1001e375549a64df4ad9))
-* Spacebar shortcut conflicts with text tool typing ([ba885d5](https://github.com/mostafazke/ng-whiteboard/commit/ba885d587cddbc7f2b836b7e02a707cdaa3d7694))
-* Spacebar shortcut conflicts with text tool typing ([007ed73](https://github.com/mostafazke/ng-whiteboard/commit/007ed73706d55518dd6e8f66d5428c990ac05987))
-* update SVG encoding test to use URL-encoded data URI format ([2cddabc](https://github.com/mostafazke/ng-whiteboard/commit/2cddabc211a8227746e51e176a19d888a79953a0))
+- handle Unicode characters in save function ([4c3b15c](https://github.com/mostafazke/ng-whiteboard/commit/4c3b15c2381aedf217b4752ad05e122cf93136b0))
+- Spacebar shortcut conflicts with text tool typing ([12327c0](https://github.com/mostafazke/ng-whiteboard/commit/12327c06a3380925cbfe1001e375549a64df4ad9))
+- Spacebar shortcut conflicts with text tool typing ([ba885d5](https://github.com/mostafazke/ng-whiteboard/commit/ba885d587cddbc7f2b836b7e02a707cdaa3d7694))
+- Spacebar shortcut conflicts with text tool typing ([007ed73](https://github.com/mostafazke/ng-whiteboard/commit/007ed73706d55518dd6e8f66d5428c990ac05987))
+- update SVG encoding test to use URL-encoded data URI format ([2cddabc](https://github.com/mostafazke/ng-whiteboard/commit/2cddabc211a8227746e51e176a19d888a79953a0))
 
 ## [5.0.2](https://github.com/mostafazke/ng-whiteboard/compare/v5.0.1...v5.0.2) (2025-11-15)
 
-
 ### Bug Fixes
 
-* update peerDependencies to remove upper version limits for Angular ([a7a5593](https://github.com/mostafazke/ng-whiteboard/commit/a7a5593bee07da04bb7c7d7cc206bcabb73a07f9))
+- update peerDependencies to remove upper version limits for Angular ([a7a5593](https://github.com/mostafazke/ng-whiteboard/commit/a7a5593bee07da04bb7c7d7cc206bcabb73a07f9))
 
 ## [5.0.1](https://github.com/mostafazke/ng-whiteboard/compare/v5.0.0...v5.0.1) (2025-11-14)
 
-
 ### Bug Fixes
 
-* resolve [@core](https://github.com/core) path alias issues and improve component flexibility ([2f84101](https://github.com/mostafazke/ng-whiteboard/commit/2f84101e7665381b1651f1e63940421f9e8ebda3)), closes [#293](https://github.com/mostafazke/ng-whiteboard/issues/293)
+- resolve [@core](https://github.com/core) path alias issues and improve component flexibility ([2f84101](https://github.com/mostafazke/ng-whiteboard/commit/2f84101e7665381b1651f1e63940421f9e8ebda3)), closes [#293](https://github.com/mostafazke/ng-whiteboard/issues/293)
 
 # [5.0.0](https://github.com/mostafazke/ng-whiteboard/compare/v4.2.4...v5.0.0) (2025-11-13)
 
-
 ### Code Refactoring
 
-* **whiteboard:** modernize core architecture and components ([df58e22](https://github.com/mostafazke/ng-whiteboard/commit/df58e2211e92027deb1a280aad8da55102b7493f))
-
+- **whiteboard:** modernize core architecture and components ([df58e22](https://github.com/mostafazke/ng-whiteboard/commit/df58e2211e92027deb1a280aad8da55102b7493f))
 
 ### Features
 
-* **demo:** enhance UI with new components and styling system ([f87b888](https://github.com/mostafazke/ng-whiteboard/commit/f87b88857d86fd8c324b6da5c0ec63a0b9af1136))
-* **demo:** redesign documentation with new pages and structure ([fc09a08](https://github.com/mostafazke/ng-whiteboard/commit/fc09a0891b812f216d6b65a43a65ed7e0db943ab))
-* **whiteboard:** add new service architecture for multi-instance support ([44b606f](https://github.com/mostafazke/ng-whiteboard/commit/44b606f5b3e13484cf00c66cd971a3a229a60daf))
-
+- **demo:** enhance UI with new components and styling system ([f87b888](https://github.com/mostafazke/ng-whiteboard/commit/f87b88857d86fd8c324b6da5c0ec63a0b9af1136))
+- **demo:** redesign documentation with new pages and structure ([fc09a08](https://github.com/mostafazke/ng-whiteboard/commit/fc09a0891b812f216d6b65a43a65ed7e0db943ab))
+- **whiteboard:** add new service architecture for multi-instance support ([44b606f](https://github.com/mostafazke/ng-whiteboard/commit/44b606f5b3e13484cf00c66cd971a3a229a60daf))
 
 ### BREAKING CHANGES
 
-* **whiteboard:** Component and service API completely redesigned
+- **whiteboard:** Component and service API completely redesigned
 
 Refactor NgWhiteboardComponent to container pattern
 
@@ -78,7 +71,8 @@ Remove old cursor SVG assets
 Update all element classes for new rendering
 
 Enhance SVG service and directive
-* **whiteboard:** Complete service layer redesign
+
+- **whiteboard:** Complete service layer redesign
 
 Add ApiService for multi-instance whiteboard management
 
@@ -104,50 +98,43 @@ Add comprehensive test helpers and utilities
 
 ## [4.2.4](https://github.com/mostafazke/ng-whiteboard/compare/v4.2.3...v4.2.4) (2025-10-17)
 
-
 ### Bug Fixes
 
-* upgrade firebase from 11.6.0 to 11.10.0 ([572365d](https://github.com/mostafazke/ng-whiteboard/commit/572365d1c3eb9f605a08d61e12375c1f83a549f6))
+- upgrade firebase from 11.6.0 to 11.10.0 ([572365d](https://github.com/mostafazke/ng-whiteboard/commit/572365d1c3eb9f605a08d61e12375c1f83a549f6))
 
 ## [4.2.3](https://github.com/mostafazke/ng-whiteboard/compare/v4.2.2...v4.2.3) (2025-08-25)
 
-
 ### Bug Fixes
 
-* upgrade zone.js from 0.14.10 to 0.15.1 ([01df363](https://github.com/mostafazke/ng-whiteboard/commit/01df363e381f014dc0ad54805dbd7574740dd2c3))
+- upgrade zone.js from 0.14.10 to 0.15.1 ([01df363](https://github.com/mostafazke/ng-whiteboard/commit/01df363e381f014dc0ad54805dbd7574740dd2c3))
 
 ## [4.2.2](https://github.com/mostafazke/ng-whiteboard/compare/v4.2.1...v4.2.2) (2025-08-25)
 
-
 ### Bug Fixes
 
-* upgrade firebase from 11.5.0 to 11.6.0 ([e3b7262](https://github.com/mostafazke/ng-whiteboard/commit/e3b7262980e75b09ab5c3d31784853e84c490bff))
+- upgrade firebase from 11.5.0 to 11.6.0 ([e3b7262](https://github.com/mostafazke/ng-whiteboard/commit/e3b7262980e75b09ab5c3d31784853e84c490bff))
 
 ## [4.2.1](https://github.com/mostafazke/ng-whiteboard/compare/v4.2.0...v4.2.1) (2025-05-07)
 
-
 ### Bug Fixes
 
-* **whiteboard:** 🐛 resolve SVG Attributes NaN value ([56a2c85](https://github.com/mostafazke/ng-whiteboard/commit/56a2c8528ac26b88d52c303daf94ee0cfea6fbc3))
+- **whiteboard:** 🐛 resolve SVG Attributes NaN value ([56a2c85](https://github.com/mostafazke/ng-whiteboard/commit/56a2c8528ac26b88d52c303daf94ee0cfea6fbc3))
 
 # [4.2.0](https://github.com/mostafazke/ng-whiteboard/compare/v4.1.0...v4.2.0) (2025-04-26)
 
-
 ### Bug Fixes
 
-* upgrade firebase from 11.1.0 to 11.5.0 ([0406c3d](https://github.com/mostafazke/ng-whiteboard/commit/0406c3de11f177c38a8983432220fd597aee473a))
-
+- upgrade firebase from 11.1.0 to 11.5.0 ([0406c3d](https://github.com/mostafazke/ng-whiteboard/commit/0406c3de11f177c38a8983432220fd597aee473a))
 
 ### Features
 
-* **whiteboard:** 🎸 add multi-selection support ([0cb9568](https://github.com/mostafazke/ng-whiteboard/commit/0cb9568433177d0f5ddbfba33423072e7d583c7d))
+- **whiteboard:** 🎸 add multi-selection support ([0cb9568](https://github.com/mostafazke/ng-whiteboard/commit/0cb9568433177d0f5ddbfba33423072e7d583c7d))
 
 # [4.1.0](https://github.com/mostafazke/ng-whiteboard/compare/v4.0.2...v4.1.0) (2025-04-03)
 
-
 ### Features
 
-* **whiteboard:** 🎸 implement multiple erase on move ([cb5529a](https://github.com/mostafazke/ng-whiteboard/commit/cb5529a869d9c5f172e94b2600487b404874bc47)), closes [#130](https://github.com/mostafazke/ng-whiteboard/issues/130)
+- **whiteboard:** 🎸 implement multiple erase on move ([cb5529a](https://github.com/mostafazke/ng-whiteboard/commit/cb5529a869d9c5f172e94b2600487b404874bc47)), closes [#130](https://github.com/mostafazke/ng-whiteboard/issues/130)
 
 ## [4.0.2](https://github.com/mostafazke/ng-whiteboard/compare/v4.0.1...v4.0.2) (2025-03-21)
 
