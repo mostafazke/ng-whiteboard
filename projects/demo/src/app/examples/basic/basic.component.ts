@@ -1,5 +1,3 @@
-import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
-import { ConnectedPosition, OverlayModule, ScrollStrategyOptions } from '@angular/cdk/overlay';
 import { CommonModule } from '@angular/common';
 import {
   Component,
@@ -41,14 +39,15 @@ import {
   styleUrls: ['./basic.component.scss'],
   encapsulation: ViewEncapsulation.None,
   standalone: true,
-  imports: [CommonModule, FormsModule, NgWhiteboardComponent, CdkDropList, CdkDrag, CdkDragHandle, OverlayModule],
+  imports: [CommonModule, FormsModule, NgWhiteboardComponent],
   providers: [NgWhiteboardService],
 })
 export class BasicComponent implements OnDestroy {
   private whiteboardService = inject(NgWhiteboardService);
   private sanitizer = inject(DomSanitizer);
-  private scrollStrategyOptions = inject(ScrollStrategyOptions);
   private clickOutsideListener?: (event: MouseEvent) => void;
+  private draggedLayerIndex: number | null = null;
+  private draggedElement: HTMLElement | null = null;
 
   @Input() data: WhiteboardElement[] = [];
   @Output() dataChange = new EventEmitter<WhiteboardElement[]>();
@@ -57,7 +56,6 @@ export class BasicComponent implements OnDestroy {
 
   private boardSignals = this.whiteboardService.signals(this.boardId);
 
-  // Access reactive signals
   layers = this.boardSignals.layers;
   activeLayerId = this.boardSignals.activeLayerId;
   activeLayer = this.boardSignals.activeLayer;
@@ -71,12 +69,9 @@ export class BasicComponent implements OnDestroy {
   formatType = FormatType;
   toolType = ToolType;
 
-  // Computed properties for effective stroke color and width
-  // These reflect the config values which are kept in sync with selections
   selectedColor = computed(() => {
     const selected = this.selectedElements();
     if (selected.length > 0 && selected[0].style?.strokeColor) {
-      // Return the stroke color of the first selected element
       return selected[0].style.strokeColor;
     }
     return this.config().strokeColor || '#000000';
@@ -85,13 +80,11 @@ export class BasicComponent implements OnDestroy {
   selectedWidth = computed(() => {
     const selected = this.selectedElements();
     if (selected.length > 0 && selected[0].style?.strokeWidth !== undefined) {
-      // Return the stroke width of the first selected element
       return selected[0].style.strokeWidth;
     }
     return this.config().strokeWidth || 3;
   });
 
-  // Computed zoom level from config as percentage
   zoomLevel = computed(() => {
     const zoom = this.whiteboardConfig().zoom || 1;
     return Math.round(zoom * 100);
@@ -110,41 +103,10 @@ export class BasicComponent implements OnDestroy {
   showLayersMenu = signal<boolean>(false);
   editingLayerId = signal<string | null>(null);
   showLayerContextMenu = signal<string | null>(null);
+  contextMenuPosition = signal<{ top: number; left: number }>({ top: 0, left: 0 });
+  showToolsOverflow = signal<boolean>(false);
+  maxVisibleTools = signal<number>(6);
 
-  // CDK Overlay configuration
-  overlayScrollStrategy = this.scrollStrategyOptions.close();
-  contextMenuPositions: ConnectedPosition[] = [
-    {
-      originX: 'start',
-      originY: 'bottom',
-      overlayX: 'start',
-      overlayY: 'top',
-      offsetY: 6,
-    },
-    {
-      originX: 'start',
-      originY: 'top',
-      overlayX: 'start',
-      overlayY: 'bottom',
-      offsetY: -6,
-    },
-    {
-      originX: 'end',
-      originY: 'bottom',
-      overlayX: 'end',
-      overlayY: 'top',
-      offsetY: 6,
-    },
-    {
-      originX: 'end',
-      originY: 'top',
-      overlayX: 'end',
-      overlayY: 'bottom',
-      offsetY: -6,
-    },
-  ];
-
-  // Blend mode constants
   readonly blendModes = BLEND_MODES;
   readonly blendModeCategories = [
     { name: 'Normal', modes: BLEND_MODES.filter((m: BlendModeOption) => m.category === 'normal') },
@@ -182,6 +144,24 @@ export class BasicComponent implements OnDestroy {
       .sort((a, b) => shapeTypes.indexOf(a.type) - shapeTypes.indexOf(b.type));
   });
 
+  allTools = computed(() => {
+    return [...this.primaryTools(), ...this.shapeTools()];
+  });
+
+  visibleTools = computed(() => {
+    const all = this.allTools();
+    const max = this.maxVisibleTools();
+    return all.slice(0, max);
+  });
+
+  overflowTools = computed(() => {
+    const all = this.allTools();
+    const max = this.maxVisibleTools();
+    return all.slice(max);
+  });
+
+  hasOverflowTools = computed(() => this.overflowTools().length > 0);
+
   quickColors = [
     '#000000',
     '#ffffff',
@@ -212,6 +192,7 @@ export class BasicComponent implements OnDestroy {
   constructor() {
     this.whiteboardService.setActiveBoard(this.boardId);
     this.setupClickOutsideHandler();
+    this.setupResponsiveToolbar();
   }
 
   ngOnDestroy(): void {
@@ -221,6 +202,10 @@ export class BasicComponent implements OnDestroy {
 
     if (this.isFullscreen()) {
       document.body.style.overflow = '';
+    }
+
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('resize', this.handleResize);
     }
   }
 
@@ -237,7 +222,6 @@ export class BasicComponent implements OnDestroy {
     const selected = this.selectedElements();
 
     if (selected.length > 0) {
-      // Update all selected elements with the new color while preserving other style properties
       this.whiteboardService.updateSelectedElements({
         style: {
           ...selected[0].style,
@@ -246,7 +230,6 @@ export class BasicComponent implements OnDestroy {
       });
     }
 
-    // Always update config for consistent UI and future drawings
     this.config.update((cfg) => ({ ...cfg, strokeColor: color }));
     this.showColorPalette.set(false);
   }
@@ -255,7 +238,6 @@ export class BasicComponent implements OnDestroy {
     const selected = this.selectedElements();
 
     if (selected.length > 0) {
-      // Update all selected elements with the new width while preserving other style properties
       this.whiteboardService.updateSelectedElements({
         style: {
           ...selected[0].style,
@@ -264,7 +246,6 @@ export class BasicComponent implements OnDestroy {
       });
     }
 
-    // Always update config for consistent UI and future drawings
     this.config.update((cfg) => ({ ...cfg, strokeWidth: width }));
     this.showWidthMenu.set(false);
   }
@@ -279,6 +260,7 @@ export class BasicComponent implements OnDestroy {
     this.showBackgroundPalette.set(false);
     this.showWidthMenu.set(false);
     this.showMoreMenu.set(false);
+    this.showToolsOverflow.set(false);
   }
 
   toggleColorPalette() {
@@ -307,6 +289,15 @@ export class BasicComponent implements OnDestroy {
     this.showColorPalette.set(false);
     this.showBackgroundPalette.set(false);
     this.showWidthMenu.set(false);
+    this.showToolsOverflow.set(false);
+  }
+
+  toggleToolsOverflow() {
+    this.showToolsOverflow.set(!this.showToolsOverflow());
+    this.showColorPalette.set(false);
+    this.showBackgroundPalette.set(false);
+    this.showWidthMenu.set(false);
+    this.showMoreMenu.set(false);
   }
 
   startEditingTitle() {
@@ -376,6 +367,10 @@ export class BasicComponent implements OnDestroy {
   }
 
   switchToLayer(layerId: string): void {
+    if (this.activeLayerId() === layerId) {
+      return;
+    }
+
     this.whiteboardService.setActiveLayer(layerId);
     this.showLayerContextMenu.set(null);
 
@@ -402,6 +397,11 @@ export class BasicComponent implements OnDestroy {
     if (!success) {
       alert('Cannot delete the last layer. At least one layer is required.');
     }
+    this.showLayerContextMenu.set(null);
+  }
+
+  duplicateLayer(layerId: string): void {
+    this.whiteboardService.duplicateLayer(layerId);
     this.showLayerContextMenu.set(null);
   }
 
@@ -449,8 +449,30 @@ export class BasicComponent implements OnDestroy {
     this.whiteboardService.toggleLayerLock(layerId);
   }
 
-  toggleLayerContextMenu(layerId: string): void {
-    this.showLayerContextMenu.update((current) => (current === layerId ? null : layerId));
+  toggleLayerContextMenu(event: MouseEvent, layerId: string): void {
+    event.stopPropagation();
+
+    if (this.showLayerContextMenu() === layerId) {
+      this.closeLayerContextMenu();
+    } else {
+      const button = event.currentTarget as HTMLElement;
+      const rect = button.getBoundingClientRect();
+      const menuWidth = 220;
+      const menuHeight = 280;
+
+      let left = rect.right - menuWidth;
+      let top = rect.bottom + 4;
+
+      if (left < 0) {
+        left = rect.left;
+      }
+      if (top + menuHeight > window.innerHeight) {
+        top = rect.top - menuHeight - 4;
+      }
+
+      this.contextMenuPosition.set({ top, left });
+      this.showLayerContextMenu.set(layerId);
+    }
   }
 
   closeLayerContextMenu(): void {
@@ -458,15 +480,92 @@ export class BasicComponent implements OnDestroy {
   }
 
   onLayersListScroll(): void {
-    // Close context menu when layers list scrolls (handled by CDK overlay scroll strategy)
+    this.closeLayerContextMenu();
   }
 
-  onLayerDrop(event: CdkDragDrop<string[]>): void {
-    if (event.previousIndex === event.currentIndex) {
+  onDragStart(event: DragEvent, index: number): void {
+    const target = event.target as HTMLElement;
+    this.draggedLayerIndex = index;
+    this.draggedElement = target.closest('.layer-item') as HTMLElement;
+
+    if (event.dataTransfer && this.draggedElement) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', index.toString());
+
+      // Set the entire layer-item as the drag image
+      const rect = this.draggedElement.getBoundingClientRect();
+      event.dataTransfer.setDragImage(this.draggedElement, rect.width / 2, rect.height / 2);
+    }
+
+    setTimeout(() => {
+      this.draggedElement?.classList.add('dragging');
+    }, 0);
+  }
+
+  onDragOver(event: DragEvent, index: number): void {
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+
+    if (this.draggedLayerIndex === null || this.draggedLayerIndex === index) {
       return;
     }
 
-    this.whiteboardService.reorderLayersByIndex(event.previousIndex, event.currentIndex);
+    const target = event.target as HTMLElement;
+    const layerItem = target.closest('.layer-item') as HTMLElement;
+    if (!layerItem) return;
+
+    const rect = layerItem.getBoundingClientRect();
+    const midpoint = rect.top + rect.height / 2;
+
+    if (event.clientY < midpoint) {
+      layerItem.classList.add('drag-over-top');
+      layerItem.classList.remove('drag-over-bottom');
+    } else {
+      layerItem.classList.add('drag-over-bottom');
+      layerItem.classList.remove('drag-over-top');
+    }
+  }
+
+  onDragLeave(event: DragEvent): void {
+    const target = event.target as HTMLElement;
+    const layerItem = target.closest('.layer-item');
+    layerItem?.classList.remove('drag-over-top', 'drag-over-bottom');
+  }
+
+  onDrop(event: DragEvent, dropIndex: number): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const target = event.target as HTMLElement;
+    const layerItem = target.closest('.layer-item');
+    layerItem?.classList.remove('drag-over-top', 'drag-over-bottom');
+
+    if (this.draggedLayerIndex === null || this.draggedLayerIndex === dropIndex) {
+      return;
+    }
+
+    if (layerItem) {
+      const rect = layerItem.getBoundingClientRect();
+      const midpoint = rect.top + rect.height / 2;
+      const actualDropIndex = event.clientY < midpoint ? dropIndex : dropIndex + 1;
+
+      const finalDropIndex = this.draggedLayerIndex < actualDropIndex ? actualDropIndex - 1 : actualDropIndex;
+
+      if (this.draggedLayerIndex !== finalDropIndex) {
+        this.whiteboardService.reorderLayersByIndex(this.draggedLayerIndex, finalDropIndex);
+      }
+    }
+  }
+
+  onDragEnd(): void {
+    this.draggedElement?.classList.remove('dragging');
+    document.querySelectorAll('.layer-item').forEach((el) => {
+      el.classList.remove('drag-over-top', 'drag-over-bottom');
+    });
+    this.draggedLayerIndex = null;
+    this.draggedElement = null;
   }
 
   async saveAsImage(): Promise<void> {
@@ -653,11 +752,9 @@ export class BasicComponent implements OnDestroy {
     this.clickOutsideListener = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
 
-      if (this.showLayersMenu() && !target.closest('.layers-section') && !target.closest('.cdk-overlay-container')) {
+      if (this.showLayersMenu() && !target.closest('.layers-section') && !target.closest('.layer-context-menu')) {
         setTimeout(() => this.showLayersMenu.set(false), 0);
       }
-
-      // CDK overlay handles context menu clicks with backdrop
 
       if (this.showColorPalette() && !target.closest('.prop-color-btn, .floating-color-palette')) {
         setTimeout(() => this.showColorPalette.set(false), 0);
@@ -674,8 +771,38 @@ export class BasicComponent implements OnDestroy {
       if (this.showMoreMenu() && !target.closest('.more-menu-wrapper, .more-menu')) {
         setTimeout(() => this.showMoreMenu.set(false), 0);
       }
+
+      if (this.showToolsOverflow() && !target.closest('.tools-overflow-wrapper, .tools-overflow-menu')) {
+        setTimeout(() => this.showToolsOverflow.set(false), 0);
+      }
     };
 
     document.addEventListener('click', this.clickOutsideListener);
+  }
+
+  private handleResize = (): void => {
+    if (typeof window === 'undefined') return;
+
+    const width = window.innerWidth;
+
+    if (width < 480) {
+      this.maxVisibleTools.set(7);
+    } else if (width < 640) {
+      this.maxVisibleTools.set(8);
+    } else if (width < 768) {
+      this.maxVisibleTools.set(9);
+    } else if (width < 1024) {
+      this.maxVisibleTools.set(9);
+    } else {
+      this.maxVisibleTools.set(9);
+    }
+  };
+
+  private setupResponsiveToolbar(): void {
+    if (typeof window === 'undefined') return;
+
+    this.handleResize();
+
+    window.addEventListener('resize', this.handleResize);
   }
 }

@@ -99,6 +99,48 @@ export class LayerManagementService {
   }
 
   /**
+   * Duplicate a layer with all its properties and elements
+   */
+  duplicateLayer(id: string, elements: WhiteboardElement[]): { layer: WhiteboardLayer | null; elementMap: Map<string, string> } {
+    const layers = this._layers();
+    const layerToDuplicate = layers.find((l) => l.id === id);
+
+    if (!layerToDuplicate) {
+      console.warn(`Layer with id ${id} not found`);
+      return { layer: null, elementMap: new Map() };
+    }
+
+    // Create new layer with copied properties
+    const newZIndex = Math.max(...layers.map((l) => l.zIndex), 0) + 1;
+    const newLayer: WhiteboardLayer = {
+      id: this.generateLayerId(),
+      name: `${layerToDuplicate.name} Copy`,
+      visible: true,
+      locked: layerToDuplicate.locked,
+      zIndex: newZIndex,
+      elements: [], // Will be populated with duplicated element IDs
+      opacity: layerToDuplicate.opacity,
+      blendMode: layerToDuplicate.blendMode,
+    };
+
+    // Create a map of old element IDs to new element IDs
+    const elementMap = new Map<string, string>();
+    const layerElements = elements.filter((el) => layerToDuplicate.elements.includes(el.id));
+
+    layerElements.forEach((element) => {
+      const newElementId = crypto.randomUUID();
+      elementMap.set(element.id, newElementId);
+      newLayer.elements.push(newElementId);
+    });
+
+    // Add the new layer
+    this._layers.set([...layers, newLayer]);
+    this.setActiveLayer(newLayer.id);
+
+    return { layer: newLayer, elementMap };
+  }
+
+  /**
    * Rename a layer
    */
   renameLayer(id: string, name: string): boolean {
