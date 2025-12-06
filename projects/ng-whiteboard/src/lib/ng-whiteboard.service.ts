@@ -771,6 +771,14 @@ export class NgWhiteboardService {
   }
 
   /**
+   * Duplicate a layer with all its elements and properties.
+   */
+  public duplicateLayer(id: string): void {
+    const instance = this.getApi();
+    instance.duplicateLayer(id);
+  }
+
+  /**
    * Set the active layer.
    */
   public setActiveLayer(id: string): boolean {

@@ -471,6 +471,40 @@ export class ApiService {
     return this.layerService.removeLayer(id);
   }
 
+  duplicateLayer(id: string): void {
+    const currentElements = this.elementsService.elements();
+    const result = this.layerService.duplicateLayer(id, currentElements);
+
+    if (result.layer && result.elementMap.size > 0) {
+      const beforeElements = [...currentElements];
+
+      // Duplicate all elements from the original layer
+      const newElements: WhiteboardElement[] = [];
+
+      result.elementMap.forEach((newElementId, oldElementId) => {
+        const originalElement = currentElements.find((el: WhiteboardElement) => el.id === oldElementId);
+        if (originalElement) {
+          const layer = result.layer;
+          if (!layer) {
+            return;
+          }
+          const duplicatedElement: WhiteboardElement = {
+            ...originalElement,
+            id: newElementId,
+            layerId: layer.id,
+          };
+          newElements.push(duplicatedElement);
+        }
+      });
+
+      // Add all duplicated elements as new elements
+      this.elementsService.addElements(newElements);
+
+      const afterElements = this.elementsService.elements();
+      this.historyService.recordChange(beforeElements, afterElements, `Duplicate layer: ${result.layer.name}`);
+    }
+  }
+
   setActiveLayer(id: string): boolean {
     return this.layerService.setActiveLayer(id);
   }

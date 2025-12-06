@@ -1,5 +1,3 @@
-@import '@angular/cdk/overlay-prebuilt.css';
-
 // ============================================================================
 // VARIABLES
 // ============================================================================
@@ -611,6 +609,7 @@ $transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   color: $text-primary;
   font-size: 14px;
   font-weight: 600;
+  width: 100%;
 
   &:hover {
     background: rgba($primary-color, 0.06);
@@ -632,7 +631,7 @@ $transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .board-name-text {
-    max-width: 200px;
+    flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -648,8 +647,8 @@ $transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   color: $text-primary;
   outline: none;
   background: $bg-white;
-  min-width: 150px;
-  max-width: 250px;
+  width: 100%;
+  box-sizing: border-box;
   font-family: inherit;
 
   &:focus {
@@ -661,6 +660,70 @@ $transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   width: 1px;
   height: 28px;
   background: $border-light;
+}
+
+// Secondary controls bars (mobile only - separate left and right)
+.toolbar-secondary-left,
+.toolbar-secondary-right {
+  display: none; // Hidden by default (desktop)
+  align-items: center;
+  gap: 4px;
+  padding: 5px 8px;
+  background: rgba($text-secondary, 0.04);
+  border-radius: $radius-sm;
+  border: 1px solid rgba($border-color, 0.5);
+}
+
+.secondary-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.secondary-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: none;
+  border-radius: $radius-sm;
+  color: $text-secondary;
+  cursor: pointer;
+  transition: $transition;
+  padding: 0;
+
+  &:hover:not(:disabled) {
+    background: rgba($primary-color, 0.08);
+    color: $primary-color;
+  }
+
+  &:active:not(:disabled) {
+    background: rgba($primary-color, 0.12);
+    transform: scale(0.95);
+  }
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  .material-icons {
+    font-size: 16px;
+  }
+}
+
+.secondary-zoom-level {
+  font-size: 10px;
+  font-weight: 600;
+  color: $text-primary;
+  min-width: 28px;
+  text-align: center;
+  padding: 2px 4px;
+  background: rgba($primary-color, 0.06);
+  border-radius: $radius-sm;
+  line-height: 1.3;
 }
 
 .layers-section {
@@ -764,6 +827,7 @@ $transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
       padding: 10px;
       min-height: 60px;
       display: block;
+      position: relative; // Add this for proper positioning context
 
       &::-webkit-scrollbar {
         width: 6px;
@@ -780,11 +844,6 @@ $transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
         &:hover {
           background: $text-muted;
         }
-      }
-
-      // Animate items when dragging
-      &.cdk-drop-list-dragging .layer-item:not(.cdk-drag-placeholder) {
-        transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
       }
 
       .layer-item {
@@ -827,147 +886,6 @@ $transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
             border-color: $primary-color;
             background: rgba($primary-color, 0.08);
           }
-        }
-
-        // CDK Drag Preview (the element being dragged)
-        &.cdk-drag-preview {
-          box-sizing: border-box;
-          border-radius: $radius-md;
-          box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2), 0 8px 10px 1px rgba(0, 0, 0, 0.14),
-            0 3px 14px 2px rgba(0, 0, 0, 0.12);
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 10px 12px;
-          margin: 0;
-          background: $bg-white;
-          border: 1px solid $primary-color;
-          opacity: 1;
-          cursor: grabbing;
-          width: 360px;
-          min-width: 360px;
-          max-width: 360px;
-
-          // Ensure all child elements are visible in preview
-          .layer-item-left,
-          .layer-item-right {
-            display: flex !important;
-            align-items: center;
-          }
-
-          .layer-item-left {
-            gap: 10px;
-            flex: 1;
-            min-width: 0;
-            cursor: grabbing;
-          }
-
-          .layer-item-right {
-            gap: 2px;
-          }
-
-          .layer-drag-handle {
-            width: 20px;
-            height: 20px;
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            color: $text-muted;
-            opacity: 0.6;
-
-            .material-icons {
-              font-size: 16px;
-              display: inline-block !important;
-            }
-          }
-
-          .layer-thumbnail {
-            width: 44px;
-            height: 34px;
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            background: $bg-app;
-            border: 1px solid $border-light;
-            border-radius: $radius-sm;
-            flex-shrink: 0;
-
-            .material-icons {
-              font-size: 20px;
-              color: $text-muted;
-              display: inline-block !important;
-            }
-          }
-
-          .layer-info {
-            display: flex !important;
-            flex-direction: column;
-            gap: 3px;
-            flex: 1;
-            min-width: 0;
-          }
-
-          .layer-name {
-            font-size: 13px;
-            font-weight: 500;
-            color: $text-primary;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-          }
-
-          .layer-meta {
-            font-size: 11px;
-            color: $text-muted;
-          }
-
-          // Hide opacity control in drag preview to prevent layout breaking
-          .layer-opacity-control {
-            display: none !important;
-          }
-
-          .layer-action-btn {
-            width: 28px;
-            height: 28px;
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            background: transparent;
-            border: none;
-            border-radius: $radius-sm;
-            color: $text-secondary;
-
-            .material-icons {
-              font-size: 18px;
-              display: inline-block !important;
-            }
-          }
-
-          .material-icons {
-            display: inline-block !important;
-            font-family: 'Material Icons';
-            font-weight: normal;
-            font-style: normal;
-            line-height: 1;
-            letter-spacing: normal;
-            text-transform: none;
-            white-space: nowrap;
-            word-wrap: normal;
-            direction: ltr;
-            -webkit-font-feature-settings: 'liga';
-            font-feature-settings: 'liga';
-            -webkit-font-smoothing: antialiased;
-          }
-        }
-
-        // CDK Drag Placeholder (the space left behind)
-        &.cdk-drag-placeholder {
-          opacity: 0;
-        }
-
-        // CDK Drag Animating (when being animated back)
-        &.cdk-drag-animating {
-          transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
         }
 
         // Visual feedback for locked layers
@@ -1246,180 +1164,6 @@ $transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
               transform: translateY(0);
             }
           }
-
-          .layer-context-menu {
-            position: absolute;
-            top: calc(100% + 6px);
-            right: 0;
-            min-width: 220px;
-            background: $bg-white;
-            border: 1px solid $border-color;
-            border-radius: $radius-md;
-            box-shadow: $shadow-lg;
-            padding: 6px;
-            z-index: 1002;
-            animation: slideUpFade 0.15s ease-out;
-
-            .context-menu-section {
-              padding: 10px 12px;
-
-              .context-menu-label {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                font-size: 12px;
-                font-weight: 600;
-                color: $text-secondary;
-                margin-bottom: 8px;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-
-                .material-icons {
-                  font-size: 16px;
-                  color: $text-secondary;
-                }
-              }
-
-              .opacity-slider {
-                width: 100%;
-                height: 6px;
-                border-radius: 3px;
-                background: linear-gradient(to right, transparent 0%, $primary-color 100%);
-                outline: none;
-                -webkit-appearance: none;
-                appearance: none;
-                cursor: pointer;
-
-                &::-webkit-slider-thumb {
-                  -webkit-appearance: none;
-                  appearance: none;
-                  width: 16px;
-                  height: 16px;
-                  border-radius: 50%;
-                  background: $primary-color;
-                  cursor: pointer;
-                  border: 2px solid $bg-white;
-                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-                  transition: $transition;
-
-                  &:hover {
-                    transform: scale(1.15);
-                    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
-                  }
-
-                  &:active {
-                    transform: scale(0.95);
-                  }
-                }
-
-                &::-moz-range-thumb {
-                  width: 16px;
-                  height: 16px;
-                  border-radius: 50%;
-                  background: $primary-color;
-                  cursor: pointer;
-                  border: 2px solid $bg-white;
-                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-                  transition: $transition;
-
-                  &:hover {
-                    transform: scale(1.15);
-                    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
-                  }
-
-                  &:active {
-                    transform: scale(0.95);
-                  }
-                }
-              }
-
-              .blend-mode-select {
-                width: 100%;
-                padding: 8px 10px;
-                background: $bg-white;
-                border: 1px solid $border-color;
-                border-radius: $radius-sm;
-                color: $text-primary;
-                font-size: 13px;
-                font-weight: 500;
-                cursor: pointer;
-                transition: $transition;
-                outline: none;
-
-                &:hover {
-                  border-color: $primary-color;
-                  box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
-                }
-
-                &:focus {
-                  border-color: $primary-color;
-                  box-shadow: 0 0 0 3px rgba($primary-color, 0.15);
-                }
-
-                option {
-                  padding: 6px;
-                  font-size: 13px;
-                }
-
-                optgroup {
-                  font-weight: 600;
-                  font-size: 12px;
-                  color: $text-secondary;
-                  padding: 4px 0;
-                }
-              }
-            }
-
-            .context-menu-item {
-              width: 100%;
-              display: flex;
-              align-items: center;
-              gap: 10px;
-              padding: 9px 12px;
-              background: transparent;
-              border: none;
-              border-radius: $radius-sm;
-              color: $text-primary;
-              font-size: 13px;
-              font-weight: 500;
-              cursor: pointer;
-              transition: $transition;
-              text-align: left;
-
-              .material-icons {
-                font-size: 18px;
-                color: $text-secondary;
-              }
-
-              &:hover:not(:disabled) {
-                background: rgba($primary-color, 0.06);
-                transform: translateX(2px);
-              }
-
-              &:disabled {
-                opacity: 0.4;
-                cursor: not-allowed;
-              }
-
-              &.danger {
-                color: #dc2626;
-
-                .material-icons {
-                  color: #dc2626;
-                }
-
-                &:hover:not(:disabled) {
-                  background: rgba(#dc2626, 0.06);
-                }
-              }
-            }
-
-            .context-menu-divider {
-              height: 1px;
-              background: $border-light;
-              margin: 4px 0;
-            }
-          }
         }
       }
     }
@@ -1635,6 +1379,7 @@ $transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   left: 50%;
   transform: translateX(-50%);
   display: flex;
+  flex-direction: row; // Row direction by default (desktop)
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
@@ -1646,6 +1391,16 @@ $transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 100;
   animation: fadeInUp 0.3s ease-out 0.1s;
   animation-fill-mode: both;
+  max-width: calc(100% - 40px);
+  overflow: visible;
+}
+
+// Main tools wrapper - ensure flex layout on desktop
+.toolbar-main-tools {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
 }
 
 // Right Floating Bar: Zoom Controls
@@ -2045,6 +1800,8 @@ $transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 // ============================================================================
 .more-menu-wrapper {
   position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .more-menu {
@@ -2121,6 +1878,84 @@ $transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 
 .hidden-input {
   display: none;
+}
+
+// ============================================================================
+// TOOLS OVERFLOW MENU
+// ============================================================================
+.tools-overflow-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.tools-overflow-menu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid $border-color;
+  border-radius: $radius-lg;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  z-index: 200;
+  animation: slideUpFade 0.2s ease;
+  min-width: 160px;
+
+  .tool-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    border-radius: $radius-md;
+    color: $text-secondary;
+    cursor: pointer;
+    transition: $transition;
+    font-size: 14px;
+    text-align: left;
+    width: 100%;
+
+    .tool-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+
+      ::ng-deep svg {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+      }
+
+      ::ng-deep .material-icons {
+        font-size: 20px;
+      }
+    }
+
+    &:hover:not(:disabled) {
+      background: rgba($primary-color, 0.08);
+      color: $primary-color;
+    }
+
+    &.active {
+      background: rgba($primary-color, 0.12);
+      color: $primary-color;
+      font-weight: 600;
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
 }
 
 @keyframes slideUpFade {
@@ -2364,6 +2199,71 @@ $transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 // ============================================================================
 // RESPONSIVE
 // ============================================================================
+
+// Tablet/Medium screens (769px - 1024px)
+@media (max-width: 1024px) and (min-width: 769px) {
+  .toolbar-top {
+    max-width: 90%;
+    gap: 12px;
+    padding: 6px 14px;
+  }
+
+  // Keep mobile controls hidden on tablet
+  .mobile-controls {
+    display: none;
+  }
+
+  .mobile-separator {
+    display: none;
+  }
+
+  // Keep secondary bars hidden on tablet
+  .toolbar-secondary-left,
+  .toolbar-secondary-right {
+    display: none;
+  }
+
+  .toolbar-bottom-left,
+  .toolbar-bottom-right {
+    padding: 8px;
+    gap: 4px;
+  }
+
+  .toolbar-bottom-center {
+    max-width: calc(100% - 220px); // Leave space for left/right bars
+    gap: 5px;
+    padding: 8px 12px;
+    flex-direction: row; // Keep row direction on tablet
+    align-items: center;
+  }
+
+  .toolbar-properties {
+    right: 12px;
+  }
+
+  .bottom-btn {
+    min-width: 38px;
+    height: 38px;
+    padding: 0 10px;
+
+    .material-icons,
+    .material-symbols-outlined {
+      font-size: 19px;
+    }
+
+    svg {
+      width: 19px;
+      height: 19px;
+    }
+
+    &.zoom-reset-btn {
+      min-width: 46px;
+      font-size: 12px;
+    }
+  }
+}
+
+// Mobile/Small screens (max 768px)
 @media (max-width: 768px) {
   .app-header {
     height: 56px;
@@ -2403,16 +2303,52 @@ $transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 
   // Top toolbar on mobile - compact version
   .toolbar-top {
-    gap: 8px;
-    padding: 6px 12px;
-    max-width: 95%;
-
-    .board-name-text {
-      max-width: 100px;
-    }
+    gap: 6px;
+    padding: 6px 10px;
+    width: fit-content;
+    left: 8px;
+    right: auto;
+    transform: none;
 
     .toolbar-separator {
       height: 24px;
+    }
+
+    .layers-menu-btn {
+      width: 28px;
+      height: 28px;
+      padding: 0;
+
+      .material-icons {
+        font-size: 18px;
+      }
+    }
+
+    .board-name-display {
+      padding: 4px 8px;
+      gap: 6px;
+
+      .material-icons {
+        font-size: 16px;
+      }
+
+      .edit-icon {
+        display: none; // Hide edit icon on mobile
+      }
+    }
+
+    .board-name-input {
+      padding: 4px 8px;
+      font-size: 13px;
+    }
+
+    .layer-btn {
+      width: 28px;
+      height: 28px;
+
+      .material-icons {
+        font-size: 18px;
+      }
     }
 
     .layers-section {
@@ -2437,9 +2373,19 @@ $transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
       }
 
       .layers-dropdown {
-        min-width: 90vw;
-        left: 50%;
-        transform: translateX(-50%);
+        position: fixed;
+        left: 0;
+        right: 0;
+        width: calc(100vw);
+        min-width: unset;
+        max-width: fit-content;
+        transform: none;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
 
         .layers-dropdown-header {
           padding: 12px;
@@ -2592,37 +2538,85 @@ $transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     }
   }
 
-  // Stack the 3 bars vertically on mobile
-  .toolbar-bottom-left {
-    bottom: 180px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 10px;
+  // Bottom toolbars - Hide left/right on mobile, only show center (tools)
+  .toolbar-bottom-left,
+  .toolbar-bottom-right {
+    display: none; // Hidden on mobile - controls moved to top toolbar
   }
 
   .toolbar-bottom-center {
-    bottom: 100px;
-    padding: 10px 16px;
-  }
-
-  .toolbar-bottom-right {
     bottom: 20px;
     left: 50%;
-    right: auto;
     transform: translateX(-50%);
-    padding: 10px;
+    padding: 8px 10px;
+    width: calc(100% - 32px); // Fixed width instead of max-width
+    gap: 4px;
+    flex-direction: column; // Column layout for mobile
+    align-items: stretch;
+
+    // Show secondary controls bars on mobile - positioned independently
+    .toolbar-secondary-left {
+      display: flex;
+      position: absolute;
+      bottom: 100%; // No space - stick directly to toolbar
+      left: 5px; // Align with toolbar radius
+      width: fit-content;
+    }
+
+    .toolbar-secondary-right {
+      display: flex;
+      position: absolute;
+      bottom: 100%; // No space - stick directly to toolbar
+      right: 5px; // Align with toolbar radius
+      width: fit-content;
+    }
+
+    // Main tools row wrapper
+    .toolbar-main-tools {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: nowrap;
+    }
+
+    .bottom-btn {
+      min-width: 36px;
+      height: 36px;
+      padding: 0 8px;
+
+      .material-icons,
+      .material-symbols-outlined {
+        font-size: 18px;
+      }
+
+      svg {
+        width: 18px;
+        height: 18px;
+      }
+    }
+
+    .separator {
+      margin: 0 2px;
+    }
+
+    .tools-overflow-menu {
+      left: 0;
+      right: auto;
+      max-width: 90vw;
+    }
   }
 
-  // Properties bar on mobile - move to top center
+  // Properties bar on mobile - position at top right, aligned with top toolbar
   .toolbar-properties {
-    top: 20px;
-    right: auto;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 20px; // Same as toolbar-top
+    right: 8px;
+    left: auto;
+    transform: none;
     flex-direction: row;
     gap: 4px;
-    padding: 8px 12px;
-    max-width: 90%;
+    padding: 6px 10px;
+    width: auto;
+    max-width: 200px;
 
     .prop-group {
       flex-direction: row;
@@ -2639,28 +2633,31 @@ $transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .prop-color-btn {
-      width: 32px;
-      height: 32px;
+      width: 28px;
+      height: 28px;
     }
 
     .prop-width-btn {
       min-width: auto;
-      padding: 6px 10px;
+      padding: 4px 8px;
+
+      .width-preview-line {
+        max-width: 20px;
+      }
+
+      .width-value {
+        font-size: 10px;
+      }
     }
-  }
 
-  .floating-color-palette {
-    top: calc(100% + 8px);
-    right: auto;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-
-  .floating-width-menu {
-    top: calc(100% + 8px);
-    right: auto;
-    left: 50%;
-    transform: translateX(-50%);
+    .floating-color-palette,
+    .floating-width-menu {
+      top: calc(100% + 8px);
+      right: 0;
+      bottom: auto;
+      left: auto;
+      transform: none;
+    }
   }
 
   .palette-grid {
@@ -2690,59 +2687,92 @@ $transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
-// ============================================================================
-// CDK DRAG DROP ANIMATIONS
-// ============================================================================
+// Extra small screens (max 480px)
+@media (max-width: 480px) {
+  .toolbar-top {
+    width: fit-content;
+    padding: 5px 8px;
+    gap: 4px;
+    left: 6px;
+    right: auto;
 
-// Standard CDK drag-drop styles
-.example-list {
-  width: 500px;
-  max-width: 100%;
-  border: solid 1px #ccc;
-  min-height: 60px;
-  display: block;
-  background: white;
-  border-radius: 4px;
-  overflow: hidden;
-  font-family: sans-serif;
-}
+    .secondary-btn {
+      width: 22px;
+      height: 22px;
 
-.example-box {
-  padding: 20px 10px;
-  border-bottom: solid 1px #ccc;
-  color: rgba(0, 0, 0, 0.87);
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  box-sizing: border-box;
-  cursor: move;
-  background: white;
-  font-size: 14px;
-  font-family: sans-serif;
-}
+      .material-icons {
+        font-size: 14px;
+      }
+    }
 
-.cdk-drag-preview {
-  border: none;
-  box-sizing: border-box;
-  border-radius: 4px;
-  box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2), 0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12);
-}
+    .secondary-zoom-level {
+      font-size: 9px;
+      min-width: 26px;
+      padding: 1px 3px;
+    }
 
-.cdk-drag-placeholder {
-  opacity: 0;
-}
+    .layers-menu-btn,
+    .layer-btn {
+      width: 26px;
+      height: 26px;
 
-.cdk-drag-animating {
-  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
-}
+      .material-icons {
+        font-size: 16px;
+      }
+    }
+  }
 
-.example-box:last-child {
-  border: none;
-}
+  .toolbar-bottom-left,
+  .toolbar-bottom-right {
+    display: none;
+  }
 
-.example-list.cdk-drop-list-dragging .example-box:not(.cdk-drag-placeholder) {
-  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+  .toolbar-bottom-center {
+    width: calc(100% - 24px); // Fixed width for extra small screens
+    padding: 6px;
+    gap: 3px;
+
+    .toolbar-secondary-left,
+    .toolbar-secondary-right {
+      bottom: 100%; // No space - stick directly to toolbar
+      padding: 4px 6px;
+      gap: 3px;
+    }
+
+    .toolbar-main-tools {
+      gap: 2px;
+    }
+
+    .bottom-btn {
+      min-width: 32px;
+      height: 32px;
+      padding: 0 6px;
+
+      .material-icons,
+      .material-symbols-outlined {
+        font-size: 16px;
+      }
+
+      svg {
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+
+  .toolbar-properties {
+    top: 12px; // Same level as toolbar-top
+    right: 6px;
+    padding: 3px 5px;
+    gap: 2px;
+
+    .prop-color-btn,
+    .prop-width-btn {
+      width: 24px;
+      height: 24px;
+      padding: 2px 4px;
+    }
+  }
 }
 
 // Add fade in animation for context menus
@@ -2758,17 +2788,53 @@ $transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 // ============================================================================
-// LAYER CONTEXT MENU OVERLAY (CDK Overlay)
+// CUSTOM CONTEXT MENU & DRAG-DROP
 // ============================================================================
-.layer-context-menu-overlay {
-  min-width: 200px;
-  max-width: 220px;
+
+// Layer item container
+.layer-item-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative; // Add positioning context for overflow
+  z-index: 1;
+}
+
+// Layer more button wrapper
+.layer-more-wrapper {
+  position: relative;
+}
+
+// Context menu backdrop - full screen overlay
+.context-menu-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  background: transparent;
+  cursor: default;
+  opacity: 1 !important; // Prevent inheriting parent opacity
+}
+
+// Global layer context menu - positioned via inline styles
+.layer-context-menu {
+  position: fixed;
+  width: 220px;
   background: $bg-white;
   border: 1px solid $border-color;
   border-radius: $radius-md;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   padding: 6px;
+  z-index: 1100; // Above backdrop
   animation: slideUpFade 0.15s ease-out;
+  opacity: 1 !important; // Prevent inheriting parent opacity
+  overflow: visible !important; // Prevent clipping
+
+  &:focus {
+    outline: none;
+  }
 
   .context-menu-section {
     padding: 10px 12px;
@@ -2879,8 +2945,30 @@ $transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 // ============================================================================
-// CDK OVERLAY BACKDROP
+// CUSTOM DRAG & DROP VISUAL FEEDBACK
 // ============================================================================
-.cdk-overlay-transparent-backdrop {
-  background: transparent;
+
+.layer-item {
+  &.dragging {
+    opacity: 0.5;
+    cursor: move;
+  }
+
+  &.drag-over-top {
+    border-top: 2px solid $primary-color;
+    margin-top: -2px;
+  }
+
+  &.drag-over-bottom {
+    border-bottom: 2px solid $primary-color;
+    margin-bottom: -2px;
+  }
+}
+
+.layer-drag-handle {
+  cursor: move;
+
+  &:active {
+    cursor: grabbing;
+  }
 }
