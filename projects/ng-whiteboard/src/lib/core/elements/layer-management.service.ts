@@ -101,7 +101,10 @@ export class LayerManagementService {
   /**
    * Duplicate a layer with all its properties and elements
    */
-  duplicateLayer(id: string, elements: WhiteboardElement[]): { layer: WhiteboardLayer | null; elementMap: Map<string, string> } {
+  duplicateLayer(
+    id: string,
+    elements: WhiteboardElement[]
+  ): { layer: WhiteboardLayer | null; elementMap: Map<string, string> } {
     const layers = this._layers();
     const layerToDuplicate = layers.find((l) => l.id === id);
 
