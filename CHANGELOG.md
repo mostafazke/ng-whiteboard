@@ -1,3 +1,21 @@
+## [5.1.1](https://github.com/mostafazke/ng-whiteboard/compare/v5.1.0...v5.1.1) (2025-12-06)
+
+
+### Bug Fixes
+
+* **build:** 🐛 downgrade @angular/compiler to version 17.3.0 ([43e2a03](https://github.com/mostafazke/ng-whiteboard/commit/43e2a03041b9f9649ffedd38fcffff613152f806))
+* package.json & yarn.lock to reduce vulnerabilities ([9473a8e](https://github.com/mostafazke/ng-whiteboard/commit/9473a8ebf5d5a1c0471eea78dff849a0d3e9acb2))
+
+
+### Code Refactoring
+
+* **demo:** replace Angular CDK with custom drag-drop implementation ([60ee447](https://github.com/mostafazke/ng-whiteboard/commit/60ee447c29396b27f4e1cb3ceeb6f92c3bec651d))
+
+
+### BREAKING CHANGES
+
+* **demo:** Removed Angular CDK Overlay and Drag-Drop modules
+
 # [5.1.0](https://github.com/mostafazke/ng-whiteboard/compare/v5.0.3...v5.1.0) (2025-11-29)
 
 ### Features
