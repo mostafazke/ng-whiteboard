@@ -38,7 +38,7 @@
     "highlight.js": "~11.11.0",
     "ngx-colors": "^3.6.0",
     "rxjs": "~7.8.0",
-    "zone.js": "~0.15.1"
+    "zone.js": "~0.16.0"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^17.3.11",
