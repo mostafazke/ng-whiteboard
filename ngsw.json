@@ -1,6 +1,6 @@
 {
   "configVersion": 1,
-  "timestamp": 1765594871588,
+  "timestamp": 1769037154426,
   "index": "https://mostafazke.github.io/ng-whiteboard/index.html",
   "assetGroups": [
     {
@@ -26,7 +26,7 @@
         "https://mostafazke.github.io/ng-whiteboard/index.html",
         "https://mostafazke.github.io/ng-whiteboard/main.4bcf6644c39acd2b.js",
         "https://mostafazke.github.io/ng-whiteboard/manifest.json",
-        "https://mostafazke.github.io/ng-whiteboard/polyfills.ddd85da08efed530.js",
+        "https://mostafazke.github.io/ng-whiteboard/polyfills.4b445ddd97074425.js",
         "https://mostafazke.github.io/ng-whiteboard/runtime.ecadc3f3925f4a31.js",
         "https://mostafazke.github.io/ng-whiteboard/styles.27c2bd4ca691fc33.css"
       ],
@@ -82,10 +82,10 @@
     "https://mostafazke.github.io/ng-whiteboard/assets/theme.scss": "b409421e2cd87238a23b27b0d4ba1be194e30d75",
     "https://mostafazke.github.io/ng-whiteboard/common.b11ce91ceb2aad4c.js": "ad7eb7613e8b5c58d2ef906dc8a41d9f26aeffca",
     "https://mostafazke.github.io/ng-whiteboard/favicon.ico": "9d35872b3a7d7f6db2f00438f76872ed484174b8",
-    "https://mostafazke.github.io/ng-whiteboard/index.html": "dd30c59666df0b742d1992d00de40cadff698e4e",
+    "https://mostafazke.github.io/ng-whiteboard/index.html": "c4d420c074cac75fa287cfb2a93f24f4695fcc7a",
     "https://mostafazke.github.io/ng-whiteboard/main.4bcf6644c39acd2b.js": "59f7ab283fcabb4bc7ddf50e9f2797ce218b17a8",
     "https://mostafazke.github.io/ng-whiteboard/manifest.json": "ba8de36a6eeebf925eec35a2d9e498f317963747",
-    "https://mostafazke.github.io/ng-whiteboard/polyfills.ddd85da08efed530.js": "c1929434a92287803bb819c872c0deb4a19b134d",
+    "https://mostafazke.github.io/ng-whiteboard/polyfills.4b445ddd97074425.js": "e0e7a7b767eed9f70c76cf73799fbdd093cde319",
     "https://mostafazke.github.io/ng-whiteboard/runtime.ecadc3f3925f4a31.js": "c08e8247cc5e6ac7216e1fc6a7ff20dc77077aee",
     "https://mostafazke.github.io/ng-whiteboard/styles.27c2bd4ca691fc33.css": "2b1324ee54c68201c383be91548a3c6ee1534f01"
   },
