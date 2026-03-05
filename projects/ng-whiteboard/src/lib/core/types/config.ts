@@ -1,5 +1,34 @@
 import { LineCap, LineJoin, PenType } from '.';
 
+/**
+ * Describes the type of arrowhead.
+ * Mirrors ArrowheadType for config usage.
+ */
+export type ArrowHeadStyle = 'none' | 'arrow' | 'open-arrow' | 'diamond' | 'open-diamond' | 'circle' | 'open-circle' | 'bar';
+
+/**
+ * Describes the default path style for new arrows.
+ */
+export type ArrowLineStyle = 'straight' | 'curve' | 'elbow';
+
+export interface ArrowConfig {
+  /** Default head style for the start of an arrow */
+  startHeadStyle: ArrowHeadStyle;
+  /** Default head style for the end of an arrow */
+  endHeadStyle: ArrowHeadStyle;
+  /** Default head size multiplier (relative to strokeWidth) */
+  headSize: number;
+  /** Default line style for new arrows */
+  lineStyle: ArrowLineStyle;
+}
+
+export const defaultArrowConfig: ArrowConfig = {
+  startHeadStyle: 'open-arrow',
+  endHeadStyle: 'arrow',
+  headSize: 2,
+  lineStyle: 'curve',
+};
+
 export interface WhiteboardConfig {
   drawingEnabled: boolean;
   canvasWidth: number;
@@ -26,6 +55,8 @@ export interface WhiteboardConfig {
   snapToGrid: boolean;
   keyboardShortcutsEnabled: boolean;
   penType: PenType;
+  /** Arrow-specific configuration – heads, line style, size */
+  arrowConfig: ArrowConfig;
 }
 
 export interface EditorConfig {

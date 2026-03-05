@@ -1,6 +1,43 @@
-import { BaseElement, Bounds, Direction, ElementType, ElementUtil, Point, defaultElementStyle } from '../types';
+import {
+  BaseElement,
+  Bounds,
+  Direction,
+  ElementType,
+  ElementUtil,
+  Point,
+  defaultElementStyle,
+  ArrowBinding,
+  ArrowPathType,
+  defaultArrowPath,
+} from '../types';
 import { generateId } from '../utils/common';
 import { hitTestLine } from '../utils/drawing';
+
+export enum ArrowheadType {
+  None = 'none',
+  Arrow = 'arrow',
+  OpenArrow = 'open-arrow',
+  Diamond = 'diamond',
+  OpenDiamond = 'open-diamond',
+  Circle = 'circle',
+  OpenCircle = 'open-circle',
+  Bar = 'bar',
+}
+
+export interface ArrowheadConfig {
+  type: ArrowheadType;
+  size: number;
+}
+
+export const defaultStartHead: ArrowheadConfig = {
+  type: ArrowheadType.OpenArrow,
+  size: 2,
+};
+
+export const defaultEndHead: ArrowheadConfig = {
+  type: ArrowheadType.Arrow,
+  size: 2,
+};
 
 export interface ArrowElement extends BaseElement {
   type: ElementType.Arrow;
@@ -8,6 +45,14 @@ export interface ArrowElement extends BaseElement {
   y1: number;
   x2: number;
   y2: number;
+  startHead: ArrowheadConfig;
+  endHead: ArrowheadConfig;
+  /** Binding at the start end (null = free point) */
+  startBinding: ArrowBinding | null;
+  /** Binding at the end end (null = free point) */
+  endBinding: ArrowBinding | null;
+  /** Path curvature — straight, quadratic bezier, or cubic */
+  pathType: ArrowPathType;
 }
 
 export class ArrowElementUtil implements ElementUtil<ArrowElement> {
@@ -23,12 +68,23 @@ export class ArrowElementUtil implements ElementUtil<ArrowElement> {
       y2: 0,
       rotation: 0,
       opacity: 100,
-      zIndex: 1, // Default zIndex, will be overridden by tools
-      selectAfterDraw: true, // Arrows should be selected after drawing by default
+      zIndex: 1,
+      selectAfterDraw: false,
+      startBinding: null,
+      endBinding: null,
+      pathType: defaultArrowPath,
       ...props,
       style: {
         ...defaultElementStyle,
         ...props.style,
+      },
+      startHead: {
+        ...defaultStartHead,
+        ...props.startHead,
+      },
+      endHead: {
+        ...defaultEndHead,
+        ...props.endHead,
       },
     };
   }

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Signal, WritableSignal, signal } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { WhiteboardConfig, WhiteboardElement, ToolType, PointerInfo, LineCap, LineJoin, PenType } from '../types';
+import { WhiteboardConfig, WhiteboardElement, ToolType, PointerInfo, LineCap, LineJoin, PenType, defaultArrowConfig } from '../types';
 
 /**
  * Creates a mock PointerInfo from a partial PointerEvent-like object
@@ -71,6 +71,7 @@ export function createMockWhiteboardConfig(partial: Partial<WhiteboardConfig> = 
     fontFamily: 'Arial',
     fontSize: 16,
     penType: PenType.Pen,
+    arrowConfig: { ...defaultArrowConfig },
   };
 
   return { ...defaults, ...partial };

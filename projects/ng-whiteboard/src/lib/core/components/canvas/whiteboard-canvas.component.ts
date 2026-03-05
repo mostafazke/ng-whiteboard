@@ -16,8 +16,10 @@ import { SvgService } from '../../svg/svg.service';
 import { ElementType, ToolType, WhiteboardElement } from '../../types';
 import { ApiService } from '../../api';
 import { CanvasService } from '../../canvas';
-import { SelectionService } from '../../elements';
-import { GripCursorPipe, ElementOpacityPipe, PointsToPathPipe } from '../../pipes';
+import { ConnectionUIService, SelectionService } from '../../elements';
+import { ArrowElement } from '../../elements/arrow-element';
+import { LineElement } from '../../elements/line-element';
+import { GripCursorPipe, ElementOpacityPipe, PointsToPathPipe, ArrowheadPipe } from '../../pipes';
 import { ToolsService } from '../../tools';
 
 @Component({
@@ -28,6 +30,7 @@ import { ToolsService } from '../../tools';
     GripCursorPipe,
     ElementOpacityPipe,
     PointsToPathPipe,
+    ArrowheadPipe,
     SvgDirective,
     ResizeHandlerDirective,
     GlobalKeyboardDirective,
@@ -46,6 +49,7 @@ export class WhiteboardCanvasComponent implements AfterViewInit {
   selectionService = inject(SelectionService);
   canvasService = inject(CanvasService);
   svgService = inject(SvgService);
+  connectionUIService = inject(ConnectionUIService);
 
   config = this.configService.getConfigSignal();
 
@@ -157,6 +161,144 @@ export class WhiteboardCanvasComponent implements AfterViewInit {
   });
 
   cursor = computed(() => this.toolsService.cursor());
+
+  // ────────── Arrow / Line selection ──────────
+  /** True when only line-type elements (Arrow, Line) are selected */
+  readonly isLineOnlySelection = this.selectionService.isLineOnlySelectionSignal;
+
+  /**
+   * Endpoint handles for all selected line-type elements (Arrow / Line).
+   * Each entry describes one endpoint in world coordinates.
+   */
+  readonly lineEndpointHandles = computed(() => {
+    // Depend on the selection signal to re-evaluate when selection changes
+    const ids = this.selectionService.selectedIdsSignal();
+    if (ids.length === 0) return [];
+
+    const elements = this.apiService.allElements();
+    const handles: {
+      elementId: string;
+      end: 'start' | 'end';
+      x: number;
+      y: number;
+      bound: boolean; // true when attached to a shape
+      elementType: ElementType;
+    }[] = [];
+
+    for (const id of ids) {
+      const el = elements.find((e) => e.id === id);
+      if (!el) continue;
+
+      if (el.type === ElementType.Arrow) {
+        const arrow = el as ArrowElement;
+        // World coords: element origin + local endpoint, then rotation
+        const { sx, sy, ex, ey } = this.getLineWorldEndpoints(arrow);
+        handles.push({ elementId: arrow.id, end: 'start', x: sx, y: sy, bound: !!arrow.startBinding, elementType: ElementType.Arrow });
+        handles.push({ elementId: arrow.id, end: 'end', x: ex, y: ey, bound: !!arrow.endBinding, elementType: ElementType.Arrow });
+      } else if (el.type === ElementType.Line) {
+        const line = el as LineElement;
+        const { sx, sy, ex, ey } = this.getLineWorldEndpoints(line);
+        handles.push({ elementId: line.id, end: 'start', x: sx, y: sy, bound: false, elementType: ElementType.Line });
+        handles.push({ elementId: line.id, end: 'end', x: ex, y: ey, bound: false, elementType: ElementType.Line });
+      }
+    }
+
+    return handles;
+  });
+
+  /**
+   * Middle curve handle for selected arrows.
+   * Provides a draggable control point for adjusting the curve.
+   */
+  readonly curveHandles = computed(() => {
+    const ids = this.selectionService.selectedIdsSignal();
+    if (ids.length === 0) return [];
+
+    const elements = this.apiService.allElements();
+    const handles: {
+      elementId: string;
+      x: number;
+      y: number;
+      isCurved: boolean;
+    }[] = [];
+
+    for (const id of ids) {
+      const el = elements.find((e) => e.id === id);
+      if (!el || el.type !== ElementType.Arrow) continue;
+
+      const arrow = el as ArrowElement;
+      const { sx, sy, ex, ey } = this.getLineWorldEndpoints(arrow);
+      const midX = (sx + ex) / 2;
+      const midY = (sy + ey) / 2;
+
+      if (arrow.pathType?.type === 'quadratic') {
+        // Show handle at the control point (in world space)
+        const rot = (arrow.rotation ?? 0) * Math.PI / 180;
+        let cx = arrow.pathType.cx;
+        let cy = arrow.pathType.cy;
+        if (rot !== 0) {
+          const cos = Math.cos(rot);
+          const sin = Math.sin(rot);
+          const rx = cx * cos - cy * sin;
+          const ry = cx * sin + cy * cos;
+          cx = rx;
+          cy = ry;
+        }
+        handles.push({
+          elementId: arrow.id,
+          x: arrow.x + cx,
+          y: arrow.y + cy,
+          isCurved: true,
+        });
+      } else if (arrow.pathType?.type === 'elbow') {
+        // Show handle at the elbow bend point
+        const midRatio = arrow.pathType.midRatio ?? 0.5;
+        const bendX = sx + (ex - sx) * midRatio;
+        const bendY = (sy + ey) / 2;
+        handles.push({
+          elementId: arrow.id,
+          x: bendX,
+          y: bendY,
+          isCurved: true,
+        });
+      } else {
+        // For straight arrows, show the handle at the midpoint
+        handles.push({
+          elementId: arrow.id,
+          x: midX,
+          y: midY,
+          isCurved: false,
+        });
+      }
+    }
+
+    return handles;
+  });
+
+  /** Compute world-space endpoints for an arrow or line element */
+  private getLineWorldEndpoints(el: { x: number; y: number; x1: number; y1: number; x2: number; y2: number; rotation: number }): { sx: number; sy: number; ex: number; ey: number } {
+    const rot = (el.rotation ?? 0) * Math.PI / 180;
+    if (rot === 0) {
+      return { sx: el.x + el.x1, sy: el.y + el.y1, ex: el.x + el.x2, ey: el.y + el.y2 };
+    }
+    const cos = Math.cos(rot);
+    const sin = Math.sin(rot);
+    return {
+      sx: el.x + el.x1 * cos - el.y1 * sin,
+      sy: el.y + el.x1 * sin + el.y1 * cos,
+      ex: el.x + el.x2 * cos - el.y2 * sin,
+      ey: el.y + el.x2 * sin + el.y2 * cos,
+    };
+  }
+
+  // ────────── Arrow connection signals (from ConnectionUIService) ──────────
+  readonly snapIndicator = this.connectionUIService.snapIndicator;
+  readonly visibleConnectionPoints = this.connectionUIService.visibleConnectionPoints;
+
+  /** Check if an arrow is currently selected (for showing endpoint handles) */
+  isArrowSelected(elementId: string): boolean {
+    return this.selectionService.isSelected(elementId);
+  }
 
   types = ElementType;
   tools = ToolType;

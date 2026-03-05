@@ -17,7 +17,14 @@ import { WhiteboardCanvasComponent } from './core/components/canvas/whiteboard-c
 import { ContextMenuComponent } from './core/components/context-menu/context-menu.component';
 import { ContextMenuService } from './core/components/context-menu/context-menu.service';
 import { ConfigService } from './core/config/config.service';
-import { ElementsService, LayerManagementService, SelectionService } from './core/elements';
+import {
+  ArrowBindingService,
+  ConnectionPointsService,
+  ConnectionUIService,
+  ElementsService,
+  LayerManagementService,
+  SelectionService,
+} from './core/elements';
 import { EventBusService } from './core/event-bus/event-bus.service';
 import { HistoryService } from './core/history';
 import { ClipboardService, DragDropService, IOService, KeyboardShortcutService } from './core/input';
@@ -26,6 +33,7 @@ import { ToolsService } from './core/tools';
 import { ToolFactory } from './core/tools/tool-factory.service';
 import { ToolType, WhiteboardConfig, WhiteboardElement } from './core/types';
 import { WhiteboardEvent } from './core/types/events';
+import { generateUUID } from './core/utils';
 import { PanService, WheelHandlerService, ZoomService } from './core/viewport';
 
 /**
@@ -76,6 +84,9 @@ import { PanService, WheelHandlerService, ZoomService } from './core/viewport';
     ContextMenuService,
     DragDropService,
     WheelHandlerService,
+    ConnectionPointsService,
+    ArrowBindingService,
+    ConnectionUIService,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -91,7 +102,7 @@ export class NgWhiteboardComponent implements OnInit, OnDestroy {
    * Unique identifier for this whiteboard instance.
    * Auto-generated if not provided.
    */
-  @Input() boardId: string = crypto.randomUUID();
+  @Input() boardId = generateUUID();
 
   /**
    * Whiteboard configuration options.

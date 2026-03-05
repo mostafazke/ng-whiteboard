@@ -6,6 +6,8 @@ import {
   SELECTOR_BOX,
   SVG_ROOT_ID,
   DATA_ID,
+  ENDPOINT_HANDLE_PREFIX,
+  CURVE_HANDLE_PREFIX,
 } from '../../constants';
 
 /** Get the target element from a pointer event. */
@@ -37,7 +39,9 @@ export function getMouseTarget(info: PointerInfo): SVGGraphicsElement | null {
     if (
       mouseTarget.id.includes(ITEM_PREFIX) ||
       mouseTarget.id.includes(SELECTOR_GRIP_PREFIX) ||
-      mouseTarget.id.includes(SELECTOR_BOX)
+      mouseTarget.id.includes(SELECTOR_BOX) ||
+      mouseTarget.id.includes(ENDPOINT_HANDLE_PREFIX) ||
+      mouseTarget.id.includes(CURVE_HANDLE_PREFIX)
     ) {
       return mouseTarget;
     }

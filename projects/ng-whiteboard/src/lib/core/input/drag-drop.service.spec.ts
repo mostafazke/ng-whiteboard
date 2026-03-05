@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { DragDropService } from './drag-drop.service';
 import { ApiService } from '../api/api.service';
 import { ConfigService } from '../config/config.service';
-import { ElementType, WhiteboardConfig, WhiteboardElement, PenType } from '../types';
+import { ElementType, WhiteboardConfig, WhiteboardElement, PenType, defaultArrowConfig } from '../types';
 import { createElement } from '../elements/element.utils';
 import { getCanvasCoordinates } from '../utils/geometry';
 
@@ -44,6 +44,7 @@ describe('DragDropService', () => {
     snapToGrid: false,
     keyboardShortcutsEnabled: true,
     penType: PenType.Pen,
+    arrowConfig: { ...defaultArrowConfig },
   } as WhiteboardConfig;
 
   const createMockDragEvent = (clientX: number, clientY: number): DragEvent => {

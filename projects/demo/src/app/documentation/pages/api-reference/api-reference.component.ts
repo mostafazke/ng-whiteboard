@@ -123,7 +123,7 @@ export class ElementsComponent {
   // Add a custom rectangle
   addCustomRectangle() {
     this.whiteboardService.addElement({
-      id: crypto.randomUUID(),
+      id: '<generated-uuid>',
       type: ToolType.Rectangle,
       x: 100,
       y: 100,

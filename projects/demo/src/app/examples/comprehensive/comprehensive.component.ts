@@ -9,6 +9,8 @@ import {
   WhiteboardElement,
   WhiteboardConfig,
   NgWhiteboardComponent,
+  ArrowHeadStyle,
+  ArrowLineStyle,
 } from 'ng-whiteboard';
 import { strokeDashArrayOptions } from '../../shared/strokeDashArrayOptions';
 import { DragInputDirective } from './directives/drag-input.directive';
@@ -66,6 +68,12 @@ export class ComprehensiveComponent {
   toolType = ToolType;
   elementType = ElementType;
   formatType = FormatType;
+
+  /** Available arrowhead styles for UI dropdowns */
+  arrowHeadStyles: ArrowHeadStyle[] = ['none', 'arrow', 'open-arrow', 'diamond', 'open-diamond', 'circle', 'open-circle', 'bar'];
+
+  /** Available arrow line styles */
+  arrowLineStyles: ArrowLineStyle[] = ['straight', 'curve', 'elbow'];
 
   @Input() data: WhiteboardElement[] = [];
   @Output() dataChange = new EventEmitter<WhiteboardElement[]>();
@@ -283,6 +291,83 @@ export class ComprehensiveComponent {
         this.updateOptions({ zoom: value / 100 });
       });
     }
+  }
+
+  // Arrow configuration methods
+  setArrowStartHead(style: string) {
+    const headStyle = style as ArrowHeadStyle;
+    this.updateOptions({
+      arrowConfig: {
+        ...(this.options.arrowConfig ?? { startHeadStyle: 'diamond', endHeadStyle: 'arrow', headSize: 2, lineStyle: 'straight' as ArrowLineStyle }),
+        startHeadStyle: headStyle,
+      },
+    });
+    // Also update selected arrow elements
+    this.selectedElements.forEach((element) => {
+      if (element.type === ElementType.Arrow) {
+        this.updateSelectedElement({ startHead: { type: headStyle, size: this.options.arrowConfig?.headSize ?? 2 } } as Partial<WhiteboardElement>);
+      }
+    });
+  }
+
+  setArrowEndHead(style: string) {
+    const headStyle = style as ArrowHeadStyle;
+    this.updateOptions({
+      arrowConfig: {
+        ...(this.options.arrowConfig ?? { startHeadStyle: 'diamond', endHeadStyle: 'arrow', headSize: 2, lineStyle: 'straight' as ArrowLineStyle }),
+        endHeadStyle: headStyle,
+      },
+    });
+    // Also update selected arrow elements
+    this.selectedElements.forEach((element) => {
+      if (element.type === ElementType.Arrow) {
+        this.updateSelectedElement({ endHead: { type: headStyle, size: this.options.arrowConfig?.headSize ?? 2 } } as Partial<WhiteboardElement>);
+      }
+    });
+  }
+
+  setArrowLineStyle(style: string) {
+    const lineStyle = style as ArrowLineStyle;
+    this.updateOptions({
+      arrowConfig: {
+        ...(this.options.arrowConfig ?? { startHeadStyle: 'diamond', endHeadStyle: 'arrow', headSize: 2, lineStyle: 'straight' as ArrowLineStyle }),
+        lineStyle,
+      },
+    });
+    // Update selected arrow elements to match
+    this.selectedElements.forEach((element) => {
+      if (element.type === ElementType.Arrow) {
+        const midX = ((element as any).x1 + (element as any).x2) / 2;
+        const midY = ((element as any).y1 + (element as any).y2) / 2;
+        let pathType;
+        if (lineStyle === 'curve') {
+          pathType = { type: 'quadratic' as const, cx: midX, cy: midY };
+        } else if (lineStyle === 'elbow') {
+          pathType = { type: 'elbow' as const, midRatio: 0.5 };
+        } else {
+          pathType = { type: 'straight' as const };
+        }
+        this.updateSelectedElement({ pathType } as Partial<WhiteboardElement>);
+      }
+    });
+  }
+
+  updateArrowHeadSize(value: number) {
+    this.updateOptions({
+      arrowConfig: {
+        ...(this.options.arrowConfig ?? { startHeadStyle: 'diamond', endHeadStyle: 'arrow', headSize: 2, lineStyle: 'straight' as ArrowLineStyle }),
+        headSize: value,
+      },
+    });
+    // Update selected arrow elements
+    this.selectedElements.forEach((element) => {
+      if (element.type === ElementType.Arrow) {
+        this.updateSelectedElement({
+          startHead: { type: (element as any).startHead?.type ?? 'diamond', size: value },
+          endHead: { type: (element as any).endHead?.type ?? 'arrow', size: value },
+        } as Partial<WhiteboardElement>);
+      }
+    });
   }
 
   // Animation method

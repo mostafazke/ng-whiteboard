@@ -32,20 +32,6 @@
         <rect width="100" height="100" fill="url(#smallGrid)" />
         <path d="M 100 0 H 0 V 100" fill="none" stroke="gray" stroke-width="2" />
       </pattern>
-
-      <!-- Arrowhead -->
-      <marker
-        id="arrow"
-        refX="3"
-        refY="3"
-        markerWidth="6"
-        markerHeight="6"
-        stroke="context-stroke"
-        fill="none"
-        orient="auto"
-      >
-        <path d="M 0 0 L 3 3 L 0 6"></path>
-      </marker>
     </defs>
 
     <rect width="100%" height="100%" [attr.fill]="backgroundColor()"></rect>
@@ -119,19 +105,29 @@
         </g>
         } @case (types.Arrow) {
         <g>
-          <line
-            [attr.x1]="item.x1"
-            [attr.y1]="item.y1"
-            [attr.x2]="item.x2"
-            [attr.y2]="item.y2"
+          @if (item | arrowhead; as arrow) {
+          <!-- Arrow body: use <path> for both straight and curved -->
+          <path
+            [attr.d]="arrow.pathD"
+            fill="none"
             [attr.stroke-dasharray]="item.style.dasharray"
             [attr.stroke-dashoffset]="item.style.dashoffset"
             [attr.stroke-width]="item.style.strokeWidth"
             [attr.stroke-linecap]="item.style.lineCap"
             [attr.stroke]="item.style.strokeColor"
-            [attr.fill]="item.style.strokeColor"
-            marker-end="url(#arrow)"
-          ></line>
+          ></path>
+          @for (head of arrow.heads; track $index) {
+            <path
+              [attr.d]="head.d"
+              [attr.transform]="head.transform"
+              [attr.fill]="head.filled ? item.style.strokeColor : 'none'"
+              [attr.stroke]="head.filled ? 'none' : item.style.strokeColor"
+              [attr.stroke-width]="head.filled ? 0 : item.style.strokeWidth"
+              [attr.stroke-linecap]="item.style.lineCap"
+              stroke-linejoin="round"
+            ></path>
+          }
+          }
         </g>
         } @case (types.Rectangle) {
         <g>
@@ -186,6 +182,35 @@
         } }
       </g>
       } @if (selectionBoxSignal(); as box) {
+
+      <!-- Connection point snap indicator (shown during arrow drawing/reconnecting) -->
+      @if (snapIndicator(); as snap) {
+        <circle
+          class="snap-indicator"
+          [attr.cx]="snap.x"
+          [attr.cy]="snap.y"
+          r="8"
+          fill="rgba(76, 175, 80, 0.3)"
+          stroke="#4CAF50"
+          stroke-width="2"
+          pointer-events="none"
+        ></circle>
+      }
+
+      <!-- Connection points on hovered shape during arrow drawing -->
+      @for (cp of visibleConnectionPoints(); track cp.id) {
+        <circle
+          class="connection-point"
+          [attr.cx]="cp.position.x"
+          [attr.cy]="cp.position.y"
+          r="4"
+          fill="rgba(33, 150, 243, 0.4)"
+          stroke="#2196F3"
+          stroke-width="1"
+          pointer-events="none"
+        ></circle>
+      }
+
       <rect
         [attr.x]="box.x"
         [attr.y]="box.y"
@@ -270,6 +295,42 @@
           ></circle>
         </ng-container>
       </g>
+      }
+
+      <!-- 2-point endpoint handles for selected arrows / lines -->
+      @for (handle of lineEndpointHandles(); track handle.elementId + '_' + handle.end) {
+        <circle
+          class="line-endpoint-handle"
+          [attr.id]="'endpointHandle_' + handle.elementId + '_' + handle.end"
+          [attr.cx]="handle.x"
+          [attr.cy]="handle.y"
+          r="6"
+          [attr.fill]="handle.bound ? '#4CAF50' : 'white'"
+          stroke="dodgerblue"
+          stroke-width="1.5"
+          cursor="crosshair"
+          pointer-events="all"
+          [attr.data-arrow-id]="handle.elementId"
+          [attr.data-handle]="handle.end"
+        ></circle>
+      }
+
+      <!-- Middle curve handle for selected arrows -->
+      @for (handle of curveHandles(); track handle.elementId) {
+        <circle
+          class="curve-handle"
+          [attr.id]="'curveHandle_' + handle.elementId"
+          [attr.cx]="handle.x"
+          [attr.cy]="handle.y"
+          r="5"
+          [attr.fill]="handle.isCurved ? '#FF9800' : 'white'"
+          [attr.stroke]="handle.isCurved ? '#E65100' : '#999'"
+          stroke-width="1.5"
+          cursor="move"
+          pointer-events="all"
+          [attr.data-arrow-id]="handle.elementId"
+          data-handle="curve"
+        ></circle>
       }
     </g>
   </svg>

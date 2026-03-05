@@ -8,3 +8,6 @@ export * from './rectangle-element';
 export * from './elements.service';
 export * from './layer-management.service';
 export * from './selection.service';
+export * from './connection-points.service';
+export * from './arrow-binding.service';
+export * from './connection-ui.service';

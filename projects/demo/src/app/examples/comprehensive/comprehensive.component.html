@@ -426,6 +426,48 @@
         </div>
       </div>
     </div>
+    } @if (selectedElement.type === elementType.Arrow) {
+    <div class="context_panel clearfix">
+      <h4>Arrow Style</h4>
+      <div class="draginputs">
+        <div class="draginput twocol" title="Start arrowhead style">
+          <select (change)="setArrowStartHead($any($event.target).value)">
+            @for (style of arrowHeadStyles; track style) {
+              <option [value]="style" [selected]="selectedElement.startHead.type === style">{{ style }}</option>
+            }
+          </select>
+          <span>Start Head</span>
+        </div>
+        <div class="draginput twocol" title="End arrowhead style">
+          <select (change)="setArrowEndHead($any($event.target).value)">
+            @for (style of arrowHeadStyles; track style) {
+              <option [value]="style" [selected]="selectedElement.endHead.type === style">{{ style }}</option>
+            }
+          </select>
+          <span>End Head</span>
+        </div>
+        <div class="draginput twocol" title="Arrow line style">
+          <select (change)="setArrowLineStyle($any($event.target).value)">
+            @for (style of arrowLineStyles; track style) {
+              <option [value]="style" [selected]="(selectedElement.pathType.type === 'straight' ? 'straight' : selectedElement.pathType.type === 'elbow' ? 'elbow' : 'curve') === style">{{ style }}</option>
+            }
+          </select>
+          <span>Line Style</span>
+        </div>
+        <div class="draginput" title="Arrow head size">
+          <input
+            dragInput
+            [min]="1"
+            [max]="10"
+            [step]="0.5"
+            [value]="selectedElement.startHead.size"
+            (valueChange)="updateArrowHeadSize($event)"
+            readonly
+          />
+          <span>Head Size</span>
+        </div>
+      </div>
+    </div>
     } @if (selectedElement.type === elementType.Text) {
     <div class="context_panel">
       <h4>Text</h4>
