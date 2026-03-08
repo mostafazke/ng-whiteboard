@@ -1,4 +1,4 @@
-import { CURVE_HANDLE_PREFIX, DATA_ID, ITEM_PREFIX, SELECTOR_BOX, SELECTOR_GRIP_RESIZE, SELECTOR_GRIP_ROTATE } from '../constants';
+import { DATA_ID, ITEM_PREFIX, SELECTOR_BOX, SELECTOR_GRIP_RESIZE, SELECTOR_GRIP_ROTATE } from '../constants';
 import { getElementUtil } from '../elements/element.utils';
 import { ArrowElement } from '../elements/arrow-element';
 import { ArrowBindingService } from '../elements/arrow-binding.service';
@@ -742,17 +742,44 @@ export class SelectTool extends BaseTool {
 
   /**
    * Convert a world-space point to an element's local coordinate system,
-   * accounting for the element's translation and rotation.
+   * accounting for translation, fill-box-centered rotation, and scale.
+   *
+   * The element <g> uses `translate(x,y) rotate(rotation)` with CSS
+   * `transform-box: fill-box; transform-origin: center`, so the rotation
+   * pivot is the fill-box center, not the local origin.
    */
   private worldToLocal(element: WhiteboardElement, worldPoint: Point): Point {
+    const rot = element.rotation ?? 0;
+    const scaleX = (element as WhiteboardElement & { scaleX?: number }).scaleX ?? 1;
+    const scaleY = (element as WhiteboardElement & { scaleY?: number }).scaleY ?? 1;
+
+    // Un-translate
     const dx = worldPoint.x - element.x;
     const dy = worldPoint.y - element.y;
-    const rot = element.rotation ?? 0;
-    if (rot === 0) return { x: dx, y: dy };
+
+    if (rot === 0) {
+      return { x: dx / scaleX, y: dy / scaleY };
+    }
+
+    // Fill-box pivot in local (post-scale) space
+    const el = element as WhiteboardElement & { x1?: number; y1?: number; x2?: number; y2?: number };
+    const x1s = (el.x1 ?? 0) * scaleX;
+    const y1s = (el.y1 ?? 0) * scaleY;
+    const x2s = (el.x2 ?? 0) * scaleX;
+    const y2s = (el.y2 ?? 0) * scaleY;
+    const pivotX = (x1s + x2s) / 2;
+    const pivotY = (y1s + y2s) / 2;
+
+    // Inverse rotation around fill-box pivot
     const rad = (-rot * Math.PI) / 180;
     const cos = Math.cos(rad);
     const sin = Math.sin(rad);
-    return { x: dx * cos - dy * sin, y: dx * sin + dy * cos };
+    const rx = dx - pivotX;
+    const ry = dy - pivotY;
+    const localX = pivotX + rx * cos - ry * sin;
+    const localY = pivotY + rx * sin + ry * cos;
+
+    return { x: localX / scaleX, y: localY / scaleY };
   }
 
   private handleBoxSelect(currentPoint: Point, shiftKey: boolean): void {

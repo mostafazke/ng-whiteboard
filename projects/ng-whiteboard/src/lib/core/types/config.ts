@@ -16,16 +16,13 @@ export interface ArrowConfig {
   startHeadStyle: ArrowHeadStyle;
   /** Default head style for the end of an arrow */
   endHeadStyle: ArrowHeadStyle;
-  /** Default head size multiplier (relative to strokeWidth) */
-  headSize: number;
   /** Default line style for new arrows */
   lineStyle: ArrowLineStyle;
 }
 
 export const defaultArrowConfig: ArrowConfig = {
   startHeadStyle: 'open-arrow',
-  endHeadStyle: 'arrow',
-  headSize: 2,
+  endHeadStyle: 'bar',
   lineStyle: 'curve',
 };
 

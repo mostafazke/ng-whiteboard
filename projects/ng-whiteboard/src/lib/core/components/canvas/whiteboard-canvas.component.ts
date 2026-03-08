@@ -232,17 +232,23 @@ export class WhiteboardCanvasComponent implements AfterViewInit {
       const midY = (sy + ey) / 2;
 
       if (arrow.pathType?.type === 'quadratic') {
-        // Show handle at the control point (in world space)
+        // The control point cx/cy is stored in local (pre-rotate) space.
+        // Apply the same fill-box-centered rotation used by the browser.
         const rot = (arrow.rotation ?? 0) * Math.PI / 180;
-        let cx = arrow.pathType.cx;
-        let cy = arrow.pathType.cy;
+        const scaleX = arrow.scaleX ?? 1;
+        const scaleY = arrow.scaleY ?? 1;
+        let cx = arrow.pathType.cx * scaleX;
+        let cy = arrow.pathType.cy * scaleY;
         if (rot !== 0) {
+          // Pivot = fill-box center in local (post-scale) space
+          const pivotX = (arrow.x1 * scaleX + arrow.x2 * scaleX) / 2;
+          const pivotY = (arrow.y1 * scaleY + arrow.y2 * scaleY) / 2;
+          const dx = cx - pivotX;
+          const dy = cy - pivotY;
           const cos = Math.cos(rot);
           const sin = Math.sin(rot);
-          const rx = cx * cos - cy * sin;
-          const ry = cx * sin + cy * cos;
-          cx = rx;
-          cy = ry;
+          cx = pivotX + dx * cos - dy * sin;
+          cy = pivotY + dx * sin + dy * cos;
         }
         handles.push({
           elementId: arrow.id,
@@ -251,10 +257,28 @@ export class WhiteboardCanvasComponent implements AfterViewInit {
           isCurved: true,
         });
       } else if (arrow.pathType?.type === 'elbow') {
-        // Show handle at the elbow bend point
+        // Compute handle at the elbow mid-point in local (post-scale) space, then apply
+        // fill-box-centered rotation + translate.
+        const scaleX = arrow.scaleX ?? 1;
+        const scaleY = arrow.scaleY ?? 1;
         const midRatio = arrow.pathType.midRatio ?? 0.5;
-        const bendX = sx + (ex - sx) * midRatio;
-        const bendY = (sy + ey) / 2;
+        const localX = arrow.x1 * scaleX + (arrow.x2 - arrow.x1) * scaleX * midRatio;
+        const localY = (arrow.y1 * scaleY + arrow.y2 * scaleY) / 2;
+        const rot = (arrow.rotation ?? 0) * Math.PI / 180;
+        let bendX: number, bendY: number;
+        if (rot === 0) {
+          bendX = arrow.x + localX;
+          bendY = arrow.y + localY;
+        } else {
+          const pivotX = (arrow.x1 * scaleX + arrow.x2 * scaleX) / 2;
+          const pivotY = (arrow.y1 * scaleY + arrow.y2 * scaleY) / 2;
+          const dx = localX - pivotX;
+          const dy = localY - pivotY;
+          const cos = Math.cos(rot);
+          const sin = Math.sin(rot);
+          bendX = arrow.x + pivotX + dx * cos - dy * sin;
+          bendY = arrow.y + pivotY + dx * sin + dy * cos;
+        }
         handles.push({
           elementId: arrow.id,
           x: bendX,
@@ -275,19 +299,56 @@ export class WhiteboardCanvasComponent implements AfterViewInit {
     return handles;
   });
 
-  /** Compute world-space endpoints for an arrow or line element */
-  private getLineWorldEndpoints(el: { x: number; y: number; x1: number; y1: number; x2: number; y2: number; rotation: number }): { sx: number; sy: number; ex: number; ey: number } {
+  /** Compute world-space endpoints for an arrow or line element.
+   *
+   *  The element <g> uses the SVG transform `translate(x,y) rotate(rotation)` together
+   *  with CSS `transform-box: fill-box; transform-origin: center`.  In modern browsers this
+   *  makes the rotation pivot the fill-box center (midpoint of the local geometry) rather
+   *  than the local origin (0,0).  We replicate that here:
+   *
+   *    world = translate(x,y) * rotate_around_fill_center(rotation) * scale(scaleX,scaleY)
+   *
+   *  Fill-box center in local space: cx = (x1+x2)/2, cy = (y1+y2)/2.
+   */
+  private getLineWorldEndpoints(el: {
+    x: number; y: number;
+    x1: number; y1: number;
+    x2: number; y2: number;
+    rotation: number;
+    scaleX?: number; scaleY?: number;
+  }): { sx: number; sy: number; ex: number; ey: number } {
+    const scaleX = el.scaleX ?? 1;
+    const scaleY = el.scaleY ?? 1;
+
+    // Apply scale in local space first
+    const lx1 = el.x1 * scaleX;
+    const ly1 = el.y1 * scaleY;
+    const lx2 = el.x2 * scaleX;
+    const ly2 = el.y2 * scaleY;
+
     const rot = (el.rotation ?? 0) * Math.PI / 180;
     if (rot === 0) {
-      return { sx: el.x + el.x1, sy: el.y + el.y1, ex: el.x + el.x2, ey: el.y + el.y2 };
+      return { sx: el.x + lx1, sy: el.y + ly1, ex: el.x + lx2, ey: el.y + ly2 };
     }
+
+    // Rotation pivot = fill-box center in local (post-scale) space
+    const pivotX = (lx1 + lx2) / 2;
+    const pivotY = (ly1 + ly2) / 2;
+
     const cos = Math.cos(rot);
     const sin = Math.sin(rot);
+
+    // Rotate each endpoint around pivot, then translate by element (x,y)
+    const rx1 = lx1 - pivotX;
+    const ry1 = ly1 - pivotY;
+    const rx2 = lx2 - pivotX;
+    const ry2 = ly2 - pivotY;
+
     return {
-      sx: el.x + el.x1 * cos - el.y1 * sin,
-      sy: el.y + el.x1 * sin + el.y1 * cos,
-      ex: el.x + el.x2 * cos - el.y2 * sin,
-      ey: el.y + el.x2 * sin + el.y2 * cos,
+      sx: el.x + pivotX + rx1 * cos - ry1 * sin,
+      sy: el.y + pivotY + rx1 * sin + ry1 * cos,
+      ex: el.x + pivotX + rx2 * cos - ry2 * sin,
+      ey: el.y + pivotY + rx2 * sin + ry2 * cos,
     };
   }
 

@@ -26,17 +26,14 @@ export enum ArrowheadType {
 
 export interface ArrowheadConfig {
   type: ArrowheadType;
-  size: number;
 }
 
 export const defaultStartHead: ArrowheadConfig = {
   type: ArrowheadType.OpenArrow,
-  size: 2,
 };
 
 export const defaultEndHead: ArrowheadConfig = {
   type: ArrowheadType.Arrow,
-  size: 2,
 };
 
 export interface ArrowElement extends BaseElement {

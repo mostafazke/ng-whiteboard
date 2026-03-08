@@ -9,6 +9,8 @@ export interface ArrowheadRenderItem {
   filled: boolean;
   /** SVG transform for positioning, rotation, and scaling */
   transform: string;
+  /** For stroked heads: stroke-width divided by the scale factor so the visual weight matches the line body */
+  strokeWidth?: number;
 }
 
 export interface ArrowRenderData {
@@ -28,61 +30,95 @@ export interface ArrowRenderData {
 
 /* ------------------------------------------------------------------ */
 /*  Predefined arrowhead paths                                        */
-/*  All paths are authored pointing RIGHT (+X), with the tip/anchor   */
-/*  at the coordinate given by tipX/tipY.  At render time we apply    */
-/*  translate · rotate · scale · translate(-tip) so the tip lands on  */
-/*  the endpoint at the correct angle.                                */
+/*  All paths are authored pointing RIGHT (+X), tip at (0, 0).       */
+/*  baseSize = 10: all coordinates are in a 10-unit space.           */
+/*  At render time: translate(px py) rotate(angleDeg) scale(size/10) */
 /* ------------------------------------------------------------------ */
 
 interface ArrowheadPathDef {
   /** SVG path `d` in native coordinates */
   d: string;
-  /** X of the tip/anchor in native coordinates */
-  tipX: number;
-  /** Y of the tip/anchor in native coordinates */
-  tipY: number;
-  /** Reference size (scale = size / baseSize) */
+  /** Reference size — all paths authored at this scale */
   baseSize: number;
+  /** Whether this head type should be filled (true) or stroked (false) */
+  filled: boolean;
+  /** How far back to inset the line end, in baseSize units */
+  baseInset: number;
 }
 
-/** Closed triangle – tip at origin, arm length = 1 */
-const TRIANGLE_PATH: ArrowheadPathDef = {
-  d: 'M 0 0 L -0.866 0.5 L -0.866 -0.5 Z',
-  tipX: 0,
-  tipY: 0,
-  baseSize: 1,
+/**
+ * Filled triangle. Tip at (0,0), base at x=-10, half-width=5.
+ * Rendered filled, no stroke needed.
+ */
+const ARROW_PATH: ArrowheadPathDef = {
+  d: 'M 0 0 L -10 -5 L -10 5 Z',
+  baseSize: 10,
+  filled: true,
+  baseInset: 10,
 };
 
-/** Rounded open-arrow / chevron */
+/**
+ * Open chevron / V-arrow. Tip at (0,0), arms reach to (-8, ±5).
+ * Rendered as stroke, no fill.
+ */
 const OPEN_ARROW_PATH: ArrowheadPathDef = {
-  d: 'M0 0-.5725.5725a.1026.1026 90 00.0107.1621.1134.1134 90 00.1459-.0107L.2267.0758a.1026.1026 90 000-.1512L-.4158-.7234a.1134.1134 90 00-.1459-.0107.1026.1026 90 00-.0107.1621Z',
-  tipX: 0,
-  tipY: 0,
-  baseSize: 1,
+  d: 'M -8 -5 L 0 0 L -8 5',
+  baseSize: 10,
+  filled: false,
+  baseInset: 3,
 };
 
-/** Diamond (4-point rhombus), depth = 2 at base scale */
+/**
+ * Filled diamond. Tip at (0,0), tail at (-14,0), half-height=5.
+ * Rendered filled.
+ */
 const DIAMOND_PATH: ArrowheadPathDef = {
-  d: 'M 0 0 L -1 -0.5 L -2 0 L -1 0.5 Z',
-  tipX: 0,
-  tipY: 0,
-  baseSize: 1,
+  d: 'M 0 0 L -7 -5 L -14 0 L -7 5 Z',
+  baseSize: 10,
+  filled: true,
+  baseInset: 14,
 };
 
-/** Circle, radius 0.5 at base scale, tip at forward edge */
+/**
+ * Open diamond. Same shape as filled diamond but stroked only.
+ */
+const OPEN_DIAMOND_PATH: ArrowheadPathDef = {
+  d: 'M 0 0 L -7 -5 L -14 0 L -7 5 Z',
+  baseSize: 10,
+  filled: false,
+  baseInset: 14,
+};
+
+/**
+ * Filled circle. Tip at (0,0) = right edge of circle. Radius=5, center at (-5,0).
+ * Rendered filled.
+ */
 const CIRCLE_PATH: ArrowheadPathDef = {
-  d: 'M -1 0 A 0.5 0.5 0 1 0 0 0 A 0.5 0.5 0 1 0 -1 0 Z',
-  tipX: 0,
-  tipY: 0,
-  baseSize: 1,
+  d: 'M 0 0 A 5 5 0 1 0 0 0.001 Z',
+  baseSize: 10,
+  filled: true,
+  baseInset: 10,
 };
 
-/** Perpendicular bar at the tip */
+/**
+ * Open circle. Same as circle but stroked only.
+ */
+const OPEN_CIRCLE_PATH: ArrowheadPathDef = {
+  d: 'M 0 0 A 5 5 0 1 0 0 0.001 Z',
+  baseSize: 10,
+  filled: false,
+  baseInset: 10,
+};
+
+/**
+ * Perpendicular bar. A vertical line at x=0, from y=-5 to y=5.
+ * Rendered as stroke.
+ */
 const BAR_PATH: ArrowheadPathDef = {
-  d: 'M 0 -0.5 L 0 0.5',
-  tipX: 0,
-  tipY: 0,
-  baseSize: 1,
+  d: 'M 0 -5 L 0 5',
+  baseSize: 10,
+  filled: false,
+  baseInset: 0,
 };
 
 @Pipe({
@@ -129,16 +165,28 @@ export class ArrowheadPipe implements PipeTransform {
       heads.push(startResult.item);
     }
 
-    // Pull line endpoints back so the stroke doesn't bleed through heads
-    const endInset = endResult?.inset ?? 0;
-    const startInset = startResult?.inset ?? 0;
+    // Pull line endpoints back so the stroke doesn't bleed through heads.
+    // Clamp so both insets together never consume more than 80% of the straight-line
+    // distance — this prevents the body from disappearing on short arrows.
+    let endInset = endResult?.inset ?? 0;
+    let startInset = startResult?.inset ?? 0;
+    const arrowLen = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+    const totalInset = startInset + endInset;
+    if (arrowLen > 0 && totalInset > arrowLen * 0.8) {
+      const ratio = (arrowLen * 0.8) / totalInset;
+      startInset *= ratio;
+      endInset *= ratio;
+    }
 
     let lineX1: number, lineY1: number, lineX2: number, lineY2: number;
 
     if (pathType?.type === 'elbow') {
-      // Elbow: start leaves horizontally, end arrives horizontally
-      lineX1 = x1 + startInset * Math.cos(startAngle);
-      lineY1 = y1 + startInset * Math.sin(startAngle);
+      // Elbow: start leaves horizontally toward the path, end arrives horizontally.
+      // startAngle points BACKWARD (away from the path), so inset must move FORWARD
+      // which is the opposite direction: startAngle + π.
+      const startFwdAngle = startAngle + Math.PI;
+      lineX1 = x1 + startInset * Math.cos(startFwdAngle);
+      lineY1 = y1 + startInset * Math.sin(startFwdAngle);
       lineX2 = x2 - endInset * Math.cos(endAngle);
       lineY2 = y2 - endInset * Math.sin(endAngle);
     } else if (pathType?.type === 'quadratic') {
@@ -191,73 +239,39 @@ export class ArrowheadPipe implements PipeTransform {
     px: number,
     py: number,
     angle: number,
-    strokeWidth: number,
+    strokeWidth: number
   ): { item: ArrowheadRenderItem; inset: number } | null {
     if (!config || config.type === ArrowheadType.None) {
       return null;
     }
 
-    const size = Math.max(8, strokeWidth * config.size);
-    const halfStroke = strokeWidth / 2;
+    // Arrowhead size grows gently with stroke width (3× ratio keeps heads proportional
+    // without aggressively shortening the line body)
+    const size = Math.max(12, strokeWidth * 3);
 
     let def: ArrowheadPathDef;
-    let filled: boolean;
-    let inset: number;
 
     switch (config.type) {
-      case ArrowheadType.Arrow:
-        def = TRIANGLE_PATH;
-        filled = true;
-        inset = size * Math.cos(Math.PI / 6);
-        break;
-      case ArrowheadType.OpenArrow:
-        def = OPEN_ARROW_PATH;
-        filled = true;
-        inset = size * 0.3;
-        break;
-      case ArrowheadType.Diamond:
-        def = DIAMOND_PATH;
-        filled = true;
-        inset = size;
-        break;
-      case ArrowheadType.OpenDiamond:
-        def = DIAMOND_PATH;
-        filled = false;
-        inset = halfStroke;
-        break;
-      case ArrowheadType.Circle:
-        def = CIRCLE_PATH;
-        filled = true;
-        inset = size;
-        break;
-      case ArrowheadType.OpenCircle:
-        def = CIRCLE_PATH;
-        filled = false;
-        inset = halfStroke;
-        break;
-      case ArrowheadType.Bar:
-        def = BAR_PATH;
-        filled = false;
-        inset = halfStroke;
-        break;
-      default:
-        return null;
+      case ArrowheadType.Arrow:       def = ARROW_PATH;        break;
+      case ArrowheadType.OpenArrow:   def = OPEN_ARROW_PATH;   break;
+      case ArrowheadType.Diamond:     def = DIAMOND_PATH;      break;
+      case ArrowheadType.OpenDiamond: def = OPEN_DIAMOND_PATH; break;
+      case ArrowheadType.Circle:      def = CIRCLE_PATH;       break;
+      case ArrowheadType.OpenCircle:  def = OPEN_CIRCLE_PATH;  break;
+      case ArrowheadType.Bar:         def = BAR_PATH;          break;
+      default: return null;
     }
 
-    const transform = this.buildTransform(def, px, py, angle, size);
-    return { item: { d: def.d, filled, transform }, inset };
+    const scale = size / def.baseSize;
+    const inset = def.baseInset * scale;
+    const transform = this.buildTransform(px, py, angle, scale);
+    const headStrokeWidth = def.filled ? undefined : strokeWidth / scale;
+    return { item: { d: def.d, filled: def.filled, transform, strokeWidth: headStrokeWidth }, inset };
   }
 
-  /** Build an SVG transform that places a predefined path at (px, py) with the given angle and size */
-  private buildTransform(
-    def: ArrowheadPathDef,
-    px: number,
-    py: number,
-    angle: number,
-    size: number,
-  ): string {
+  /** Build an SVG transform: translate to endpoint, rotate to angle, then scale */
+  private buildTransform(px: number, py: number, angle: number, scale: number): string {
     const angleDeg = (angle * 180) / Math.PI;
-    const scale = size / def.baseSize;
-    return `translate(${px} ${py}) rotate(${angleDeg}) scale(${scale}) translate(${-def.tipX} ${-def.tipY})`;
+    return `translate(${px} ${py}) rotate(${angleDeg}) scale(${scale})`;
   }
 }

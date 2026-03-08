@@ -382,7 +382,7 @@
     </div>
     } @if (selectedElement.type === elementType.Line || selectedElement.type === elementType.Arrow) {
     <div class="context_panel clearfix">
-      <h4>Line</h4>
+      <h4>{{selectedElement.type === elementType.Line ? 'Line' : 'Arrow'}}</h4>
       <div class="draginputs">
         <div class="draginput" title="Change line's starting x coordinate">
           <input
@@ -423,48 +423,6 @@
             readonly
           />
           <span>End Y</span>
-        </div>
-      </div>
-    </div>
-    } @if (selectedElement.type === elementType.Arrow) {
-    <div class="context_panel clearfix">
-      <h4>Arrow Style</h4>
-      <div class="draginputs">
-        <div class="draginput twocol" title="Start arrowhead style">
-          <select (change)="setArrowStartHead($any($event.target).value)">
-            @for (style of arrowHeadStyles; track style) {
-              <option [value]="style" [selected]="selectedElement.startHead.type === style">{{ style }}</option>
-            }
-          </select>
-          <span>Start Head</span>
-        </div>
-        <div class="draginput twocol" title="End arrowhead style">
-          <select (change)="setArrowEndHead($any($event.target).value)">
-            @for (style of arrowHeadStyles; track style) {
-              <option [value]="style" [selected]="selectedElement.endHead.type === style">{{ style }}</option>
-            }
-          </select>
-          <span>End Head</span>
-        </div>
-        <div class="draginput twocol" title="Arrow line style">
-          <select (change)="setArrowLineStyle($any($event.target).value)">
-            @for (style of arrowLineStyles; track style) {
-              <option [value]="style" [selected]="(selectedElement.pathType.type === 'straight' ? 'straight' : selectedElement.pathType.type === 'elbow' ? 'elbow' : 'curve') === style">{{ style }}</option>
-            }
-          </select>
-          <span>Line Style</span>
-        </div>
-        <div class="draginput" title="Arrow head size">
-          <input
-            dragInput
-            [min]="1"
-            [max]="10"
-            [step]="0.5"
-            [value]="selectedElement.startHead.size"
-            (valueChange)="updateArrowHeadSize($event)"
-            readonly
-          />
-          <span>Head Size</span>
         </div>
       </div>
     </div>
@@ -709,6 +667,213 @@
         </div>
       </div>
     </div>
+    @if (selectedElements[0]; as selectedElement) { @if (selectedElement.type === elementType.Arrow) {
+    <div class="context_panel clearfix">
+      <h4>Arrow Style</h4>
+      <div class="arrow-options">
+        <!-- Line style toggle buttons -->
+        <div class="arrow-prop-row">
+          <span class="arrow-prop-label">Line</span>
+          <div class="arrow-btn-group">
+            <button
+              class="arrow-icon-btn"
+              [class.active]="selectedElement.pathType.type === 'straight'"
+              (click)="setArrowLineStyle('straight')"
+              title="Straight"
+            >
+              <svg
+                viewBox="0 0 32 20"
+                width="32"
+                height="20"
+                stroke="currentColor"
+                fill="none"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="2" y1="10" x2="22" y2="10" />
+                <polygon points="20,7 28,10 20,13" fill="currentColor" stroke="none" />
+              </svg>
+            </button>
+            <button
+              class="arrow-icon-btn"
+              [class.active]="selectedElement.pathType.type !== 'straight' && selectedElement.pathType.type !== 'elbow'"
+              (click)="setArrowLineStyle('curve')"
+              title="Curved"
+            >
+              <svg
+                viewBox="0 0 32 20"
+                width="32"
+                height="20"
+                stroke="currentColor"
+                fill="none"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M 2 16 Q 14 2 22 10" />
+                <polygon points="20,7 28,10 20,13" fill="currentColor" stroke="none" />
+              </svg>
+            </button>
+            <button
+              class="arrow-icon-btn"
+              [class.active]="selectedElement.pathType.type === 'elbow'"
+              (click)="setArrowLineStyle('elbow')"
+              title="Elbow"
+            >
+              <svg
+                viewBox="0 0 32 20"
+                width="32"
+                height="20"
+                stroke="currentColor"
+                fill="none"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="2,16 12,16 12,7 22,7" />
+                <polygon points="20,5 28,7 20,9" fill="currentColor" stroke="none" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="arrow-line">
+          <!-- Start head picker -->
+          <div class="arrow-prop-row">
+            <span class="arrow-prop-label">Start</span>
+            <div class="head-picker" [class.open]="startHeadOpen">
+              <button
+                class="arrow-icon-btn head-current"
+                (click)="toggleStartHead($event)"
+                title="Start head style"
+              >
+                <svg
+                  viewBox="0 0 32 20"
+                  width="32"
+                  height="20"
+                  stroke="currentColor"
+                  fill="none"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  style="transform: scaleX(-1)"
+                >
+                  <path [attr.d]="headIconData[$any(selectedElement).startHead.type].linePath" />
+                  @if (headIconData[$any(selectedElement).startHead.type].headPath) {
+                  <path
+                    [attr.d]="headIconData[$any(selectedElement).startHead.type].headPath"
+                    [attr.fill]="headIconData[$any(selectedElement).startHead.type].filled ? 'currentColor' : 'none'"
+                    [attr.stroke]="headIconData[$any(selectedElement).startHead.type].filled ? 'none' : 'currentColor'"
+                  />
+                  }
+                </svg>
+                <svg class="caret-chevron" viewBox="0 0 10 6" width="8" height="5" fill="currentColor" stroke="none">
+                  <path d="M 0 0 L 10 0 L 5 6 Z" />
+                </svg>
+              </button>
+              <div class="head-dropdown" [ngStyle]="startHeadDropdownStyle">
+                @for (style of arrowHeadStyles; track style) {
+                <button
+                  class="head-option"
+                  [class.active]="$any(selectedElement).startHead.type === style"
+                  (click)="setArrowStartHead(style); startHeadOpen = false"
+                  [title]="style"
+                >
+                  <svg
+                    viewBox="0 0 32 20"
+                    width="32"
+                    height="20"
+                    stroke="currentColor"
+                    fill="none"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    style="transform: scaleX(-1)"
+                  >
+                    <path [attr.d]="headIconData[style].linePath" />
+                    @if (headIconData[style].headPath) {
+                    <path
+                      [attr.d]="headIconData[style].headPath"
+                      [attr.fill]="headIconData[style].filled ? 'currentColor' : 'none'"
+                      [attr.stroke]="headIconData[style].filled ? 'none' : 'currentColor'"
+                    />
+                    }
+                  </svg>
+                </button>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- End head picker -->
+          <div class="arrow-prop-row">
+            <span class="arrow-prop-label">End</span>
+            <div class="head-picker" [class.open]="endHeadOpen">
+              <button
+                class="arrow-icon-btn head-current"
+                (click)="toggleEndHead($event)"
+                title="End head style"
+              >
+                <svg
+                  viewBox="0 0 32 20"
+                  width="32"
+                  height="20"
+                  stroke="currentColor"
+                  fill="none"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path [attr.d]="headIconData[$any(selectedElement).endHead.type].linePath" />
+                  @if (headIconData[$any(selectedElement).endHead.type].headPath) {
+                  <path
+                    [attr.d]="headIconData[$any(selectedElement).endHead.type].headPath"
+                    [attr.fill]="headIconData[$any(selectedElement).endHead.type].filled ? 'currentColor' : 'none'"
+                    [attr.stroke]="headIconData[$any(selectedElement).endHead.type].filled ? 'none' : 'currentColor'"
+                  />
+                  }
+                </svg>
+                <svg class="caret-chevron" viewBox="0 0 10 6" width="8" height="5" fill="currentColor" stroke="none">
+                  <path d="M 0 0 L 10 0 L 5 6 Z" />
+                </svg>
+              </button>
+              <div class="head-dropdown" [ngStyle]="endHeadDropdownStyle">
+                @for (style of arrowHeadStyles; track style) {
+                <button
+                  class="head-option"
+                  [class.active]="$any(selectedElement).endHead.type === style"
+                  (click)="setArrowEndHead(style); endHeadOpen = false"
+                  [title]="style"
+                >
+                  <svg
+                    viewBox="0 0 32 20"
+                    width="32"
+                    height="20"
+                    stroke="currentColor"
+                    fill="none"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path [attr.d]="headIconData[style].linePath" />
+                    @if (headIconData[style].headPath) {
+                    <path
+                      [attr.d]="headIconData[style].headPath"
+                      [attr.fill]="headIconData[style].filled ? 'currentColor' : 'none'"
+                      [attr.stroke]="headIconData[style].filled ? 'none' : 'currentColor'"
+                    />
+                    }
+                  </svg>
+                </button>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    }}
   </div>
 
   <div id="tools_left" class="tools_panel">

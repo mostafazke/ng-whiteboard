@@ -83,11 +83,9 @@ export class ArrowTool extends BaseTool {
         zIndex: this.apiService.getNextZIndex(),
         startHead: {
           type: this.mapHeadStyle(this.whiteboardConfig.arrowConfig?.startHeadStyle),
-          size: this.whiteboardConfig.arrowConfig?.headSize ?? 2,
         },
         endHead: {
           type: this.mapHeadStyle(this.whiteboardConfig.arrowConfig?.endHeadStyle),
-          size: this.whiteboardConfig.arrowConfig?.headSize ?? 2,
         },
         pathType: this.whiteboardConfig.arrowConfig?.lineStyle === 'curve'
           ? { type: 'quadratic' as const, cx: x, cy: y }

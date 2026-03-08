@@ -122,7 +122,7 @@
               [attr.transform]="head.transform"
               [attr.fill]="head.filled ? item.style.strokeColor : 'none'"
               [attr.stroke]="head.filled ? 'none' : item.style.strokeColor"
-              [attr.stroke-width]="head.filled ? 0 : item.style.strokeWidth"
+              [attr.stroke-width]="head.filled ? 0 : (head.strokeWidth ?? item.style.strokeWidth)"
               [attr.stroke-linecap]="item.style.lineCap"
               stroke-linejoin="round"
             ></path>

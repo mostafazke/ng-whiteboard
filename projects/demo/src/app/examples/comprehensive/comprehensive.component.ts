@@ -75,6 +75,37 @@ export class ComprehensiveComponent {
   /** Available arrow line styles */
   arrowLineStyles: ArrowLineStyle[] = ['straight', 'curve', 'elbow'];
 
+  startHeadOpen = false;
+  endHeadOpen = false;
+  startHeadDropdownStyle: Record<string, string> = {};
+  endHeadDropdownStyle: Record<string, string> = {};
+
+  toggleStartHead(event: MouseEvent) {
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    this.startHeadDropdownStyle = { top: rect.bottom + 4 + 'px', left: rect.left + 'px' };
+    this.startHeadOpen = !this.startHeadOpen;
+    this.endHeadOpen = false;
+  }
+
+  toggleEndHead(event: MouseEvent) {
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    this.endHeadDropdownStyle = { top: rect.bottom + 4 + 'px', left: rect.left + 'px' };
+    this.endHeadOpen = !this.endHeadOpen;
+    this.startHeadOpen = false;
+  }
+
+  /** SVG path data for each arrowhead style icon (32×20 viewBox, head on right, tip at x=30) */
+  readonly headIconData: Record<string, { linePath: string; headPath: string; filled: boolean }> = {
+    'none':         { linePath: 'M 2 10 L 30 10',  headPath: '',                                              filled: false },
+    'arrow':        { linePath: 'M 2 10 L 18 10',  headPath: 'M 18 5 L 30 10 L 18 15 Z',                     filled: true  },
+    'open-arrow':   { linePath: 'M 2 10 L 20 10',  headPath: 'M 20 5 L 30 10 L 20 15',                       filled: false },
+    'diamond':      { linePath: 'M 2 10 L 14 10',  headPath: 'M 30 10 L 22 5 L 14 10 L 22 15 Z',             filled: true  },
+    'open-diamond': { linePath: 'M 2 10 L 14 10',  headPath: 'M 30 10 L 22 5 L 14 10 L 22 15 Z',             filled: false },
+    'circle':       { linePath: 'M 2 10 L 18 10',  headPath: 'M 18 10 A 6 6 0 1 1 30 10 A 6 6 0 1 1 18 10 Z', filled: true  },
+    'open-circle':  { linePath: 'M 2 10 L 18 10',  headPath: 'M 18 10 A 6 6 0 1 1 30 10 A 6 6 0 1 1 18 10 Z', filled: false },
+    'bar':          { linePath: 'M 2 10 L 26 10',  headPath: 'M 26 3 L 26 17',                               filled: false },
+  };
+
   @Input() data: WhiteboardElement[] = [];
   @Output() dataChange = new EventEmitter<WhiteboardElement[]>();
 
@@ -298,14 +329,14 @@ export class ComprehensiveComponent {
     const headStyle = style as ArrowHeadStyle;
     this.updateOptions({
       arrowConfig: {
-        ...(this.options.arrowConfig ?? { startHeadStyle: 'diamond', endHeadStyle: 'arrow', headSize: 2, lineStyle: 'straight' as ArrowLineStyle }),
+        ...(this.options.arrowConfig ?? { startHeadStyle: 'diamond', endHeadStyle: 'arrow', lineStyle: 'straight' as ArrowLineStyle }),
         startHeadStyle: headStyle,
       },
     });
     // Also update selected arrow elements
     this.selectedElements.forEach((element) => {
       if (element.type === ElementType.Arrow) {
-        this.updateSelectedElement({ startHead: { type: headStyle, size: this.options.arrowConfig?.headSize ?? 2 } } as Partial<WhiteboardElement>);
+        this.updateSelectedElement({ startHead: { type: headStyle } } as Partial<WhiteboardElement>);
       }
     });
   }
@@ -314,14 +345,14 @@ export class ComprehensiveComponent {
     const headStyle = style as ArrowHeadStyle;
     this.updateOptions({
       arrowConfig: {
-        ...(this.options.arrowConfig ?? { startHeadStyle: 'diamond', endHeadStyle: 'arrow', headSize: 2, lineStyle: 'straight' as ArrowLineStyle }),
+        ...(this.options.arrowConfig ?? { startHeadStyle: 'diamond', endHeadStyle: 'arrow', lineStyle: 'straight' as ArrowLineStyle }),
         endHeadStyle: headStyle,
       },
     });
     // Also update selected arrow elements
     this.selectedElements.forEach((element) => {
       if (element.type === ElementType.Arrow) {
-        this.updateSelectedElement({ endHead: { type: headStyle, size: this.options.arrowConfig?.headSize ?? 2 } } as Partial<WhiteboardElement>);
+        this.updateSelectedElement({ endHead: { type: headStyle } } as Partial<WhiteboardElement>);
       }
     });
   }
@@ -330,7 +361,7 @@ export class ComprehensiveComponent {
     const lineStyle = style as ArrowLineStyle;
     this.updateOptions({
       arrowConfig: {
-        ...(this.options.arrowConfig ?? { startHeadStyle: 'diamond', endHeadStyle: 'arrow', headSize: 2, lineStyle: 'straight' as ArrowLineStyle }),
+        ...(this.options.arrowConfig ?? { startHeadStyle: 'diamond', endHeadStyle: 'arrow', lineStyle: 'straight' as ArrowLineStyle }),
         lineStyle,
       },
     });
@@ -348,24 +379,6 @@ export class ComprehensiveComponent {
           pathType = { type: 'straight' as const };
         }
         this.updateSelectedElement({ pathType } as Partial<WhiteboardElement>);
-      }
-    });
-  }
-
-  updateArrowHeadSize(value: number) {
-    this.updateOptions({
-      arrowConfig: {
-        ...(this.options.arrowConfig ?? { startHeadStyle: 'diamond', endHeadStyle: 'arrow', headSize: 2, lineStyle: 'straight' as ArrowLineStyle }),
-        headSize: value,
-      },
-    });
-    // Update selected arrow elements
-    this.selectedElements.forEach((element) => {
-      if (element.type === ElementType.Arrow) {
-        this.updateSelectedElement({
-          startHead: { type: (element as any).startHead?.type ?? 'diamond', size: value },
-          endHead: { type: (element as any).endHead?.type ?? 'arrow', size: value },
-        } as Partial<WhiteboardElement>);
       }
     });
   }
