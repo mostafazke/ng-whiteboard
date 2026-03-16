@@ -3,7 +3,7 @@ import { EventBusService } from '../event-bus';
 import { CanvasService } from '../canvas/canvas.service';
 import { ClipboardService } from '../input/clipboard.service';
 import { ToolsService } from '../tools/tools.service';
-import { AlignmentType, BoundingBox, SelectionBox, ToolType, WhiteboardElement } from '../types';
+import { AlignmentType, BoundingBox, ElementType, SelectionBox, ToolType, WhiteboardElement } from '../types';
 import { WhiteboardEvent } from '../types/events';
 import { getElementBounds } from '../utils/dom';
 import { getCombinedScreenBounds } from '../utils/geometry/transform-utils';
@@ -27,6 +27,24 @@ export class SelectionService {
   // Derived signals
   readonly selectedIdsSignal = computed(() => Array.from(this.selectedElementIdsSignal()));
   readonly hasSelectionSignal = computed(() => this.selectedElementIdsSignal().size > 0);
+
+  /** Types that use 2-point endpoint selection instead of bounding-box */
+  private static readonly LINE_TYPES: ReadonlySet<ElementType> = new Set([ElementType.Arrow, ElementType.Line]);
+
+  /**
+   * True when the selection consists exclusively of line-type elements (Arrow / Line).
+   * In this mode the standard bounding box + resize/rotate grips should be hidden,
+   * and 2-point endpoint handles should be shown instead.
+   */
+  readonly isLineOnlySelectionSignal = computed(() => {
+    const ids = this.selectedElementIdsSignal();
+    if (ids.size === 0) return false;
+    const elements = this.getElementsFn?.() ?? [];
+    return Array.from(ids).every((id) => {
+      const el = elements.find((e) => e.id === id);
+      return el ? SelectionService.LINE_TYPES.has(el.type) : false;
+    });
+  });
 
   private getElementsFn?: () => WhiteboardElement[];
   private updateElementsFn?: (elements: (Partial<WhiteboardElement> & { id: string })[], history?: boolean) => void;
@@ -433,6 +451,15 @@ export class SelectionService {
       this.clearBoundingBox();
       return;
     }
+
+    // Suppress normal bounding box when only line-type elements are selected.
+    // They use their own 2-point endpoint handles rendered in the canvas overlay.
+    const allLineTypes = elements.every((el) => SelectionService.LINE_TYPES.has(el.type));
+    if (allLineTypes) {
+      this.clearBoundingBox();
+      return;
+    }
+
     this.boundingBoxSignal.set(this.calculateBoundingBox(elements));
   }
 

@@ -883,6 +883,141 @@ button.cancel {
   left: 1px;
 }
 
+// ── Arrow style icon controls ────────────────────────────────────────
+.arrow-options {
+  padding: var(--x1) 0 var(--x2);
+}
+
+.arrow-line {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--x2);
+}
+
+.arrow-prop-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--x2);
+  margin-bottom: var(--x2);
+}
+
+.arrow-prop-label {
+  color: var(--z9);
+  font-size: 11px;
+  white-space: nowrap;
+  min-width: 34px;
+}
+
+.arrow-btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.arrow-icon-btn {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: var(--z2);
+  border: 1px solid var(--z3);
+  border-radius: var(--x1);
+  color: var(--z8);
+  cursor: pointer;
+  padding: 3px var(--x2);
+  line-height: 1;
+  height: auto;
+  font-size: 0;
+  // override global button styles
+  box-shadow: none;
+  transform: none;
+
+  svg {
+    display: block;
+  }
+
+  &:hover {
+    background: var(--z3);
+    color: var(--z13);
+    transform: none;
+    box-shadow: none;
+  }
+
+  &.active {
+    background: var(--accent1);
+    border-color: var(--accent7);
+    color: var(--accent8);
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+.head-picker {
+  position: relative;
+}
+
+.caret-chevron {
+  opacity: 0.45;
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+
+.head-picker.open .caret-chevron {
+  transform: rotate(180deg);
+}
+
+.head-dropdown {
+  display: none;
+  position: fixed;
+  background: var(--z1);
+  border: 1px solid var(--z4);
+  border-radius: var(--x1);
+  padding: 3px;
+  z-index: 9999;
+  grid-template-columns: repeat(4, auto);
+  gap: 2px;
+  box-shadow: var(--shadow);
+}
+
+.head-picker.open .head-dropdown {
+  display: grid;
+}
+
+.head-option {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--x1);
+  color: var(--z8);
+  cursor: pointer;
+  padding: 3px;
+  line-height: 1;
+  display: flex;
+  height: auto;
+  // override global button styles
+  box-shadow: none;
+  transform: none;
+
+  svg {
+    display: block;
+  }
+
+  &:hover {
+    background: var(--z3);
+    color: var(--z13);
+    transform: none;
+    box-shadow: none;
+  }
+
+  &.active {
+    border-color: var(--accent7);
+    background: var(--accent1);
+    color: var(--accent8);
+    transform: none;
+    box-shadow: none;
+  }
+}
+// ── end Arrow style icon controls ─────────────────────────────────────
+
 .select-input {
   margin: var(--x2) 0;
   position: relative;

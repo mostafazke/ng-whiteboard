@@ -1,6 +1,10 @@
 import { DATA_ID, ITEM_PREFIX, SELECTOR_BOX, SELECTOR_GRIP_RESIZE, SELECTOR_GRIP_ROTATE } from '../constants';
 import { getElementUtil } from '../elements/element.utils';
-import { Direction, Point, PointerInfo, ToolType, WhiteboardElement } from '../types';
+import { ArrowElement } from '../elements/arrow-element';
+import { ArrowBindingService } from '../elements/arrow-binding.service';
+import { ConnectionPointsService } from '../elements/connection-points.service';
+import { ConnectionUIService } from '../elements/connection-ui.service';
+import { Direction, ElementType, Point, PointerInfo, SnapResult, ToolType, WhiteboardElement } from '../types';
 import { getMouseTarget } from '../utils/dom';
 import {
   calculateAngle,
@@ -22,6 +26,10 @@ export enum SelectAction {
   Resize,
   Rotate,
   BoxSelect,
+  /** Dragging an arrow/line endpoint handle to move, attach, or detach */
+  DragEndpoint,
+  /** Dragging the middle curve handle to adjust arrow curvature */
+  DragCurveHandle,
 }
 
 export class SelectTool extends BaseTool {
@@ -37,6 +45,29 @@ export class SelectTool extends BaseTool {
   private initialElementStates: Map<string, WhiteboardElement> = new Map();
   private rafId: number | null = null;
   private pendingPointerEvent: PointerInfo | null = null;
+
+  // Arrow / Line endpoint drag state
+  private dragEndpointId: string | null = null;
+  private dragEndpointEnd: 'start' | 'end' | null = null;
+  private dragEndpointSnap: SnapResult | null = null;
+  private readonly SNAP_RADIUS = 20;
+
+  // Arrow curve handle drag state
+  private dragCurveArrowId: string | null = null;
+
+  // Track whether arrow bindings were detached during current move
+  private arrowBindingsDetached = false;
+
+  // Injected connection services
+  private connectionPointsService!: ConnectionPointsService;
+  private arrowBindingService!: ArrowBindingService;
+  private connectionUIService!: ConnectionUIService;
+
+  setConnectionServices(cp: ConnectionPointsService, ab: ArrowBindingService, ui: ConnectionUIService): void {
+    this.connectionPointsService = cp;
+    this.arrowBindingService = ab;
+    this.connectionUIService = ui;
+  }
 
   getCurrentAction(): SelectAction {
     return this.currentAction;
@@ -60,6 +91,24 @@ export class SelectTool extends BaseTool {
     const targetId = target?.id ?? '';
 
     this.startPoint = this.getPointerPosition(event);
+
+    // Check if clicking an arrow endpoint handle for reconnection
+    const arrowHandle = typeof target?.getAttribute === 'function' ? target.getAttribute('data-handle') : null;
+    const arrowId = typeof target?.getAttribute === 'function' ? target.getAttribute('data-arrow-id') : null;
+    if (arrowHandle && arrowId && (arrowHandle === 'start' || arrowHandle === 'end')) {
+      this.dragEndpointId = arrowId;
+      this.dragEndpointEnd = arrowHandle;
+      this.dragEndpointSnap = null;
+      this.currentAction = SelectAction.DragEndpoint;
+      return;
+    }
+
+    // Check if clicking a curve handle for adjusting arrow curvature
+    if (arrowHandle === 'curve' && arrowId) {
+      this.dragCurveArrowId = arrowId;
+      this.currentAction = SelectAction.DragCurveHandle;
+      return;
+    }
 
     if (targetId.includes(ITEM_PREFIX)) {
       const elementId = target?.getAttribute(DATA_ID) ?? null;
@@ -107,6 +156,12 @@ export class SelectTool extends BaseTool {
           case SelectAction.BoxSelect:
             this.handleBoxSelect(currentPoint, event.shiftKey);
             break;
+          case SelectAction.DragEndpoint:
+            this.handleDragEndpoint(currentPoint);
+            break;
+          case SelectAction.DragCurveHandle:
+            this.handleDragCurveHandle(currentPoint);
+            break;
         }
       });
     }
@@ -128,6 +183,31 @@ export class SelectTool extends BaseTool {
       this.apiService.updateBoundingBox();
     }
 
+    // Finalize endpoint drag (arrow reconnection or line endpoint move)
+    if (this.currentAction === SelectAction.DragEndpoint) {
+      this.finalizeDragEndpoint();
+    }
+
+    // Finalize curve handle drag
+    if (this.currentAction === SelectAction.DragCurveHandle) {
+      this.dragCurveArrowId = null;
+    }
+
+    // After a move, update bound arrows for all moved elements
+    if (
+      (this.currentAction === SelectAction.Move ||
+        this.currentAction === SelectAction.Resize ||
+        this.currentAction === SelectAction.Rotate) &&
+      this.arrowBindingService
+    ) {
+      const selectedElements = this.apiService.getSelectedElements();
+      const movedIds = new Set(selectedElements.map((el) => el.id));
+      const arrowUpdates = this.arrowBindingService.recomputeBindingsForElements(movedIds);
+      if (arrowUpdates.length > 0) {
+        this.apiService.updateElements(arrowUpdates as Array<Partial<WhiteboardElement> & { id: string }>);
+      }
+    }
+
     this.initialElementStates.clear();
 
     this.currentAction = SelectAction.None;
@@ -136,6 +216,11 @@ export class SelectTool extends BaseTool {
     this.rotateStartAngle = null;
     this.selectionCenter = null;
     this.initialBoundingBox = null;
+    this.dragEndpointId = null;
+    this.dragEndpointEnd = null;
+    this.dragEndpointSnap = null;
+    this.dragCurveArrowId = null;
+    this.arrowBindingsDetached = false;
   }
 
   private handleElementSelect(elementId: string | null, isMultiSelect: boolean): void {
@@ -170,6 +255,26 @@ export class SelectTool extends BaseTool {
       snappedY = snapped.y;
     }
 
+    // Detach bindings from arrows that are being moved by their body (not via endpoint handles)
+    if (!this.arrowBindingsDetached && this.arrowBindingService) {
+      const selectedElements = this.apiService.getSelectedElements();
+      const movedArrows = selectedElements.filter(
+        (el): el is ArrowElement =>
+          el.type === ElementType.Arrow && (el.startBinding !== null || el.endBinding !== null)
+      );
+      if (movedArrows.length > 0) {
+        const detachUpdates: Array<Partial<WhiteboardElement> & { id: string }> = [];
+        for (const arrow of movedArrows) {
+          const update: Partial<ArrowElement> & { id: string } = { id: arrow.id };
+          if (arrow.startBinding) update.startBinding = null;
+          if (arrow.endBinding) update.endBinding = null;
+          detachUpdates.push(update as Partial<WhiteboardElement> & { id: string });
+        }
+        this.apiService.updateElements(detachUpdates);
+        this.arrowBindingsDetached = true;
+      }
+    }
+
     this.apiService.transformSelectedElements((elements) =>
       elements.map((element) => {
         if (element.locked) {
@@ -182,6 +287,16 @@ export class SelectTool extends BaseTool {
         };
       })
     );
+
+    // Update bound arrows in real-time as shapes are moved
+    if (this.arrowBindingService) {
+      const selectedElements = this.apiService.getSelectedElements();
+      const movedIds = new Set(selectedElements.map((el) => el.id));
+      const arrowUpdates = this.arrowBindingService.recomputeBindingsForElements(movedIds);
+      if (arrowUpdates.length > 0) {
+        this.apiService.updateElements(arrowUpdates as Array<Partial<WhiteboardElement> & { id: string }>);
+      }
+    }
 
     this.startPoint = currentPoint;
   }
@@ -498,6 +613,196 @@ export class SelectTool extends BaseTool {
         })
       );
     }
+  }
+
+  // ────────────────── Endpoint Drag (Arrow + Line) ──────────────────
+
+  /**
+   * Handle dragging an endpoint of an arrow or line in real-time.
+   * For arrows: attempts snap-to-shape with visual feedback.
+   * For lines: free movement of the endpoint.
+   */
+  private handleDragEndpoint(currentPoint: Point): void {
+    if (!this.dragEndpointId || !this.dragEndpointEnd) return;
+
+    const element = this.apiService.getElementById(this.dragEndpointId);
+    if (!element) return;
+
+    // Convert world point to local coordinates (account for element origin + rotation)
+    const local = this.worldToLocal(element, currentPoint);
+    let x = local.x;
+    let y = local.y;
+
+    const isArrow = element.type === ElementType.Arrow;
+
+    // Snap-to-shape for arrows only
+    this.dragEndpointSnap = null;
+    if (isArrow && this.connectionPointsService) {
+      const allElements = this.apiService.getElements();
+      const excludeIds = new Set([this.dragEndpointId]);
+      const snap = this.connectionPointsService.findSnapTarget(
+        currentPoint, // snap uses world coords
+        allElements,
+        excludeIds,
+        this.SNAP_RADIUS
+      );
+      if (snap) {
+        // Convert snapped world point back to local
+        const snapLocal = this.worldToLocal(element, snap.point);
+        x = snapLocal.x;
+        y = snapLocal.y;
+        this.dragEndpointSnap = snap;
+        this.connectionUIService?.setSnapIndicator(snap.point);
+        const targetEl = allElements.find((el) => el.id === snap.elementId);
+        if (targetEl) {
+          this.connectionUIService?.setVisibleConnectionPoints(
+            this.connectionPointsService.getConnectionPoints(targetEl)
+          );
+        }
+      } else {
+        this.connectionUIService?.setSnapIndicator(null);
+        this.connectionUIService?.setVisibleConnectionPoints([]);
+      }
+    }
+
+    // Update the endpoint in real-time
+    const update =
+      this.dragEndpointEnd === 'start' ? { id: element.id, x1: x, y1: y } : { id: element.id, x2: x, y2: y };
+    this.apiService.updateElements([update as Partial<WhiteboardElement> & { id: string }]);
+  }
+
+  /**
+   * Finalize the endpoint drag.
+   * For arrows: commit binding if snapped, or detach.
+   * For lines: no further action needed (already updated in real-time).
+   */
+  private finalizeDragEndpoint(): void {
+    if (!this.dragEndpointId || !this.dragEndpointEnd) return;
+
+    const element = this.apiService.getElementById(this.dragEndpointId);
+    if (!element) return;
+
+    const isArrow = element.type === ElementType.Arrow;
+
+    if (isArrow && this.arrowBindingService) {
+      const arrow = element as ArrowElement;
+
+      if (this.dragEndpointSnap) {
+        const binding = this.arrowBindingService.createBinding(
+          this.dragEndpointSnap.elementId,
+          this.dragEndpointSnap.pointId
+        );
+        const snapLocal = this.worldToLocal(arrow, this.dragEndpointSnap.point);
+        const update =
+          this.dragEndpointEnd === 'start'
+            ? { id: arrow.id, startBinding: binding, x1: snapLocal.x, y1: snapLocal.y }
+            : { id: arrow.id, endBinding: binding, x2: snapLocal.x, y2: snapLocal.y };
+        this.apiService.updateElements([update as Partial<WhiteboardElement> & { id: string }]);
+      } else {
+        // Detach from any shape
+        const update =
+          this.dragEndpointEnd === 'start' ? { id: arrow.id, startBinding: null } : { id: arrow.id, endBinding: null };
+        this.apiService.updateElements([update as Partial<WhiteboardElement> & { id: string }]);
+      }
+    }
+
+    this.connectionUIService?.clearAll();
+  }
+
+  /**
+   * Handle dragging the middle curve handle to adjust an arrow's curvature.
+   * Converts the world-space pointer position to a quadratic control point.
+   * Dragging away from the midpoint creates/modifies a quadratic bezier;
+   * dragging back to the midpoint resets to straight.
+   */
+  private handleDragCurveHandle(currentPoint: Point): void {
+    if (!this.dragCurveArrowId) return;
+
+    const element = this.apiService.getElementById(this.dragCurveArrowId);
+    if (!element || element.type !== ElementType.Arrow) return;
+
+    const arrow = element as ArrowElement;
+
+    // --- Elbow: dragging controls the midRatio (bend position along X axis) ---
+    if (arrow.pathType?.type === 'elbow') {
+      const local = this.worldToLocal(arrow, currentPoint);
+      const dx = arrow.x2 - arrow.x1;
+      if (Math.abs(dx) < 1) return; // degenerate case
+      const ratio = Math.max(0.05, Math.min(0.95, (local.x - arrow.x1) / dx));
+      const update = {
+        id: arrow.id,
+        pathType: { type: 'elbow' as const, midRatio: ratio },
+      };
+      this.apiService.updateElements([update as Partial<WhiteboardElement> & { id: string }]);
+      return;
+    }
+
+    // --- Quadratic / Straight: existing behaviour ---
+    // Convert the world-space pointer to local coordinates
+    const local = this.worldToLocal(arrow, currentPoint);
+
+    // Compute midpoint in local space
+    const midX = (arrow.x1 + arrow.x2) / 2;
+    const midY = (arrow.y1 + arrow.y2) / 2;
+
+    // Distance from the local control point to the midpoint
+    const dist = Math.sqrt((local.x - midX) ** 2 + (local.y - midY) ** 2);
+
+    // If the handle is close to the midpoint, reset to straight
+    const STRAIGHT_THRESHOLD = 5;
+    if (dist < STRAIGHT_THRESHOLD) {
+      const update = { id: arrow.id, pathType: { type: 'straight' as const } };
+      this.apiService.updateElements([update as Partial<WhiteboardElement> & { id: string }]);
+    } else {
+      // Set quadratic control point
+      const update = {
+        id: arrow.id,
+        pathType: { type: 'quadratic' as const, cx: local.x, cy: local.y },
+      };
+      this.apiService.updateElements([update as Partial<WhiteboardElement> & { id: string }]);
+    }
+  }
+
+  /**
+   * Convert a world-space point to an element's local coordinate system,
+   * accounting for translation, fill-box-centered rotation, and scale.
+   *
+   * The element <g> uses `translate(x,y) rotate(rotation)` with CSS
+   * `transform-box: fill-box; transform-origin: center`, so the rotation
+   * pivot is the fill-box center, not the local origin.
+   */
+  private worldToLocal(element: WhiteboardElement, worldPoint: Point): Point {
+    const rot = element.rotation ?? 0;
+    const scaleX = (element as WhiteboardElement & { scaleX?: number }).scaleX ?? 1;
+    const scaleY = (element as WhiteboardElement & { scaleY?: number }).scaleY ?? 1;
+
+    // Un-translate
+    const dx = worldPoint.x - element.x;
+    const dy = worldPoint.y - element.y;
+
+    if (rot === 0) {
+      return { x: dx / scaleX, y: dy / scaleY };
+    }
+
+    // Fill-box pivot in local (post-scale) space
+    const el = element as WhiteboardElement & { x1?: number; y1?: number; x2?: number; y2?: number };
+    const x1s = (el.x1 ?? 0) * scaleX;
+    const y1s = (el.y1 ?? 0) * scaleY;
+    const x2s = (el.x2 ?? 0) * scaleX;
+    const y2s = (el.y2 ?? 0) * scaleY;
+    const pivotX = (x1s + x2s) / 2;
+    const pivotY = (y1s + y2s) / 2;
+
+    // Inverse rotation around fill-box pivot
+    const rad = (-rot * Math.PI) / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    const rx = dx - pivotX;
+    const ry = dy - pivotY;
+    const localX = pivotX + rx * cos - ry * sin;
+    const localY = pivotY + rx * sin + ry * cos;
+
+    return { x: localX / scaleX, y: localY / scaleY };
   }
 
   private handleBoxSelect(currentPoint: Point, shiftKey: boolean): void {

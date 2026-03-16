@@ -1,5 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { WhiteboardElement, WhiteboardLayer, LayerState, BlendMode, BLEND_MODES } from '../types';
+import { generateUUID } from '../utils';
 
 @Injectable({
   providedIn: 'root',
@@ -131,7 +132,7 @@ export class LayerManagementService {
     const layerElements = elements.filter((el) => layerToDuplicate.elements.includes(el.id));
 
     layerElements.forEach((element) => {
-      const newElementId = crypto.randomUUID();
+      const newElementId = generateUUID();
       elementMap.set(element.id, newElementId);
       newLayer.elements.push(newElementId);
     });

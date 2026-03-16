@@ -44,3 +44,5 @@ Thumbs.db
 .nx/workspace-data
 
 .angular
+
+.nx/polygraph

@@ -1141,4 +1141,464 @@ describe('SelectionService', () => {
       expect(service.getSelectedElements()).toEqual([]);
     });
   });
+
+  describe('isLineOnlySelectionSignal', () => {
+    it('should return false when no elements are selected', () => {
+      expect(service.isLineOnlySelectionSignal()).toBe(false);
+    });
+
+    it('should return true when only arrow elements are selected', () => {
+      const arrow = createMockElement('arrow-1', { type: ElementType.Arrow });
+      (elementsService.getElements as jest.Mock).mockReturnValue([arrow]);
+      service.selectElements('arrow-1');
+      expect(service.isLineOnlySelectionSignal()).toBe(true);
+    });
+
+    it('should return true when only line elements are selected', () => {
+      const line = createMockElement('line-1', { type: ElementType.Line });
+      (elementsService.getElements as jest.Mock).mockReturnValue([line]);
+      service.selectElements('line-1');
+      expect(service.isLineOnlySelectionSignal()).toBe(true);
+    });
+
+    it('should return false when mixed types are selected', () => {
+      const arrow = createMockElement('arrow-1', { type: ElementType.Arrow });
+      const rect = createMockElement('rect-1', { type: ElementType.Rectangle });
+      (elementsService.getElements as jest.Mock).mockReturnValue([arrow, rect]);
+      service.selectElements(['arrow-1', 'rect-1']);
+      expect(service.isLineOnlySelectionSignal()).toBe(false);
+    });
+
+    it('should return false when selected id is not found in elements', () => {
+      (elementsService.getElements as jest.Mock).mockReturnValue([]);
+      service.selectElements('nonexistent');
+      expect(service.isLineOnlySelectionSignal()).toBe(false);
+    });
+  });
+
+  describe('setBoundingBox', () => {
+    const makeBBox = (
+      overrides: Partial<{ x: number; y: number; width: number; height: number; rotation: number }> = {}
+    ) => ({
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 100,
+      rotation: 0,
+      handles: {
+        topLeft: { x: 0, y: 0 },
+        topRight: { x: 100, y: 0 },
+        bottomLeft: { x: 0, y: 100 },
+        bottomRight: { x: 100, y: 100 },
+        rotateHandle: { x: 50, y: -20 },
+      },
+      ...overrides,
+    });
+
+    it('should set bounding box directly', () => {
+      const bbox = makeBBox({ x: 10, y: 20, width: 100, height: 50 });
+      service.setBoundingBox(bbox);
+      expect(service.getBoundingBox()).toEqual(bbox);
+    });
+
+    it('should clear bounding box when set to null', () => {
+      service.setBoundingBox(makeBBox());
+      service.setBoundingBox(null);
+      expect(service.getBoundingBox()).toBeNull();
+    });
+  });
+
+  describe('Guard branches (null providers)', () => {
+    it('getSelectedElements should return empty array when getElementsFn is null', () => {
+      (service as any).getElementsFn = undefined;
+      const result = service.getSelectedElements();
+      expect(result).toEqual([]);
+    });
+
+    it('selectAll should return early when getElementsFn is null', () => {
+      (service as any).getElementsFn = undefined;
+      service.selectAll();
+      expect(service.getSelectionCount()).toBe(0);
+    });
+
+    it('selectElementsInArea should return early when getElementsFn is null', () => {
+      (service as any).getElementsFn = undefined;
+      service.selectElementsInArea({ x: 0, y: 0, width: 100, height: 100 });
+      expect(service.getSelectionCount()).toBe(0);
+    });
+
+    it('alignElements should warn when updateElementsFn is null', () => {
+      const elements = [createMockElement('el-1')];
+      (elementsService.getElements as jest.Mock).mockReturnValue(elements);
+      service.selectElements('el-1');
+      (service as any).updateElementsFn = undefined;
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      service.alignElements(AlignmentType.Left);
+      expect(warnSpy).toHaveBeenCalledWith('Update elements function not available');
+      warnSpy.mockRestore();
+    });
+  });
+
+  describe('distributeHorizontally / distributeVertically', () => {
+    beforeEach(() => {
+      const elements = [
+        createMockElement('el-1', { x: 0, y: 0, width: 50, height: 50 }),
+        createMockElement('el-2', { x: 100, y: 100, width: 50, height: 50 }),
+        createMockElement('el-3', { x: 300, y: 200, width: 50, height: 50 }),
+      ];
+      (elementsService.getElements as jest.Mock).mockReturnValue(elements);
+      service.selectElements(['el-1', 'el-2', 'el-3']);
+    });
+
+    it('should distribute horizontally', () => {
+      const updateSpy = elementsService.updateElements as jest.Mock;
+      updateSpy.mockClear();
+      service.distributeHorizontally();
+      expect(updateSpy).toHaveBeenCalled();
+    });
+
+    it('should distribute vertically', () => {
+      // Override with y-positions that are NOT evenly distributed
+      const elements = [
+        createMockElement('el-1', { x: 0, y: 0, width: 50, height: 50 }),
+        createMockElement('el-2', { x: 100, y: 200, width: 50, height: 50 }),
+        createMockElement('el-3', { x: 300, y: 300, width: 50, height: 50 }),
+      ];
+      (elementsService.getElements as jest.Mock).mockReturnValue(elements);
+      service.selectElements(['el-1', 'el-2', 'el-3']);
+
+      const updateSpy = elementsService.updateElements as jest.Mock;
+      updateSpy.mockClear();
+      service.distributeVertically();
+      expect(updateSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('Single-element viewport alignment', () => {
+    beforeEach(() => {
+      const elements = [createMockElement('el-1', { x: 200, y: 300, width: 100, height: 100 })];
+      (elementsService.getElements as jest.Mock).mockReturnValue(elements);
+      service.selectElements('el-1');
+    });
+
+    it('should align single element left to viewport', () => {
+      const updateSpy = elementsService.updateElements as jest.Mock;
+      updateSpy.mockClear();
+      service.alignElements(AlignmentType.Left);
+      expect(updateSpy).toHaveBeenCalled();
+    });
+
+    it('should align single element right to viewport', () => {
+      const updateSpy = elementsService.updateElements as jest.Mock;
+      updateSpy.mockClear();
+      service.alignElements(AlignmentType.Right);
+      expect(updateSpy).toHaveBeenCalled();
+    });
+
+    it('should align single element top to viewport', () => {
+      const updateSpy = elementsService.updateElements as jest.Mock;
+      updateSpy.mockClear();
+      service.alignElements(AlignmentType.Top);
+      expect(updateSpy).toHaveBeenCalled();
+    });
+
+    it('should align single element middle to viewport', () => {
+      const updateSpy = elementsService.updateElements as jest.Mock;
+      updateSpy.mockClear();
+      service.alignElements(AlignmentType.Middle);
+      expect(updateSpy).toHaveBeenCalled();
+    });
+
+    it('should align single element bottom to viewport', () => {
+      const updateSpy = elementsService.updateElements as jest.Mock;
+      updateSpy.mockClear();
+      service.alignElements(AlignmentType.Bottom);
+      expect(updateSpy).toHaveBeenCalled();
+    });
+
+    it('should warn for unsupported single-element alignment', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      service.alignElements(AlignmentType.DistributeHorizontally);
+      expect(warnSpy).toHaveBeenCalled();
+      warnSpy.mockRestore();
+    });
+  });
+
+  describe('sendToBack extra logic', () => {
+    it('should shift non-selected elements up', () => {
+      const elements = [
+        createMockElement('el-1', { zIndex: 1 }),
+        createMockElement('el-2', { zIndex: 2 }),
+        createMockElement('el-3', { zIndex: 3 }),
+      ];
+      (elementsService.getElements as jest.Mock).mockReturnValue(elements);
+      service.selectElements('el-3');
+
+      const updateSpy = elementsService.updateElements as jest.Mock;
+      updateSpy.mockClear();
+
+      service.sendToBack();
+
+      // Should be called twice: once for selected, once for others
+      expect(updateSpy).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe('ungroupSelectedElements extended', () => {
+    it('should ungroup elements across all members of the group', () => {
+      const elements = [
+        createMockElement('el-1', { groupId: 'g1' }),
+        createMockElement('el-2', { groupId: 'g1' }),
+        createMockElement('el-3', { groupId: 'g1' }),
+      ];
+      (elementsService.getElements as jest.Mock).mockReturnValue(elements);
+      service.selectElements(['el-1']);
+
+      const updateSpy = elementsService.updateElements as jest.Mock;
+      updateSpy.mockClear();
+
+      service.ungroupSelectedElements();
+
+      expect(updateSpy).toHaveBeenCalled();
+      const updates = updateSpy.mock.calls[0][0];
+      expect(updates.length).toBe(3); // All 3 group members
+    });
+  });
+
+  describe('lockElements / unlockElements', () => {
+    it('should lock selected elements', () => {
+      const elements = [createMockElement('el-1'), createMockElement('el-2')];
+      (elementsService.getElements as jest.Mock).mockReturnValue(elements);
+      service.selectElements(['el-1', 'el-2']);
+
+      const updateSpy = elementsService.updateElements as jest.Mock;
+      updateSpy.mockClear();
+
+      service.lockElements();
+      expect(updateSpy).toHaveBeenCalled();
+      const updates = updateSpy.mock.calls[0][0];
+      expect(updates.length).toBe(2);
+      expect(updates[0].locked).toBe(true);
+    });
+
+    it('should unlock selected elements', () => {
+      const elements = [
+        createMockElement('el-1', { locked: true } as any),
+        createMockElement('el-2', { locked: true } as any),
+      ];
+      (elementsService.getElements as jest.Mock).mockReturnValue(elements);
+      service.selectElements(['el-1', 'el-2']);
+
+      const updateSpy = elementsService.updateElements as jest.Mock;
+      updateSpy.mockClear();
+
+      service.unlockElements();
+      expect(updateSpy).toHaveBeenCalled();
+      const updates = updateSpy.mock.calls[0][0];
+      expect(updates[0].locked).toBe(false);
+    });
+  });
+
+  describe('Transform Operations', () => {
+    beforeEach(() => {
+      const elements = [
+        createMockElement('el-1', {
+          x: 100,
+          y: 200,
+          width: 50,
+          height: 50,
+          scaleX: 1,
+          scaleY: 1,
+          style: { strokeWidth: 2 },
+        }),
+        createMockElement('el-2', { x: 300, y: 400, width: 80, height: 60, rotation: 45, rx: 10, ry: 5 }),
+      ];
+      (elementsService.getElements as jest.Mock).mockReturnValue(elements);
+      service.selectElements(['el-1', 'el-2']);
+    });
+
+    it('should flip elements horizontally', () => {
+      const updateSpy = elementsService.updateElements as jest.Mock;
+      updateSpy.mockClear();
+
+      service.flipHorizontal();
+
+      expect(updateSpy).toHaveBeenCalled();
+      const updates = updateSpy.mock.calls[0][0];
+      expect(updates.length).toBe(2);
+      expect(updates[0].scaleX).toBe(-1);
+    });
+
+    it('should flip elements vertically', () => {
+      const updateSpy = elementsService.updateElements as jest.Mock;
+      updateSpy.mockClear();
+
+      service.flipVertical();
+
+      expect(updateSpy).toHaveBeenCalled();
+      const updates = updateSpy.mock.calls[0][0];
+      expect(updates[0].scaleY).toBe(-1);
+    });
+
+    it('should flip vertically with existing scaleY', () => {
+      const elements = [createMockElement('el-1', { scaleY: 2 } as any)];
+      (elementsService.getElements as jest.Mock).mockReturnValue(elements);
+      service.selectElements('el-1');
+
+      const updateSpy = elementsService.updateElements as jest.Mock;
+      updateSpy.mockClear();
+
+      service.flipVertical();
+      expect(updateSpy.mock.calls[0][0][0].scaleY).toBe(-2);
+    });
+
+    it('should move selected elements by offset', () => {
+      const updateSpy = elementsService.updateElements as jest.Mock;
+      updateSpy.mockClear();
+
+      service.moveSelectedElements(10, -20);
+
+      expect(updateSpy).toHaveBeenCalled();
+      const updates = updateSpy.mock.calls[0][0];
+      expect(updates[0].x).toBe(110); // 100 + 10
+      expect(updates[0].y).toBe(180); // 200 + (-20)
+    });
+
+    it('should rotate selected elements', () => {
+      const updateSpy = elementsService.updateElements as jest.Mock;
+      updateSpy.mockClear();
+
+      service.rotateSelectedElements(90);
+
+      expect(updateSpy).toHaveBeenCalled();
+      const updates = updateSpy.mock.calls[0][0];
+      expect(updates[0].rotation).toBe(90); // 0 + 90
+      expect(updates[1].rotation).toBe(135); // 45 + 90
+    });
+
+    it('should scale selected elements', () => {
+      const updateSpy = elementsService.updateElements as jest.Mock;
+      updateSpy.mockClear();
+
+      service.scaleSelectedElements(2);
+
+      expect(updateSpy).toHaveBeenCalled();
+      const updates = updateSpy.mock.calls[0][0];
+      // el-1: width 50*2=100, height 50*2=100, strokeWidth 2*2=4
+      const el1Update = updates.find((u: any) => u.id === 'el-1');
+      expect(el1Update.width).toBe(100);
+      expect(el1Update.height).toBe(100);
+      expect(el1Update.style.strokeWidth).toBe(4);
+
+      // el-2: width 80*2=160, rx 10*2=20, ry 5*2=10
+      const el2Update = updates.find((u: any) => u.id === 'el-2');
+      expect(el2Update.width).toBe(160);
+      expect(el2Update.rx).toBe(20);
+      expect(el2Update.ry).toBe(10);
+    });
+
+    it('should not update elements when scale produces no changes', () => {
+      const elements = [createMockElement('el-1', { type: ElementType.Arrow } as any)];
+      // Remove width/height/rx/ry/style so nothing to scale
+      delete (elements[0] as any).width;
+      delete (elements[0] as any).height;
+      delete (elements[0] as any).rx;
+      delete (elements[0] as any).ry;
+      delete (elements[0] as any).style;
+      (elementsService.getElements as jest.Mock).mockReturnValue(elements);
+      service.selectElements('el-1');
+
+      const updateSpy = elementsService.updateElements as jest.Mock;
+      updateSpy.mockClear();
+
+      service.scaleSelectedElements(2);
+      // No properties to scale means update only has {id}, which is filtered out
+      expect(updateSpy).not.toHaveBeenCalled();
+    });
+
+    it('should not transform when no selection', () => {
+      service.clearSelection();
+      const updateSpy = elementsService.updateElements as jest.Mock;
+      updateSpy.mockClear();
+
+      service.flipHorizontal();
+      service.flipVertical();
+      service.moveSelectedElements(10, 10);
+      service.rotateSelectedElements(90);
+      service.scaleSelectedElements(2);
+
+      expect(updateSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Multi-element alignment edge cases', () => {
+    it('should handle multi-element alignment with default (unsupported) type', () => {
+      const elements = [
+        createMockElement('el-1', { x: 0, y: 0, width: 50, height: 50 }),
+        createMockElement('el-2', { x: 100, y: 100, width: 50, height: 50 }),
+      ];
+      (elementsService.getElements as jest.Mock).mockReturnValue(elements);
+      service.selectElements(['el-1', 'el-2']);
+
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+      // Use some invalid alignment type to hit the default branch
+      service.alignElements('invalid' as AlignmentType);
+      expect(warnSpy).toHaveBeenCalled();
+      warnSpy.mockRestore();
+    });
+
+    it('should not produce updates when elements are already aligned', () => {
+      const elements = [
+        createMockElement('el-1', { x: 0, y: 0, width: 50, height: 50 }),
+        createMockElement('el-2', { x: 0, y: 100, width: 50, height: 50 }),
+      ];
+      (elementsService.getElements as jest.Mock).mockReturnValue(elements);
+      service.selectElements(['el-1', 'el-2']);
+
+      const updateSpy = elementsService.updateElements as jest.Mock;
+      updateSpy.mockClear();
+
+      // Both have x:0, so aligning left should produce no updates
+      service.alignElements(AlignmentType.Left);
+      expect(updateSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('bringForward with adjacent selected elements', () => {
+    it('should skip over consecutive selected elements when finding swap target', () => {
+      const elements = [
+        createMockElement('el-1', { zIndex: 1 }),
+        createMockElement('el-2', { zIndex: 2 }),
+        createMockElement('el-3', { zIndex: 3 }),
+        createMockElement('el-4', { zIndex: 4 }),
+      ];
+      (elementsService.getElements as jest.Mock).mockReturnValue(elements);
+      // Select two adjacent elements so the while loop in bringForward iterates
+      service.selectElements(['el-1', 'el-2']);
+
+      const updateSpy = elementsService.updateElements as jest.Mock;
+      updateSpy.mockClear();
+      service.bringForward();
+      expect(updateSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('sendBackward with adjacent selected elements', () => {
+    it('should skip over consecutive selected elements when finding swap target', () => {
+      const elements = [
+        createMockElement('el-1', { zIndex: 1 }),
+        createMockElement('el-2', { zIndex: 2 }),
+        createMockElement('el-3', { zIndex: 3 }),
+        createMockElement('el-4', { zIndex: 4 }),
+      ];
+      (elementsService.getElements as jest.Mock).mockReturnValue(elements);
+      // Select two adjacent elements so the while loop in sendBackward iterates
+      service.selectElements(['el-3', 'el-4']);
+
+      const updateSpy = elementsService.updateElements as jest.Mock;
+      updateSpy.mockClear();
+      service.sendBackward();
+      expect(updateSpy).toHaveBeenCalled();
+    });
+  });
 });

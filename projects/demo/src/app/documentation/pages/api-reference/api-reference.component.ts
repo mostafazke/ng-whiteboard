@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { CodeBlockComponent } from '../../../shared/components/code-block/code-block.component';
 
 interface Tab {
@@ -12,7 +13,7 @@ interface Tab {
   templateUrl: './api-reference.component.html',
   styleUrls: ['./api-reference.component.scss'],
   standalone: true,
-  imports: [CodeBlockComponent],
+  imports: [CodeBlockComponent, RouterLink],
 })
 export class ApiReferenceComponent {
   activeTab = 'component';
@@ -123,7 +124,7 @@ export class ElementsComponent {
   // Add a custom rectangle
   addCustomRectangle() {
     this.whiteboardService.addElement({
-      id: crypto.randomUUID(),
+      id: '<generated-uuid>',
       type: ToolType.Rectangle,
       x: 100,
       y: 100,

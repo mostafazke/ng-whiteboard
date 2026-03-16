@@ -4,7 +4,7 @@ import { WhiteboardCanvasComponent } from './whiteboard-canvas.component';
 import { ApiService } from '../../api';
 import { CanvasService } from '../../canvas';
 import { ConfigService } from '../../config';
-import { SelectionService } from '../../elements';
+import { SelectionService, ConnectionUIService, HandleService } from '../../elements';
 import { SvgService } from '../../svg';
 import { ToolsService } from '../../tools';
 import { WhiteboardElement, ElementType, ToolType } from '../../types';
@@ -87,6 +87,20 @@ describe('WhiteboardCanvasComponent', () => {
     const mockSelectionService = {
       getSelectionBoxSignal: jest.fn().mockReturnValue(mockSelectionBox),
       getBoundingBoxSignal: jest.fn().mockReturnValue(mockBoundingBox),
+      isLineOnlySelectionSignal: signal(false),
+      selectedIdsSignal: signal([]),
+      isSelected: jest.fn().mockReturnValue(false),
+    };
+
+    const mockHandleService = {
+      isLineOnlySelection: signal(false),
+      lineEndpointHandles: signal([]),
+      curveHandles: signal([]),
+    };
+
+    const mockConnectionUIService = {
+      snapIndicator: signal(null),
+      visibleConnectionPoints: signal([]),
     };
 
     const mockCanvasService = {
@@ -107,6 +121,8 @@ describe('WhiteboardCanvasComponent', () => {
             { provide: SelectionService, useValue: mockSelectionService },
             { provide: CanvasService, useValue: mockCanvasService },
             { provide: SvgService, useValue: mockSvgService },
+            { provide: ConnectionUIService, useValue: mockConnectionUIService },
+            { provide: HandleService, useValue: mockHandleService },
           ],
         },
       })
