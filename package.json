@@ -27,8 +27,8 @@
   "dependencies": {
     "@angular/animations": "^17.3.0",
     "@angular/common": "^17.3.0",
-    "@angular/compiler": "^19.2.18",
-    "@angular/core": "^19.2.18",
+    "@angular/compiler": "^19.2.20",
+    "@angular/core": "^19.2.20",
     "@angular/forms": "^17.3.0",
     "@angular/platform-browser": "^17.3.0",
     "@angular/platform-browser-dynamic": "^17.3.0",
@@ -38,7 +38,7 @@
     "highlight.js": "~11.11.0",
     "ngx-colors": "^3.6.0",
     "rxjs": "~7.8.0",
-    "zone.js": "~0.16.0"
+    "zone.js": "~0.15.1"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^17.3.11",
