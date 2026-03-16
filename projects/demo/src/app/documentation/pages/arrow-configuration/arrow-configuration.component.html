@@ -1,0 +1,430 @@
+<div class="doc-section arrow-configuration">
+  <h2><span class="material-icons">arrow_forward</span> Arrow Configuration</h2>
+
+  <div class="note-section">
+    <div class="note info">
+      <strong><span class="material-icons">info</span> Arrow Tool:</strong>
+      <p>
+        The arrow tool (<code>ToolType.Arrow</code>, keyboard shortcut <kbd>A</kbd>) provides customizable arrowheads,
+        multiple line styles, and smart element binding with automatic connection point snapping.
+      </p>
+    </div>
+  </div>
+
+  <div class="tabs-container">
+    <div class="tabs-nav">
+      @for (section of sections; track section.id) {
+      <button class="tab-button" [class.active]="activeSection === section.id" (click)="setActiveSection(section.id)">
+        <span class="material-icons">{{ section.icon }}</span>
+        {{ section.label }}
+      </button>
+      }
+    </div>
+
+    <div class="tabs-content">
+      @switch (activeSection) {
+
+      <!-- OVERVIEW -->
+      @case ('overview') {
+      <div class="tab-pane">
+        <h3><span class="material-icons">tune</span> ArrowConfig Overview</h3>
+        <p>
+          The <code>arrowConfig</code> property in <code>WhiteboardConfig</code> controls the default appearance of
+          newly drawn arrows. Pass it via the <code>[config]</code> input on the component.
+        </p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>Type</th>
+                <th>Default</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>startHeadStyle</code></td>
+                <td><code>ArrowHeadStyle</code></td>
+                <td><code>'none'</code></td>
+                <td>Arrowhead style at the start of the arrow</td>
+              </tr>
+              <tr>
+                <td><code>endHeadStyle</code></td>
+                <td><code>ArrowHeadStyle</code></td>
+                <td><code>'open-arrow'</code></td>
+                <td>Arrowhead style at the end of the arrow</td>
+              </tr>
+              <tr>
+                <td><code>lineStyle</code></td>
+                <td><code>ArrowLineStyle</code></td>
+                <td><code>'curve'</code></td>
+                <td>Default path type for new arrows</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>Basic Configuration</h4>
+        <app-code-block [code]="basicConfigCode" language="typescript" title="arrow-whiteboard.component.ts" />
+
+        <h4>Dynamic Configuration</h4>
+        <p>
+          You can change the arrow configuration at runtime using <code>NgWhiteboardService.updateConfig()</code>. This
+          is useful for building toolbars that switch between different arrow presets.
+        </p>
+        <app-code-block [code]="dynamicConfigCode" language="typescript" title="dynamic-arrows.component.ts" />
+      </div>
+      }
+
+      <!-- ARROWHEADS -->
+      @case ('heads') {
+      <div class="tab-pane">
+        <h3><span class="material-icons">arrow_forward</span> Arrowhead Styles</h3>
+        <p>
+          Both <code>startHeadStyle</code> and <code>endHeadStyle</code> accept an <code>ArrowHeadStyle</code> value.
+          Arrowhead sizes scale automatically with the arrow's stroke width.
+        </p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Value</th>
+                <th>Visual</th>
+                <th>Rendering</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>'none'</code></td>
+                <td>—</td>
+                <td>—</td>
+                <td>No arrowhead rendered</td>
+              </tr>
+              <tr>
+                <td><code>'arrow'</code></td>
+                <td>
+                  <svg width="32" height="20" viewBox="0 0 32 20">
+                    <polygon points="2,2 30,10 2,18" fill="currentColor" />
+                  </svg>
+                </td>
+                <td>Filled</td>
+                <td>Solid filled triangle pointing in the arrow direction</td>
+              </tr>
+              <tr>
+                <td><code>'open-arrow'</code></td>
+                <td>
+                  <svg width="32" height="20" viewBox="0 0 32 20">
+                    <polyline points="2,2 30,10 2,18" fill="none" stroke="currentColor" stroke-width="2" />
+                  </svg>
+                </td>
+                <td>Stroked</td>
+                <td>Open V-shaped chevron (default end head)</td>
+              </tr>
+              <tr>
+                <td><code>'diamond'</code></td>
+                <td>
+                  <svg width="32" height="20" viewBox="0 0 32 20">
+                    <polygon points="16,2 30,10 16,18 2,10" fill="currentColor" />
+                  </svg>
+                </td>
+                <td>Filled</td>
+                <td>Solid filled diamond shape</td>
+              </tr>
+              <tr>
+                <td><code>'open-diamond'</code></td>
+                <td>
+                  <svg width="32" height="20" viewBox="0 0 32 20">
+                    <polygon points="16,2 30,10 16,18 2,10" fill="none" stroke="currentColor" stroke-width="2" />
+                  </svg>
+                </td>
+                <td>Stroked</td>
+                <td>Open diamond outline</td>
+              </tr>
+              <tr>
+                <td><code>'circle'</code></td>
+                <td>
+                  <svg width="24" height="20" viewBox="0 0 24 20">
+                    <circle cx="12" cy="10" r="8" fill="currentColor" />
+                  </svg>
+                </td>
+                <td>Filled</td>
+                <td>Solid filled circle</td>
+              </tr>
+              <tr>
+                <td><code>'open-circle'</code></td>
+                <td>
+                  <svg width="24" height="20" viewBox="0 0 24 20">
+                    <circle cx="12" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="2" />
+                  </svg>
+                </td>
+                <td>Stroked</td>
+                <td>Open circle outline</td>
+              </tr>
+              <tr>
+                <td><code>'bar'</code></td>
+                <td>
+                  <svg width="16" height="20" viewBox="0 0 16 20">
+                    <line x1="8" y1="2" x2="8" y2="18" stroke="currentColor" stroke-width="2" />
+                  </svg>
+                </td>
+                <td>Stroked</td>
+                <td>Vertical perpendicular bar</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>Custom Head Combinations</h4>
+        <app-code-block [code]="customHeadsCode" language="typescript" title="arrowhead-examples.ts" />
+      </div>
+      }
+
+      <!-- LINE STYLES -->
+      @case ('paths') {
+      <div class="tab-pane">
+        <h3><span class="material-icons">timeline</span> Arrow Line Styles</h3>
+        <p>
+          The <code>lineStyle</code> property determines how the arrow's path is drawn between its start and end points.
+        </p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Value</th>
+                <th>Visual</th>
+                <th>Description</th>
+                <th>Interaction</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>'straight'</code></td>
+                <td>
+                  <svg width="80" height="24" viewBox="0 0 80 24">
+                    <line x1="4" y1="12" x2="70" y2="12" stroke="currentColor" stroke-width="2" />
+                    <polygon points="70,6 80,12 70,18" fill="currentColor" />
+                  </svg>
+                </td>
+                <td>Direct line between start and end points</td>
+                <td>No control points</td>
+              </tr>
+              <tr>
+                <td><code>'curve'</code></td>
+                <td>
+                  <svg width="80" height="36" viewBox="0 0 80 36">
+                    <path d="M4,30 Q40,2 70,30" fill="none" stroke="currentColor" stroke-width="2" />
+                    <polygon points="70,24 80,30 70,36" fill="currentColor" />
+                  </svg>
+                </td>
+                <td>Smooth quadratic Bézier curve</td>
+                <td>Draggable control point at midpoint</td>
+              </tr>
+              <tr>
+                <td><code>'elbow'</code></td>
+                <td>
+                  <svg width="80" height="36" viewBox="0 0 80 36">
+                    <polyline points="4,6 40,6 40,30 70,30" fill="none" stroke="currentColor" stroke-width="2" />
+                    <polygon points="70,24 80,30 70,36" fill="currentColor" />
+                  </svg>
+                </td>
+                <td>Right-angle orthogonal connector</td>
+                <td>Adjustable bend position (midRatio)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>Line Style Examples</h4>
+        <app-code-block [code]="lineStylesCode" language="typescript" title="line-style-examples.ts" />
+
+        <div class="note-section">
+          <div class="note tip">
+            <strong><span class="material-icons">lightbulb</span> Tip:</strong>
+            <p>
+              After drawing a curved or elbow arrow, you can drag the <strong>control point handle</strong> (displayed
+              at the midpoint) to adjust the curve or bend position interactively.
+            </p>
+          </div>
+        </div>
+
+        <h4>Drawing Modifiers</h4>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Modifier</th>
+                <th>Behavior</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><kbd>Shift</kbd> + Drag</td>
+                <td>
+                  Constrains the arrow angle to 15° increments (useful for horizontal, vertical, or diagonal arrows)
+                </td>
+              </tr>
+              <tr>
+                <td>Drag near element edge</td>
+                <td>Auto-snaps to the nearest connection point within 20px radius</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      }
+
+      <!-- ELEMENT BINDING -->
+      @case ('binding') {
+      <div class="tab-pane">
+        <h3><span class="material-icons">link</span> Smart Element Binding</h3>
+        <p>
+          Arrows can automatically <strong>bind</strong> to other elements on the canvas. When an arrow endpoint is
+          dragged near a connectable element, it snaps to the nearest connection point and creates a persistent binding.
+          When a bound element is moved or resized, all connected arrows update their positions automatically.
+        </p>
+
+        <h4>Connectable Elements</h4>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Element Type</th>
+                <th>Connection Points</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Rectangle</strong></td>
+                <td>8 points</td>
+                <td>Top, right, bottom, left (cardinal) + top-left, top-right, bottom-right, bottom-left (corners)</td>
+              </tr>
+              <tr>
+                <td><strong>Ellipse</strong></td>
+                <td>8 points</td>
+                <td>Cardinal directions + 45° positions computed on the ellipse edge</td>
+              </tr>
+              <tr>
+                <td><strong>Image</strong></td>
+                <td>4 points</td>
+                <td>Top, right, bottom, left (from bounding box)</td>
+              </tr>
+              <tr>
+                <td><strong>Text</strong></td>
+                <td>4 points</td>
+                <td>Top, right, bottom, left (from bounding box)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="note-section">
+          <div class="note info">
+            <strong><span class="material-icons">info</span> Non-connectable elements:</strong>
+            <p>
+              Arrows cannot bind to other arrows, lines, or pen strokes. Only shapes with defined boundaries support
+              connection points.
+            </p>
+          </div>
+        </div>
+
+        <h4>How Binding Works</h4>
+        <div class="feature-list">
+          <div class="feature-item">
+            <span class="material-icons feature-icon">near_me</span>
+            <div>
+              <strong>Snap Detection</strong>
+              <p>
+                When drawing or dragging an arrow endpoint within <strong>20 pixels</strong> of a connectable element,
+                the available connection points are highlighted and the endpoint snaps to the nearest one.
+              </p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="material-icons feature-icon">sync_alt</span>
+            <div>
+              <strong>Automatic Updates</strong>
+              <p>
+                Bound arrows automatically recompute their endpoints when the connected element is moved, resized, or
+                rotated. This keeps diagrams consistent without manual adjustment.
+              </p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="material-icons feature-icon">link_off</span>
+            <div>
+              <strong>Auto-Detach</strong>
+              <p>
+                When a connected element is deleted, its arrow bindings are automatically detached. The arrow remains on
+                the canvas with its last computed endpoint position.
+              </p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="material-icons feature-icon">adjust</span>
+            <div>
+              <strong>Gap Control</strong>
+              <p>
+                Each binding includes an optional gap property (in pixels) that maintains a small distance between the
+                element edge and the arrow endpoint, preventing visual overlap.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <h4>Binding Properties</h4>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>Type</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>elementId</code></td>
+                <td><code>string</code></td>
+                <td>ID of the shape the arrow endpoint is bound to</td>
+              </tr>
+              <tr>
+                <td><code>pointId</code></td>
+                <td><code>string | null</code></td>
+                <td>
+                  Named connection point (e.g., <code>'top'</code>, <code>'bottom-left'</code>) or <code>null</code> for
+                  closest edge
+                </td>
+              </tr>
+              <tr>
+                <td><code>focus</code></td>
+                <td><code>number</code></td>
+                <td>0–1 position along edge for fine-tuning the connection point</td>
+              </tr>
+              <tr>
+                <td><code>gap</code></td>
+                <td><code>number</code></td>
+                <td>Distance in pixels between the shape edge and arrow endpoint</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>Visual Feedback</h4>
+        <p>The whiteboard provides real-time visual indicators during arrow drawing and editing:</p>
+        <ul>
+          <li><strong>Connection point dots</strong> — appear on hoverable shapes when an arrow endpoint is nearby</li>
+          <li>
+            <strong>Snap indicator</strong> — highlights the connection point that will be used if the user releases
+          </li>
+        </ul>
+      </div>
+      } }
+    </div>
+  </div>
+</div>

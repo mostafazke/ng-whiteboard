@@ -33,6 +33,13 @@ export const appRoutes: Routes = [
             (m) => m.KeyboardShortcutsComponent
           ),
       },
+      {
+        path: 'arrow-configuration',
+        loadComponent: () =>
+          import('./documentation/pages/arrow-configuration/arrow-configuration.component').then(
+            (m) => m.ArrowConfigurationComponent
+          ),
+      },
     ],
   },
   {
