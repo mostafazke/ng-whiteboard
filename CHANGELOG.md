@@ -1,3 +1,10 @@
+## [5.2.1](https://github.com/mostafazke/ng-whiteboard/compare/v5.2.0...v5.2.1) (2026-03-16)
+
+
+### Bug Fixes
+
+* **docs:** update arrow tools description in README ([6018e2a](https://github.com/mostafazke/ng-whiteboard/commit/6018e2a5092874add2b339b4a16e42e343c6d7cf))
+
 # [5.2.0](https://github.com/mostafazke/ng-whiteboard/compare/v5.1.1...v5.2.0) (2026-03-16)
 
 
