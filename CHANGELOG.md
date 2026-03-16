@@ -1,3 +1,24 @@
+# [5.2.0](https://github.com/mostafazke/ng-whiteboard/compare/v5.1.1...v5.2.0) (2026-03-16)
+
+
+### Bug Fixes
+
+* downgrade @angular/compiler and @angular/core to version 17.3.0 ([ebc5b2a](https://github.com/mostafazke/ng-whiteboard/commit/ebc5b2a3a220f820d948c4462f7cca4d26da3c5b))
+* downgrade @angular/compiler and @angular/core to version 17.3.12 ([5e6dc99](https://github.com/mostafazke/ng-whiteboard/commit/5e6dc99e39fc033c3c3ca31eddf22fa7fc3f556f))
+* package.json & yarn.lock to reduce vulnerabilities ([f951a35](https://github.com/mostafazke/ng-whiteboard/commit/f951a35d7cfed3b4cc65cb4be9d1f4b1a11e1531))
+* upgrade zone.js from 0.15.1 to 0.16.0 ([2176431](https://github.com/mostafazke/ng-whiteboard/commit/217643198338d59879be96dd4480bb894b302018))
+
+
+### Features
+
+* **demo:** add arrow configuration documentation and examples ([a2b2b51](https://github.com/mostafazke/ng-whiteboard/commit/a2b2b5179a637841abc48a8a8b7509b6ccc274b6))
+* **elements:** add arrow binding service ([ba824e8](https://github.com/mostafazke/ng-whiteboard/commit/ba824e8c96144063ae9f3a99e797593e39d106e9))
+* **elements:** add connection points service ([14a67c8](https://github.com/mostafazke/ng-whiteboard/commit/14a67c8c4c90e20eeede5b2b60f2be48533399e6))
+* **elements:** add connection UI service ([9380f9d](https://github.com/mostafazke/ng-whiteboard/commit/9380f9d934a5087b00970b2eed2dc02ca00816da))
+* **elements:** add handle service for resize and connection handles ([07e4028](https://github.com/mostafazke/ng-whiteboard/commit/07e402806cf4f44e927a89c78be6f5a61a50a664))
+* **pipes:** add arrowhead pipe for SVG marker rendering ([db55159](https://github.com/mostafazke/ng-whiteboard/commit/db5515990d4eee09a27378743d7d8508bb28c8a0))
+* **types:** add connection types and arrow configuration options ([59355b1](https://github.com/mostafazke/ng-whiteboard/commit/59355b107d30b8d49ccfb39113966ba67cea9546))
+
 ## [5.1.1](https://github.com/mostafazke/ng-whiteboard/compare/v5.1.0...v5.1.1) (2025-12-06)
 
 
