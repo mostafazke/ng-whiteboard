@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { CanvasService } from './canvas.service';
 import { ConfigService } from '../config/config.service';
 import { EventBusService } from '../event-bus/event-bus.service';
-import { WhiteboardConfig, LineCap, LineJoin } from '../types';
+import { WhiteboardConfig, LineCap, LineJoin, defaultArrowConfig } from '../types';
 import { WhiteboardEvent } from '../types/events';
 import { PenType } from '../types/pen-presets';
 
@@ -40,6 +40,7 @@ describe('CanvasService', () => {
     snapToGrid: false,
     keyboardShortcutsEnabled: true,
     penType: PenType.Pen,
+    arrowConfig: { ...defaultArrowConfig },
   };
 
   beforeEach(() => {
