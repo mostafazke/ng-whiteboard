@@ -39,6 +39,7 @@ Lightweight angular whiteboard.
 - 📑 **Layer management** - Control element z-index and stacking order
 - ✂️ **Copy/Paste/Cut** - Full clipboard support for elements
 - 🎯 **Selection tools** - Select, move, resize, and rotate elements
+- 🔗 **Arrow & connector tools** - Arrows with customizable heads, curved/straight/elbow paths, and smart element binding
 - 🏗 **Future-proof and scalable design**
 
 ## 📦 Installation
@@ -140,32 +141,102 @@ export class WhiteboardContainerComponent implements OnInit {
 
 ## ⚙️ Configuration
 
-| Input               | Type                  | Default          | Description                                                             |
-| ------------------- | --------------------- | ---------------- | ----------------------------------------------------------------------- |
-| `[data]`            | `WhiteboardElement[]` | `[]`             | The whiteboard data                                                     |
-| `[options]`         | `WhiteboardOptions`   | `null`           | Component configuration object, properties described below              |
-| `[drawingEnabled]`  | `boolean`             | `true`           | Enable mouse/touch interactions                                         |
-| `[selectedTool]`    | `ToolType`            | `ToolType.Pen`   | The current selected tool                                               |
-| `[canvasWidth]`     | `number`              | `800`            | The width of whiteboard canvas                                          |
-| `[canvasHeight]`    | `number`              | `600`            | The height of whiteboard canvas                                         |
-| `[fullScreen]`      | `boolean`             | `true`           | If true, change (canvasWidth, canvasHeight) to fit the parent container |
-| `[strokeColor]`     | `string`              | `#333333`        | The default stroke color                                                |
-| `[backgroundColor]` | `string`              | `#F8F9FA`        | The default background color                                            |
-| `[fill]`            | `string`              | `transparent`    | The default fill color                                                  |
-| `[strokeWidth]`     | `number`              | `2`              | The default stroke width                                                |
-| `[zoom]`            | `number`              | `1`              | Zoom level                                                              |
-| `[fontFamily]`      | `string`              | `sans-serif`     | The default font family                                                 |
-| `[fontSize]`        | `number`              | `24`             | The default font size                                                   |
-| `[center]`          | `boolean`             | `true`           | Center the canvas in parent component, works with `fullScreen: false`   |
-| `[x]`               | `number`              | `0`              | If `center` is false, set the X axis                                    |
-| `[y]`               | `number`              | `0`              | If `center` is false, set the Y axis                                    |
-| `[enableGrid]`      | `boolean`             | `false`          | Enable the grid pattern                                                 |
-| `[gridSize]`        | `number`              | `10`             | Set the grid inner boxes size                                           |
-| `[snapToGrid]`      | `boolean`             | `false`          | Enable snapping to grid                                                 |
-| `[lineJoin]`        | `LineJoin`            | `LineJoin.Miter` | The default Line join                                                   |
-| `[lineCap]`         | `LineCap`             | `LineCap.Butt`   | The default Line cap                                                    |
-| `[dasharray]`       | `string`              | `''`             | The default dash-array                                                  |
-| `[dashoffset]`      | `number`              | `0`              | The default dash-offset                                                 |
+| Input               | Type                  | Default          | Description                                                                                        |
+| ------------------- | --------------------- | ---------------- | -------------------------------------------------------------------------------------------------- |
+| `[data]`            | `WhiteboardElement[]` | `[]`             | The whiteboard data                                                                                |
+| `[options]`         | `WhiteboardOptions`   | `null`           | Component configuration object, properties described below                                         |
+| `[drawingEnabled]`  | `boolean`             | `true`           | Enable mouse/touch interactions                                                                    |
+| `[selectedTool]`    | `ToolType`            | `ToolType.Pen`   | The current selected tool                                                                          |
+| `[canvasWidth]`     | `number`              | `800`            | The width of whiteboard canvas                                                                     |
+| `[canvasHeight]`    | `number`              | `600`            | The height of whiteboard canvas                                                                    |
+| `[fullScreen]`      | `boolean`             | `true`           | If true, change (canvasWidth, canvasHeight) to fit the parent container                            |
+| `[strokeColor]`     | `string`              | `#333333`        | The default stroke color                                                                           |
+| `[backgroundColor]` | `string`              | `#F8F9FA`        | The default background color                                                                       |
+| `[fill]`            | `string`              | `transparent`    | The default fill color                                                                             |
+| `[strokeWidth]`     | `number`              | `2`              | The default stroke width                                                                           |
+| `[zoom]`            | `number`              | `1`              | Zoom level                                                                                         |
+| `[fontFamily]`      | `string`              | `sans-serif`     | The default font family                                                                            |
+| `[fontSize]`        | `number`              | `24`             | The default font size                                                                              |
+| `[center]`          | `boolean`             | `true`           | Center the canvas in parent component, works with `fullScreen: false`                              |
+| `[x]`               | `number`              | `0`              | If `center` is false, set the X axis                                                               |
+| `[y]`               | `number`              | `0`              | If `center` is false, set the Y axis                                                               |
+| `[enableGrid]`      | `boolean`             | `false`          | Enable the grid pattern                                                                            |
+| `[gridSize]`        | `number`              | `10`             | Set the grid inner boxes size                                                                      |
+| `[snapToGrid]`      | `boolean`             | `false`          | Enable snapping to grid                                                                            |
+| `[lineJoin]`        | `LineJoin`            | `LineJoin.Miter` | The default Line join                                                                              |
+| `[lineCap]`         | `LineCap`             | `LineCap.Butt`   | The default Line cap                                                                               |
+| `[dasharray]`       | `string`              | `''`             | The default dash-array                                                                             |
+| `[dashoffset]`      | `number`              | `0`              | The default dash-offset                                                                            |
+| `[arrowConfig]`     | `ArrowConfig`         | See below        | Arrow-specific configuration (heads, line style). See [Arrow Configuration](#-arrow-configuration) |
+
+## 🏹 Arrow Configuration
+
+The `arrowConfig` property controls the default appearance of newly drawn arrows.
+
+```typescript
+import { ArrowConfig } from 'ng-whiteboard';
+
+const config: Partial<WhiteboardConfig> = {
+  arrowConfig: {
+    startHeadStyle: 'none',
+    endHeadStyle: 'open-arrow',
+    lineStyle: 'curve',
+  },
+};
+```
+
+```html
+<ng-whiteboard [config]="config"></ng-whiteboard>
+```
+
+### `ArrowConfig` Properties
+
+| Property         | Type             | Default        | Description                               |
+| ---------------- | ---------------- | -------------- | ----------------------------------------- |
+| `startHeadStyle` | `ArrowHeadStyle` | `'none'`       | Arrowhead style at the start of the arrow |
+| `endHeadStyle`   | `ArrowHeadStyle` | `'open-arrow'` | Arrowhead style at the end of the arrow   |
+| `lineStyle`      | `ArrowLineStyle` | `'curve'`      | Default path type for new arrows          |
+
+### `ArrowHeadStyle` Values
+
+| Value            | Description                       |
+| ---------------- | --------------------------------- |
+| `'none'`         | No arrowhead                      |
+| `'arrow'`        | Filled triangle                   |
+| `'open-arrow'`   | Open V-chevron (stroked)          |
+| `'diamond'`      | Filled diamond                    |
+| `'open-diamond'` | Open diamond outline              |
+| `'circle'`       | Filled circle                     |
+| `'open-circle'`  | Open circle outline               |
+| `'bar'`          | Vertical bar (perpendicular line) |
+
+### `ArrowLineStyle` Values
+
+| Value        | Description                                                          |
+| ------------ | -------------------------------------------------------------------- |
+| `'straight'` | Direct line between start and end points                             |
+| `'curve'`    | Smooth quadratic curve with a draggable control point                |
+| `'elbow'`    | Right-angle (orthogonal) connector with a configurable bend position |
+
+### Arrow Drawing Modifiers
+
+| Modifier          | Behavior                                           |
+| ----------------- | -------------------------------------------------- |
+| `Shift + Drag`    | Constrains arrow angle to 15° increments           |
+| Drag near element | Auto-snaps to connection points (20px snap radius) |
+
+### Smart Element Binding
+
+Arrows can automatically bind to other elements (rectangles, ellipses, images, and text). When an arrow endpoint is dragged near a connectable element, it snaps to the nearest **connection point** and creates a binding. Bound arrows automatically update their position when the connected element is moved or resized.
+
+**Connection Points per Shape:**
+
+| Shape     | Connection Points                                               |
+| --------- | --------------------------------------------------------------- |
+| Rectangle | 8 points — top, right, bottom, left, and 4 corners              |
+| Ellipse   | 8 points — cardinal directions and 45° positions on the ellipse |
+| Image     | 4 cardinal points (top, right, bottom, left)                    |
+| Text      | 4 cardinal points (top, right, bottom, left)                    |
 
 ## 📖 API Reference
 

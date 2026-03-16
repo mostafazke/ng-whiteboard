@@ -5,6 +5,8 @@ export const SELECTOR_BOX = 'selectorBox';
 export const SELECTOR_GRIP_PREFIX = 'selectorGrip_';
 export const SELECTOR_GRIP_RESIZE = 'selectorGrip_resize';
 export const SELECTOR_GRIP_ROTATE = 'selectorGrip_rotate';
+export const ENDPOINT_HANDLE_PREFIX = 'endpointHandle_';
+export const CURVE_HANDLE_PREFIX = 'curveHandle_';
 export const MAX_STACK_SIZE = 1000;
 export const DATA_ID = 'data-wb-id';
 

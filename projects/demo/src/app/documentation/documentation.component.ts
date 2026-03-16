@@ -20,5 +20,6 @@ export class DocumentationComponent {
     { label: 'Getting Started', icon: '🚀', route: '/documentation/getting-started' },
     { label: 'API Reference', icon: '📘', route: '/documentation/api-reference' },
     { label: 'Keyboard Shortcuts', icon: '⌨️', route: '/documentation/keyboard-shortcuts' },
+    // { label: 'Arrow Configuration', icon: '➜', route: '/documentation/arrow-configuration' },
   ];
 }

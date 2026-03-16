@@ -16,8 +16,8 @@ import { SvgService } from '../../svg/svg.service';
 import { ElementType, ToolType, WhiteboardElement } from '../../types';
 import { ApiService } from '../../api';
 import { CanvasService } from '../../canvas';
-import { SelectionService } from '../../elements';
-import { GripCursorPipe, ElementOpacityPipe, PointsToPathPipe } from '../../pipes';
+import { ConnectionUIService, HandleService, SelectionService } from '../../elements';
+import { GripCursorPipe, ElementOpacityPipe, PointsToPathPipe, ArrowheadPipe } from '../../pipes';
 import { ToolsService } from '../../tools';
 
 @Component({
@@ -28,6 +28,7 @@ import { ToolsService } from '../../tools';
     GripCursorPipe,
     ElementOpacityPipe,
     PointsToPathPipe,
+    ArrowheadPipe,
     SvgDirective,
     ResizeHandlerDirective,
     GlobalKeyboardDirective,
@@ -46,6 +47,8 @@ export class WhiteboardCanvasComponent implements AfterViewInit {
   selectionService = inject(SelectionService);
   canvasService = inject(CanvasService);
   svgService = inject(SvgService);
+  connectionUIService = inject(ConnectionUIService);
+  handleService = inject(HandleService);
 
   config = this.configService.getConfigSignal();
 
@@ -157,6 +160,20 @@ export class WhiteboardCanvasComponent implements AfterViewInit {
   });
 
   cursor = computed(() => this.toolsService.cursor());
+
+  // ────────── Arrow / Line selection (from HandleService) ──────────
+  readonly isLineOnlySelection = this.handleService.isLineOnlySelection;
+  readonly lineEndpointHandles = this.handleService.lineEndpointHandles;
+  readonly curveHandles = this.handleService.curveHandles;
+
+  // ────────── Arrow connection signals (from ConnectionUIService) ──────────
+  readonly snapIndicator = this.connectionUIService.snapIndicator;
+  readonly visibleConnectionPoints = this.connectionUIService.visibleConnectionPoints;
+
+  /** Check if an arrow is currently selected (for showing endpoint handles) */
+  isArrowSelected(elementId: string): boolean {
+    return this.selectionService.isSelected(elementId);
+  }
 
   types = ElementType;
   tools = ToolType;

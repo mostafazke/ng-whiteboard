@@ -1,4 +1,10 @@
-import { getElementUtil, createElement, setActiveLayerProvider } from './element.utils';
+import {
+  getElementUtil,
+  createElement,
+  setActiveLayerProvider,
+  getLineWorldEndpoints,
+  LineEndpointInput,
+} from './element.utils';
 import { ElementType } from '../types';
 import { ArrowElementUtil } from './arrow-element';
 import { EllipseElementUtil } from './ellipse-element';
@@ -212,6 +218,8 @@ describe('Element Utils', () => {
     });
 
     it('should use empty string when no layerId and no provider', () => {
+      // Reset provider to null so the ternary fallback to '' is exercised
+      setActiveLayerProvider(null as unknown as () => string);
       const element = createElement(ElementType.Rectangle, {
         x: 0,
         y: 0,
@@ -349,6 +357,120 @@ describe('Element Utils', () => {
       expect(bounds).toBeDefined();
       expect(bounds.minX).toBe(0);
       expect(bounds.minY).toBe(0);
+    });
+  });
+
+  describe('getLineWorldEndpoints()', () => {
+    it('should return simple translation when rotation is 0', () => {
+      const el: LineEndpointInput = { x: 10, y: 20, x1: 0, y1: 0, x2: 100, y2: 50, rotation: 0 };
+      const result = getLineWorldEndpoints(el);
+      expect(result.sx).toBe(10);
+      expect(result.sy).toBe(20);
+      expect(result.ex).toBe(110);
+      expect(result.ey).toBe(70);
+    });
+
+    it('should apply scale when scaleX and scaleY are provided', () => {
+      const el: LineEndpointInput = { x: 0, y: 0, x1: 10, y1: 10, x2: 30, y2: 30, rotation: 0, scaleX: 2, scaleY: 3 };
+      const result = getLineWorldEndpoints(el);
+      expect(result.sx).toBe(20); // 10 * 2
+      expect(result.sy).toBe(30); // 10 * 3
+      expect(result.ex).toBe(60); // 30 * 2
+      expect(result.ey).toBe(90); // 30 * 3
+    });
+
+    it('should default scaleX and scaleY to 1', () => {
+      const el: LineEndpointInput = { x: 0, y: 0, x1: 10, y1: 20, x2: 30, y2: 40, rotation: 0 };
+      const result = getLineWorldEndpoints(el);
+      expect(result.sx).toBe(10);
+      expect(result.sy).toBe(20);
+      expect(result.ex).toBe(30);
+      expect(result.ey).toBe(40);
+    });
+
+    it('should rotate endpoints around fill-box center when rotation is non-zero', () => {
+      // A horizontal line rotated 90 degrees should become vertical
+      const el: LineEndpointInput = { x: 0, y: 0, x1: 0, y1: 0, x2: 100, y2: 0, rotation: 90 };
+      const result = getLineWorldEndpoints(el);
+
+      // Fill-box center: (50, 0). After 90° rotation around (50, 0):
+      // (0, 0) → relative to pivot: (-50, 0) → rotated: (0, -50) → world: (50+0, 0-50) = (50, -50)
+      // (100, 0) → relative to pivot: (50, 0) → rotated: (0, 50) → world: (50, 50)
+      expect(result.sx).toBeCloseTo(50, 5);
+      expect(result.sy).toBeCloseTo(-50, 5);
+      expect(result.ex).toBeCloseTo(50, 5);
+      expect(result.ey).toBeCloseTo(50, 5);
+    });
+
+    it('should handle 180-degree rotation', () => {
+      const el: LineEndpointInput = { x: 0, y: 0, x1: 0, y1: 0, x2: 100, y2: 0, rotation: 180 };
+      const result = getLineWorldEndpoints(el);
+
+      // Fill-box center: (50, 0). After 180° rotation:
+      // (0, 0) → relative: (-50, 0) → rotated: (50, 0) → world: (100, 0)
+      // (100, 0) → relative: (50, 0) → rotated: (-50, 0) → world: (0, 0)
+      expect(result.sx).toBeCloseTo(100, 5);
+      expect(result.sy).toBeCloseTo(0, 5);
+      expect(result.ex).toBeCloseTo(0, 5);
+      expect(result.ey).toBeCloseTo(0, 5);
+    });
+
+    it('should handle rotation with translation offset', () => {
+      const el: LineEndpointInput = { x: 50, y: 100, x1: 0, y1: 0, x2: 100, y2: 0, rotation: 90 };
+      const result = getLineWorldEndpoints(el);
+
+      // Same as 90° test but shifted by (50, 100)
+      expect(result.sx).toBeCloseTo(100, 5); // 50 + 50
+      expect(result.sy).toBeCloseTo(50, 5); // 100 + (-50)
+      expect(result.ex).toBeCloseTo(100, 5); // 50 + 50
+      expect(result.ey).toBeCloseTo(150, 5); // 100 + 50
+    });
+
+    it('should handle rotation with scale', () => {
+      const el: LineEndpointInput = { x: 0, y: 0, x1: 0, y1: 0, x2: 50, y2: 0, rotation: 90, scaleX: 2, scaleY: 1 };
+      const result = getLineWorldEndpoints(el);
+
+      // Scaled: lx1=0, ly1=0, lx2=100, ly2=0
+      // Fill-box center: (50, 0). 90° rotation:
+      // (0,0) → rel(-50,0) → rot(0,-50) → world(50,-50)
+      expect(result.sx).toBeCloseTo(50, 5);
+      expect(result.sy).toBeCloseTo(-50, 5);
+      expect(result.ex).toBeCloseTo(50, 5);
+      expect(result.ey).toBeCloseTo(50, 5);
+    });
+
+    it('should handle 45-degree rotation', () => {
+      const el: LineEndpointInput = { x: 0, y: 0, x1: 0, y1: 0, x2: 100, y2: 0, rotation: 45 };
+      const result = getLineWorldEndpoints(el);
+
+      const cos45 = Math.cos(Math.PI / 4);
+      const sin45 = Math.sin(Math.PI / 4);
+
+      // Fill-box center: (50, 0)
+      // Start: rel(-50, 0) → rot(-50*cos, -50*sin) → world(50 - 50cos, -50sin)
+      expect(result.sx).toBeCloseTo(50 - 50 * cos45, 5);
+      expect(result.sy).toBeCloseTo(-50 * sin45, 5);
+      // End: rel(50, 0) → rot(50*cos, 50*sin) → world(50 + 50cos, 50sin)
+      expect(result.ex).toBeCloseTo(50 + 50 * cos45, 5);
+      expect(result.ey).toBeCloseTo(50 * sin45, 5);
+    });
+
+    it('should handle negative coordinates', () => {
+      const el: LineEndpointInput = { x: -10, y: -20, x1: -50, y1: -30, x2: 50, y2: 30, rotation: 0 };
+      const result = getLineWorldEndpoints(el);
+      expect(result.sx).toBe(-60);
+      expect(result.sy).toBe(-50);
+      expect(result.ex).toBe(40);
+      expect(result.ey).toBe(10);
+    });
+
+    it('should treat undefined rotation as 0', () => {
+      const el = { x: 5, y: 10, x1: 0, y1: 0, x2: 20, y2: 30, rotation: undefined } as unknown as LineEndpointInput;
+      const result = getLineWorldEndpoints(el);
+      expect(result.sx).toBe(5);
+      expect(result.sy).toBe(10);
+      expect(result.ex).toBe(25);
+      expect(result.ey).toBe(40);
     });
   });
 });

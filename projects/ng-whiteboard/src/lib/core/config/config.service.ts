@@ -1,5 +1,13 @@
 import { Injectable, signal } from '@angular/core';
-import { LineCap, LineJoin, WhiteboardConfig, WhiteboardEvent, EditorConfig, PenType } from '../types';
+import {
+  LineCap,
+  LineJoin,
+  WhiteboardConfig,
+  WhiteboardEvent,
+  EditorConfig,
+  PenType,
+  defaultArrowConfig,
+} from '../types';
 import { EventBusService } from '../event-bus/event-bus.service';
 
 @Injectable({ providedIn: 'root' })
@@ -30,6 +38,7 @@ export class ConfigService {
     snapToGrid: true,
     keyboardShortcutsEnabled: true,
     penType: PenType.Pen,
+    arrowConfig: { ...defaultArrowConfig },
   });
 
   private editorConfig = signal<EditorConfig>({

@@ -463,10 +463,62 @@ describe('ApiService', () => {
     });
   });
 
-  describe('Alignment', () => {
+  describe('Alignment and Distribution', () => {
     it('should align elements', () => {
       service.alignElements(AlignmentType.Left);
       expect(mockSelectionService.alignElements).toHaveBeenCalledWith(AlignmentType.Left);
+    });
+
+    it('should distribute horizontally', () => {
+      service.distributeHorizontally();
+      expect(mockSelectionService.distributeHorizontally).toHaveBeenCalled();
+    });
+
+    it('should distribute vertically', () => {
+      service.distributeVertically();
+      expect(mockSelectionService.distributeVertically).toHaveBeenCalled();
+    });
+  });
+
+  describe('Transform Operations', () => {
+    it('should flip horizontal', () => {
+      service.flipHorizontal();
+      expect(mockSelectionService.flipHorizontal).toHaveBeenCalled();
+    });
+
+    it('should flip vertical', () => {
+      service.flipVertical();
+      expect(mockSelectionService.flipVertical).toHaveBeenCalled();
+    });
+
+    it('should move selected elements', () => {
+      service.moveSelectedElements(10, 20);
+      expect(mockSelectionService.moveSelectedElements).toHaveBeenCalledWith(10, 20);
+    });
+
+    it('should rotate selected elements', () => {
+      service.rotateSelectedElements(45);
+      expect(mockSelectionService.rotateSelectedElements).toHaveBeenCalledWith(45);
+    });
+
+    it('should scale selected elements', () => {
+      service.scaleSelectedElements(1.5);
+      expect(mockSelectionService.scaleSelectedElements).toHaveBeenCalledWith(1.5);
+    });
+  });
+
+  describe('Bounding Box', () => {
+    it('should get bounding box', () => {
+      mockSelectionService.getBoundingBox.mockReturnValue(null);
+      const result = service.getBoundingBox();
+      expect(mockSelectionService.getBoundingBox).toHaveBeenCalled();
+      expect(result).toBeNull();
+    });
+
+    it('should set bounding box', () => {
+      const bbox = { x: 0, y: 0, width: 100, height: 100, rotation: 0, handles: {} } as any;
+      service.setBoundingBox(bbox);
+      expect(mockSelectionService.setBoundingBox).toHaveBeenCalledWith(bbox);
     });
   });
 
@@ -598,6 +650,76 @@ describe('ApiService', () => {
       const jsonData = '{"elements":[]}';
       service.importData(jsonData);
       expect(mockIOService.importData).toHaveBeenCalledWith(jsonData);
+    });
+
+    it('should export as PNG', async () => {
+      mockIOService.exportAsPng.mockResolvedValue('png-data');
+      const result = await service.exportAsPNG('my-board');
+      expect(mockIOService.exportAsPng).toHaveBeenCalledWith('my-board');
+      expect(result).toBe('png-data');
+    });
+
+    it('should export as PNG with default name', async () => {
+      mockIOService.exportAsPng.mockResolvedValue('png-data');
+      const result = await service.exportAsPNG();
+      expect(mockIOService.exportAsPng).toHaveBeenCalledWith('whiteboard');
+      expect(result).toBe('png-data');
+    });
+
+    it('should export as SVG', async () => {
+      mockIOService.exportAsSvg.mockResolvedValue('svg-data');
+      const result = await service.exportAsSVG('my-board');
+      expect(mockIOService.exportAsSvg).toHaveBeenCalledWith('my-board');
+      expect(result).toBe('svg-data');
+    });
+
+    it('should export as SVG with default name', async () => {
+      mockIOService.exportAsSvg.mockResolvedValue('svg-data');
+      const result = await service.exportAsSVG();
+      expect(mockIOService.exportAsSvg).toHaveBeenCalledWith('whiteboard');
+      expect(result).toBe('svg-data');
+    });
+
+    it('should export as JSON', () => {
+      mockIOService.exportData.mockReturnValue('{"elements":[]}');
+      const clickSpy = jest.fn();
+      const createElementSpy = jest.spyOn(document, 'createElement').mockReturnValue({
+        href: '',
+        download: '',
+        click: clickSpy,
+      } as unknown as HTMLAnchorElement);
+      const originalCreateObjectURL = globalThis.URL.createObjectURL;
+      const originalRevokeObjectURL = globalThis.URL.revokeObjectURL;
+      globalThis.URL.createObjectURL = jest.fn().mockReturnValue('blob:url');
+      globalThis.URL.revokeObjectURL = jest.fn();
+
+      service.exportAsJSON('my-board');
+
+      expect(mockIOService.exportData).toHaveBeenCalled();
+      expect(clickSpy).toHaveBeenCalled();
+      expect(globalThis.URL.revokeObjectURL).toHaveBeenCalledWith('blob:url');
+
+      createElementSpy.mockRestore();
+      globalThis.URL.createObjectURL = originalCreateObjectURL;
+      globalThis.URL.revokeObjectURL = originalRevokeObjectURL;
+    });
+
+    it('should export as JSON with default name', () => {
+      mockIOService.exportData.mockReturnValue('{}');
+      const linkStub = { href: '', download: '', click: jest.fn() } as unknown as HTMLAnchorElement;
+      jest.spyOn(document, 'createElement').mockReturnValue(linkStub);
+      const originalCreateObjectURL = globalThis.URL.createObjectURL;
+      const originalRevokeObjectURL = globalThis.URL.revokeObjectURL;
+      globalThis.URL.createObjectURL = jest.fn().mockReturnValue('blob:url');
+      globalThis.URL.revokeObjectURL = jest.fn();
+
+      service.exportAsJSON();
+
+      expect((linkStub as any).download).toBe('whiteboard.json');
+
+      jest.restoreAllMocks();
+      globalThis.URL.createObjectURL = originalCreateObjectURL;
+      globalThis.URL.revokeObjectURL = originalRevokeObjectURL;
     });
   });
 
@@ -790,6 +912,92 @@ describe('ApiService', () => {
       expect(mockLayerService.moveLayerDown).toHaveBeenCalledWith('layer-1');
       expect(result).toBe(true);
     });
+
+    it('should reorder layers by index', () => {
+      mockLayerService.reorderLayersByIndex.mockReturnValue(true);
+      const result = service.reorderLayersByIndex(0, 2);
+      expect(mockLayerService.reorderLayersByIndex).toHaveBeenCalledWith(0, 2);
+      expect(result).toBe(true);
+    });
+
+    it('should duplicate layer with elements', () => {
+      const el1 = { ...mockElement, id: 'el-1', layerId: 'layer-1' };
+      mockElementsService.elements = signal([el1]);
+
+      const elementMap = new Map([['el-1', 'el-dup-1']]);
+      mockLayerService.duplicateLayer.mockReturnValue({
+        layer: { id: 'layer-dup', name: 'Layer Copy' },
+        elementMap,
+      });
+
+      service.duplicateLayer('layer-1');
+
+      expect(mockLayerService.duplicateLayer).toHaveBeenCalledWith('layer-1', [el1]);
+      expect(mockElementsService.addElements).toHaveBeenCalled();
+      expect(mockHistoryService.recordChange).toHaveBeenCalled();
+    });
+
+    it('should not duplicate when result has no layer', () => {
+      mockElementsService.elements = signal([mockElement]);
+      mockLayerService.duplicateLayer.mockReturnValue({
+        layer: null,
+        elementMap: new Map(),
+      });
+
+      service.duplicateLayer('nonexistent');
+
+      expect(mockElementsService.addElements).not.toHaveBeenCalled();
+    });
+
+    it('should not duplicate when elementMap is empty', () => {
+      mockElementsService.elements = signal([mockElement]);
+      mockLayerService.duplicateLayer.mockReturnValue({
+        layer: { id: 'layer-dup', name: 'Layer Copy' },
+        elementMap: new Map(),
+      });
+
+      service.duplicateLayer('layer-1');
+
+      expect(mockElementsService.addElements).not.toHaveBeenCalled();
+    });
+
+    it('should skip elements not found in current elements during duplicate', () => {
+      mockElementsService.elements = signal([]);
+      const elementMap = new Map([['nonexistent-el', 'new-el']]);
+      mockLayerService.duplicateLayer.mockReturnValue({
+        layer: { id: 'layer-dup', name: 'Layer Copy' },
+        elementMap,
+      });
+
+      service.duplicateLayer('layer-1');
+
+      expect(mockElementsService.addElements).toHaveBeenCalledWith([]);
+    });
+
+    it('should handle layer becoming null inside forEach iteration', () => {
+      const el1 = { ...mockElement, id: 'el-1', layerId: 'layer-1' };
+      mockElementsService.elements = signal([el1]);
+
+      const elementMap = new Map([['el-1', 'el-dup-1']]);
+      let callCount = 0;
+      const layerObj = { id: 'layer-dup', name: 'Layer Copy' };
+      mockLayerService.duplicateLayer.mockReturnValue({
+        get layer() {
+          callCount++;
+          // access 1: outer if check (result.layer && ...)
+          // access 2: inside forEach `const layer = result.layer`  -> return null
+          // access 3: after forEach `result.layer.name` -> return layer
+          if (callCount === 2) return null;
+          return layerObj;
+        },
+        elementMap,
+      });
+
+      service.duplicateLayer('layer-1');
+
+      // The inner !layer guard prevents the element from being added
+      expect(mockElementsService.addElements).toHaveBeenCalledWith([]);
+    });
   });
 
   describe('Grid Operations', () => {
@@ -820,6 +1028,18 @@ describe('ApiService', () => {
       const result = service.getActiveTool();
       expect(mockToolsService.getActiveToolType).toHaveBeenCalled();
       expect(result).toBe(ToolType.Select);
+    });
+
+    it('should set tool enabled', () => {
+      mockToolsService.setToolEnabledByType.mockReturnValue(true);
+      const result = service.setToolEnabled(ToolType.Rectangle, false);
+      expect(mockToolsService.setToolEnabledByType).toHaveBeenCalledWith(ToolType.Rectangle, false);
+      expect(result).toBe(true);
+    });
+
+    it('should set enabled tools', () => {
+      service.setEnabledTools([ToolType.Select, ToolType.Rectangle]);
+      expect(mockToolsService.setEnabledTools).toHaveBeenCalledWith([ToolType.Select, ToolType.Rectangle]);
     });
   });
 
