@@ -39,7 +39,7 @@ Lightweight angular whiteboard.
 - 📑 **Layer management** - Control element z-index and stacking order
 - ✂️ **Copy/Paste/Cut** - Full clipboard support for elements
 - 🎯 **Selection tools** - Select, move, resize, and rotate elements
-- 🔗 **Arrow & connector tools** - Arrows with customizable heads, curved/straight/elbow paths, and smart element binding
+- 🔗 **Arrows** - Arrows with customizable heads, and smart element binding
 - 🏗 **Future-proof and scalable design**
 
 ## 📦 Installation
