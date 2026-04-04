@@ -1,3 +1,10 @@
+# [5.3.0](https://github.com/mostafazke/ng-whiteboard/compare/v5.2.1...v5.3.0) (2026-04-04)
+
+
+### Features
+
+* add Turborepo migration guide and Vite-specific guidance for nx import ([2e51591](https://github.com/mostafazke/ng-whiteboard/commit/2e5159143edd17a875091be0948552db8dfa9186))
+
 ## [5.2.1](https://github.com/mostafazke/ng-whiteboard/compare/v5.2.0...v5.2.1) (2026-03-16)
 
 
