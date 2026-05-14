@@ -244,6 +244,75 @@ describe('WhiteboardCanvasComponent', () => {
       expect(filtered[0].id).toBe('1');
       expect(filtered[1].id).toBe('2');
     });
+
+    it('should include elements without layerId', () => {
+      const elementNoLayer = { ...mockElement, id: 'no-layer', layerId: undefined };
+      mockLayers.set([mockLayer]);
+      mockAllElements.set([elementNoLayer]);
+
+      const filtered = component.filteredElements();
+      expect(filtered.length).toBe(1);
+      expect(filtered[0].id).toBe('no-layer');
+    });
+
+    it('should return empty array if all layers are invisible', () => {
+      mockLayers.set([{ ...mockLayer, visible: false }]);
+      mockAllElements.set([mockElement]);
+
+      const filtered = component.filteredElements();
+      expect(filtered).toEqual([]);
+    });
+
+    it('should handle empty layers array', () => {
+      mockLayers.set([]);
+      mockAllElements.set([mockElement]);
+
+      const filtered = component.filteredElements();
+      // Elements without layerId should still be shown if there are no layers?
+      // Current logic: elements.filter((el) => !el.layerId || visibleLayerIds.has(el.layerId))
+      // if visibleLayerIds is empty, and el.layerId is 'default', it will be filtered out.
+      // If el.layerId is undefined, it will stay.
+      expect(filtered.length).toBe(0); // mockElement has layerId: 'default'
+    });
+
+    it('should handle elements with non-existent layerId', () => {
+      const elementBadLayer = { ...mockElement, id: 'bad-layer', layerId: 'non-existent' };
+      mockLayers.set([mockLayer]);
+      mockAllElements.set([elementBadLayer]);
+
+      const filtered = component.filteredElements();
+      expect(filtered.length).toBe(0);
+    });
+
+    it('should correctly map isLocked and blendMode from layer', () => {
+      const lockedLayer = {
+        ...mockLayer,
+        id: 'locked-layer',
+        locked: true,
+        blendMode: 'multiply'
+      };
+      const elementOnLockedLayer = { ...mockElement, id: 'el-locked', layerId: 'locked-layer' };
+
+      mockLayers.set([lockedLayer]);
+      mockAllElements.set([elementOnLockedLayer]);
+
+      const filtered = component.filteredElements();
+      expect(filtered.length).toBe(1);
+      expect(filtered[0].isLocked).toBe(true);
+      expect(filtered[0].blendMode).toBe('multiply');
+    });
+
+    it('should use default isLocked and blendMode when no layer is found', () => {
+      const elementNoLayer = { ...mockElement, id: 'el-no-layer', layerId: undefined };
+
+      mockLayers.set([mockLayer]);
+      mockAllElements.set([elementNoLayer]);
+
+      const filtered = component.filteredElements();
+      expect(filtered.length).toBe(1);
+      expect(filtered[0].isLocked).toBe(false);
+      expect(filtered[0].blendMode).toBe('normal');
+    });
   });
 
   describe('ngAfterViewInit', () => {

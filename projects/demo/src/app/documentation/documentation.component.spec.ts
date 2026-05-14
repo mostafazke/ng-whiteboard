@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { DocumentationComponent } from './documentation.component';
-import { RouterModule } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
 
 describe('DocumentationComponent', () => {
   let component: DocumentationComponent;
@@ -9,7 +9,7 @@ describe('DocumentationComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [RouterModule, DocumentationComponent],
+      imports: [RouterTestingModule, DocumentationComponent],
     }).compileComponents();
 
     fixture = TestBed.createComponent(DocumentationComponent);
