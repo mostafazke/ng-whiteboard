@@ -110,6 +110,31 @@ describe('PenTool', () => {
     );
   });
 
+  it('should filter points during pointer move based on distance', () => {
+    penTool.element = { id: 'pen-1', points: [[100, 200]], path: '', style: {} } as unknown as PenElement;
+
+    // Movement within threshold (e.g., 1 pixel move)
+    const smallMoveEvent = createMockPointerInfo({ clientX: 101, clientY: 201, eventType: 'pointermove' });
+    jest.spyOn(penTool, 'getPointerPosition').mockReturnValue({ x: 101, y: 201 });
+
+    penTool.handlePointerMove(smallMoveEvent);
+
+    expect(penTool.element?.points).toEqual([[100, 200]]);
+    expect(apiService.updateDraftElements).not.toHaveBeenCalled();
+
+    // Movement exactly at threshold (2 pixels move: sqrt(2^2 + 0^2) = 2)
+    const thresholdMoveEvent = createMockPointerInfo({ clientX: 102, clientY: 200, eventType: 'pointermove' });
+    jest.spyOn(penTool, 'getPointerPosition').mockReturnValue({ x: 102, y: 200 });
+
+    penTool.handlePointerMove(thresholdMoveEvent);
+
+    expect(penTool.element?.points).toEqual([
+      [100, 200],
+      [102, 200],
+    ]);
+    expect(apiService.updateDraftElements).toHaveBeenCalled();
+  });
+
   it('should handle pointer up and commit the draft', () => {
     penTool.element = { points: [[100, 200]], path: '', style: {} } as unknown as PenElement;
 
