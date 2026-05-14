@@ -60,6 +60,8 @@ export interface WhiteboardConfig {
   snapToGrid: boolean;
   keyboardShortcutsEnabled: boolean;
   penType: PenType;
+  /** Minimum distance (in pixels) between points when drawing with the pen tool */
+  penThrottlingThreshold: number;
   /** Arrow-specific configuration – heads, line style, size */
   arrowConfig: ArrowConfig;
 }

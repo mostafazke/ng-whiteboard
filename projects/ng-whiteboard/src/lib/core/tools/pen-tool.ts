@@ -67,7 +67,8 @@ export class PenTool extends BaseTool {
       const dx = x - lastPoint[0];
       const dy = y - lastPoint[1];
       const distanceSquared = dx * dx + dy * dy;
-      const minDistanceSquared = 4; // 2 pixels threshold
+      const threshold = this.whiteboardConfig.penThrottlingThreshold ?? 2;
+      const minDistanceSquared = threshold * threshold;
 
       if (distanceSquared < minDistanceSquared) {
         return;

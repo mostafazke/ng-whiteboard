@@ -44,6 +44,7 @@ describe('DragDropService', () => {
     snapToGrid: false,
     keyboardShortcutsEnabled: true,
     penType: PenType.Pen,
+    penThrottlingThreshold: 2,
     arrowConfig: { ...defaultArrowConfig },
   } as WhiteboardConfig;
 
