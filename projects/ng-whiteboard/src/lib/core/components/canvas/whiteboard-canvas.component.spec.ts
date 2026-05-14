@@ -69,6 +69,15 @@ describe('WhiteboardCanvasComponent', () => {
   const mockTransform = signal({ x: 0, y: 0, scale: 1 });
 
   beforeEach(async () => {
+    // Reset signal values
+    mockAllElements.set([mockElement]);
+    mockLayers.set([mockLayer]);
+    mockSelectedTool.set(ToolType.Pen);
+    mockConfigSignal.set(mockConfig);
+    mockSelectionBox.set(null);
+    mockBoundingBox.set(null);
+    mockTransform.set({ x: 0, y: 0, scale: 1 });
+
     const mockApiService = {
       initializeWhiteboard: jest.fn(),
       allElements: mockAllElements,
@@ -170,9 +179,21 @@ describe('WhiteboardCanvasComponent', () => {
       expect(dimensions.height).toBe('100%');
     });
 
-    it('should compute svg viewbox correctly', () => {
+    it('should compute svg viewbox correctly in normal mode', () => {
       const viewBox = component.svgViewBox();
       expect(viewBox).toBe('0 0 800 600');
+    });
+
+    it('should compute svg viewbox correctly in fullscreen mode', () => {
+      mockConfigSignal.set({
+        ...mockConfig,
+        fullScreen: true,
+        canvasWidth: 1000,
+        canvasHeight: 500,
+        zoom: 2
+      });
+      const viewBox = component.svgViewBox();
+      expect(viewBox).toBe('0 0 500 250');
     });
 
     it('should compute content transform correctly', () => {
@@ -198,6 +219,13 @@ describe('WhiteboardCanvasComponent', () => {
       expect(gridConfig.transform).toBe('translate(0, 0)');
       expect(gridConfig.width).toBe(450); // (canvasWidth (800) + 100) / zoom (2)
       expect(gridConfig.height).toBe(350); // (canvasHeight (600) + 100) / zoom (2)
+    });
+
+    it('should compute grid config correctly with offset', () => {
+      mockConfigSignal.set({ ...mockConfig, x: 150, y: 250 });
+
+      const gridConfig = component.gridConfig();
+      expect(gridConfig.transform).toBe('translate(50, 50)');
     });
 
     it('should compute text editor style correctly', () => {
@@ -245,6 +273,48 @@ describe('WhiteboardCanvasComponent', () => {
       expect(filtered[1].id).toBe('2');
     });
 
+    it('should sort elements correctly when some have no layerId', () => {
+      const layerWithZ10 = { ...mockLayer, id: 'z10', zIndex: 10 };
+      const layerWithZ20 = { ...mockLayer, id: 'z20', zIndex: 20 };
+      mockLayers.set([layerWithZ10, layerWithZ20]);
+
+      const elNoLayer = { ...mockElement, id: 'no-layer', layerId: undefined, zIndex: 50000 };
+      const elLayer10 = { ...mockElement, id: 'layer-10', layerId: 'z10', zIndex: 1 };
+      const elLayer20 = { ...mockElement, id: 'layer-20', layerId: 'z20', zIndex: 1 };
+
+      mockAllElements.set([elLayer20, elLayer10, elNoLayer]);
+
+      const filtered = component.filteredElements();
+      expect(filtered.length).toBe(3);
+      // z-indices:
+      // no-layer: 0*1000 + 50000 = 50000 (layerA is undefined, zIndex is 0)
+      // layer-10: 10*1000 + 1 = 10001
+      // layer-20: 20*1000 + 1 = 20001
+      // Order should be layer-10, layer-20, no-layer
+      expect(filtered[0].id).toBe('layer-10');
+      expect(filtered[1].id).toBe('layer-20');
+      expect(filtered[2].id).toBe('no-layer');
+    });
+
+    it('should handle sorting with layer zIndex 0', () => {
+      const layerZ0 = { ...mockLayer, id: 'z0', zIndex: 0 };
+      const layerZ1 = { ...mockLayer, id: 'z1', zIndex: 1 };
+      mockLayers.set([layerZ0, layerZ1]);
+
+      const elZ0 = { ...mockElement, id: 'el-z0', layerId: 'z0', zIndex: 10 };
+      const elZ1 = { ...mockElement, id: 'el-z1', layerId: 'z1', zIndex: 5 };
+
+      mockAllElements.set([elZ1, elZ0]);
+
+      const filtered = component.filteredElements();
+      expect(filtered.length).toBe(2);
+      // z-indices:
+      // el-z0: 0 * 1000 + 10 = 10
+      // el-z1: 1 * 1000 + 5 = 1005
+      expect(filtered[0].id).toBe('el-z0');
+      expect(filtered[1].id).toBe('el-z1');
+    });
+
     it('should include elements without layerId', () => {
       const elementNoLayer = { ...mockElement, id: 'no-layer', layerId: undefined };
       mockLayers.set([mockLayer]);
@@ -284,14 +354,23 @@ describe('WhiteboardCanvasComponent', () => {
       expect(filtered.length).toBe(0);
     });
 
-    it('should correctly map isLocked and blendMode from layer', () => {
+    it('should correctly map isLocked, blendMode, and transform from layer/element', () => {
       const lockedLayer = {
         ...mockLayer,
         id: 'locked-layer',
         locked: true,
         blendMode: 'multiply'
       };
-      const elementOnLockedLayer = { ...mockElement, id: 'el-locked', layerId: 'locked-layer' };
+      const elementOnLockedLayer = {
+        ...mockElement,
+        id: 'el-locked',
+        layerId: 'locked-layer',
+        scaleX: 2,
+        scaleY: 3,
+        rotation: 45,
+        x: 100,
+        y: 200
+      };
 
       mockLayers.set([lockedLayer]);
       mockAllElements.set([elementOnLockedLayer]);
@@ -300,6 +379,44 @@ describe('WhiteboardCanvasComponent', () => {
       expect(filtered.length).toBe(1);
       expect(filtered[0].isLocked).toBe(true);
       expect(filtered[0].blendMode).toBe('multiply');
+      expect(filtered[0].transform).toBe('translate(100,200) rotate(45) scale(2,3)');
+    });
+
+    it('should use default blendMode "normal" if layer blendMode is missing', () => {
+      const layerNoBlend = { ...mockLayer, blendMode: undefined };
+      mockLayers.set([layerNoBlend as any]);
+      mockAllElements.set([mockElement]);
+
+      const filtered = component.filteredElements();
+      expect(filtered[0].blendMode).toBe('normal');
+    });
+
+    it('should sort elements correctly within and across layers', () => {
+      const layer1 = { ...mockLayer, id: 'l1', zIndex: 1 };
+      const layer2 = { ...mockLayer, id: 'l2', zIndex: 2 };
+      mockLayers.set([layer1, layer2]);
+
+      const el1 = { ...mockElement, id: 'el1', layerId: 'l1', zIndex: 10 }; // 1*1000 + 10 = 1010
+      const el2 = { ...mockElement, id: 'el2', layerId: 'l1', zIndex: 5 };  // 1*1000 + 5 = 1005
+      const el3 = { ...mockElement, id: 'el3', layerId: 'l2', zIndex: 1 };  // 2*1000 + 1 = 2001
+
+      mockAllElements.set([el1, el2, el3]);
+
+      const filtered = component.filteredElements();
+      expect(filtered.length).toBe(3);
+      expect(filtered[0].id).toBe('el2');
+      expect(filtered[1].id).toBe('el1');
+      expect(filtered[2].id).toBe('el3');
+    });
+
+    it('should handle elements without layerId when no layers are defined', () => {
+      mockLayers.set([]);
+      const el = { ...mockElement, id: 'no-layer-no-config', layerId: undefined };
+      mockAllElements.set([el]);
+
+      const filtered = component.filteredElements();
+      expect(filtered.length).toBe(1);
+      expect(filtered[0].id).toBe('no-layer-no-config');
     });
 
     it('should use default isLocked and blendMode when no layer is found', () => {
@@ -324,6 +441,13 @@ describe('WhiteboardCanvasComponent', () => {
       component.ngAfterViewInit();
 
       expect(component.apiService.initializeWhiteboard).toHaveBeenCalledWith(mockSvgElement);
+    });
+  });
+
+  describe('isArrowSelected', () => {
+    it('should call selectionService.isSelected', () => {
+      component.isArrowSelected('test-id');
+      expect(component.selectionService.isSelected).toHaveBeenCalledWith('test-id');
     });
   });
 });
