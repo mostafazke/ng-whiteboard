@@ -8,7 +8,7 @@ interface HistoryEntry {
   timestamp: number;
 }
 
-interface BatchHandle {
+export interface BatchHandle {
   execute: () => void;
   clear: () => void;
 }

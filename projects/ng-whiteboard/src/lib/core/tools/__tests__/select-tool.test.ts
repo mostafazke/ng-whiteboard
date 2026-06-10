@@ -106,6 +106,8 @@ describe('SelectTool', () => {
       resetCursor: jest.fn(),
       updateElements: jest.fn(),
       setBoundingBox: jest.fn(),
+      startBatch: jest.fn().mockReturnValue({ execute: jest.fn(), clear: jest.fn() }),
+      completeBatch: jest.fn(),
     } as unknown as ApiService;
 
     selectTool = new SelectTool(apiService);
@@ -125,6 +127,66 @@ describe('SelectTool', () => {
     it('should clear selection on deactivate', () => {
       selectTool.onDeactivate();
       expect(apiService.clearSelection).toHaveBeenCalled();
+    });
+  });
+
+  describe('history batching (transform gestures)', () => {
+    it('collapses a multi-frame move gesture into a single history batch', () => {
+      const execute = jest.fn();
+      const clear = jest.fn();
+      (apiService.startBatch as jest.Mock).mockReturnValue({ execute, clear });
+
+      selectTool['currentAction'] = SelectAction.Move;
+      selectTool['startPoint'] = { x: 50, y: 100 };
+      jest.spyOn(selectTool, 'getPointerPosition').mockReturnValue({ x: 100, y: 200 });
+
+      // Several move frames in the same gesture...
+      selectTool.handlePointerMove(createMockPointerInfo({ x: 150, y: 300, eventType: 'pointermove' }));
+      flushRAF();
+      selectTool.handlePointerMove(createMockPointerInfo({ x: 160, y: 320, eventType: 'pointermove' }));
+      flushRAF();
+
+      // ...open exactly one batch, not one per frame, and don't commit yet.
+      expect(apiService.startBatch).toHaveBeenCalledTimes(1);
+      expect(apiService.startBatch).toHaveBeenCalledWith('Move element', expect.anything());
+      expect(execute).not.toHaveBeenCalled();
+
+      selectTool.handlePointerUp();
+
+      // pointer up commits the batch as a single undo entry.
+      expect(apiService.completeBatch).toHaveBeenCalledTimes(1);
+      expect(execute).toHaveBeenCalledTimes(1);
+      expect(clear).not.toHaveBeenCalled();
+    });
+
+    it('does not open a batch for a click without movement', () => {
+      const target = { id: ITEM_PREFIX + '1', getAttribute: jest.fn().mockReturnValue('1') };
+      (getMouseTarget as jest.Mock).mockReturnValue(target);
+      apiService.getElements = jest.fn().mockReturnValue([{ id: '1' }]);
+
+      selectTool.handlePointerDown(createMockPointerInfo({ x: 10, y: 10, eventType: 'pointerdown' }));
+      selectTool.handlePointerUp();
+
+      expect(apiService.startBatch).not.toHaveBeenCalled();
+      expect(apiService.completeBatch).not.toHaveBeenCalled();
+    });
+
+    it('clears an open batch if the gesture is interrupted by deactivation', () => {
+      const execute = jest.fn();
+      const clear = jest.fn();
+      (apiService.startBatch as jest.Mock).mockReturnValue({ execute, clear });
+
+      selectTool['currentAction'] = SelectAction.Move;
+      selectTool['startPoint'] = { x: 0, y: 0 };
+      jest.spyOn(selectTool, 'getPointerPosition').mockReturnValue({ x: 5, y: 5 });
+      selectTool.handlePointerMove(createMockPointerInfo({ x: 5, y: 5, eventType: 'pointermove' }));
+      flushRAF();
+      expect(apiService.startBatch).toHaveBeenCalledTimes(1);
+
+      selectTool.onDeactivate();
+
+      expect(clear).toHaveBeenCalledTimes(1);
+      expect(execute).not.toHaveBeenCalled();
     });
   });
 

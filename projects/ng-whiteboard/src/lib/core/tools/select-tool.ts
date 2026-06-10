@@ -18,6 +18,7 @@ import { getElementBounds } from '../utils/dom/element';
 
 import { BaseTool } from './base-tool';
 import { CursorType } from '../types/cursors';
+import { BatchHandle } from '../history/history.service';
 
 export enum SelectAction {
   None,
@@ -58,6 +59,18 @@ export class SelectTool extends BaseTool {
   // Track whether arrow bindings were detached during current move
   private arrowBindingsDetached = false;
 
+  // Actions that transform existing elements over many frames; each must collapse
+  // into a single undo entry via a history batch (see handlePointerMove/Up).
+  private static readonly TRANSFORM_ACTIONS: ReadonlySet<SelectAction> = new Set([
+    SelectAction.Move,
+    SelectAction.Resize,
+    SelectAction.Rotate,
+    SelectAction.DragEndpoint,
+    SelectAction.DragCurveHandle,
+  ]);
+  // Open history batch for the in-progress transform gesture, if any.
+  private transformBatch: BatchHandle | null = null;
+
   // Injected connection services
   private connectionPointsService!: ConnectionPointsService;
   private arrowBindingService!: ArrowBindingService;
@@ -82,7 +95,30 @@ export class SelectTool extends BaseTool {
   }
 
   override onDeactivate(): void {
+    // Drop any batch left open by a gesture interrupted mid-flight, so the
+    // history service never stays stuck in batching mode.
+    if (this.transformBatch) {
+      this.transformBatch.clear();
+      this.transformBatch = null;
+    }
     this.apiService.clearSelection();
+  }
+
+  private batchDescriptionFor(action: SelectAction): string {
+    switch (action) {
+      case SelectAction.Move:
+        return 'Move element';
+      case SelectAction.Resize:
+        return 'Resize element';
+      case SelectAction.Rotate:
+        return 'Rotate element';
+      case SelectAction.DragEndpoint:
+        return 'Move endpoint';
+      case SelectAction.DragCurveHandle:
+        return 'Adjust curve';
+      default:
+        return 'Transform element';
+    }
   }
 
   override handlePointerDown(event: PointerInfo): void {
@@ -142,6 +178,17 @@ export class SelectTool extends BaseTool {
 
         const event = this.pendingPointerEvent;
         const currentPoint = this.getPointerPosition(event);
+
+        // Open a history batch on the first transform frame: from here every
+        // per-frame element update is coalesced, so the whole gesture commits as
+        // one undo entry on pointer up. A plain click never reaches here, so no
+        // batch is left dangling.
+        if (!this.transformBatch && SelectTool.TRANSFORM_ACTIONS.has(this.currentAction)) {
+          this.transformBatch = this.apiService.startBatch(
+            this.batchDescriptionFor(this.currentAction),
+            this.apiService.getElements()
+          );
+        }
 
         switch (this.currentAction) {
           case SelectAction.Move:
@@ -206,6 +253,13 @@ export class SelectTool extends BaseTool {
       if (arrowUpdates.length > 0) {
         this.apiService.updateElements(arrowUpdates as Array<Partial<WhiteboardElement> & { id: string }>);
       }
+    }
+
+    // Commit the gesture's coalesced changes as a single undo entry.
+    if (this.transformBatch) {
+      this.apiService.completeBatch(this.apiService.getElements());
+      this.transformBatch.execute();
+      this.transformBatch = null;
     }
 
     this.initialElementStates.clear();
