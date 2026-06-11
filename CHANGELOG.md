@@ -1,3 +1,10 @@
+## [5.3.1](https://github.com/mostafazke/ng-whiteboard/compare/v5.3.0...v5.3.1) (2026-06-11)
+
+
+### Bug Fixes
+
+* **select-tool:** commit transform gestures as a single history entry ([dfba0c5](https://github.com/mostafazke/ng-whiteboard/commit/dfba0c5cefe5237a4dd0562a5bf8ef5f6b35f702))
+
 # [5.3.0](https://github.com/mostafazke/ng-whiteboard/compare/v5.2.1...v5.3.0) (2026-04-04)
 
 
