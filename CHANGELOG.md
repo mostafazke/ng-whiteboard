@@ -1,3 +1,10 @@
+## [5.3.2](https://github.com/mostafazke/ng-whiteboard/compare/v5.3.1...v5.3.2) (2026-06-11)
+
+
+### Bug Fixes
+
+* fix ci workflow ([550cf39](https://github.com/mostafazke/ng-whiteboard/commit/550cf398639640970670550108ad93494f62a0c6))
+
 ## [5.3.1](https://github.com/mostafazke/ng-whiteboard/compare/v5.3.0...v5.3.1) (2026-06-11)
 
 
