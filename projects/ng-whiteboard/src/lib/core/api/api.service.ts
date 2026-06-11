@@ -7,7 +7,7 @@ import { LayerManagementService } from '../elements/layer-management.service';
 import { PanService } from '../viewport/pan.service';
 import { SelectionService } from '../elements/selection.service';
 import { ToolsService } from '../tools/tools.service';
-import { HistoryService } from '../history/history.service';
+import { BatchHandle, HistoryService } from '../history/history.service';
 import { ZoomService } from '../viewport/zoom.service';
 import {
   AddImage,
@@ -433,6 +433,24 @@ export class ApiService {
 
   recordElementCreation(before: WhiteboardElement[], after: WhiteboardElement[]): void {
     this.historyService.recordElementCreation(before, after);
+  }
+
+  /**
+   * Begin a history batch: while active, element-change recordings are coalesced
+   * so a multi-step gesture (e.g. a drag, resize or rotate spanning many frames)
+   * is committed as a single undo entry. Pair every call with the returned
+   * handle's execute()/clear().
+   */
+  startBatch(description: string, before: WhiteboardElement[]): BatchHandle {
+    return this.historyService.startBatch(description, before);
+  }
+
+  /**
+   * Record the final state of an in-progress history batch. Call before the
+   * handle's execute().
+   */
+  completeBatch(after: WhiteboardElement[]): void {
+    this.historyService.completeBatch(after);
   }
 
   recordElementUpdate(before: WhiteboardElement[], after: WhiteboardElement[]): void {
