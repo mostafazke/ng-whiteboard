@@ -6,14 +6,21 @@ on:
       - master
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test:
+  validate:
     permissions:
       contents: read
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Full history so `nx format:check` can diff against the base branch.
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -24,8 +31,25 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Test
+      - name: Format check
+        run: yarn format:check
+
+      - name: Lint
+        run: npx nx run-many -t lint
+
+      - name: Test (library)
         run: yarn test:ci
+
+      # NOTE: demo unit tests are intentionally excluded — they are currently
+      # broken (missing jsdom polyfills / HttpClient provider, plus a stale
+      # basic.component.spec). The demo is still validated via lint + build
+      # below. Re-add `nx test demo --ci` here once those specs are fixed.
+
+      - name: Build library
+        run: yarn build:lib
+
+      - name: Build demo
+        run: yarn build:demo
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -34,7 +58,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   demo:
-    needs: test
+    needs: validate
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     permissions:
@@ -61,7 +85,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   lib:
-    needs: test
+    needs: validate
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     permissions:

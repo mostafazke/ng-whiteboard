@@ -12,7 +12,7 @@ ng-whiteboard
 
 Lightweight angular whiteboard.
 
-[![Build Status](https://dl.circleci.com/status-badge/img/gh/mostafazke/ng-whiteboard/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/mostafazke/ng-whiteboard/tree/master)
+[![Build Status](https://github.com/mostafazke/ng-whiteboard/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/mostafazke/ng-whiteboard/actions/workflows/ci.yml)
 [![ng-whiteboard](https://img.shields.io/badge/angular-whiteboard-blue)](https://mostafazke.github.io/ng-whiteboard)
 [![npm version](https://img.shields.io/npm/v/ng-whiteboard.svg)](https://www.npmjs.com/package/ng-whiteboard)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
