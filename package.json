@@ -61,7 +61,7 @@
     "@nx/jest": "20.3.0",
     "@nx/js": "20.3.0",
     "@nx/web": "20.3.0",
-    "@nx/workspace": "20.3.0",
+    "@nx/workspace": "23.0.0",
     "@schematics/angular": "~19.0.0",
     "@semantic-release/changelog": "~6.0.3",
     "@semantic-release/commit-analyzer": "~13.0.0",
