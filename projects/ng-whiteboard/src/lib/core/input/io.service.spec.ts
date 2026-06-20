@@ -683,6 +683,14 @@ describe('IOService', () => {
       expect(mockSvgElement.getAttribute('x')).toBe('100');
       expect(mockSvgElement.getAttribute('y')).toBe('50');
     });
+
+    it('should embed transform-origin styles so rotated elements export at the correct position', async () => {
+      await service.save(FormatType.Png);
+
+      const svgString = mockSvgToBase64.mock.calls[0][0];
+      expect(svgString).toContain('transform-box: fill-box');
+      expect(svgString).toContain('transform-origin: center');
+    });
   });
 
   describe('Export convenience methods', () => {
