@@ -37,7 +37,7 @@
     "firebase": "11.10.0",
     "highlight.js": "~11.11.0",
     "ngx-colors": "^3.6.0",
-    "rxjs": "~7.8.0",
+    "rxjs": "~7.8.2",
     "zone.js": "~0.16.0"
   },
   "devDependencies": {
