@@ -8,13 +8,17 @@ import { Direction, ElementType, Point, PointerInfo, SnapResult, ToolType, White
 import { getMouseTarget } from '../utils/dom';
 import {
   calculateAngle,
-  getRotatedDirection,
   getSnappedOffset,
   isElementInSelectionBox,
   normalizeAngle,
   rotatePointAroundCenter,
 } from '../utils/geometry';
 import { getElementBounds } from '../utils/dom/element';
+import {
+  getCombinedScreenBounds,
+  getRotatedChildScale,
+  getRotatedResizeAnchor,
+} from '../utils/geometry/transform-utils';
 
 import { BaseTool } from './base-tool';
 import { CursorType } from '../types/cursors';
@@ -368,18 +372,33 @@ export class SelectTool extends BaseTool {
       const initialElement = this.initialElementStates.get(element.id);
       if (!initialElement) return;
 
-      const dx = currentPoint.x - this.startPoint.x;
-      const dy = currentPoint.y - this.startPoint.y;
-
-      let localDx = dx;
-      let localDy = dy;
+      let localDx: number;
+      let localDy: number;
 
       if (element.rotation && element.rotation !== 0) {
+        // For rotated elements keep the delta-from-click approach and un-rotate to local space.
+        const rawDx = currentPoint.x - this.startPoint.x;
+        const rawDy = currentPoint.y - this.startPoint.y;
         const angleRad = (-element.rotation * Math.PI) / 180;
         const cos = Math.cos(angleRad);
         const sin = Math.sin(angleRad);
-        localDx = dx * cos - dy * sin;
-        localDy = dx * sin + dy * cos;
+        localDx = rawDx * cos - rawDy * sin;
+        localDy = rawDx * sin + rawDy * cos;
+      } else {
+        // Absolute cursor tracking: compute dx/dy relative to the initial natural
+        // bbox corners so the dragged handle edge follows the cursor exactly,
+        // regardless of where inside the grip the user clicked.
+        const naturalBounds = getElementUtil(initialElement.type).getBounds(initialElement);
+        localDx = handle.includes(Direction.E)
+          ? currentPoint.x - naturalBounds.maxX
+          : handle.includes(Direction.W)
+          ? currentPoint.x - naturalBounds.minX
+          : 0;
+        localDy = handle.includes(Direction.S)
+          ? currentPoint.y - naturalBounds.maxY
+          : handle.includes(Direction.N)
+          ? currentPoint.y - naturalBounds.minY
+          : 0;
       }
 
       let snappedX = localDx;
@@ -400,61 +419,22 @@ export class SelectTool extends BaseTool {
           const initial = this.initialElementStates.get(el.id);
           if (!initial) return el;
 
+          // For a rotated element the element renders rotated around its fill-box center,
+          // so pin the anchor corner (opposite the dragged handle) in world space using
+          // that same center. Computing it before and after the resize and shifting by the
+          // difference keeps the opposite corner fixed instead of drifting.
           let anchorPointBefore: Point | null = null;
           if (initial.rotation && initial.rotation !== 0) {
-            const initialAny = initial as unknown as Record<string, unknown>;
-            const width = (initialAny['width'] as number) || (initialAny['rx'] as number) * 2 || 0;
-            const height = (initialAny['height'] as number) || (initialAny['ry'] as number) * 2 || 0;
-
-            let anchorLocalX = 0,
-              anchorLocalY = 0;
-
-            if (handle.includes(Direction.N)) anchorLocalY = height;
-            else if (handle.includes(Direction.S)) anchorLocalY = 0;
-            else anchorLocalY = height / 2;
-
-            if (handle.includes(Direction.W)) anchorLocalX = width;
-            else if (handle.includes(Direction.E)) anchorLocalX = 0;
-            else anchorLocalX = width / 2;
-
-            const angleRad = (initial.rotation * Math.PI) / 180;
-            const cos = Math.cos(angleRad);
-            const sin = Math.sin(angleRad);
-
-            anchorPointBefore = {
-              x: initial.x + (anchorLocalX * cos - anchorLocalY * sin),
-              y: initial.y + (anchorLocalX * sin + anchorLocalY * cos),
-            };
+            const initialBounds = getElementUtil(initial.type).getBounds(initial);
+            anchorPointBefore = getRotatedResizeAnchor(initialBounds, handle, initial.rotation);
           }
 
           const elementUtil = getElementUtil(initial.type);
           const resized = elementUtil.resize({ ...initial }, handle, snappedX, snappedY);
 
           if (initial.rotation && initial.rotation !== 0 && anchorPointBefore) {
-            const resizedAny = resized as unknown as Record<string, unknown>;
-            const width = (resizedAny['width'] as number) || (resizedAny['rx'] as number) * 2 || 0;
-            const height = (resizedAny['height'] as number) || (resizedAny['ry'] as number) * 2 || 0;
-
-            let anchorLocalX = 0,
-              anchorLocalY = 0;
-
-            if (handle.includes(Direction.N)) anchorLocalY = height;
-            else if (handle.includes(Direction.S)) anchorLocalY = 0;
-            else anchorLocalY = height / 2;
-
-            if (handle.includes(Direction.W)) anchorLocalX = width;
-            else if (handle.includes(Direction.E)) anchorLocalX = 0;
-            else anchorLocalX = width / 2;
-
-            const rotation = resized.rotation ?? 0;
-            const angleRad = (rotation * Math.PI) / 180;
-            const cos = Math.cos(angleRad);
-            const sin = Math.sin(angleRad);
-
-            const anchorPointAfter = {
-              x: resized.x + (anchorLocalX * cos - anchorLocalY * sin),
-              y: resized.y + (anchorLocalX * sin + anchorLocalY * cos),
-            };
+            const resizedBounds = getElementUtil(resized.type).getBounds(resized);
+            const anchorPointAfter = getRotatedResizeAnchor(resizedBounds, handle, resized.rotation ?? 0);
 
             resized.x += anchorPointBefore.x - anchorPointAfter.x;
             resized.y += anchorPointBefore.y - anchorPointAfter.y;
@@ -551,27 +531,38 @@ export class SelectTool extends BaseTool {
           return element;
         }
 
-        const relX = initialElement.x - anchorX;
-        const relY = initialElement.y - anchorY;
+        // Project the group scale onto the child's own axes so rotated children scale
+        // along their orientation instead of stretching diagonally out of the box.
+        const childScale = getRotatedChildScale(finalScaleX, finalScaleY, initialElement.rotation ?? 0);
 
-        const newRelX = relX * finalScaleX;
-        const newRelY = relY * finalScaleY;
-
-        const scaledX = anchorX + newRelX;
-        const scaledY = anchorY + newRelY;
+        const hasSize =
+          'width' in initialElement &&
+          initialElement.width !== undefined &&
+          'height' in initialElement &&
+          initialElement.height !== undefined;
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const updates: any = {
-          ...element,
-          x: scaledX,
-          y: scaledY,
-        };
+        const updates: any = { ...element };
 
-        if ('width' in initialElement && initialElement.width !== undefined) {
-          updates.width = initialElement.width * Math.abs(finalScaleX);
-        }
-        if ('height' in initialElement && initialElement.height !== undefined) {
-          updates.height = initialElement.height * Math.abs(finalScaleY);
+        if (hasSize) {
+          // Scale the child's center about the anchor with the group scale, then re-derive
+          // the origin from the projected-scaled size. Origin-only scaling would shift a
+          // rotated child whenever its size scale differs from the group scale.
+          const w0 = initialElement.width as number;
+          const h0 = initialElement.height as number;
+          const newWidthEl = w0 * childScale.scaleX;
+          const newHeightEl = h0 * childScale.scaleY;
+          const centerX = initialElement.x + w0 / 2;
+          const centerY = initialElement.y + h0 / 2;
+          const newCenterX = anchorX + (centerX - anchorX) * finalScaleX;
+          const newCenterY = anchorY + (centerY - anchorY) * finalScaleY;
+          updates.x = newCenterX - newWidthEl / 2;
+          updates.y = newCenterY - newHeightEl / 2;
+          updates.width = newWidthEl;
+          updates.height = newHeightEl;
+        } else {
+          updates.x = anchorX + (initialElement.x - anchorX) * finalScaleX;
+          updates.y = anchorY + (initialElement.y - anchorY) * finalScaleY;
         }
 
         if (initialElement.style?.strokeWidth) {
@@ -908,18 +899,39 @@ export class SelectTool extends BaseTool {
       this.initialElementStates.set(element.id, { ...element });
     });
 
-    const allBounds = selectedElements.map((el) => getElementBounds(el));
-    const minX = Math.min(...allBounds.map((b) => b.minX));
-    const minY = Math.min(...allBounds.map((b) => b.minY));
-    const maxX = Math.max(...allBounds.map((b) => b.maxX));
-    const maxY = Math.max(...allBounds.map((b) => b.maxY));
-
-    this.initialBoundingBox = {
-      x: minX,
-      y: minY,
-      width: maxX - minX,
-      height: maxY - minY,
-    };
+    // Use the already-computed bounding box signal (which uses measureTextElementSvg
+    // for text elements) so that initialBoundingBox matches the displayed box exactly.
+    const currentBbox = this.apiService.getBoundingBoxSignal()();
+    if (currentBbox) {
+      this.initialBoundingBox = {
+        x: currentBbox.x,
+        y: currentBbox.y,
+        width: currentBbox.width,
+        height: currentBbox.height,
+      };
+    } else {
+      const combinedBounds = getCombinedScreenBounds(selectedElements);
+      if (combinedBounds) {
+        this.initialBoundingBox = {
+          x: combinedBounds.minX,
+          y: combinedBounds.minY,
+          width: combinedBounds.width,
+          height: combinedBounds.height,
+        };
+      } else {
+        const allBounds = selectedElements.map((el) => getElementBounds(el));
+        const minX = Math.min(...allBounds.map((b) => b.minX));
+        const minY = Math.min(...allBounds.map((b) => b.minY));
+        const maxX = Math.max(...allBounds.map((b) => b.maxX));
+        const maxY = Math.max(...allBounds.map((b) => b.maxY));
+        this.initialBoundingBox = {
+          x: minX,
+          y: minY,
+          width: maxX - minX,
+          height: maxY - minY,
+        };
+      }
+    }
   }
 
   private initializeRotation(event: PointerInfo): void {
@@ -966,12 +978,11 @@ export class SelectTool extends BaseTool {
       baseDirection = staticDirectionStr as Direction;
     }
 
-    const selectedElements = this.apiService.getSelectedElements();
-    if (selectedElements.length > 0) {
-      const rotation = selectedElements[0].rotation || 0;
-      return getRotatedDirection(baseDirection, rotation);
-    }
-
+    // The selection box and its grips render inside #selectorParentGroup, which rotates
+    // with the element, so each grip stays glued to its own local corner. The resize
+    // direction is therefore the grip's own (static) direction — the handler un-rotates
+    // the cursor delta into local space, so applying a rotation remap here would
+    // double-count the rotation and resize the wrong corner.
     return baseDirection;
   }
 }

@@ -433,7 +433,9 @@ describe('SelectTool', () => {
       selectTool.handlePointerMove(event);
       flushRAF();
 
-      expect(getSnappedOffset).toHaveBeenCalledWith(50, 150);
+      // Resize tracks the cursor absolutely: for the N handle the snapped offset is
+      // (cursor.x − bounds.maxX for E/W → 0 here, cursor.y − bounds.minY = 200).
+      expect(getSnappedOffset).toHaveBeenCalledWith(0, 200);
       expect(apiService.transformSelectedElements).toHaveBeenCalled();
     });
 
@@ -1194,14 +1196,20 @@ describe('SelectTool', () => {
       expect(selectTool.getCurrentHandle()).toBe(Direction.SE);
     });
 
-    it('should apply rotation to resize direction', () => {
-      const mockTarget = { id: `${SELECTOR_GRIP_RESIZE}_n`, getAttribute: jest.fn() };
+    it('keeps the resize direction glued to the grip when the element is rotated', () => {
+      // The selection box and its grips live inside #selectorParentGroup, which rotates
+      // with the element, so each grip stays glued to its own local corner. The resize
+      // direction must therefore be the grip's own static direction — NOT a rotation-
+      // remapped one — otherwise dragging a grip resizes a different corner than the one
+      // under the cursor (the rotated grip and the handler's delta un-rotation would
+      // double-count the rotation).
+      const mockTarget = { id: `${SELECTOR_GRIP_RESIZE}_nw`, getAttribute: jest.fn() };
       (getMouseTarget as jest.Mock).mockReturnValue(mockTarget);
-      (getRotatedDirection as jest.Mock).mockReturnValue(Direction.NE); // Rotated direction
+      (getRotatedDirection as jest.Mock).mockReturnValue(Direction.NE); // a remap would be wrong here
 
       apiService.getSelectedElements = jest
         .fn()
-        .mockReturnValue([{ id: '1', rotation: 45, type: ElementType.Rectangle, x: 0, y: 0, width: 100, height: 100 }]);
+        .mockReturnValue([{ id: '1', rotation: 90, type: ElementType.Rectangle, x: 0, y: 0, width: 100, height: 100 }]);
 
       const mockGetBounds = jest.fn().mockReturnValue({
         minX: 0,
@@ -1218,8 +1226,8 @@ describe('SelectTool', () => {
       const event = createMockPointerInfo({ x: 100, y: 100, eventType: 'pointerdown' });
       selectTool.handlePointerDown(event);
 
-      expect(getRotatedDirection).toHaveBeenCalledWith(Direction.N, 45);
-      expect(selectTool.getCurrentHandle()).toBe(Direction.NE);
+      expect(getRotatedDirection).not.toHaveBeenCalled();
+      expect(selectTool.getCurrentHandle()).toBe(Direction.NW);
     });
 
     it('should return default direction for invalid handle ID', () => {

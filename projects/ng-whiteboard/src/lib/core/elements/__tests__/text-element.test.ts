@@ -44,8 +44,8 @@ describe('TextElementUtil', () => {
     const textElement = textElementUtil.create({ x: 0, y: 0, scaleX: 1, scaleY: 1 });
     const resizedElement = textElementUtil.resize(textElement, Direction.NW, 10, -10);
 
-    expect(resizedElement.x).toBe(10);
-    expect(resizedElement.y).toBe(-10);
+    expect(resizedElement.x).toBe(5);
+    expect(resizedElement.y).toBe(-5);
     expect(resizedElement.scaleX).toBeLessThan(1);
     expect(resizedElement.scaleY).toBeGreaterThan(1);
   });
@@ -54,7 +54,7 @@ describe('TextElementUtil', () => {
     const textElement = textElementUtil.create({ x: 0, y: 0, scaleX: 1, scaleY: 1 });
     const resizedElement = textElementUtil.resize(textElement, Direction.N, 0, 10);
 
-    expect(resizedElement.y).toBe(10);
+    expect(resizedElement.y).toBe(5);
     expect(resizedElement.scaleY).toBeLessThan(1);
   });
 
@@ -62,7 +62,7 @@ describe('TextElementUtil', () => {
     const textElement = textElementUtil.create({ x: 0, y: 0, scaleX: 1, scaleY: 1 });
     const resizedElement = textElementUtil.resize(textElement, Direction.NE, 10, 10);
 
-    expect(resizedElement.y).toBe(10);
+    expect(resizedElement.y).toBe(5);
     expect(resizedElement.scaleX).toBeGreaterThan(1);
     expect(resizedElement.scaleY).toBeLessThan(1);
   });
@@ -93,7 +93,7 @@ describe('TextElementUtil', () => {
     const textElement = textElementUtil.create({ x: 0, y: 0, scaleX: 1, scaleY: 1 });
     const resizedElement = textElementUtil.resize(textElement, Direction.SW, 10, 10);
 
-    expect(resizedElement.x).toBe(10);
+    expect(resizedElement.x).toBe(5);
     expect(resizedElement.scaleX).toBeLessThan(1);
     expect(resizedElement.scaleY).toBeGreaterThan(1);
   });
@@ -102,7 +102,7 @@ describe('TextElementUtil', () => {
     const textElement = textElementUtil.create({ x: 0, y: 0, scaleX: 1, scaleY: 1 });
     const resizedElement = textElementUtil.resize(textElement, Direction.W, 10, 0);
 
-    expect(resizedElement.x).toBe(10);
+    expect(resizedElement.x).toBe(5);
     expect(resizedElement.scaleX).toBeLessThan(1);
   });
 
@@ -383,6 +383,58 @@ describe('TextElementUtil', () => {
       // Bounds should be much larger with large scale
       expect(bounds.width).toBeGreaterThan(16 * 3 * 0.6 * 3); // Scaled up
       expect(bounds.height).toBeGreaterThan(16 * 1.2 * 3); // Scaled up
+    });
+  });
+
+  describe('scale-around-center (issue #338)', () => {
+    // The element <g> renders with CSS transform-box:fill-box; transform-origin:center,
+    // so scale pivots around the geometry's center, not the local origin. The bounding
+    // box must reflect that or it drifts away from the rendered text.
+
+    it('keeps the bounding-box center fixed when scaleX changes', () => {
+      const base = textElementUtil.create({ x: 100, y: 50, text: 'Hello', scaleX: 1, scaleY: 1, style: { fontSize: 16 } });
+      const scaled = textElementUtil.create({ x: 100, y: 50, text: 'Hello', scaleX: 3, scaleY: 1, style: { fontSize: 16 } });
+      const b1 = textElementUtil.getBounds(base);
+      const b2 = textElementUtil.getBounds(scaled);
+      expect(b2.minX + b2.width / 2).toBeCloseTo(b1.minX + b1.width / 2, 6);
+    });
+
+    it('keeps the bounding-box center fixed when scaleY changes', () => {
+      const base = textElementUtil.create({ x: 100, y: 50, text: 'Hello', scaleX: 1, scaleY: 1, style: { fontSize: 16 } });
+      const scaled = textElementUtil.create({ x: 100, y: 50, text: 'Hello', scaleX: 1, scaleY: 3, style: { fontSize: 16 } });
+      const b1 = textElementUtil.getBounds(base);
+      const b2 = textElementUtil.getBounds(scaled);
+      expect(b2.minY + b2.height / 2).toBeCloseTo(b1.minY + b1.height / 2, 6);
+    });
+
+    it('anchors the left edge and moves the right edge by the drag delta when resizing E', () => {
+      const el = textElementUtil.create({ x: 100, y: 50, text: 'Hello', scaleX: 1, scaleY: 1, style: { fontSize: 16 } });
+      const before = textElementUtil.getBounds(el);
+      const dx = 40;
+      const resized = textElementUtil.resize({ ...el }, Direction.E, dx, 0);
+      const after = textElementUtil.getBounds(resized);
+      expect(after.minX).toBeCloseTo(before.minX, 6);
+      expect(after.maxX).toBeCloseTo(before.maxX + dx, 6);
+    });
+
+    it('anchors the right edge and moves the left edge by the drag delta when resizing W', () => {
+      const el = textElementUtil.create({ x: 100, y: 50, text: 'Hello', scaleX: 1, scaleY: 1, style: { fontSize: 16 } });
+      const before = textElementUtil.getBounds(el);
+      const dx = -30;
+      const resized = textElementUtil.resize({ ...el }, Direction.W, dx, 0);
+      const after = textElementUtil.getBounds(resized);
+      expect(after.maxX).toBeCloseTo(before.maxX, 6);
+      expect(after.minX).toBeCloseTo(before.minX + dx, 6);
+    });
+
+    it('anchors the top edge and moves the bottom edge by the drag delta when resizing S', () => {
+      const el = textElementUtil.create({ x: 100, y: 50, text: 'Hello', scaleX: 1, scaleY: 1, style: { fontSize: 16 } });
+      const before = textElementUtil.getBounds(el);
+      const dy = 25;
+      const resized = textElementUtil.resize({ ...el }, Direction.S, 0, dy);
+      const after = textElementUtil.getBounds(resized);
+      expect(after.minY).toBeCloseTo(before.minY, 6);
+      expect(after.maxY).toBeCloseTo(before.maxY + dy, 6);
     });
   });
 

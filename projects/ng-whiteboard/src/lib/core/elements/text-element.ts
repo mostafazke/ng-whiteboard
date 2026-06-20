@@ -2,6 +2,100 @@ import { BaseElement, Bounds, Direction, ElementType, ElementUtil, Point, defaul
 import { generateId } from '../utils/common';
 import { hitTestBoundingBox } from '../utils/drawing';
 
+interface TextNaturalDimensions {
+  naturalWidth: number;
+  naturalHeight: number;
+  bboxX: number;
+  bboxY: number;
+}
+
+/**
+ * Measures the natural (pre-scale) dimensions of a text element by creating a
+ * temporary SVG in the document. Returns null if measurement fails or in SSR.
+ */
+function measureTextNatural(element: TextElement): TextNaturalDimensions | null {
+  try {
+    if (typeof document === 'undefined') return null;
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const fontSize = element.style.fontSize ?? 16;
+    const fontFamily = element.style.fontFamily ?? 'Arial';
+    const fontStyle = element.style.fontStyle ?? 'normal';
+    const fontWeight = String(element.style.fontWeight ?? 'normal');
+    const lineHeight = fontSize * 1.2;
+    const lines = (element.text ?? '').split('\n');
+
+    const tempSvg = document.createElementNS(svgNS, 'svg') as SVGSVGElement;
+    tempSvg.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;width:0;height:0;overflow:hidden;';
+    document.body.appendChild(tempSvg);
+
+    const tempText = document.createElementNS(svgNS, 'text') as SVGTextElement;
+    tempText.setAttribute('text-anchor', 'start');
+    tempText.setAttribute('alignment-baseline', 'before-edge');
+    tempText.setAttribute('font-size', String(fontSize));
+    tempText.setAttribute('font-family', fontFamily);
+    tempText.setAttribute('font-style', fontStyle);
+    tempText.setAttribute('font-weight', fontWeight);
+
+    lines.forEach((line: string, i: number) => {
+      const tspan = document.createElementNS(svgNS, 'tspan') as SVGTSpanElement;
+      tspan.setAttribute('x', '0');
+      tspan.setAttribute('dy', i === 0 ? '0' : String(lineHeight));
+      tspan.textContent = line.length > 0 ? line : '\u200B';
+      tempText.appendChild(tspan);
+    });
+
+    tempSvg.appendChild(tempText);
+    const bbox = tempText.getBBox();
+    document.body.removeChild(tempSvg);
+
+    if (bbox.width === 0 && bbox.height === 0) return null;
+
+    return { naturalWidth: bbox.width, naturalHeight: bbox.height, bboxX: bbox.x, bboxY: bbox.y };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Natural (pre-scale) geometry of a text element, in the element's local coordinate
+ * space. `(ox, oy)` is the center of the text's fill-box — the pivot that the renderer
+ * scales and rotates around (CSS `transform-box: fill-box; transform-origin: center`).
+ */
+interface TextNaturalMetrics {
+  width: number;
+  height: number;
+  /** fill-box center, local space (unscaled) */
+  ox: number;
+  oy: number;
+}
+
+/**
+ * Resolves the natural (unscaled) text metrics, preferring real font measurement and
+ * falling back to font-size estimates when measurement is unavailable (e.g. SSR/tests).
+ * getBounds and resize share this so the displayed box and the resize math always agree.
+ */
+function getNaturalMetrics(element: TextElement): TextNaturalMetrics {
+  const fontSize = element.style.fontSize ?? defaultTextElementStyle.fontSize ?? 16;
+  const measured = measureTextNatural(element);
+
+  if (measured) {
+    return {
+      width: measured.naturalWidth,
+      height: measured.naturalHeight,
+      ox: measured.bboxX + measured.naturalWidth / 2,
+      oy: measured.bboxY + measured.naturalHeight / 2,
+    };
+  }
+
+  const lines = (element.text ?? '').split('\n');
+  const maxChars = lines.reduce((max, line) => Math.max(max, line.length), 0);
+  const width = fontSize * 0.6 * maxChars || fontSize;
+  const height = fontSize * 1.2 * lines.length || fontSize * 1.2;
+  // SVG text origin is at the first baseline; the visual top sits ~0.8*fontSize above it.
+  const bboxY = -(fontSize * 0.8);
+  return { width, height, ox: width / 2, oy: bboxY + height / 2 };
+}
+
 export interface TextElement extends BaseElement {
   type: ElementType.Text;
   text: string;
@@ -33,73 +127,46 @@ export class TextElementUtil implements ElementUtil<TextElement> {
 
   resize(element: TextElement, direction: Direction, dx: number, dy: number): TextElement {
     const MIN_SCALE = 0.1;
-    const SCALE_FACTOR = 0.016;
+    const { width, height } = getNaturalMetrics(element);
 
-    const scaleXChange = dx * SCALE_FACTOR;
-    const scaleYChange = dy * SCALE_FACTOR;
+    // Scale pivots around the fill-box center, so dragging an edge by `d` (in local
+    // space) changes the scale by `d / naturalSize` and shifts the origin so the opposite
+    // edge stays anchored. When unclamped that shift is exactly d/2; when the scale is
+    // clamped it is derived from the actual scale change instead.
+    if (direction.includes(Direction.E) || direction.includes(Direction.W)) {
+      const sign = direction.includes(Direction.E) ? 1 : -1;
+      const raw = element.scaleX + (sign * dx) / width;
+      const newScaleX = Math.max(MIN_SCALE, raw);
+      element.x += newScaleX === raw ? dx / 2 : (sign * (newScaleX - element.scaleX) * width) / 2;
+      element.scaleX = newScaleX;
+    }
 
-    switch (direction) {
-      case Direction.NW:
-        element.x += dx;
-        element.y += dy;
-        element.scaleX = Math.max(MIN_SCALE, element.scaleX - scaleXChange);
-        element.scaleY = Math.max(MIN_SCALE, element.scaleY - scaleYChange);
-        break;
-      case Direction.N:
-        element.y += dy;
-        element.scaleY = Math.max(MIN_SCALE, element.scaleY - scaleYChange);
-        break;
-      case Direction.NE:
-        element.y += dy;
-        element.scaleX = Math.max(MIN_SCALE, element.scaleX + scaleXChange);
-        element.scaleY = Math.max(MIN_SCALE, element.scaleY - scaleYChange);
-        break;
-      case Direction.E:
-        element.scaleX = Math.max(MIN_SCALE, element.scaleX + scaleXChange);
-        break;
-      case Direction.SE:
-        element.scaleX = Math.max(MIN_SCALE, element.scaleX + scaleXChange);
-        element.scaleY = Math.max(MIN_SCALE, element.scaleY + scaleYChange);
-        break;
-      case Direction.S:
-        element.scaleY = Math.max(MIN_SCALE, element.scaleY + scaleYChange);
-        break;
-      case Direction.SW:
-        element.x += dx;
-        element.scaleX = Math.max(MIN_SCALE, element.scaleX - scaleXChange);
-        element.scaleY = Math.max(MIN_SCALE, element.scaleY + scaleYChange);
-        break;
-      case Direction.W:
-        element.x += dx;
-        element.scaleX = Math.max(MIN_SCALE, element.scaleX - scaleXChange);
-        break;
+    if (direction.includes(Direction.S) || direction.includes(Direction.N)) {
+      const sign = direction.includes(Direction.S) ? 1 : -1;
+      const raw = element.scaleY + (sign * dy) / height;
+      const newScaleY = Math.max(MIN_SCALE, raw);
+      element.y += newScaleY === raw ? dy / 2 : (sign * (newScaleY - element.scaleY) * height) / 2;
+      element.scaleY = newScaleY;
     }
 
     return element;
   }
 
   getBounds(element: TextElement): Bounds {
-    const { text, x, y, scaleX, scaleY, style } = element;
-    const fontSize = style.fontSize ?? defaultTextElementStyle.fontSize ?? 16;
-    const lineHeight = fontSize * 1.2; // Match the line-height from rendering
-    const approximateCharWidth = fontSize * 0.6; // Slightly more accurate char width
+    const { x, y, scaleX, scaleY } = element;
+    const { width: naturalWidth, height: naturalHeight, ox, oy } = getNaturalMetrics(element);
 
-    const lines = text.split('\n');
-    const maxChars = lines.reduce((max, line) => Math.max(max, line.length), 0);
-
-    // Calculate actual width and height
-    const width = approximateCharWidth * maxChars * scaleX || fontSize * scaleX; // Minimum width
-    const height = lineHeight * lines.length * scaleY || fontSize * scaleY; // Minimum height
-
-    // SVG text y coordinate is at the baseline, so we need to offset upward
-    // The first line starts approximately 0.8 * fontSize above the baseline
-    const baselineOffset = fontSize * 0.8 * scaleY;
+    // Scale is applied around the fill-box center (ox, oy), matching the SVG render.
+    const width = naturalWidth * scaleX;
+    const height = naturalHeight * scaleY;
+    const minX = x + ox - width / 2;
+    const minY = y + oy - height / 2;
 
     return {
-      minX: x,
-      minY: y - baselineOffset,
-      maxX: x + width,
-      maxY: y - baselineOffset + height,
+      minX,
+      minY,
+      maxX: minX + width,
+      maxY: minY + height,
       width,
       height,
     };

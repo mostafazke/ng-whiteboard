@@ -3,7 +3,8 @@ import { EventBusService } from '../event-bus';
 import { CanvasService } from '../canvas/canvas.service';
 import { ClipboardService } from '../input/clipboard.service';
 import { ToolsService } from '../tools/tools.service';
-import { AlignmentType, BoundingBox, ElementType, SelectionBox, ToolType, WhiteboardElement } from '../types';
+import { AlignmentType, Bounds, BoundingBox, ElementType, SelectionBox, ToolType, WhiteboardElement } from '../types';
+import { TextElement } from './text-element';
 import { WhiteboardEvent } from '../types/events';
 import { getElementBounds } from '../utils/dom';
 import { getCombinedScreenBounds } from '../utils/geometry/transform-utils';
@@ -403,6 +404,75 @@ export class SelectionService {
     return expandedElements.map((el) => el.id);
   }
 
+  /**
+   * Measures text element bounds by creating a temporary hidden SVG <text> element
+   * with matching font properties and calling getBBox() synchronously.
+   * This avoids depending on Angular's rendering cycle — the element need not be in
+   * the live DOM yet.
+   */
+  private measureTextElementSvg(element: WhiteboardElement): Bounds | null {
+    try {
+      if (!this.canvasService.isCanvasInitialized()) return null;
+      const svgContainer = this.canvasService.getCanvas();
+
+      const textEl = element as TextElement;
+      const fontSize = textEl.style.fontSize ?? 16;
+      const fontFamily = textEl.style.fontFamily ?? 'Arial';
+      const fontStyle = textEl.style.fontStyle ?? 'normal';
+      const fontWeight = textEl.style.fontWeight ?? 'normal';
+      const lineHeight = fontSize * 1.2;
+      const lines = (textEl.text ?? '').split('\n');
+      const scaleX = element.scaleX ?? 1;
+      const scaleY = element.scaleY ?? 1;
+
+      // Create a hidden temporary <text> matching the template's font attributes
+      const tempText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      tempText.setAttribute('text-anchor', 'start');
+      tempText.setAttribute('alignment-baseline', 'before-edge');
+      tempText.setAttribute('font-size', String(fontSize));
+      tempText.setAttribute('font-family', fontFamily);
+      tempText.setAttribute('font-style', fontStyle);
+      tempText.setAttribute('font-weight', fontWeight);
+      tempText.style.visibility = 'hidden';
+
+      lines.forEach((line: string, i: number) => {
+        const tspan = document.createElementNS('http://www.w3.org/2000/svg', 'tspan');
+        tspan.setAttribute('x', '0');
+        tspan.setAttribute('dy', i === 0 ? '0' : String(lineHeight));
+        // Use zero-width space for empty lines to preserve height contribution
+        tspan.textContent = line.length > 0 ? line : '\u200B';
+        tempText.appendChild(tspan);
+      });
+
+      svgContainer.appendChild(tempText);
+      const bbox = tempText.getBBox();
+      svgContainer.removeChild(tempText);
+
+      if (bbox.width === 0 && bbox.height === 0) return null;
+
+      // Scale is applied around the fill-box center (transform-box: fill-box;
+      // transform-origin: center), so position the scaled box about that center
+      // rather than the local origin — otherwise the box drifts from the rendered text.
+      const centerX = bbox.x + bbox.width / 2;
+      const centerY = bbox.y + bbox.height / 2;
+      const width = bbox.width * scaleX;
+      const height = bbox.height * scaleY;
+      const minX = element.x + centerX - width / 2;
+      const minY = element.y + centerY - height / 2;
+
+      return {
+        minX,
+        minY,
+        maxX: minX + width,
+        maxY: minY + height,
+        width,
+        height,
+      };
+    } catch {
+      return null;
+    }
+  }
+
   private calculateBoundingBox(elements: WhiteboardElement[]): BoundingBox {
     let bounds;
     let rotation = 0;
@@ -413,9 +483,12 @@ export class SelectionService {
       const element = elements[0];
       rotation = element.rotation || 0;
 
-      // Get bounds in local space (relative to element origin)
-      // For rectangles, this returns {minX: element.x, minY: element.y, width, height}
-      bounds = getElementBounds(element);
+      // For text elements, measure via a temporary SVG element for accurate font metrics
+      if (element.type === ElementType.Text) {
+        bounds = this.measureTextElementSvg(element) ?? getElementBounds(element);
+      } else {
+        bounds = getElementBounds(element);
+      }
     } else {
       // For multiple elements, use screen-space bounds that account for rotation
       const combinedBounds = getCombinedScreenBounds(elements);
