@@ -1,3 +1,21 @@
+## [5.3.3](https://github.com/mostafazke/ng-whiteboard/compare/v5.3.2...v5.3.3) (2026-06-20)
+
+
+### Bug Fixes
+
+* **ci:** satisfy no-empty-function in demo test-setup ([25e607e](https://github.com/mostafazke/ng-whiteboard/commit/25e607e2964d940c507c1f89459ebd2eb84c399d)), closes [#336](https://github.com/mostafazke/ng-whiteboard/issues/336) [#353](https://github.com/mostafazke/ng-whiteboard/issues/353) [#354](https://github.com/mostafazke/ng-whiteboard/issues/354)
+* **export:** keep rotated elements in place when exporting ([#339](https://github.com/mostafazke/ng-whiteboard/issues/339)) ([b973a67](https://github.com/mostafazke/ng-whiteboard/commit/b973a67d18444fcf9ab6c0b5737c300d7484a3a6))
+* **selection:** align bounding box with rendered transform-origin ([#338](https://github.com/mostafazke/ng-whiteboard/issues/338)) ([89eabc9](https://github.com/mostafazke/ng-whiteboard/commit/89eabc9bd341550632686ecfbae0423178457327))
+* **selection:** keep rotated elements from drifting on resize ([099fd8d](https://github.com/mostafazke/ng-whiteboard/commit/099fd8d3a724c7e470bc1ae427e763ab9eead5fd))
+
+
+### Performance Improvements
+
+* optimize rendering and drawing performance, fix demo test suite ([316d87a](https://github.com/mostafazke/ng-whiteboard/commit/316d87a40d7fa9ff45b734713720463cb382749d))
+* optimize rendering and improve test stability ([4cb13b5](https://github.com/mostafazke/ng-whiteboard/commit/4cb13b5756c41b28542352c27857b6db7a7d0508))
+* optimize rendering and improve test stability ([98e69cf](https://github.com/mostafazke/ng-whiteboard/commit/98e69cf89d68c182f96423108a7ac2c6b2ae3634))
+* optimize rendering and improve test stability ([f903a54](https://github.com/mostafazke/ng-whiteboard/commit/f903a5449303183168eb9a0966b0da96a5a833d9))
+
 ## [5.3.2](https://github.com/mostafazke/ng-whiteboard/compare/v5.3.1...v5.3.2) (2026-06-11)
 
 
