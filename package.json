@@ -95,7 +95,7 @@
     "jest-preset-angular": "~14.4.0",
     "jsonc-eslint-parser": "^2.1.0",
     "ng-packagr": "^17.3.0",
-    "nx": "20.3.0",
+    "nx": "20.8.4",
     "postcss": "^8.4.5",
     "postcss-url": "~10.1.4",
     "prettier": "^2.6.2",
