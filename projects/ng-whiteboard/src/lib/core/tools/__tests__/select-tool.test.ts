@@ -433,7 +433,9 @@ describe('SelectTool', () => {
       selectTool.handlePointerMove(event);
       flushRAF();
 
-      expect(getSnappedOffset).toHaveBeenCalledWith(50, 150);
+      // Resize tracks the cursor absolutely: for the N handle the snapped offset is
+      // (cursor.x − bounds.maxX for E/W → 0 here, cursor.y − bounds.minY = 200).
+      expect(getSnappedOffset).toHaveBeenCalledWith(0, 200);
       expect(apiService.transformSelectedElements).toHaveBeenCalled();
     });
 

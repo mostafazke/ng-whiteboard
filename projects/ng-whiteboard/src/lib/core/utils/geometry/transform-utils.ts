@@ -15,39 +15,31 @@ function getElementScreenBounds(element: WhiteboardElement): Bounds {
     return globalBounds;
   }
 
-  const localCenterX = globalBounds.width / 2;
-  const localCenterY = globalBounds.height / 2;
+  const centerX = globalBounds.minX + globalBounds.width / 2;
+  const centerY = globalBounds.minY + globalBounds.height / 2;
 
-  const localCorners: Point[] = [
-    { x: 0, y: 0 },
-    { x: globalBounds.width, y: 0 },
-    { x: globalBounds.width, y: globalBounds.height },
-    { x: 0, y: globalBounds.height },
+  const corners: Point[] = [
+    { x: globalBounds.minX, y: globalBounds.minY },
+    { x: globalBounds.maxX, y: globalBounds.minY },
+    { x: globalBounds.maxX, y: globalBounds.maxY },
+    { x: globalBounds.minX, y: globalBounds.maxY },
   ];
 
   const rotation = (element.rotation || 0) * (Math.PI / 180);
   const cos = Math.cos(rotation);
   const sin = Math.sin(rotation);
 
-  const rotatedCorners = localCorners.map((corner) => {
-    const dx = corner.x - localCenterX;
-    const dy = corner.y - localCenterY;
-    const rotatedX = dx * cos - dy * sin;
-    const rotatedY = dx * sin + dy * cos;
-
+  const rotatedCorners = corners.map((corner) => {
+    const dx = corner.x - centerX;
+    const dy = corner.y - centerY;
     return {
-      x: rotatedX + localCenterX,
-      y: rotatedY + localCenterY,
+      x: centerX + dx * cos - dy * sin,
+      y: centerY + dx * sin + dy * cos,
     };
   });
 
-  const globalCorners = rotatedCorners.map((corner) => ({
-    x: corner.x + element.x,
-    y: corner.y + element.y,
-  }));
-
-  const xs = globalCorners.map((p) => p.x);
-  const ys = globalCorners.map((p) => p.y);
+  const xs = rotatedCorners.map((p) => p.x);
+  const ys = rotatedCorners.map((p) => p.y);
 
   const minX = Math.min(...xs);
   const minY = Math.min(...ys);

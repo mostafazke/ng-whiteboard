@@ -15,6 +15,7 @@ import {
   rotatePointAroundCenter,
 } from '../utils/geometry';
 import { getElementBounds } from '../utils/dom/element';
+import { getCombinedScreenBounds } from '../utils/geometry/transform-utils';
 
 import { BaseTool } from './base-tool';
 import { CursorType } from '../types/cursors';
@@ -368,18 +369,29 @@ export class SelectTool extends BaseTool {
       const initialElement = this.initialElementStates.get(element.id);
       if (!initialElement) return;
 
-      const dx = currentPoint.x - this.startPoint.x;
-      const dy = currentPoint.y - this.startPoint.y;
-
-      let localDx = dx;
-      let localDy = dy;
+      let localDx: number;
+      let localDy: number;
 
       if (element.rotation && element.rotation !== 0) {
+        // For rotated elements keep the delta-from-click approach and un-rotate to local space.
+        const rawDx = currentPoint.x - this.startPoint.x;
+        const rawDy = currentPoint.y - this.startPoint.y;
         const angleRad = (-element.rotation * Math.PI) / 180;
         const cos = Math.cos(angleRad);
         const sin = Math.sin(angleRad);
-        localDx = dx * cos - dy * sin;
-        localDy = dx * sin + dy * cos;
+        localDx = rawDx * cos - rawDy * sin;
+        localDy = rawDx * sin + rawDy * cos;
+      } else {
+        // Absolute cursor tracking: compute dx/dy relative to the initial natural
+        // bbox corners so the dragged handle edge follows the cursor exactly,
+        // regardless of where inside the grip the user clicked.
+        const naturalBounds = getElementUtil(initialElement.type).getBounds(initialElement);
+        localDx = handle.includes(Direction.E) ? currentPoint.x - naturalBounds.maxX
+                : handle.includes(Direction.W) ? currentPoint.x - naturalBounds.minX
+                : 0;
+        localDy = handle.includes(Direction.S) ? currentPoint.y - naturalBounds.maxY
+                : handle.includes(Direction.N) ? currentPoint.y - naturalBounds.minY
+                : 0;
       }
 
       let snappedX = localDx;
@@ -401,21 +413,23 @@ export class SelectTool extends BaseTool {
           if (!initial) return el;
 
           let anchorPointBefore: Point | null = null;
-          if (initial.rotation && initial.rotation !== 0) {
-            const initialAny = initial as unknown as Record<string, unknown>;
-            const width = (initialAny['width'] as number) || (initialAny['rx'] as number) * 2 || 0;
-            const height = (initialAny['height'] as number) || (initialAny['ry'] as number) * 2 || 0;
+              if (initial.rotation && initial.rotation !== 0) {
+            const initialBounds = getElementUtil(initial.type).getBounds(initial);
+            const localMinX = initialBounds.minX - initial.x;
+            const localMinY = initialBounds.minY - initial.y;
+            const width = initialBounds.width;
+            const height = initialBounds.height;
 
             let anchorLocalX = 0,
               anchorLocalY = 0;
 
-            if (handle.includes(Direction.N)) anchorLocalY = height;
-            else if (handle.includes(Direction.S)) anchorLocalY = 0;
-            else anchorLocalY = height / 2;
+            if (handle.includes(Direction.N)) anchorLocalY = localMinY + height;
+            else if (handle.includes(Direction.S)) anchorLocalY = localMinY;
+            else anchorLocalY = localMinY + height / 2;
 
-            if (handle.includes(Direction.W)) anchorLocalX = width;
-            else if (handle.includes(Direction.E)) anchorLocalX = 0;
-            else anchorLocalX = width / 2;
+            if (handle.includes(Direction.W)) anchorLocalX = localMinX + width;
+            else if (handle.includes(Direction.E)) anchorLocalX = localMinX;
+            else anchorLocalX = localMinX + width / 2;
 
             const angleRad = (initial.rotation * Math.PI) / 180;
             const cos = Math.cos(angleRad);
@@ -431,20 +445,22 @@ export class SelectTool extends BaseTool {
           const resized = elementUtil.resize({ ...initial }, handle, snappedX, snappedY);
 
           if (initial.rotation && initial.rotation !== 0 && anchorPointBefore) {
-            const resizedAny = resized as unknown as Record<string, unknown>;
-            const width = (resizedAny['width'] as number) || (resizedAny['rx'] as number) * 2 || 0;
-            const height = (resizedAny['height'] as number) || (resizedAny['ry'] as number) * 2 || 0;
+            const resizedBounds = getElementUtil(resized.type).getBounds(resized);
+            const resizedLocalMinX = resizedBounds.minX - resized.x;
+            const resizedLocalMinY = resizedBounds.minY - resized.y;
+            const width = resizedBounds.width;
+            const height = resizedBounds.height;
 
             let anchorLocalX = 0,
               anchorLocalY = 0;
 
-            if (handle.includes(Direction.N)) anchorLocalY = height;
-            else if (handle.includes(Direction.S)) anchorLocalY = 0;
-            else anchorLocalY = height / 2;
+            if (handle.includes(Direction.N)) anchorLocalY = resizedLocalMinY + height;
+            else if (handle.includes(Direction.S)) anchorLocalY = resizedLocalMinY;
+            else anchorLocalY = resizedLocalMinY + height / 2;
 
-            if (handle.includes(Direction.W)) anchorLocalX = width;
-            else if (handle.includes(Direction.E)) anchorLocalX = 0;
-            else anchorLocalX = width / 2;
+            if (handle.includes(Direction.W)) anchorLocalX = resizedLocalMinX + width;
+            else if (handle.includes(Direction.E)) anchorLocalX = resizedLocalMinX;
+            else anchorLocalX = resizedLocalMinX + width / 2;
 
             const rotation = resized.rotation ?? 0;
             const angleRad = (rotation * Math.PI) / 180;
@@ -908,18 +924,39 @@ export class SelectTool extends BaseTool {
       this.initialElementStates.set(element.id, { ...element });
     });
 
-    const allBounds = selectedElements.map((el) => getElementBounds(el));
-    const minX = Math.min(...allBounds.map((b) => b.minX));
-    const minY = Math.min(...allBounds.map((b) => b.minY));
-    const maxX = Math.max(...allBounds.map((b) => b.maxX));
-    const maxY = Math.max(...allBounds.map((b) => b.maxY));
-
-    this.initialBoundingBox = {
-      x: minX,
-      y: minY,
-      width: maxX - minX,
-      height: maxY - minY,
-    };
+    // Use the already-computed bounding box signal (which uses measureTextElementSvg
+    // for text elements) so that initialBoundingBox matches the displayed box exactly.
+    const currentBbox = this.apiService.getBoundingBoxSignal()();
+    if (currentBbox) {
+      this.initialBoundingBox = {
+        x: currentBbox.x,
+        y: currentBbox.y,
+        width: currentBbox.width,
+        height: currentBbox.height,
+      };
+    } else {
+      const combinedBounds = getCombinedScreenBounds(selectedElements);
+      if (combinedBounds) {
+        this.initialBoundingBox = {
+          x: combinedBounds.minX,
+          y: combinedBounds.minY,
+          width: combinedBounds.width,
+          height: combinedBounds.height,
+        };
+      } else {
+        const allBounds = selectedElements.map((el) => getElementBounds(el));
+        const minX = Math.min(...allBounds.map((b) => b.minX));
+        const minY = Math.min(...allBounds.map((b) => b.minY));
+        const maxX = Math.max(...allBounds.map((b) => b.maxX));
+        const maxY = Math.max(...allBounds.map((b) => b.maxY));
+        this.initialBoundingBox = {
+          x: minX,
+          y: minY,
+          width: maxX - minX,
+          height: maxY - minY,
+        };
+      }
+    }
   }
 
   private initializeRotation(event: PointerInfo): void {
