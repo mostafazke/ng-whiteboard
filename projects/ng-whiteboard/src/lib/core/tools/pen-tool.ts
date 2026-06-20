@@ -60,6 +60,21 @@ export class PenTool extends BaseTool {
     if (!this.active || !this.element) return;
 
     const { x, y } = this.getPointerPosition(event);
+
+    // Only add point if it's far enough from the last point to improve performance and data size
+    const lastPoint = this.element.points[this.element.points.length - 1];
+    if (lastPoint) {
+      const dx = x - lastPoint[0];
+      const dy = y - lastPoint[1];
+      const distanceSquared = dx * dx + dy * dy;
+      const threshold = this.whiteboardConfig.penThrottlingThreshold ?? 2;
+      const minDistanceSquared = threshold * threshold;
+
+      if (distanceSquared < minDistanceSquared) {
+        return;
+      }
+    }
+
     const points = [...this.element.points, [x, y]] as [number, number][];
 
     this.element.points = points;

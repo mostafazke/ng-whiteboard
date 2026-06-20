@@ -5,7 +5,8 @@ import { NgWhiteboardComponent } from 'ng-whiteboard';
 import { MinimalComponent } from './minimal/minimal.component';
 import { BasicComponent } from './basic/basic.component';
 import { ComprehensiveComponent } from './comprehensive/comprehensive.component';
-import { RouterModule } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('ExamplesComponent', () => {
   let component: ExamplesComponent;
@@ -13,7 +14,15 @@ describe('ExamplesComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NgWhiteboardComponent, RouterModule, ExamplesComponent, MinimalComponent, BasicComponent, ComprehensiveComponent],
+      imports: [
+        NgWhiteboardComponent,
+        RouterTestingModule,
+        ExamplesComponent,
+        MinimalComponent,
+        BasicComponent,
+        ComprehensiveComponent,
+        NoopAnimationsModule
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ExamplesComponent);

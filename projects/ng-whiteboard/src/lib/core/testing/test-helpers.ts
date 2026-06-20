@@ -80,6 +80,7 @@ export function createMockWhiteboardConfig(partial: Partial<WhiteboardConfig> = 
     fontFamily: 'Arial',
     fontSize: 16,
     penType: PenType.Pen,
+    penThrottlingThreshold: 2,
     arrowConfig: { ...defaultArrowConfig },
   };
 

@@ -63,48 +63,44 @@ export class WhiteboardCanvasComponent implements AfterViewInit {
     const layers = this.layers();
     const elements = this.elements();
 
+    // Create a map for O(1) layer lookups
+    const layersMap = new Map(layers.map((l) => [l.id, l]));
+
     const sortElements = (arr: WhiteboardElement[]) =>
       arr.slice().sort((a, b) => {
-        const layerA = a.layerId ? layers.find((l) => l.id === a.layerId) : undefined;
-        const layerB = b.layerId ? layers.find((l) => l.id === b.layerId) : undefined;
+        const layerA = a.layerId ? layersMap.get(a.layerId) : undefined;
+        const layerB = b.layerId ? layersMap.get(b.layerId) : undefined;
         const zA = (layerA?.zIndex ?? 0) * 1000 + (a.zIndex ?? 0);
         const zB = (layerB?.zIndex ?? 0) * 1000 + (b.zIndex ?? 0);
         return zA - zB;
       });
 
-    const visibleLayerIds = layers.filter((l) => l.visible).map((l) => l.id);
+    // Use a Set for faster inclusion checks
+    const visibleLayerIds = new Set(layers.filter((l) => l.visible).map((l) => l.id));
 
-    if (visibleLayerIds.length === 0) {
+    if (visibleLayerIds.size === 0 && layers.length > 0) {
       return [];
     }
-    const filtered = elements.filter((el) => !el.layerId || visibleLayerIds.includes(el.layerId));
+
+    const filtered = elements.filter((el) => !el.layerId || visibleLayerIds.has(el.layerId));
     const sorted = sortElements(filtered);
 
     // Add computed properties for rendering
-    return sorted.map((el) => ({
-      ...el,
-      transform: this.buildTransform(el),
-      isLocked: this.computeIsLocked(el, layers),
-      blendMode: this.computeBlendMode(el, layers),
-    }));
+    return sorted.map((el) => {
+      const layer = el.layerId ? layersMap.get(el.layerId) : undefined;
+      return {
+        ...el,
+        transform: this.buildTransform(el),
+        isLocked: layer?.locked || false,
+        blendMode: layer?.blendMode || 'normal',
+      };
+    });
   });
 
   private buildTransform(element: WhiteboardElement): string {
     const scaleX = element.scaleX ?? 1;
     const scaleY = element.scaleY ?? 1;
     return `translate(${element.x},${element.y}) rotate(${element.rotation}) scale(${scaleX},${scaleY})`;
-  }
-
-  private computeIsLocked(element: WhiteboardElement, layers: ReturnType<typeof this.layers>): boolean {
-    if (!element.layerId) return false;
-    const layer = layers.find((l) => l.id === element.layerId);
-    return layer?.locked || false;
-  }
-
-  private computeBlendMode(element: WhiteboardElement, layers: ReturnType<typeof this.layers>): string {
-    if (!element.layerId) return 'normal';
-    const layer = layers.find((l) => l.id === element.layerId);
-    return layer?.blendMode || 'normal';
   }
 
   canvasWidth = computed(() => this.config().canvasWidth);

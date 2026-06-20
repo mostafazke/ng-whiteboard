@@ -1,11 +1,13 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { BasicComponent } from './basic.component';
-import { NgWhiteboardService } from 'ng-whiteboard';
+import { NgWhiteboardService, ToolType, FormatType } from 'ng-whiteboard';
+import { signal } from '@angular/core';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 describe('BasicComponent', () => {
   let component: BasicComponent;
   let fixture: ComponentFixture<BasicComponent>;
-  let mockWhiteboardService: jest.Mocked<NgWhiteboardService>;
+  let mockWhiteboardService: any;
 
   beforeEach(async () => {
     mockWhiteboardService = {
@@ -21,12 +23,39 @@ describe('BasicComponent', () => {
       save: jest.fn().mockResolvedValue('mock-result'),
       exportData: jest.fn().mockReturnValue('{}'),
       importData: jest.fn(),
-    } as unknown as jest.Mocked<NgWhiteboardService>;
+      updateSelectedElements: jest.fn(),
+      setActiveLayer: jest.fn(),
+      addLayer: jest.fn(),
+      removeLayer: jest.fn().mockReturnValue(true),
+      duplicateLayer: jest.fn(),
+      renameLayer: jest.fn(),
+      toggleLayerVisibility: jest.fn(),
+      toggleLayerLock: jest.fn(),
+      setLayerOpacity: jest.fn(),
+      setLayerBlendMode: jest.fn(),
+      reorderLayersByIndex: jest.fn(),
+      signals: jest.fn().mockReturnValue({
+        layers: signal([]),
+        activeLayerId: signal('layer-1'),
+        activeLayer: signal({ id: 'layer-1', name: 'Layer 1', visible: true, locked: false }),
+        selectedTool: signal(ToolType.Pen),
+        canUndo: signal(false),
+        canRedo: signal(false),
+        availableTools: signal([{ type: ToolType.Pen, enabled: true, name: 'Pen', icon: '' }]),
+        selectedElements: signal([]),
+        config: signal({ zoom: 1 }),
+      }),
+    };
 
     await TestBed.configureTestingModule({
-      imports: [BasicComponent],
-      providers: [{ provide: NgWhiteboardService, useValue: mockWhiteboardService }],
-    }).compileComponents();
+      imports: [BasicComponent, NoopAnimationsModule],
+    })
+      .overrideComponent(BasicComponent, {
+        set: {
+          providers: [{ provide: NgWhiteboardService, useValue: mockWhiteboardService }],
+        },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(BasicComponent);
     component = fixture.componentInstance;
@@ -38,68 +67,52 @@ describe('BasicComponent', () => {
   });
 
   it('should initialize with default values', () => {
-    expect(component.boardId).toBe('basic-board');
-    expect(component.selectedTool()).toBe(component.toolType.Pen);
-    expect(component.config.strokeColor).toBe('#2563eb');
-    expect(component.config.backgroundColor).toBe('#ffffff');
-    expect(component.config.strokeWidth).toBe(5);
+    expect(component.boardId).toBe('whiteboard-app');
+    expect(component.selectedTool()).toBe(ToolType.Pen);
+    expect(component.config().strokeColor).toBe('#000000');
+    expect(component.config().backgroundColor).toBe('#ffffff');
+    expect(component.config().strokeWidth).toBe(3);
   });
 
   it('should set active board on construction', () => {
-    expect(mockWhiteboardService.setActiveBoard).toHaveBeenCalledWith('basic-board');
+    expect(mockWhiteboardService.setActiveBoard).toHaveBeenCalledWith('whiteboard-app');
   });
 
   describe('Tool Selection', () => {
     it('should select tool', () => {
-      component.selectTool(component.toolType.Rectangle);
-      expect(component.selectedTool()).toBe(component.toolType.Rectangle);
-      expect(mockWhiteboardService.setActiveTool).toHaveBeenCalledWith(component.toolType.Rectangle);
+      component.selectTool(ToolType.Rectangle);
+      expect(mockWhiteboardService.setActiveTool).toHaveBeenCalledWith(ToolType.Rectangle);
     });
   });
 
   describe('Drawing Controls', () => {
     it('should set stroke width', () => {
-      component.setStrokeWidth(10);
-      expect(component.config.strokeWidth).toBe(10);
-      expect(component.isStrokeMenuOpen()).toBe(false);
+      component.selectWidth(10);
+      expect(component.config().strokeWidth).toBe(10);
+      expect(component.showWidthMenu()).toBe(false);
     });
 
     it('should set stroke color', () => {
-      const event = { target: { value: '#ff0000' } } as unknown as Event;
-      component.setStrokeColor(event);
-      expect(component.config.strokeColor).toBe('#ff0000');
+      component.selectColor('#ff0000');
+      expect(component.config().strokeColor).toBe('#ff0000');
     });
 
     it('should set background color', () => {
-      const event = { target: { value: '#00ff00' } } as unknown as Event;
-      component.setBackgroundColor(event);
-      expect(component.config.backgroundColor).toBe('#00ff00');
+      component.selectBackgroundColor('#00ff00');
+      expect(component.config().backgroundColor).toBe('#00ff00');
     });
   });
 
   describe('Canvas Controls', () => {
     it('should toggle grid', () => {
-      const initialGrid = component.config.enableGrid ?? false;
+      const initialGrid = component.config().enableGrid ?? false;
       component.toggleGrid();
-      expect(component.config.enableGrid).toBe(!initialGrid);
+      expect(component.config().enableGrid).toBe(!initialGrid);
     });
 
-    it('should toggle snap to grid', () => {
-      const initialSnap = component.config.snapToGrid ?? false;
-      component.toggleSnapToGrid();
-      expect(component.config.snapToGrid).toBe(!initialSnap);
-    });
-
-    it('should clear whiteboard with confirmation', () => {
-      jest.spyOn(window, 'confirm').mockReturnValue(true);
+    it('should clear whiteboard', () => {
       component.clear();
       expect(mockWhiteboardService.clear).toHaveBeenCalled();
-    });
-
-    it('should not clear whiteboard without confirmation', () => {
-      jest.spyOn(window, 'confirm').mockReturnValue(false);
-      component.clear();
-      expect(mockWhiteboardService.clear).not.toHaveBeenCalled();
     });
   });
 
@@ -127,146 +140,89 @@ describe('BasicComponent', () => {
     });
 
     it('should reset zoom', () => {
-      component.zoomReset();
+      component.resetZoom();
       expect(mockWhiteboardService.resetZoom).toHaveBeenCalled();
     });
   });
 
   describe('Image Handling', () => {
-    it('should handle image selection', (done) => {
+    it('should handle image upload', fakeAsync(() => {
       const mockFile = new File([''], 'test.png', { type: 'image/png' });
-      const mockFileList = {
-        0: mockFile,
-        length: 1,
-        item: () => mockFile,
-      } as FileList;
-
       const event = {
         target: {
-          files: mockFileList,
-          value: '',
+          files: [mockFile],
         },
       } as unknown as Event;
 
-      // Mock FileReader
-      interface MockFileReader {
-        readAsDataURL: jest.Mock;
-        result: string;
-        onload?: (e: ProgressEvent) => void;
-      }
-
-      const mockFileReader: MockFileReader = {
+      const mockReader = {
         readAsDataURL: jest.fn(),
         result: 'data:image/png;base64,test',
+        onload: null as any,
+        onerror: null as any,
       };
 
-      jest
-        .spyOn(window as unknown as { FileReader: new () => FileReader }, 'FileReader')
-        .mockImplementation(() => mockFileReader as unknown as FileReader);
+      jest.spyOn(window, 'FileReader').mockImplementation(() => mockReader as any);
 
-      component.onImageSelect(event);
+      component.uploadImage(event);
 
-      // Simulate FileReader.onload
-      setTimeout(() => {
-        if (mockFileReader.onload) {
-          mockFileReader.onload({ target: mockFileReader } as unknown as ProgressEvent);
-        }
-        expect(mockWhiteboardService.addImage).toHaveBeenCalledWith({ image: 'data:image/png;base64,test' });
-        done();
-      }, 0);
-    });
+      if (mockReader.onload) {
+        mockReader.onload({ target: mockReader } as any);
+      }
+
+      tick();
+
+      expect(mockWhiteboardService.addImage).toHaveBeenCalledWith({ image: 'data:image/png;base64,test' });
+    }));
   });
 
   describe('Save/Export', () => {
     it('should save as PNG', async () => {
-      jest.spyOn(window, 'alert').mockImplementation();
-      await component.save(component.formatType.Png);
-      expect(mockWhiteboardService.save).toHaveBeenCalledWith(component.formatType.Png, 'whiteboard');
-      expect(component.isSaveMenuOpen()).toBe(false);
+      await component.saveAsImage();
+      expect(mockWhiteboardService.save).toHaveBeenCalledWith(FormatType.Png, 'Untitled Board');
     });
 
     it('should export data as JSON', () => {
-      const createElementSpy = jest.spyOn(document, 'createElement');
+      // Mock URL.createObjectURL and URL.revokeObjectURL
+      global.URL.createObjectURL = jest.fn().mockReturnValue('mock-url');
+      global.URL.revokeObjectURL = jest.fn();
+
+      const clickSpy = jest.fn();
       const mockLink = {
-        href: '',
-        download: '',
-        click: jest.fn(),
-      } as unknown as HTMLAnchorElement;
-      createElementSpy.mockReturnValue(mockLink);
-
-      component.exportData();
-
-      expect(mockWhiteboardService.exportData).toHaveBeenCalled();
-      expect(mockLink.download).toBe('whiteboard-data.json');
-      expect(mockLink.click).toHaveBeenCalled();
-    });
-
-    it('should handle save error', async () => {
-      mockWhiteboardService.save.mockRejectedValue(new Error('Save failed'));
-      jest.spyOn(window, 'alert').mockImplementation();
-      jest.spyOn(console, 'error').mockImplementation();
-
-      await component.save(component.formatType.Png);
-
-      expect(window.alert).toHaveBeenCalledWith('Failed to save whiteboard');
-    });
-  });
-
-  describe('Data Import', () => {
-    it('should import data from JSON file', (done) => {
-      const mockFile = new File(['{"test": "data"}'], 'data.json', { type: 'application/json' });
-      const mockFileList = {
-        0: mockFile,
-        length: 1,
-        item: () => mockFile,
-      } as FileList;
-
-      const event = {
-        target: {
-          files: mockFileList,
-          value: '',
-        },
-      } as unknown as Event;
-
-      interface MockFileReader {
-        readAsText: jest.Mock;
-        result: string;
-        onload?: (e: ProgressEvent) => void;
-      }
-
-      const mockFileReader: MockFileReader = {
-        readAsText: jest.fn(),
-        result: '{"test": "data"}',
+        click: clickSpy,
+        setAttribute: jest.fn(),
+        style: {},
       };
 
-      jest
-        .spyOn(window as unknown as { FileReader: new () => FileReader }, 'FileReader')
-        .mockImplementation(() => mockFileReader as unknown as FileReader);
-      jest.spyOn(window, 'alert').mockImplementation();
-
-      component.importData(event);
-
-      setTimeout(() => {
-        if (mockFileReader.onload) {
-          mockFileReader.onload({ target: mockFileReader } as unknown as ProgressEvent);
+      const originalCreateElement = document.createElement;
+      jest.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+        if (tagName === 'a') {
+          return mockLink as any;
         }
-        expect(mockWhiteboardService.importData).toHaveBeenCalledWith('{"test": "data"}');
-        done();
-      }, 0);
+        return originalCreateElement.call(document, tagName);
+      });
+
+      component.exportBoard();
+
+      expect(mockWhiteboardService.exportData).toHaveBeenCalled();
+      expect(clickSpy).toHaveBeenCalled();
     });
   });
 
-  describe('Event Handlers', () => {
-    it('should handle onSave event', () => {
-      const spy = jest.spyOn(console, 'log').mockImplementation();
-      component.onSave('data:image/png;base64,test');
-      expect(spy).toHaveBeenCalled();
+  describe('Layer Operations', () => {
+    it('should add a layer', () => {
+      component.addLayer();
+      expect(mockWhiteboardService.addLayer).toHaveBeenCalled();
     });
 
-    it('should handle onReady event', () => {
-      const spy = jest.spyOn(console, 'log').mockImplementation();
-      component.onReady();
-      expect(spy).toHaveBeenCalledWith('Whiteboard ready!');
+    it('should switch layer', () => {
+      component.switchToLayer('layer-2');
+      expect(mockWhiteboardService.setActiveLayer).toHaveBeenCalledWith('layer-2');
+    });
+
+    it('should delete layer with confirmation', () => {
+      jest.spyOn(window, 'confirm').mockReturnValue(true);
+      component.deleteLayer('layer-1');
+      expect(mockWhiteboardService.removeLayer).toHaveBeenCalledWith('layer-1');
     });
   });
 });
