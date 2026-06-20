@@ -1,4 +1,4 @@
-import { Point, Bounds, WhiteboardElement } from '../../types';
+import { Point, Bounds, Direction, WhiteboardElement } from '../../types';
 import { getElementBounds } from '../dom/element';
 
 /**
@@ -96,4 +96,49 @@ export function rotatePointAroundCenter(point: Point, center: Point, angleDegree
     x: center.x + dx * cos - dy * sin,
     y: center.y + dx * sin + dy * cos,
   };
+}
+
+/**
+ * World-space position of the resize anchor — the corner/edge that must stay pinned
+ * while dragging `handle` (i.e. the one opposite the dragged handle).
+ *
+ * The element renders rotated around its fill-box (geometry) center, which equals the
+ * center of `bounds`. So the anchor is the opposite corner rotated around that center —
+ * matching the render model `world(p) = center + R·(p − center)`. Computing it this way
+ * (rather than rotating around the element origin) keeps the anchor fixed in world space
+ * when the box dimensions change, so resizing a rotated element no longer drifts.
+ */
+/**
+ * Scale factors to apply to a rotated child's local width/height when a multi-selection
+ * group is resized by world-axis scale `(scaleX, scaleY)`.
+ *
+ * Applying the group's X-scale directly to a rotated child's local width stretches it
+ * along the child's own (rotated) axis, so a 45°-rotated box grows diagonally and spills
+ * out of the selection. Projecting the group scale onto the child's local axes instead
+ * scales each side by how much that side actually stretches in world space — shear-free,
+ * stays inside the box, reduces to `(scaleX, scaleY)` when unrotated and swaps at 90°.
+ */
+export function getRotatedChildScale(
+  scaleX: number,
+  scaleY: number,
+  rotationDegrees: number
+): { scaleX: number; scaleY: number } {
+  const rad = (rotationDegrees * Math.PI) / 180;
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+
+  return {
+    scaleX: Math.hypot(scaleX * cos, scaleY * sin),
+    scaleY: Math.hypot(scaleX * sin, scaleY * cos),
+  };
+}
+
+export function getRotatedResizeAnchor(bounds: Bounds, handle: Direction, rotationDegrees: number): Point {
+  const centerX = (bounds.minX + bounds.maxX) / 2;
+  const centerY = (bounds.minY + bounds.maxY) / 2;
+
+  const anchorX = handle.includes(Direction.W) ? bounds.maxX : handle.includes(Direction.E) ? bounds.minX : centerX;
+  const anchorY = handle.includes(Direction.N) ? bounds.maxY : handle.includes(Direction.S) ? bounds.minY : centerY;
+
+  return rotatePointAroundCenter({ x: anchorX, y: anchorY }, { x: centerX, y: centerY }, rotationDegrees);
 }
