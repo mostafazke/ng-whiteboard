@@ -431,6 +431,15 @@ export class IOService {
   private prepareSvgForExport(svgElement: SVGSVGElement): SVGSVGElement {
     const svgClone = svgElement.cloneNode(true) as SVGSVGElement;
 
+    // Elements render with `transform-box: fill-box; transform-origin: center`
+    // via the component stylesheet, so rotation and scale pivot around each
+    // element's geometry center. That stylesheet is not part of the serialized
+    // SVG, so without these rules the export pivots around the local origin and
+    // rotated/scaled elements drift. Inline the rules to match the live render.
+    const style = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+    style.textContent = '.wb_element { transform-box: fill-box; transform-origin: center; }';
+    svgClone.insertBefore(style, svgClone.firstChild);
+
     const selectorParentGroup = svgClone.querySelector('#selectorParentGroup');
     if (selectorParentGroup) {
       selectorParentGroup.remove();
