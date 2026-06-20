@@ -71,6 +71,19 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "ng-packagr"
         update-types: ["version-update:semver-major"]
+      # nx majors are gated by the Angular line (@nx/angular caps at the
+      # Angular-17-compatible release) and all nx packages must move together,
+      # so majors belong to the framework migration, not an automated bump.
+      - dependency-name: "@nx/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "nx"
+        update-types: ["version-update:semver-major"]
+      # angular-eslint majors track the Angular major they target; hold until
+      # the framework upgrade.
+      - dependency-name: "angular-eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@angular-eslint/*"
+        update-types: ["version-update:semver-major"]
       # Angular 17 supports TypeScript >=5.2 <5.5 — block incompatible bumps.
       - dependency-name: "typescript"
         versions: [">=5.5.0"]
