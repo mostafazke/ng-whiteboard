@@ -7,44 +7,44 @@ updates:
   # npm / yarn dependencies
   # ---------------------------------------------------------------------------
   - package-ecosystem: npm
-    directory: "/"
+    directory: '/'
     schedule:
       interval: weekly
       day: monday
     open-pull-requests-limit: 10
     commit-message:
-      prefix: "chore(deps)"
-      prefix-development: "chore(deps-dev)"
+      prefix: 'chore(deps)'
+      prefix-development: 'chore(deps-dev)'
     # Batch related packages so version bumps arrive as a handful of PRs
     # instead of one per package.
     groups:
       angular:
         patterns:
-          - "@angular*"
-          - "@schematics/angular"
-          - "ng-packagr"
-          - "zone.js"
+          - '@angular*'
+          - '@schematics/angular'
+          - 'ng-packagr'
+          - 'zone.js'
       nx:
         patterns:
-          - "@nx/*"
-          - "nx"
+          - '@nx/*'
+          - 'nx'
       eslint:
         patterns:
-          - "*eslint*"
-          - "@typescript-eslint/*"
-          - "typescript-eslint"
-          - "angular-eslint"
+          - '*eslint*'
+          - '@typescript-eslint/*'
+          - 'typescript-eslint'
+          - 'angular-eslint'
       testing:
         patterns:
-          - "*jest*"
-          - "ts-jest"
-          - "cypress"
-          - "@types/*"
+          - '*jest*'
+          - 'ts-jest'
+          - 'cypress'
+          - '@types/*'
       semantic-release:
         patterns:
-          - "semantic-release"
-          - "@semantic-release/*"
-          - "@theunderscorer/nx-semantic-release"
+          - 'semantic-release'
+          - '@semantic-release/*'
+          - '@theunderscorer/nx-semantic-release'
       # Sweep everything else into two type-based groups.
       dev-dependencies:
         dependency-type: development
@@ -61,32 +61,45 @@ updates:
       security:
         applies-to: security-updates
         patterns:
-          - "*"
+          - '*'
     ignore:
       # Project is intentionally pinned to the Angular 17 line; majors need a
       # coordinated framework migration, not an automated bump.
-      - dependency-name: "@angular*"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "@schematics/angular"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "ng-packagr"
-        update-types: ["version-update:semver-major"]
+      - dependency-name: '@angular*'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@schematics/angular'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'ng-packagr'
+        update-types: ['version-update:semver-major']
+      # nx majors are gated by the Angular line (@nx/angular caps at the
+      # Angular-17-compatible release) and all nx packages must move together,
+      # so majors belong to the framework migration, not an automated bump.
+      - dependency-name: '@nx/*'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'nx'
+        update-types: ['version-update:semver-major']
+      # angular-eslint majors track the Angular major they target; hold until
+      # the framework upgrade.
+      - dependency-name: 'angular-eslint'
+        update-types: ['version-update:semver-major']
+      - dependency-name: '@angular-eslint/*'
+        update-types: ['version-update:semver-major']
       # Angular 17 supports TypeScript >=5.2 <5.5 — block incompatible bumps.
-      - dependency-name: "typescript"
-        versions: [">=5.5.0"]
+      - dependency-name: 'typescript'
+        versions: ['>=5.5.0']
 
   # ---------------------------------------------------------------------------
   # GitHub Actions used in workflows (also clears the Node 20 deprecation
   # warning by bumping checkout/setup-node/codecov to current majors).
   # ---------------------------------------------------------------------------
   - package-ecosystem: github-actions
-    directory: "/"
+    directory: '/'
     schedule:
       interval: weekly
       day: monday
     commit-message:
-      prefix: "ci"
+      prefix: 'ci'
     groups:
       github-actions:
         patterns:
-          - "*"
+          - '*'
