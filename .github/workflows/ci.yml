@@ -32,7 +32,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Format check
-        run: yarn format:check
+        run: npx nx format:check --base=origin/master
 
       - name: Lint
         run: npx nx run-many -t lint
