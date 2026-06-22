@@ -1,4 +1,4 @@
-import { Component, Input, signal } from '@angular/core';
+import { Component, Input, inject, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { ThemeService } from '../../../core/services/theme.service';
 import { NgClass } from '@angular/common';
@@ -15,7 +15,7 @@ export class HeaderComponent {
 
   mobileMenuOpen = signal(false);
 
-  constructor(public themeService: ThemeService) {}
+  readonly themeService = inject(ThemeService);
 
   toggleMobileMenu(): void {
     this.mobileMenuOpen.update((v) => !v);
