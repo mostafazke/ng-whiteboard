@@ -6,11 +6,9 @@ import * as hljs from 'highlight.js';
   standalone: true,
 })
 export class HighlightCodeDirective implements AfterViewInit {
-
   private readonly elRef = inject(ElementRef);
 
   ngAfterViewInit() {
     hljs.default.highlightBlock(this.elRef.nativeElement);
   }
-
 }
