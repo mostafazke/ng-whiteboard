@@ -1,4 +1,4 @@
-import{h as p}from"./chunk-Q7SJPX77.js";import{a as u}from"./chunk-UBN26L2T.js";import{b as d,e as s}from"./chunk-T2HHN74Z.js";import"./chunk-SNB2UU66.js";import"./chunk-QZWB2T36.js";import{Ma as r,Ob as t,Pb as c,bb as m,ub as n,vb as e,wb as l}from"./chunk-TP6BJUFP.js";var M=(()=>{let o=class o{constructor(){this.libraryImportCode="import { NgWhiteboardComponent } from 'ng-whiteboard';",this.NgModuleCode=`@NgModule({
+import{h as p}from"./chunk-TCAZKFCV.js";import{a as u}from"./chunk-UXZKHGXZ.js";import{b as d,e as s}from"./chunk-WXUOEA6O.js";import"./chunk-RGYB43VJ.js";import"./chunk-7EYOIDWW.js";import{Ma as r,Ob as t,Pb as c,bb as m,ub as n,vb as e,wb as l}from"./chunk-MHDMU4US.js";var M=(()=>{let o=class o{constructor(){this.libraryImportCode="import { NgWhiteboardComponent } from 'ng-whiteboard';",this.NgModuleCode=`@NgModule({
   imports: [
     // Other imports
     NgWhiteboardComponent

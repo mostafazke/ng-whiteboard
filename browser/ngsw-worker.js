@@ -606,18 +606,43 @@ ${error.stack}`;
      * Create a new `Request` based on the specified URL and `RequestInit` options, preserving only
      * metadata that are known to be safe.
      *
-     * Currently, only headers are preserved.
+     * Currently, headers, redirect policy, an explicit `credentials: 'omit'`, and the HTTP cache
+     * mode are preserved. On cross-origin redirects, sensitive headers are removed. This includes
+     * `Authorization`, as required by the Fetch redirect algorithm, and forbidden request headers
+     * that could contain credentials.
      *
      * NOTE:
-     *   Things like credential inclusion are intentionally omitted to avoid issues with opaque
-     *   responses.
-     *
+     *   `credentials: 'same-origin'` and `credentials: 'include'` are intentionally not preserved.
+     *   Forwarding `'include'` could leak cookies to cross-origin asset hosts, and forwarding
+     *   `'same-origin'` matches the default `fetch()` behavior so there is nothing to preserve.
+     *   Requests with `cache: 'only-if-cached'` and `mode !== 'same-origin'` are short-circuited
+     *   earlier in `Driver.onFetch()` (they are a known Chrome DevTools quirk), so no special
+     *   handling for that combination is needed here.
      * TODO(gkalpak):
      *   Investigate preserving more metadata. See, also, discussion on preserving `mode`:
-     *   https://github.com/angular/angular/issues/41931#issuecomment-1227601347
+     *   https://github.com/angular/angular/issues/41931#issuecomment-1227601347.
      */
     newRequestWithMetadata(url, options) {
-      return this.adapter.newRequest(url, { headers: options.headers });
+      let headers = options.headers;
+      const parsedUrl = this.adapter.parseUrl(url, this.adapter.origin);
+      const hasHeaders = headers.keys().next().done !== true;
+      if (hasHeaders && parsedUrl.origin !== this.adapter.origin) {
+        headers = this.adapter.newHeaders(options.headers);
+        headers.delete("Authorization");
+        headers.delete("Proxy-Authorization");
+        headers.delete("Cookie");
+      }
+      const init = {
+        headers,
+        redirect: options.redirect
+      };
+      if (options.credentials === "omit") {
+        init.credentials = "omit";
+      }
+      if (options.cache !== void 0) {
+        init.cache = options.cache;
+      }
+      return this.adapter.newRequest(url, init);
     }
     /**
      * Construct a cache-busting URL for a given URL.
@@ -1285,7 +1310,7 @@ ${error.stack}`;
   };
 
   // packages/service-worker/worker/src/debug.js
-  var SW_VERSION = "20.3.9";
+  var SW_VERSION = "20.3.25";
   var DEBUG_LOG_BUFFER_SIZE = 100;
   var DebugHandler = class {
     constructor(driver, adapter2) {
@@ -2005,7 +2030,6 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ "Content-Type": "text/plain" }
         return;
       }
       const brokenHash = broken[0];
-      await this.notifyClientsAboutVersionFailure(brokenHash, err);
       if (this.latestHash === brokenHash) {
         this.state = DriverReadyState.EXISTING_CLIENTS_ONLY;
         this.stateMessage = `Degraded due to: ${errorToString(err)}`;
@@ -2195,21 +2219,6 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ "Content-Type": "text/plain" }
           latestVersion: this.mergeHashWithAppData(manifest, hash)
         };
         client.postMessage(notice);
-      }));
-    }
-    async notifyClientsAboutVersionFailure(brokenHash, error) {
-      await this.initialized;
-      const affectedClients = Array.from(this.clientVersionMap.entries()).filter(([clientId, hash]) => hash === brokenHash).map(([clientId]) => clientId);
-      await Promise.all(affectedClients.map(async (clientId) => {
-        const client = await this.scope.clients.get(clientId);
-        if (client) {
-          const brokenVersion = this.versions.get(brokenHash);
-          client.postMessage({
-            type: "VERSION_FAILED",
-            version: this.mergeHashWithAppData(brokenVersion.manifest, brokenHash),
-            error: errorToString(error)
-          });
-        }
       }));
     }
     async broadcast(msg) {
