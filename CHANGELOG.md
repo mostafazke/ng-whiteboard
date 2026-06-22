@@ -1,3 +1,10 @@
+## [5.3.4](https://github.com/mostafazke/ng-whiteboard/compare/v5.3.3...v5.3.4) (2026-06-22)
+
+
+### Bug Fixes
+
+* **deps:** bump Angular 20.3.9 -> 20.3.25 to clear security advisories ([#389](https://github.com/mostafazke/ng-whiteboard/issues/389)) ([95f1cdc](https://github.com/mostafazke/ng-whiteboard/commit/95f1cdc5c9bf0c27aa5959bca6a000dc79e57a31))
+
 ## [5.3.3](https://github.com/mostafazke/ng-whiteboard/compare/v5.3.2...v5.3.3) (2026-06-20)
 
 
