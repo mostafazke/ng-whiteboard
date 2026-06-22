@@ -3,6 +3,7 @@ export default {
   preset: '../../jest.preset.js',
   setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
   coverageDirectory: '../../coverage/demo',
+  coverageProvider: 'v8',
   transform: {
     '^.+\\.(ts|mjs|js|html)$': [
       'jest-preset-angular',

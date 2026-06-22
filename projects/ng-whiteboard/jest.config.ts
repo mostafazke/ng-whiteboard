@@ -12,6 +12,7 @@ export default {
     ],
   },
   coverageDirectory: '../../coverage/ng-whiteboard',
+  coverageProvider: 'v8',
   coverageThreshold: {
     global: {
       branches: 70,

@@ -191,6 +191,7 @@ describe('ToolsService', () => {
 
     it('should activate new tool when switching', () => {
       service.setActiveTool(ToolType.Hand);
+      TestBed.flushEffects(); // Let the effect run
       const handTool = service.currentTool();
       expect(handTool?.activate).toHaveBeenCalled();
     });
@@ -546,6 +547,7 @@ describe('ToolsService', () => {
   describe('Cleanup', () => {
     it('should destroy service', () => {
       service.setActiveTool(ToolType.Hand);
+      TestBed.flushEffects(); // Let the effect run
       const handTool = service.currentTool();
 
       service.destroy();

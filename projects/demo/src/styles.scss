@@ -1,7 +1,7 @@
-@import 'highlight.js/scss/github-dark';
-@import './assets/theme';
-@import './styles/tokens';
-@import './styles/mixins';
+@use 'highlight.js/scss/github-dark';
+@use './assets/theme';
+@use './styles/tokens';
+@use './styles/mixins' as *;
 
 // Reset & Base
 *,
