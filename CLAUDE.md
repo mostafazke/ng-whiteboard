@@ -10,7 +10,7 @@ yarn start
 
 # Build library + demo
 yarn build
-yarn build:lib   # library only (ng-packagr → dist/projects/ng-whiteboard)
+yarn build:lib   # library only (ng-packagr → dist/ng-whiteboard)
 yarn build:demo  # demo PWA only
 
 # Test
@@ -81,7 +81,7 @@ Lazy-loaded routes: `/` (home), `/documentation` (with sub-routes), `/examples`,
 ## Key conventions
 
 - Path alias `"ng-whiteboard"` → `projects/ng-whiteboard/src/index.ts` (configured in `tsconfig.base.json`)
-- Library builds to `dist/projects/ng-whiteboard`
+- Library builds to `dist/ng-whiteboard`
 - Default base branch is `master` (`nx.json`: `defaultBase: master`)
 - Use conventional commits (`yarn cm` / commitizen)
 
