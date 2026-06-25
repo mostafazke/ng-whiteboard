@@ -1,3 +1,11 @@
+## [5.4.1](https://github.com/mostafazke/ng-whiteboard/compare/v5.4.0...v5.4.1) (2026-06-25)
+
+
+### Bug Fixes
+
+* **ci:** publish demo from dist/demo/browser for Angular 20 builder ([ecae9cc](https://github.com/mostafazke/ng-whiteboard/commit/ecae9ccacd7284c9f44c4c5a3fb864785cb5347f)), closes [#386](https://github.com/mostafazke/ng-whiteboard/issues/386)
+* **deps:** bump Angular 20.3.9 -> 20.3.25 to clear security advisories ([0e296a4](https://github.com/mostafazke/ng-whiteboard/commit/0e296a4805dca69d6299dc5020e72cf299733617))
+
 # [5.4.0](https://github.com/mostafazke/ng-whiteboard/compare/v5.3.5...v5.4.0) (2026-06-25)
 
 
