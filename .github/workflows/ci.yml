@@ -80,7 +80,7 @@ jobs:
         run: yarn build:demo
 
       - name: Publish demo to GitHub Pages
-        run: npx angular-cli-ghpages --dir=./dist/demo --name="Mostafa Zaki" --email=mmostafazke@gmail.com
+        run: npx angular-cli-ghpages --dir=./dist/demo/browser --name="Mostafa Zaki" --email=mmostafazke@gmail.com
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
