@@ -595,6 +595,11 @@ describe('ApiService', () => {
       expect(mockZoomService.zoomToSelection).toHaveBeenCalled();
     });
 
+    it('should zoom to region', () => {
+      service.zoomToRegion(10, 20, 100, 80);
+      expect(mockZoomService.zoomToRegion).toHaveBeenCalledWith(10, 20, 100, 80);
+    });
+
     it('should pan canvas', () => {
       service.pan(10, 20);
       expect(mockPanService.pan).toHaveBeenCalledWith(10, 20);
