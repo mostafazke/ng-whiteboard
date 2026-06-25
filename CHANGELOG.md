@@ -1,3 +1,10 @@
+## [5.3.5](https://github.com/mostafazke/ng-whiteboard/compare/v5.3.4...v5.3.5) (2026-06-25)
+
+
+### Bug Fixes
+
+* **selection:** exclude locked elements from selectAll ([62a2444](https://github.com/mostafazke/ng-whiteboard/commit/62a24448f96792815cea69e415f528b8025e1dad))
+
 ## [5.3.4](https://github.com/mostafazke/ng-whiteboard/compare/v5.3.3...v5.3.4) (2026-06-22)
 
 
