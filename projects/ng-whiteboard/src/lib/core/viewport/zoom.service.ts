@@ -175,17 +175,20 @@ export class ZoomService implements OnDestroy {
     // Calculate zoom level to fit elements with padding
     const zoomX = (dimensions.width * margin) / bounds.width;
     const zoomY = (dimensions.height * margin) / bounds.height;
-    const targetZoom = Math.min(zoomX, zoomY);
+    const targetZoom = this.clampZoom(Math.min(zoomX, zoomY));
 
     if (animated) {
       this.animateToTarget(targetZoom, duration);
     } else {
       this.setInstant(targetZoom);
     }
+    // Pan so the elements are centred — setting the zoom level alone leaves the target
+    // anchored at the origin (most visible in fullScreen, where nothing repositions it).
+    this.panToCentre(bounds.centerX, bounds.centerY, targetZoom);
   }
 
   /**
-   * Zoom to fit a specific rectangular area.
+   * Zoom to fit a specific rectangular area, centred in the viewport.
    */
   zoomToArea(
     x: number,
@@ -196,15 +199,63 @@ export class ZoomService implements OnDestroy {
     animated = true,
     duration = 300
   ): void {
-    const canvasDimensions = this.canvasService.getCanvasDimensions();
-    const zoomX = (canvasDimensions.width * margin) / width;
-    const zoomY = (canvasDimensions.height * margin) / height;
-    const targetZoom = Math.min(zoomX, zoomY);
+    if (width <= 0 || height <= 0) {
+      return;
+    }
+
+    const { fullScreen } = this.getConfig();
+    const dimensions = fullScreen
+      ? this.canvasService.getContainerDimensions()
+      : this.canvasService.getCanvasDimensions();
+    const zoomX = (dimensions.width * margin) / width;
+    const zoomY = (dimensions.height * margin) / height;
+    const targetZoom = this.clampZoom(Math.min(zoomX, zoomY));
+
     if (animated) {
       this.animateToTarget(targetZoom, duration);
     } else {
       this.setInstant(targetZoom);
     }
+    this.panToCentre(x + width / 2, y + height / 2, targetZoom);
+  }
+
+  /**
+   * Pan so a world-space point lands at the centre of the viewport, at the given zoom.
+   *
+   * The two render modes need different math:
+   * - **fullScreen**: the viewBox is `0 0 W/zoom H/zoom` and only the content-level pan
+   *   (`config.x/y`) moves the view → `x = W/(2·zoom) − centreX`.
+   * - **non-fullScreen**: the canvas page is a zoom-scaled box at `(canvasX, canvasY)` in
+   *   the container, so the on-screen position combines that page offset with the content
+   *   pan → solve `canvasX + (centreX + x)·zoom = containerWidth/2` for `x`.
+   */
+  private panToCentre(centreX: number, centreY: number, zoom: number): void {
+    const { fullScreen, canvasWidth, canvasHeight, canvasX, canvasY } = this.getConfig();
+
+    if (fullScreen) {
+      this.configService.updateConfig({
+        x: canvasWidth / (2 * zoom) - centreX,
+        y: canvasHeight / (2 * zoom) - centreY,
+      });
+    } else {
+      const { width, height } = this.canvasService.getContainerDimensions();
+      this.configService.updateConfig({
+        x: (width / 2 - canvasX) / zoom - centreX,
+        y: (height / 2 - canvasY) / zoom - centreY,
+      });
+    }
+  }
+
+  /**
+   * Zoom into a rectangular region and centre it — the building block for a "marquee zoom"
+   * (drag a rectangle → zoom into it). Thin wrapper over `zoomToArea` (instant, so the pan
+   * matches the final zoom); ignores degenerate (zero-size) regions.
+   */
+  zoomToRegion(x: number, y: number, width: number, height: number, margin = this.DEFAULT_FIT_MARGIN): void {
+    if (width <= 0 || height <= 0) {
+      return;
+    }
+    this.zoomToArea(x, y, width, height, margin, false);
   }
 
   /**

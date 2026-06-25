@@ -488,6 +488,41 @@ describe('ZoomService', () => {
 
       expect(mockCanvasService.getContainerDimensions).toHaveBeenCalled();
     });
+
+    it('should pan so the elements are centred (fullScreen content-level pan)', () => {
+      mockConfigService.getConfig.mockReturnValue({ ...mockConfig, fullScreen: true } as WhiteboardConfig);
+      mockElementsService.calculateElementsBounds.mockReturnValue({
+        x: 100,
+        y: 75,
+        width: 200,
+        height: 150,
+        centerX: 200,
+        centerY: 150,
+      });
+
+      // container 1000x800, margin 1 → zoom = min(1000/200, 800/150) clamped to MAX 5
+      // fullScreen pan: x = 800/(2·5) − 200 = −120; y = 600/(2·5) − 150 = −90
+      service.zoomToElements([{ id: '1' }] as WhiteboardElement[], 1, false);
+
+      expect(mockConfigService.updateConfig).toHaveBeenCalledWith({ x: -120, y: -90 });
+    });
+
+    it('should pan so the elements are centred (non-fullScreen, combining canvas offset)', () => {
+      // default mock: non-fullScreen, container 1000x800, canvas 800x600, canvasX/Y 0
+      mockElementsService.calculateElementsBounds.mockReturnValue({
+        x: 0,
+        y: 0,
+        width: 400,
+        height: 300,
+        centerX: 200,
+        centerY: 150,
+      });
+
+      // zoom = min(800/400, 600/300) = 2 → x = (1000/2 − 0)/2 − 200 = 50; y = (800/2 − 0)/2 − 150 = 50
+      service.zoomToElements([{ id: '1' }] as WhiteboardElement[], 1, false);
+
+      expect(mockConfigService.updateConfig).toHaveBeenCalledWith({ x: 50, y: 50 });
+    });
   });
 
   describe('zoomToArea', () => {
@@ -516,6 +551,39 @@ describe('ZoomService', () => {
       service.zoomToArea(0, 0, 10, 10, 0.9, false);
 
       expect(mockConfigService.updateConfig).toHaveBeenCalled();
+    });
+
+    it('should ignore a degenerate (zero-size) area', () => {
+      service.zoomToArea(0, 0, 0, 0, 0.9, false);
+
+      expect(mockConfigService.updateConfig).not.toHaveBeenCalled();
+    });
+
+    it('should pan so the area is centred (fullScreen)', () => {
+      mockConfigService.getConfig.mockReturnValue({ ...mockConfig, fullScreen: true } as WhiteboardConfig);
+
+      // area (100,100,200,200) → centre (200,200); container 1000x800, margin 1
+      // zoom = min(1000/200, 800/200) = 4 → x = 800/(2·4) − 200 = −100; y = 600/(2·4) − 200 = −125
+      service.zoomToArea(100, 100, 200, 200, 1, false);
+
+      expect(mockConfigService.updateConfig).toHaveBeenCalledWith({ x: -100, y: -125 });
+    });
+  });
+
+  describe('zoomToRegion', () => {
+    it('should zoom into the region and pan to centre it (fullScreen)', () => {
+      mockConfigService.getConfig.mockReturnValue({ ...mockConfig, fullScreen: true } as WhiteboardConfig);
+
+      // same maths as zoomToArea, run instantly
+      service.zoomToRegion(100, 100, 200, 200, 1);
+
+      expect(mockConfigService.updateConfig).toHaveBeenCalledWith({ x: -100, y: -125 });
+    });
+
+    it('should ignore a degenerate (zero-size) region', () => {
+      service.zoomToRegion(0, 0, 0, 0);
+
+      expect(mockConfigService.updateConfig).not.toHaveBeenCalled();
     });
   });
 

@@ -346,6 +346,10 @@ export class ApiService {
     this.zoomService.zoomToSelection();
   }
 
+  zoomToRegion(x: number, y: number, width: number, height: number): void {
+    this.zoomService.zoomToRegion(x, y, width, height);
+  }
+
   pan(dx: number, dy: number): void {
     this.panService.pan(dx, dy);
   }
