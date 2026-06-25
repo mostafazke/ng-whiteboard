@@ -1,3 +1,10 @@
+# [5.4.0](https://github.com/mostafazke/ng-whiteboard/compare/v5.3.5...v5.4.0) (2026-06-25)
+
+
+### Features
+
+* **zoom:** pan to target in zoomToArea/zoomToElements + add zoomToRegion ([941104b](https://github.com/mostafazke/ng-whiteboard/commit/941104b894ed223e89445f4d95ec18ed0f4bb1d0)), closes [#392](https://github.com/mostafazke/ng-whiteboard/issues/392)
+
 ## [5.3.5](https://github.com/mostafazke/ng-whiteboard/compare/v5.3.4...v5.3.5) (2026-06-25)
 
 
