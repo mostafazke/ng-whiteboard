@@ -371,6 +371,17 @@ describe('SelectionService', () => {
         const boundingBox = service.getBoundingBox();
         expect(boundingBox).not.toBeNull();
       });
+
+      it('should exclude locked elements', () => {
+        (elementsService.getElements as jest.Mock).mockReturnValue([
+          createMockElement('el-1', { x: 0, y: 0 }),
+          createMockElement('el-2', { x: 100, y: 100, locked: true }),
+          createMockElement('el-3', { x: 200, y: 200 }),
+        ]);
+        service.selectAll();
+        expect(service.getSelectionCount()).toBe(2);
+        expect(service.getSelectedElements().map((el) => el.id)).toEqual(['el-1', 'el-3']);
+      });
     });
 
     describe('selectElementsInArea()', () => {

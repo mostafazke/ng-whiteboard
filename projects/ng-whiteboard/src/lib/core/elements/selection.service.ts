@@ -251,18 +251,21 @@ export class SelectionService {
       return;
     }
 
-    const allElements = this.getElementsFn();
-    const ids = new Set(allElements.map((el) => el.id));
+    // Exclude locked elements, consistent with box selection (see SelectTool.handleBoxSelect,
+    // which filters `!element.locked`) and with every other select interaction that skips locked
+    // elements. Without this, Ctrl+A grabs locked elements and a following delete removes them.
+    const selectableElements = this.getElementsFn().filter((el) => !el.locked);
+    const ids = new Set(selectableElements.map((el) => el.id));
     this.selectedElementIdsSignal.set(ids);
 
     // Automatically activate select tool when elements are selected
-    if (allElements.length > 0) {
+    if (selectableElements.length > 0) {
       this.toolsService.setActiveTool(ToolType.Select);
     }
 
     this.updateBoundingBox();
 
-    this.eventBus.emit(WhiteboardEvent.ElementsSelected, allElements);
+    this.eventBus.emit(WhiteboardEvent.ElementsSelected, selectableElements);
   }
 
   /**
