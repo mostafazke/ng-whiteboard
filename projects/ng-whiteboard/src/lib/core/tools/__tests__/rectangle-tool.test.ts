@@ -49,6 +49,7 @@ describe('RectangleTool', () => {
       getNextZIndex: jest.fn().mockReturnValue(1),
       getActiveLayerId: jest.fn().mockReturnValue('layer-1'),
       selectElements: jest.fn(),
+      finalizeDraw: jest.fn(),
     } as unknown as ApiService;
 
     rectangleTool = new RectangleTool(apiService);

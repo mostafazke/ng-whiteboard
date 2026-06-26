@@ -154,9 +154,7 @@ export class TextTool extends BaseTool {
         if (!this.apiService.elementExists(this.textElement.id)) {
           this.apiService.addElements([this.textElement]);
 
-          if (this.textElement.selectAfterDraw) {
-            this.apiService.selectElements([this.textElement.id]);
-          }
+          this.apiService.finalizeDraw(this.textElement);
         }
       } else {
         this.apiService.removeElements([this.textElement]);

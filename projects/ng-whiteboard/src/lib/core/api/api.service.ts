@@ -149,6 +149,20 @@ export class ApiService {
     this.selectionService.selectElements(elementsOrIds, append);
   }
 
+  /**
+   * Apply the post-draw behaviour for a freshly drawn element: when `selectAfterDraw` resolves
+   * true (config override or the element's own default), select it and activate the Select tool;
+   * when false, leave it unselected so the drawing tool stays active. Called by the tools on
+   * pointer-up — the single place the "select + switch to Select vs keep drawing" decision lives.
+   */
+  finalizeDraw(element: WhiteboardElement): void {
+    const select = this.configService.resolveSelectAfterDraw(element.type, element.selectAfterDraw ?? false);
+    if (select) {
+      this.selectionService.selectElements([element.id]);
+      this.toolsService.setActiveTool(ToolType.Select);
+    }
+  }
+
   deselectElement(elementOrId: WhiteboardElement | string): void {
     this.selectionService.deselectElement(elementOrId);
   }

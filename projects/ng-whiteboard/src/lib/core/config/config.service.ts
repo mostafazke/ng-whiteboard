@@ -1,5 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 import {
+  ElementType,
   LineCap,
   LineJoin,
   WhiteboardConfig,
@@ -117,6 +118,18 @@ export class ConfigService {
 
   getConfig(): Readonly<WhiteboardConfig> {
     return this.config();
+  }
+
+  /**
+   * Resolve the post-draw "select after draw" behaviour for an element type. Honours the
+   * `selectAfterDraw` config (global boolean or per-type object); falls back to the element's
+   * own default when the config is omitted (or has no entry for that type).
+   */
+  resolveSelectAfterDraw(type: ElementType, fallback: boolean): boolean {
+    const cfg = this.config().selectAfterDraw;
+    if (cfg === undefined) return fallback;
+    if (typeof cfg === 'boolean') return cfg;
+    return cfg[type] ?? fallback;
   }
 
   getConfigSignal() {

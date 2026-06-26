@@ -58,6 +58,7 @@ describe('ArrowTool', () => {
     apiService.getNextZIndex = jest.fn().mockReturnValue(1);
     apiService.getActiveLayerId = jest.fn().mockReturnValue('layer-1');
     apiService.selectElements = jest.fn();
+    apiService.finalizeDraw = jest.fn();
 
     arrowTool = new ArrowTool(apiService as unknown as ApiService);
     arrowTool.activate();
@@ -521,8 +522,8 @@ describe('ArrowTool', () => {
     });
   });
 
-  describe('handlePointerUp with selectAfterDraw', () => {
-    it('should select the element if selectAfterDraw is true', () => {
+  describe('handlePointerUp post-draw', () => {
+    it('should delegate to finalizeDraw with the drawn element (select decision lives there)', () => {
       arrowTool.element = {
         id: 'a1',
         x1: 0,
@@ -535,16 +536,16 @@ describe('ArrowTool', () => {
 
       arrowTool.handlePointerUp();
 
-      expect(apiService.selectElements).toHaveBeenCalledWith(['a1']);
+      expect(apiService.finalizeDraw).toHaveBeenCalledWith(expect.objectContaining({ id: 'a1' }));
     });
 
-    it('should not select the element if selectAfterDraw is falsy', () => {
+    it('should call finalizeDraw regardless of the element selectAfterDraw flag', () => {
       arrowTool.element = { id: 'a1', x1: 0, y1: 0, x2: 100, y2: 100 } as unknown as ArrowElement;
       arrowTool.startPoint = { x: 0, y: 0 };
 
       arrowTool.handlePointerUp();
 
-      expect(apiService.selectElements).not.toHaveBeenCalled();
+      expect(apiService.finalizeDraw).toHaveBeenCalledWith(expect.objectContaining({ id: 'a1' }));
     });
   });
 

@@ -86,6 +86,8 @@ export class SelectionService {
     const pastedElements = this.clipboardService.paste();
     if (pastedElements.length > 0) {
       this.selectElements(pastedElements);
+      // Pasting is a manipulate intent → drop into Select so the pasted elements can be moved.
+      this.toolsService.setActiveTool(ToolType.Select);
     }
   }
 
@@ -96,6 +98,7 @@ export class SelectionService {
     const duplicatedElements = this.clipboardService.duplicateElements(selectedElements);
     if (duplicatedElements.length > 0) {
       this.selectElements(duplicatedElements);
+      this.toolsService.setActiveTool(ToolType.Select);
     }
   }
 
@@ -167,9 +170,10 @@ export class SelectionService {
 
     this.selectedElementIdsSignal.set(new Set(newSelection));
 
-    if (newSelection.length > 0) {
-      this.toolsService.setActiveTool(ToolType.Select);
-    }
+    // NOTE: selecting no longer auto-activates the Select tool. That decision belongs to the
+    // caller's context — the post-draw flow resolves it via `selectAfterDraw` (see
+    // ApiService.finalizeDraw), and explicit user-select paths (toggleSelection, selectAll,
+    // paste/duplicate) switch on their own. Keeps selectElements() focused on selection state.
 
     // Get the updated selection elements after group expansion
     const fullSelectionElements = this.getSelectedElements();

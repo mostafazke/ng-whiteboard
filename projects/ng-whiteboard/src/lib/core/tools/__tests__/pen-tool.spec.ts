@@ -33,6 +33,7 @@ describe('PenTool', () => {
     apiService.commitDraft = jest.fn();
     apiService.commitDraftElements = jest.fn();
     apiService.selectElements = jest.fn();
+    apiService.finalizeDraw = jest.fn();
     apiService.getConfig = jest.fn().mockReturnValue(config);
     apiService.getCurrentLayer = jest.fn().mockReturnValue('layer1');
 
@@ -153,7 +154,7 @@ describe('PenTool', () => {
     expect(penTool.element).toBeNull();
   });
 
-  it('should select the element after drawing if selectAfterDraw is true', () => {
+  it('should finalize the draw (post-draw select decision delegated) on pointer up', () => {
     penTool.element = {
       id: 'pen-1',
       points: [[100, 200]],
@@ -164,7 +165,7 @@ describe('PenTool', () => {
 
     penTool.handlePointerUp();
 
-    expect(apiService.selectElements).toHaveBeenCalledWith(['pen-1']);
+    expect(apiService.finalizeDraw).toHaveBeenCalledWith(expect.objectContaining({ id: 'pen-1' }));
     expect(penTool.element).toBeNull();
   });
 

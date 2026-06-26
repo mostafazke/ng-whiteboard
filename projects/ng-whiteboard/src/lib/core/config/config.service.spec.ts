@@ -1,5 +1,5 @@
 import { EventBusService } from '../event-bus/event-bus.service';
-import { WhiteboardEvent, LineCap, LineJoin, PenType } from '../types';
+import { WhiteboardEvent, LineCap, LineJoin, PenType, ElementType } from '../types';
 import { ConfigService } from './config.service';
 
 describe('ConfigService', () => {
@@ -520,6 +520,28 @@ describe('ConfigService', () => {
     it('should handle transparent fill', () => {
       service.updateConfig({ fill: 'transparent' });
       expect(service.getConfig().fill).toBe('transparent');
+    });
+  });
+
+  describe('resolveSelectAfterDraw', () => {
+    it('falls back to the element default when the config is omitted', () => {
+      expect(service.resolveSelectAfterDraw(ElementType.Pen, false)).toBe(false);
+      expect(service.resolveSelectAfterDraw(ElementType.Rectangle, true)).toBe(true);
+    });
+
+    it('applies a global boolean to every type', () => {
+      service.updateConfig({ selectAfterDraw: false }, false);
+      expect(service.resolveSelectAfterDraw(ElementType.Rectangle, true)).toBe(false);
+
+      service.updateConfig({ selectAfterDraw: true }, false);
+      expect(service.resolveSelectAfterDraw(ElementType.Pen, false)).toBe(true);
+    });
+
+    it('applies per-type overrides and falls back to the element default for missing types', () => {
+      service.updateConfig({ selectAfterDraw: { [ElementType.Pen]: true } }, false);
+      expect(service.resolveSelectAfterDraw(ElementType.Pen, false)).toBe(true); // overridden
+      expect(service.resolveSelectAfterDraw(ElementType.Rectangle, true)).toBe(true); // missing → default
+      expect(service.resolveSelectAfterDraw(ElementType.Rectangle, false)).toBe(false); // missing → default
     });
   });
 });

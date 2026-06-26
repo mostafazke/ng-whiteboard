@@ -207,9 +207,7 @@ export class ArrowTool extends BaseTool {
 
       this.apiService.commitDraftElements();
 
-      if (element.selectAfterDraw) {
-        this.apiService.selectElements([element.id]);
-      }
+      this.apiService.finalizeDraw(element);
 
       this.startPoint = null;
       this.element = null;
