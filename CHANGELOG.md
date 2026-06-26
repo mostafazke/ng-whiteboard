@@ -1,3 +1,10 @@
+# [5.5.0](https://github.com/mostafazke/ng-whiteboard/compare/v5.4.1...v5.5.0) (2026-06-26)
+
+
+### Features
+
+* **config:** selectAfterDraw — configurable post-draw select & tool behavior ([4c81ff8](https://github.com/mostafazke/ng-whiteboard/commit/4c81ff8d93c9d1161be0aceee9629babc0342f31)), closes [#394](https://github.com/mostafazke/ng-whiteboard/issues/394)
+
 ## [5.4.1](https://github.com/mostafazke/ng-whiteboard/compare/v5.4.0...v5.4.1) (2026-06-25)
 
 
