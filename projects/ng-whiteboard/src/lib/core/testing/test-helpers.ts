@@ -166,6 +166,7 @@ export function createMockApiService() {
     deselectElements: noop,
     clearSelection: noop,
     getSelectedElements: noopWithReturn([]),
+    finalizeDraw: noop,
 
     // Tool operations
     setTool: noop,

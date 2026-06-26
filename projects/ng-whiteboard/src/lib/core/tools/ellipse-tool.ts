@@ -73,10 +73,7 @@ export class EllipseTool extends BaseTool {
       const element = this.element;
       this.apiService.commitDraftElements();
 
-      // Handle selection based on element's selectAfterDraw property
-      if (element.selectAfterDraw) {
-        this.apiService.selectElements([element.id]);
-      }
+      this.apiService.finalizeDraw(element);
 
       this.startPoint = null;
       this.element = null;

@@ -59,7 +59,9 @@ export class IOService {
 
       this.elementsService.addElements([element]);
 
-      if (element.selectAfterDraw) {
+      // Config-aware select-after-draw (see ConfigService.resolveSelectAfterDraw). Selection no
+      // longer forces the Select tool — selecting is selection state only now.
+      if (this.configService.resolveSelectAfterDraw(element.type, element.selectAfterDraw ?? false)) {
         this.selectionService.selectElements([element.id]);
       }
 

@@ -1,4 +1,13 @@
-import { LineCap, LineJoin, PenType } from '.';
+import { ElementType, LineCap, LineJoin, PenType } from '.';
+
+/**
+ * Controls what happens after a tool finishes drawing an element:
+ * - `true` (for a tool): the new element is selected and the Select tool becomes active.
+ * - `false`: nothing is selected and the current drawing tool stays active (draw several in a row).
+ * - object: per-element-type overrides (e.g. `{ pen: false, rectangle: true }`).
+ * - omitted: falls back to each element's own `selectAfterDraw` default.
+ */
+export type SelectAfterDrawConfig = boolean | Partial<Record<ElementType, boolean>>;
 
 /**
  * Describes the type of arrowhead.
@@ -64,6 +73,12 @@ export interface WhiteboardConfig {
   penThrottlingThreshold: number;
   /** Arrow-specific configuration – heads, line style, size */
   arrowConfig: ArrowConfig;
+  /**
+   * Post-draw behaviour: whether a freshly drawn element gets selected (and the Select tool
+   * activated) or the drawing tool stays active. Global, per-element-type, or omitted to use
+   * each element's own default. See {@link SelectAfterDrawConfig}.
+   */
+  selectAfterDraw?: SelectAfterDrawConfig;
 }
 
 export interface EditorConfig {

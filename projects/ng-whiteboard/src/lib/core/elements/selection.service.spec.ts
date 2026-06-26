@@ -240,9 +240,9 @@ describe('SelectionService', () => {
         expect(eventBusService.emit).toHaveBeenCalledWith(WhiteboardEvent.ElementsSelected, expect.any(Array));
       });
 
-      it('should activate select tool when selecting elements', () => {
+      it('should NOT activate the select tool (selection is selection-state only now)', () => {
         service.selectElements('el-1');
-        expect(toolsService.setActiveTool).toHaveBeenCalledWith(ToolType.Select);
+        expect(toolsService.setActiveTool).not.toHaveBeenCalled();
       });
 
       it('should update bounding box', () => {

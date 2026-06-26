@@ -1075,4 +1075,27 @@ describe('ApiService', () => {
       expect(result).toEqual({ x: 100, y: 200 });
     });
   });
+
+  describe('finalizeDraw', () => {
+    const element = { id: 'e1', type: ElementType.Rectangle, selectAfterDraw: true } as unknown as WhiteboardElement;
+
+    it('selects the element and activates the Select tool when selectAfterDraw resolves true', () => {
+      mockConfigService.resolveSelectAfterDraw.mockReturnValue(true);
+
+      service.finalizeDraw(element);
+
+      expect(mockConfigService.resolveSelectAfterDraw).toHaveBeenCalledWith(ElementType.Rectangle, true);
+      expect(mockSelectionService.selectElements).toHaveBeenCalledWith(['e1']);
+      expect(mockToolsService.setActiveTool).toHaveBeenCalledWith(ToolType.Select);
+    });
+
+    it('does nothing (keeps the drawing tool) when selectAfterDraw resolves false', () => {
+      mockConfigService.resolveSelectAfterDraw.mockReturnValue(false);
+
+      service.finalizeDraw(element);
+
+      expect(mockSelectionService.selectElements).not.toHaveBeenCalled();
+      expect(mockToolsService.setActiveTool).not.toHaveBeenCalled();
+    });
+  });
 });

@@ -80,6 +80,7 @@ describe('TextTool', () => {
       getNextZIndex: jest.fn().mockReturnValue(1),
       getActiveLayerId: jest.fn().mockReturnValue('layer-1'),
       elementExists: jest.fn().mockReturnValue(false),
+      finalizeDraw: jest.fn(),
     } as unknown as ApiService;
 
     textTool = new TextTool(apiService);
