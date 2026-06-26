@@ -82,6 +82,15 @@ export class SvgDirective {
     this.svgService.onPointerUp(pointerInfo);
   }
 
+  @HostListener('pointercancel', ['$event'])
+  @HostListener('pointerleave', ['$event'])
+  onPointerCancel(event: PointerEvent): void {
+    if (event.currentTarget && (event.currentTarget as Element).hasPointerCapture(event.pointerId)) {
+      (event.currentTarget as Element).releasePointerCapture(event.pointerId);
+    }
+    this.svgService.onPointerCancel(this.createPointerInfo(event));
+  }
+
   @HostListener('wheel', ['$event'])
   onWheel(event: WheelEvent): void {
     event.preventDefault();

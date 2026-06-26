@@ -49,9 +49,10 @@ if (typeof DragEvent === 'undefined') {
 // Mock the target utility
 jest.mock('../utils/dom/target', () => ({
   getTargetElement: jest.fn(),
+  getMouseTarget: jest.fn(),
 }));
 
-import { getTargetElement } from '../utils/dom/target';
+import { getTargetElement, getMouseTarget } from '../utils/dom/target';
 
 describe('SvgService', () => {
   let service: SvgService;
@@ -69,11 +70,20 @@ describe('SvgService', () => {
     handlePointerUp: jest.fn(),
   };
 
+  const selectTool: Tool = {
+    type: ToolType.Select,
+    activate: jest.fn(),
+    deactivate: jest.fn(),
+    handlePointerDown: jest.fn(),
+    handlePointerMove: jest.fn(),
+    handlePointerUp: jest.fn(),
+  };
+
   beforeEach(() => {
     const toolsServiceMock = {
       getActiveToolType: jest.fn().mockReturnValue(ToolType.Pen),
       getActiveToolInstance: jest.fn().mockReturnValue(currentTool),
-      getToolInstance: jest.fn().mockReturnValue(currentTool),
+      getToolInstance: jest.fn((type: ToolType) => (type === ToolType.Select ? selectTool : currentTool)),
       hasTemporaryOverride: jest.fn().mockReturnValue(false),
       pushTemporaryTool: jest.fn(),
       popTemporaryTool: jest.fn(),
@@ -95,6 +105,7 @@ describe('SvgService', () => {
       selectedElements: jest.fn().mockReturnValue([]),
       selectElements: jest.fn(),
       clearSelection: jest.fn(),
+      getBoundingBox: jest.fn().mockReturnValue(null),
     };
 
     const contextMenuServiceMock = {
@@ -211,6 +222,132 @@ describe('SvgService', () => {
     service.onPointerUp(pointerInfo);
 
     expect(eventBusService.emit).not.toHaveBeenCalled();
+  });
+
+  describe('selection gesture capture (non-Select tool active)', () => {
+    let toolsService: jest.Mocked<ToolsService>;
+    const gripTarget = { id: 'selectorGrip_resize_nw', getAttribute: () => null } as unknown as SVGGraphicsElement;
+    const boxTarget = { id: 'selectorBox', getAttribute: () => null } as unknown as SVGGraphicsElement;
+
+    beforeEach(() => {
+      jest.clearAllMocks(); // shared tool mocks accumulate calls across tests; reset before each
+      toolsService = TestBed.inject(ToolsService) as jest.Mocked<ToolsService>;
+      // Something is selected, and the gesture starts on the selection's own UI.
+      apiService.getBoundingBox.mockReturnValue({} as never);
+      (getMouseTarget as jest.Mock).mockReturnValue(gripTarget);
+    });
+
+    it('routes the whole gesture to the Select tool, not the active drawing tool', () => {
+      const down = createMockPointerInfo({ eventType: 'pointerdown' });
+      service.onPointerDown(down);
+      expect(selectTool.handlePointerDown).toHaveBeenCalledWith(down);
+      expect(currentTool.handlePointerDown).not.toHaveBeenCalled();
+
+      const move = createMockPointerInfo({ eventType: 'pointermove' });
+      service.onPointerMove(move);
+      expect(selectTool.handlePointerMove).toHaveBeenCalledWith(move);
+      expect(currentTool.handlePointerMove).not.toHaveBeenCalled();
+
+      const up = createMockPointerInfo({ eventType: 'pointerup' });
+      service.onPointerUp(up);
+      expect(selectTool.handlePointerUp).toHaveBeenCalledWith(up);
+      expect(currentTool.handlePointerUp).not.toHaveBeenCalled();
+    });
+
+    it('captures on the bounding box as well as the grips', () => {
+      (getMouseTarget as jest.Mock).mockReturnValue(boxTarget);
+      const down = createMockPointerInfo();
+      service.onPointerDown(down);
+      expect(selectTool.handlePointerDown).toHaveBeenCalledWith(down);
+      expect(currentTool.handlePointerDown).not.toHaveBeenCalled();
+    });
+
+    it('draws normally when nothing is selected', () => {
+      apiService.getBoundingBox.mockReturnValue(null);
+      const down = createMockPointerInfo();
+      service.onPointerDown(down);
+      expect(currentTool.handlePointerDown).toHaveBeenCalledWith(down);
+      expect(selectTool.handlePointerDown).not.toHaveBeenCalled();
+    });
+
+    it('draws normally when the gesture starts off the selection UI', () => {
+      (getMouseTarget as jest.Mock).mockReturnValue({
+        id: 'item_abc',
+        getAttribute: () => null,
+      } as unknown as SVGGraphicsElement);
+      const down = createMockPointerInfo();
+      service.onPointerDown(down);
+      expect(currentTool.handlePointerDown).toHaveBeenCalledWith(down);
+      expect(selectTool.handlePointerDown).not.toHaveBeenCalled();
+    });
+
+    it('does not hijack the gesture when the Select tool is already active', () => {
+      toolsService.getActiveToolType.mockReturnValue(ToolType.Select);
+      const down = createMockPointerInfo();
+      service.onPointerDown(down);
+      // Falls through to the normal active-tool path instead of the capture branch.
+      expect(currentTool.handlePointerDown).toHaveBeenCalledWith(down);
+    });
+
+    it('never swaps the active tool, so the selection survives the release', () => {
+      service.onPointerDown(createMockPointerInfo({ eventType: 'pointerdown' }));
+      service.onPointerMove(createMockPointerInfo({ eventType: 'pointermove' }));
+      service.onPointerUp(createMockPointerInfo({ eventType: 'pointerup' }));
+
+      // The active tool is never changed, so SelectTool.onDeactivate (which clears the
+      // selection) never runs — the manipulated element stays selected after release.
+      expect(toolsService.pushTemporaryTool).not.toHaveBeenCalled();
+      expect(apiService.clearSelection).not.toHaveBeenCalled();
+    });
+
+    it('releases the capture on pointercancel and stops hijacking moves', () => {
+      service.onPointerDown(createMockPointerInfo({ eventType: 'pointerdown' }));
+      expect(selectTool.handlePointerDown).toHaveBeenCalled();
+
+      const cancel = createMockPointerInfo({ eventType: 'pointercancel' });
+      service.onPointerCancel(cancel);
+      expect(selectTool.handlePointerUp).toHaveBeenCalledWith(cancel);
+
+      // After the gesture is released, a normal move goes back to the drawing tool.
+      const move = createMockPointerInfo({ eventType: 'pointermove' });
+      service.onPointerMove(move);
+      expect(currentTool.handlePointerMove).toHaveBeenCalledWith(move);
+      expect(selectTool.handlePointerMove).not.toHaveBeenCalled();
+    });
+
+    it('pointercancel is a no-op when no selection gesture is in flight', () => {
+      service.onPointerCancel(createMockPointerInfo({ eventType: 'pointercancel' }));
+      expect(selectTool.handlePointerUp).not.toHaveBeenCalled();
+    });
+
+    it('captures on arrow endpoint / curve handles (data-handle)', () => {
+      (getMouseTarget as jest.Mock).mockReturnValue({
+        id: '',
+        getAttribute: (a: string) => (a === 'data-handle' ? 'start' : null),
+      } as unknown as SVGGraphicsElement);
+      const down = createMockPointerInfo();
+      service.onPointerDown(down);
+      expect(selectTool.handlePointerDown).toHaveBeenCalledWith(down);
+      expect(currentTool.handlePointerDown).not.toHaveBeenCalled();
+    });
+
+    it('draws normally when there is no pointer target', () => {
+      (getMouseTarget as jest.Mock).mockReturnValue(null);
+      const down = createMockPointerInfo();
+      service.onPointerDown(down);
+      expect(currentTool.handlePointerDown).toHaveBeenCalledWith(down);
+      expect(selectTool.handlePointerDown).not.toHaveBeenCalled();
+    });
+
+    it('draws normally when the Select tool instance is unavailable', () => {
+      toolsService.getToolInstance.mockImplementation(() => {
+        throw new Error('not registered');
+      });
+      const down = createMockPointerInfo();
+      service.onPointerDown(down);
+      expect(currentTool.handlePointerDown).toHaveBeenCalledWith(down);
+      expect(selectTool.handlePointerDown).not.toHaveBeenCalled();
+    });
   });
 
   describe('Context Menu', () => {
