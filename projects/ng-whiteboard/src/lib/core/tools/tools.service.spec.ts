@@ -73,7 +73,7 @@ describe('ToolsService', () => {
 
     it('should have correct number of default tools', () => {
       const configs = service.getToolConfigs();
-      expect(configs.length).toBe(10); // Hand, Select, Pen, Line, Arrow, Rectangle, Ellipse, Text, Image, Eraser
+      expect(configs.length).toBe(11); // Hand, Select, Pen, Line, Arrow, Rectangle, Ellipse, Text, Image, Eraser, ZoomArea
     });
   });
 
