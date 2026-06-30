@@ -84,7 +84,7 @@
     "codecov": "^3.8.3",
     "concurrently": "9.1.0",
     "copyfiles": "2.4.1",
-    "cypress": "14.5.4",
+    "cypress": "15.18.0",
     "eslint": "^9.8.0",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-cypress": "^6.4.1",
