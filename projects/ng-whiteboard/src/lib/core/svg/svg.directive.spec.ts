@@ -33,6 +33,7 @@ describe('SvgDirective', () => {
       onPointerDown: jest.fn(),
       onPointerMove: jest.fn(),
       onPointerUp: jest.fn(),
+      onPointerCancel: jest.fn(),
       onContextMenu: jest.fn(),
     };
 
@@ -99,6 +100,17 @@ describe('SvgDirective', () => {
     });
     directive.onPointerUp(eventMock);
     expect(svgServiceMock.onPointerUp).toHaveBeenCalled();
+  });
+
+  it('should forward pointercancel / pointerleave to onPointerCancel', () => {
+    const eventMock = withCurrentTarget(new MouseEvent('pointercancel') as PointerEvent, {
+      getBoundingClientRect: () => ({ left: 0, top: 0 }),
+      hasPointerCapture: () => true,
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      releasePointerCapture: () => {},
+    });
+    directive.onPointerCancel(eventMock);
+    expect(svgServiceMock.onPointerCancel).toHaveBeenCalled();
   });
 
   it('should forward middle button up to service (no draw end expected)', () => {
