@@ -1,3 +1,11 @@
+# [5.6.0](https://github.com/mostafazke/ng-whiteboard/compare/v5.5.0...v5.6.0) (2026-06-30)
+
+
+### Features
+
+* **selection:** manipulate the selection regardless of the active tool ([a2fd499](https://github.com/mostafazke/ng-whiteboard/commit/a2fd499c77822f238ac675ee4975d97c59a19d64))
+* **tools:** ZoomArea marquee tool ([234ad9b](https://github.com/mostafazke/ng-whiteboard/commit/234ad9b999c1ced4bb97ae9029d37ff41e2abe80)), closes [#392](https://github.com/mostafazke/ng-whiteboard/issues/392)
+
 # [5.5.0](https://github.com/mostafazke/ng-whiteboard/compare/v5.4.1...v5.5.0) (2026-06-26)
 
 
