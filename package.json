@@ -76,7 +76,7 @@
     "@swc/helpers": "~0.5.23",
     "@theunderscorer/nx-semantic-release": "2.12.0",
     "@types/jest": "^30.0.0",
-    "@types/node": "18.16.9",
+    "@types/node": "26.0.1",
     "@typescript-eslint/utils": "8.61.1",
     "angular-eslint": "^20.7.0",
     "autoprefixer": "^10.5.0",
