@@ -52,7 +52,7 @@
     "@angular/compiler-cli": "20.3.25",
     "@angular/language-service": "20.3.25",
     "@angular/pwa": "~20.3.29",
-    "@commitlint/cli": "19.6.1",
+    "@commitlint/cli": "21.2.0",
     "@commitlint/config-conventional": "19.6.0",
     "@eslint/js": "^9.8.0",
     "@nx/angular": "21.6.9",
