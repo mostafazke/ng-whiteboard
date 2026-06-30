@@ -12,6 +12,7 @@ import {
   RectangleTool,
   SelectTool,
   TextTool,
+  ZoomAreaTool,
 } from '../tools';
 import { Tool, ToolType } from '../types';
 
@@ -49,6 +50,8 @@ export class ToolFactory {
       }
       case ToolType.Text:
         return new TextTool(apiService);
+      case ToolType.ZoomArea:
+        return new ZoomAreaTool(apiService);
       default:
         throw new Error(`Unknown tool type: ${toolType}`);
     }

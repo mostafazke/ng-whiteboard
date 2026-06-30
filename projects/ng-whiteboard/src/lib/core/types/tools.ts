@@ -11,6 +11,7 @@ export enum ToolType {
   Ellipse = 'ellipse',
   Text = 'text',
   Eraser = 'eraser',
+  ZoomArea = 'zoomArea',
 }
 
 export interface ToolConfig {

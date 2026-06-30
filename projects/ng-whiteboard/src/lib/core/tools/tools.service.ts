@@ -104,6 +104,15 @@ const DEFAULT_TOOLS: ReadonlyArray<ToolConfig> = [
     enabled: true,
     order: 9,
   },
+  {
+    id: 'zoomArea',
+    type: ToolType.ZoomArea,
+    name: 'Zoom to area',
+    description: 'Drag a rectangle to zoom into it',
+    icon: TOOL_ICONS[ToolType.ZoomArea],
+    enabled: true,
+    order: 10,
+  },
 ] as const;
 
 @Injectable({ providedIn: 'root' })

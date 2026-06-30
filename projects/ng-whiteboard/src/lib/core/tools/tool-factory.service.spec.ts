@@ -14,6 +14,7 @@ import {
   RectangleTool,
   SelectTool,
   TextTool,
+  ZoomAreaTool,
 } from './index';
 
 describe('ToolFactory', () => {
@@ -100,6 +101,12 @@ describe('ToolFactory', () => {
       const tool = factory.createTool(ToolType.Text, mockApiService as unknown as ApiService);
       expect(tool).toBeInstanceOf(TextTool);
       expect(tool.type).toBe(ToolType.Text);
+    });
+
+    it('should create ZoomAreaTool instance', () => {
+      const tool = factory.createTool(ToolType.ZoomArea, mockApiService as unknown as ApiService);
+      expect(tool).toBeInstanceOf(ZoomAreaTool);
+      expect(tool.type).toBe(ToolType.ZoomArea);
     });
 
     it('should throw error for unknown tool type', () => {
