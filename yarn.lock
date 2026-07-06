@@ -214,7 +214,7 @@
     "@angular-devkit/architect" "0.2003.30"
     rxjs "7.8.2"
 
-"@angular-devkit/core@20.3.30", "@angular-devkit/core@>= 20.0.0 < 21.0.0", "@angular-devkit/core@^20.3.29":
+"@angular-devkit/core@20.3.30":
   version "20.3.30"
   resolved "https://registry.yarnpkg.com/@angular-devkit/core/-/core-20.3.30.tgz#f6273edd087b48dadd99acb0606fea94f058e741"
   integrity sha512-JGsFvKUIZSccqqDg9ZUmjrGh8MxaItFvBKhvcLitwrQdtpBUC6RFATU6vpkAh2KAdNB+YtFGy2ooGX85D1v42w==
@@ -226,12 +226,35 @@
     rxjs "7.8.2"
     source-map "0.7.6"
 
-"@angular-devkit/schematics@20.3.30", "@angular-devkit/schematics@>= 20.0.0 < 21.0.0", "@angular-devkit/schematics@~20.3.29":
+"@angular-devkit/core@20.3.31", "@angular-devkit/core@>= 20.0.0 < 21.0.0", "@angular-devkit/core@^20.3.29":
+  version "20.3.31"
+  resolved "https://registry.yarnpkg.com/@angular-devkit/core/-/core-20.3.31.tgz#6f389166209ebbc756b97d27372618581a1029ad"
+  integrity sha512-8xaQzLYYzFC0uQ6J6QtR+gFi85FHGQKwi7QcJ0HfEhKJkdB2zT6dLgmgv6gKMQs2M1vZYZvt/NqV3a19cLFZgA==
+  dependencies:
+    ajv "8.18.0"
+    ajv-formats "3.0.1"
+    jsonc-parser "3.3.1"
+    picomatch "4.0.4"
+    rxjs "7.8.2"
+    source-map "0.7.6"
+
+"@angular-devkit/schematics@20.3.30":
   version "20.3.30"
   resolved "https://registry.yarnpkg.com/@angular-devkit/schematics/-/schematics-20.3.30.tgz#6a6126a7ad1e8d58cb18a5f45a486eb9a039be56"
   integrity sha512-thFyLUczELUoZLgFmLoG38ezkH3RGEYhSm1Yr2dT8tnP0ONtK4d5tXzpnA0ZK3rLnGlGd/RGRiax2jmMVNQnSw==
   dependencies:
     "@angular-devkit/core" "20.3.30"
+    jsonc-parser "3.3.1"
+    magic-string "0.30.17"
+    ora "8.2.0"
+    rxjs "7.8.2"
+
+"@angular-devkit/schematics@20.3.31", "@angular-devkit/schematics@>= 20.0.0 < 21.0.0", "@angular-devkit/schematics@~20.3.29":
+  version "20.3.31"
+  resolved "https://registry.yarnpkg.com/@angular-devkit/schematics/-/schematics-20.3.31.tgz#6e5f864b4795bb632792f9eb1424ee3693acf580"
+  integrity sha512-9QyjgGYwEhstajQLZI2K0p9KfYk0cF+Pc+OT1coqaavER6lblYsK6dIHMW0C8rKPOI0cLHjU/Lvb5HajixW7Ow==
+  dependencies:
+    "@angular-devkit/core" "20.3.31"
     jsonc-parser "3.3.1"
     magic-string "0.30.17"
     ora "8.2.0"
@@ -6116,13 +6139,22 @@
   dependencies:
     error-stack-parser "^2.1.4"
 
-"@schematics/angular@20.3.30", "@schematics/angular@~20.3.30":
+"@schematics/angular@20.3.30":
   version "20.3.30"
   resolved "https://registry.yarnpkg.com/@schematics/angular/-/angular-20.3.30.tgz#ac58e0eb67aee1027dfb1292654394ea6b8d4c55"
   integrity sha512-UCYMVIr0a/RCPlk5CbMYaC09cSoXCMqdIG6jYNQgxJcPgOMHop1wEEUkOkih7Qy1kN1nBmXnG2tYFVH0Non+uA==
   dependencies:
     "@angular-devkit/core" "20.3.30"
     "@angular-devkit/schematics" "20.3.30"
+    jsonc-parser "3.3.1"
+
+"@schematics/angular@~20.3.31":
+  version "20.3.31"
+  resolved "https://registry.yarnpkg.com/@schematics/angular/-/angular-20.3.31.tgz#06b82fe048e8a54a5d0c7cd8d3dab66fd733636d"
+  integrity sha512-ho0AgBB9WZBqN3RPzL8R2jGWjZzETa0+B0jJGNhK+Fmqv8ZjABLFH85MIguvwuXE7I2DXaC+ooxyz3u3G8G/gQ==
+  dependencies:
+    "@angular-devkit/core" "20.3.31"
+    "@angular-devkit/schematics" "20.3.31"
     jsonc-parser "3.3.1"
 
 "@sec-ant/readable-stream@^0.4.1":
