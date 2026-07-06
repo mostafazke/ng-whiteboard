@@ -54,7 +54,7 @@
     "@angular/pwa": "~20.3.30",
     "@commitlint/cli": "19.6.1",
     "@commitlint/config-conventional": "19.6.0",
-    "@eslint/js": "^9.8.0",
+    "@eslint/js": "^10.0.1",
     "@nx/angular": "21.6.11",
     "@nx/cypress": "21.6.11",
     "@nx/eslint": "21.6.11",
