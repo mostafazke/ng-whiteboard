@@ -106,6 +106,10 @@ jobs:
           node-version: 24
           cache: yarn
           registry-url: https://registry.npmjs.org
+        env:
+          # setup-node v7 runs yarn while resolving the cache, and yarn needs the
+          # token referenced by the generated .npmrc.
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
