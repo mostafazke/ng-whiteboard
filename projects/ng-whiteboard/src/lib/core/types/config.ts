@@ -14,7 +14,14 @@ export type SelectAfterDrawConfig = boolean | Partial<Record<ElementType, boolea
  * Mirrors ArrowheadType for config usage.
  */
 export type ArrowHeadStyle =
-  'none' | 'arrow' | 'open-arrow' | 'diamond' | 'open-diamond' | 'circle' | 'open-circle' | 'bar';
+  | 'none'
+  | 'arrow'
+  | 'open-arrow'
+  | 'diamond'
+  | 'open-diamond'
+  | 'circle'
+  | 'open-circle'
+  | 'bar';
 
 /**
  * Describes the default path style for new arrows.
@@ -72,6 +79,8 @@ export interface WhiteboardConfig {
    * each element's own default. See {@link SelectAfterDrawConfig}.
    */
   selectAfterDraw?: SelectAfterDrawConfig;
+  /** Color theme for the canvas and editor UI */
+  theme?: 'light' | 'dark';
 }
 
 export interface EditorConfig {
@@ -142,4 +151,5 @@ export interface EditorConfig {
   showAlternatives: boolean;
   showInsights: boolean;
   enableEditor: boolean;
+  theme?: 'light' | 'dark';
 }

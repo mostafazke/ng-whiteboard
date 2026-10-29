@@ -1,0 +1,77 @@
+// History Panel Styles
+.history-panel {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 2px;
+  padding: var(--space-1) var(--space-2);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  position: absolute;
+  left: var(--space-4);
+  bottom: var(--space-4);
+  z-index: 100;
+  pointer-events: auto;
+
+  .icon-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: var(--radius-sm);
+    color: var(--color-gray-600);
+
+    &:hover:not(:disabled) {
+      background-color: var(--color-gray-100);
+      color: var(--color-gray-900);
+    }
+
+    &:active:not(:disabled) {
+      background-color: var(--color-gray-200);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+
+      &:hover {
+        background: transparent;
+        color: var(--color-gray-600);
+      }
+    }
+
+    ng-icon {
+      font-size: 16px;
+    }
+  }
+
+  .divider {
+    width: 1px;
+    height: 20px;
+    background-color: var(--color-gray-200);
+    margin: 0 var(--space-1);
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .history-panel {
+    padding: var(--space-1);
+
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+
+      ng-icon {
+        font-size: 16px;
+      }
+    }
+  }
+}

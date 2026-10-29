@@ -1,0 +1,295 @@
+:root {
+  // Spacing
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  // Border radius
+  --radius-sm: 0.375rem;
+  --radius: 0.5rem;
+  --radius-lg: 0.75rem;
+
+  // Typography
+  --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+}
+
+// Light theme (default)
+:root,
+.editor[data-theme='light'] {
+  // Design tokens - Light theme
+  --color-primary: #3b82f6;
+  --color-primary-dark: #2563eb;
+  --color-primary-light: #60a5fa;
+  --color-white: #ffffff;
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+
+  // Theme-specific colors
+  --color-background: #ffffff;
+  --color-surface: #ffffff;
+  --color-border: #e5e7eb;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+  --color-text-tertiary: #9ca3af;
+
+  // Shadows - Light theme
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+// Dark theme
+.editor[data-theme='dark'] {
+  // Design tokens - Dark theme
+  --color-primary: #60a5fa;
+  --color-primary-dark: #3b82f6;
+  --color-primary-light: #93c5fd;
+  --color-white: #ffffff;
+  --color-gray-50: #111827;
+  --color-gray-100: #1f2937;
+  --color-gray-200: #374151;
+  --color-gray-300: #4b5563;
+  --color-gray-400: #6b7280;
+  --color-gray-500: #9ca3af;
+  --color-gray-600: #d1d5db;
+  --color-gray-700: #e5e7eb;
+  --color-gray-800: #f3f4f6;
+  --color-gray-900: #f9fafb;
+
+  // Theme-specific colors
+  --color-background: #111827;
+  --color-surface: #1f2937;
+  --color-border: #374151;
+  --color-text-primary: #f9fafb;
+  --color-text-secondary: #d1d5db;
+  --color-text-tertiary: #9ca3af;
+
+  // Shadows - Dark theme
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+}
+
+// Main editor container
+.editor {
+  position: absolute;
+  inset: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  color: var(--color-text-primary);
+  pointer-events: none;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+
+  * {
+    box-sizing: border-box;
+  }
+}
+
+.editor-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none; // Allow pointer events to pass through to canvas
+  padding: var(--space-4);
+
+  // Panel positioning - use class selectors for better maintainability
+  .header-panel {
+    position: absolute;
+    top: var(--space-4);
+    left: var(--space-4);
+    z-index: 100;
+    pointer-events: auto;
+  }
+
+  .toolbar {
+    position: absolute;
+    bottom: var(--space-4);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    pointer-events: auto;
+  }
+
+  .controls-panel {
+    position: absolute;
+    bottom: var(--space-4);
+    right: var(--space-4);
+    z-index: 100;
+    pointer-events: auto;
+  }
+}
+
+.panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(8px);
+}
+
+// Icon button base styles
+.icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+
+  &:hover {
+    background-color: var(--color-gray-100);
+    color: var(--color-text-primary);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &.active {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// Utility classes
+.flex-spacer {
+  flex: 1;
+}
+
+// Animation keyframes
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .editor-container {
+    .header-panel {
+      top: var(--space-2);
+      left: var(--space-2);
+    }
+
+    .properties-panel {
+      top: var(--space-2);
+      right: var(--space-2);
+    }
+
+    .toolbar {
+      bottom: var(--space-2);
+    }
+
+    .controls-panel {
+      bottom: var(--space-2);
+      right: var(--space-2);
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --space-4: 0.75rem;
+    --space-2: 0.375rem;
+  }
+
+  .editor-container {
+    padding: var(--space-2);
+
+    .header-panel,
+    .history-panel,
+    .properties-panel,
+    .toolbar,
+    .controls-panel {
+      position: absolute;
+      top: var(--space-2);
+      bottom: var(--space-2);
+      left: var(--space-2);
+      right: var(--space-2);
+    }
+
+    .header-panel {
+      top: var(--space-2);
+      left: var(--space-2);
+      right: auto;
+      bottom: auto;
+    }
+
+    .history-panel {
+      left: var(--space-2);
+      bottom: var(--space-2);
+      right: auto;
+      top: auto;
+    }
+
+    .properties-panel {
+      top: var(--space-2);
+      right: var(--space-2);
+      left: auto;
+      bottom: auto;
+      max-height: calc(100vh - calc(var(--space-2) * 2) - 100px);
+    }
+
+    .toolbar {
+      bottom: var(--space-2);
+      left: 50%;
+      transform: translateX(-50%);
+      top: auto;
+      right: auto;
+    }
+
+    .controls-panel {
+      bottom: var(--space-2);
+      right: var(--space-2);
+      top: auto;
+      left: auto;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .editor-container {
+    .properties-panel {
+      max-height: calc(100vh - calc(var(--space-4) * 2) - 80px);
+    }
+  }
+}

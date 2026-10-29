@@ -41,11 +41,13 @@ export class ConfigService {
     penType: PenType.Pen,
     penThrottlingThreshold: 2,
     arrowConfig: { ...defaultArrowConfig },
+    theme: 'light',
   });
 
   private editorConfig = signal<EditorConfig>({
     title: 'Whiteboard',
     enableEditor: true,
+    theme: 'light',
     // Core panels / features
     showTitle: true,
     showZoom: true,
@@ -116,6 +118,33 @@ export class ConfigService {
 
   constructor(private eventBusService: EventBusService) {}
 
+  /**
+   * When the theme changes, swap the background and stroke colors to the new theme's
+   * defaults if they are still set to the previous theme's defaults.
+   */
+  private withThemeColors(current: WhiteboardConfig, next: WhiteboardConfig): WhiteboardConfig {
+    if (!next.theme || next.theme === current.theme) {
+      return next;
+    }
+
+    // Define theme-specific colors
+    const themes = {
+      light: { backgroundColor: '#F8F9FA', strokeColor: '#333333' },
+      dark: { backgroundColor: '#1a1a1a', strokeColor: '#e5e7eb' },
+    };
+    const from = themes[next.theme === 'dark' ? 'light' : 'dark'];
+    const to = themes[next.theme];
+
+    if (next.backgroundColor !== from.backgroundColor) {
+      return next;
+    }
+    return {
+      ...next,
+      backgroundColor: to.backgroundColor,
+      strokeColor: next.strokeColor === from.strokeColor ? to.strokeColor : next.strokeColor,
+    };
+  }
+
   getConfig(): Readonly<WhiteboardConfig> {
     return this.config();
   }
@@ -145,7 +174,7 @@ export class ConfigService {
   }
 
   updateConfig(partialConfig: Partial<WhiteboardConfig>, emitEvent = true): void {
-    this.config.update((current) => ({ ...current, ...partialConfig }));
+    this.config.update((current) => this.withThemeColors(current, { ...current, ...partialConfig }));
 
     const hasZoomRelatedChanges = 'zoom' in partialConfig;
 
@@ -165,7 +194,7 @@ export class ConfigService {
   }
 
   updateConfigValue(key: keyof WhiteboardConfig, value: WhiteboardConfig[keyof WhiteboardConfig]): void {
-    this.config.update((current) => ({ ...current, [key]: value }));
+    this.config.update((current) => this.withThemeColors(current, { ...current, [key]: value }));
     this.eventBusService.emit(WhiteboardEvent.ConfigChange, this.config());
   }
 
@@ -184,7 +213,7 @@ export class ConfigService {
   }
 
   setConfigValue<K extends keyof WhiteboardConfig>(key: K, value: WhiteboardConfig[K]): void {
-    this.config.update((current) => ({ ...current, [key]: value }));
+    this.config.update((current) => this.withThemeColors(current, { ...current, [key]: value }));
     this.eventBusService.emit(WhiteboardEvent.ConfigChange, this.config());
   }
 

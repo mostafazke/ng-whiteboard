@@ -1,0 +1,330 @@
+// Theme toggle button styles
+.theme-toggle-btn {
+  margin-left: var(--space-3);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-gray-200);
+  background: var(--color-gray-50);
+  color: var(--color-gray-700);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+
+  &:hover {
+    background: var(--color-primary);
+    color: var(--color-white);
+    border-color: var(--color-primary);
+  }
+}
+// Header Panel Styles
+.header-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-2);
+  min-width: 400px;
+  backdrop-filter: blur(8px);
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+
+    .dropdown-wrapper {
+      position: relative;
+
+      .layers-button {
+        width: 40px;
+        height: 40px;
+        border: none;
+        background: transparent;
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--color-gray-600);
+        transition: all 0.2s ease;
+
+        &:hover {
+          background-color: var(--color-gray-100);
+          color: var(--color-gray-900);
+        }
+
+        &.active {
+          background-color: var(--color-primary);
+          color: white;
+        }
+      }
+
+      .layers-dropdown {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        min-width: 280px;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-lg);
+        z-index: 1000;
+        animation: slideUp 0.2s ease;
+
+        .dropdown-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: var(--space-3);
+          border-bottom: 1px solid var(--color-gray-100);
+
+          h4 {
+            margin: 0;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--color-gray-900);
+          }
+
+          .close-btn {
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: transparent;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--color-gray-500);
+
+            &:hover {
+              background-color: var(--color-gray-100);
+              color: var(--color-gray-700);
+            }
+          }
+        }
+
+        .layer-panel-wrapper {
+          // Reset any potential conflicts and ensure the layer panel fits well
+          ng-ng-layer-panel {
+            display: block;
+            width: 100%;
+
+            // Override layer panel styles to fit in dropdown
+            .layer-panel {
+              border: none;
+              border-radius: 0;
+              box-shadow: none;
+              background: transparent;
+              max-height: 300px;
+            }
+          }
+        }
+
+        .layers-list {
+          max-height: 200px;
+          overflow-y: auto;
+
+          .layer-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-3);
+            border-bottom: 1px solid var(--color-gray-50);
+            transition: background-color 0.2s ease;
+
+            &:hover {
+              background-color: var(--color-gray-50);
+            }
+
+            &:last-child {
+              border-bottom: none;
+            }
+
+            .layer-content {
+              display: flex;
+              align-items: center;
+              gap: var(--space-2);
+
+              ng-icon {
+                width: 16px;
+                height: 16px;
+                color: var(--color-gray-500);
+              }
+
+              .layer-name {
+                font-size: 0.875rem;
+                color: var(--color-gray-700);
+                font-weight: 500;
+              }
+            }
+
+            .layer-controls {
+              display: flex;
+              gap: var(--space-1);
+
+              .layer-control-btn {
+                width: 28px;
+                height: 28px;
+                border: none;
+                background: transparent;
+                border-radius: var(--radius-sm);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                color: var(--color-gray-400);
+                transition: all 0.2s ease;
+
+                &:hover {
+                  background-color: var(--color-gray-100);
+                  color: var(--color-gray-600);
+                }
+
+                &.active {
+                  color: var(--color-primary);
+                }
+
+                ng-icon {
+                  width: 14px;
+                  height: 14px;
+                }
+              }
+            }
+          }
+        }
+
+        .layer-actions {
+          padding: var(--space-3);
+          border-top: 1px solid var(--color-gray-100);
+
+          .add-layer-btn {
+            width: 100%;
+            padding: var(--space-2);
+            border: 1px dashed var(--color-gray-300);
+            background: transparent;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+            cursor: pointer;
+            color: var(--color-gray-600);
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+
+            &:hover {
+              border-color: var(--color-primary);
+              color: var(--color-primary);
+              background-color: rgba(59, 130, 246, 0.05);
+            }
+
+            ng-icon {
+              width: 16px;
+              height: 16px;
+            }
+          }
+        }
+      }
+    }
+
+    .title-section {
+      min-width: 200px;
+
+      .title-input {
+        font-size: 1.125rem;
+        font-weight: 600;
+        padding: var(--space-2);
+        border: 1px solid var(--color-gray-300);
+        border-radius: var(--radius-sm);
+        outline: none;
+        width: 100%;
+        background: var(--color-surface);
+        color: var(--color-text-primary);
+
+        &:focus {
+          border-color: var(--color-primary);
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+      }
+
+      h1 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        padding: var(--space-2);
+        cursor: pointer;
+        color: var(--color-gray-800);
+        margin: 0;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+        border-radius: var(--radius-sm);
+        transition: background-color 0.2s ease;
+
+        &:hover {
+          background-color: var(--color-gray-50);
+        }
+      }
+    }
+  }
+
+  .header-right {
+    .actions {
+      display: flex;
+      gap: var(--space-1);
+
+      .action-btn {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: var(--space-2) var(--space-3);
+        border: none;
+        background: transparent;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        color: var(--color-gray-600);
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background-color: var(--color-gray-100);
+          color: var(--color-gray-900);
+        }
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        ng-icon {
+          width: 16px;
+          height: 16px;
+        }
+
+        .action-label {
+          display: none;
+
+          @media (min-width: 640px) {
+            display: block;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 640px) {
+  .header-panel {
+    min-width: 300px;
+
+    .header-left {
+      .title-section {
+        min-width: 150px;
+      }
+    }
+  }
+}

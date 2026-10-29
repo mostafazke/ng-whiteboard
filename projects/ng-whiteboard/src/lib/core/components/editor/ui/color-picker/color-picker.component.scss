@@ -1,0 +1,112 @@
+// Color Picker Styles - Horizontal Row with Separator
+.color-picker-container {
+  width: 100%;
+}
+
+.color-swatches {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5, 6px);
+  padding: var(--space-2);
+  background: var(--color-gray-50);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-sm);
+  width: 100%;
+
+  .color-swatch {
+    flex: 0 0 auto;
+    width: 26px;
+    height: 26px;
+    border: 2px solid white;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 0 0 1px var(--color-gray-300);
+    position: relative;
+    padding: 0;
+    outline: none;
+
+    &:hover {
+      transform: scale(1.15);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), 0 0 0 1px var(--color-gray-400);
+      z-index: 1;
+    }
+
+    &:active {
+      transform: scale(1.05);
+    }
+
+    &.active {
+      box-shadow: 0 0 0 2px var(--color-primary), 0 2px 8px rgba(59, 130, 246, 0.3);
+      transform: scale(1.15);
+      z-index: 2;
+    }
+  }
+
+  .color-separator {
+    width: 1px;
+    height: 26px;
+    background: var(--color-gray-300);
+    margin: 0 var(--space-1);
+    flex-shrink: 0;
+  }
+
+  .custom-color-swatch {
+    width: 30px;
+    min-width: 30px;
+    height: 26px;
+    border: 2px dashed var(--color-gray-400);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    padding: 0;
+    outline: none;
+    background: var(--color-surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+
+    &:hover {
+      transform: scale(1.15);
+      border-color: var(--color-primary);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      z-index: 1;
+    }
+
+    &:active {
+      transform: scale(1.05);
+    }
+
+    .color-preview {
+      position: absolute;
+      inset: 2px;
+      border-radius: 2px;
+      transition: opacity 0.2s ease;
+      pointer-events: none;
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 480px) {
+  .color-swatches {
+    gap: var(--space-1);
+    padding: var(--space-1-5);
+
+    .color-swatch {
+      width: 24px;
+      height: 24px;
+    }
+
+    .custom-color-swatch {
+      width: 28px;
+      height: 24px;
+    }
+
+    .color-separator {
+      height: 24px;
+    }
+  }
+}

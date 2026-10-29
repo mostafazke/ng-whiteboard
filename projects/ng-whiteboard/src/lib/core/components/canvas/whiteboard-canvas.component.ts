@@ -5,6 +5,7 @@ import {
   Component,
   computed,
   ElementRef,
+  HostBinding,
   inject,
   ViewChild,
 } from '@angular/core';
@@ -41,6 +42,11 @@ export class WhiteboardCanvasComponent implements AfterViewInit {
   @ViewChild('svgContainer', { static: false })
   svgContainer!: ElementRef<SVGSVGElement>;
 
+  @HostBinding('attr.data-theme')
+  get theme() {
+    return this.themeSignal();
+  }
+
   apiService = inject(ApiService);
   configService = inject(ConfigService);
   toolsService = inject(ToolsService);
@@ -51,6 +57,8 @@ export class WhiteboardCanvasComponent implements AfterViewInit {
   handleService = inject(HandleService);
 
   config = this.configService.getConfigSignal();
+
+  themeSignal = computed(() => this.config().theme);
 
   elements = this.apiService.allElements;
   layers = this.apiService.layers;

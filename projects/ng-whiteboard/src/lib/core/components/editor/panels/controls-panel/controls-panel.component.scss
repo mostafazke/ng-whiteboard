@@ -1,0 +1,233 @@
+// Controls Panel Styles
+.controls-panel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1); // Reduced gap
+  padding: var(--space-1) var(--space-2); // Reduced padding
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+
+  // Control groups (zoom, view)
+  .zoom-controls,
+  .view-controls {
+    display: flex;
+    align-items: center;
+    gap: 2px; // Tighter gap between buttons
+
+    &:not(:last-child) {
+      border-right: 1px solid var(--color-gray-200);
+      padding-right: var(--space-1); // Reduced padding
+      margin-right: var(--space-1);
+    }
+  }
+
+  // Icon buttons
+  .icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px; // Smaller buttons
+    height: 28px;
+    border: none;
+    background: transparent;
+    color: var(--color-gray-600);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: var(--color-gray-100);
+      color: var(--color-gray-900);
+    }
+
+    &:active {
+      background: var(--color-gray-200);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+
+      &:hover {
+        background: transparent;
+        color: var(--color-gray-600);
+      }
+    }
+
+    &.active {
+      background: var(--color-primary);
+      color: white;
+
+      &:hover {
+        background: var(--color-primary-dark);
+      }
+    }
+  }
+
+  // Divider for history controls
+  .divider {
+    width: 1px;
+    height: 20px;
+    background: var(--color-gray-200);
+    margin: 0 var(--space-1);
+  }
+
+  // Zoom specific styles
+  .dropdown-wrapper {
+    position: relative;
+  }
+
+  .zoom-value {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-1);
+    min-width: 45px; // Smaller width
+    height: 28px; // Match icon button height
+    font-size: 0.7rem; // Smaller font
+    font-weight: 500;
+    color: var(--color-gray-700);
+    background: var(--color-gray-50);
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: var(--color-gray-100);
+      border-color: var(--color-gray-300);
+    }
+
+    &.active {
+      background: var(--color-primary);
+      color: white;
+      border-color: var(--color-primary);
+    }
+  }
+
+  .zoom-dropdown {
+    position: absolute;
+    bottom: calc(100% + 8px); // Position above instead of below
+    right: 0; // Align to right edge
+    background: var(--color-white);
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg); // Stronger shadow for better visibility
+    z-index: 1000;
+    min-width: 120px; // Smaller width
+    overflow: hidden;
+
+    .zoom-presets {
+      padding: var(--space-1);
+
+      .zoom-option {
+        display: block;
+        width: 100%;
+        padding: var(--space-1); // Reduced padding
+        border: none;
+        background: none;
+        color: var(--color-gray-700);
+        text-align: left;
+        cursor: pointer;
+        border-radius: var(--radius-sm);
+        font-size: 0.7rem; // Smaller font
+        transition: background 0.2s ease;
+
+        &:hover {
+          background: var(--color-gray-100);
+        }
+
+        &.active {
+          background: var(--color-primary);
+          color: white;
+        }
+      }
+    }
+
+    .zoom-divider {
+      height: 1px;
+      background: var(--color-gray-200);
+      margin: var(--space-1) 0;
+    }
+
+    .zoom-actions {
+      padding: var(--space-1);
+
+      .zoom-action {
+        display: flex;
+        align-items: center;
+        gap: var(--space-1); // Reduced gap
+        width: 100%;
+        padding: var(--space-1); // Reduced padding
+        border: none;
+        background: none;
+        color: var(--color-gray-700);
+        text-align: left;
+        cursor: pointer;
+        border-radius: var(--radius-sm);
+        font-size: 0.7rem; // Smaller font
+        transition: background 0.2s ease;
+
+        &:hover {
+          background: var(--color-gray-100);
+        }
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+
+          &:hover {
+            background: none;
+          }
+        }
+
+        ng-icon {
+          font-size: 12px;
+        }
+      }
+    }
+  }
+}
+
+// Mobile responsive
+@media (max-width: 768px) {
+  .controls-panel {
+    flex-wrap: wrap;
+    gap: 2px; // Very tight gap on mobile
+    padding: var(--space-1);
+
+    .icon-btn {
+      width: 24px; // Even smaller on mobile
+      height: 24px;
+    }
+
+    .zoom-controls,
+    .history-controls,
+    .view-controls {
+      gap: 1px;
+
+      &:not(:last-child) {
+        padding-right: 2px;
+        margin-right: 2px;
+      }
+    }
+
+    .zoom-value {
+      min-width: 35px;
+      height: 24px;
+      font-size: 0.65rem;
+    }
+
+    .zoom-dropdown {
+      min-width: 100px;
+
+      .zoom-option,
+      .zoom-action {
+        font-size: 0.65rem;
+        padding: 2px;
+      }
+    }
+  }
+}

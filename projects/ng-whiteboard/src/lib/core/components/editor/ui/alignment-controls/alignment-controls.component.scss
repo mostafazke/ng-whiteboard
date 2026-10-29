@@ -1,0 +1,71 @@
+// Alignment Controls Styles
+.alignment-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+
+  .alignment-group {
+    .group-label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--color-gray-500);
+      margin-bottom: var(--space-1);
+      font-weight: 500;
+    }
+
+    .button-row {
+      display: flex;
+      gap: var(--space-1);
+
+      .alignment-btn {
+        width: 32px;
+        height: 32px;
+        border: 1px solid var(--color-gray-300);
+        background: var(--color-surface);
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--color-gray-600);
+        transition: all 0.2s ease;
+
+        &:hover {
+          background-color: var(--color-gray-50);
+          border-color: var(--color-primary);
+          color: var(--color-gray-900);
+        }
+
+        &:active {
+          background-color: var(--color-primary);
+          border-color: var(--color-primary);
+          color: white;
+        }
+
+        ng-icon {
+          width: 16px;
+          height: 16px;
+        }
+      }
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 480px) {
+  .alignment-buttons {
+    .alignment-group {
+      .button-row {
+        .alignment-btn {
+          width: 28px;
+          height: 28px;
+
+          ng-icon {
+            width: 14px;
+            height: 14px;
+          }
+        }
+      }
+    }
+  }
+}
