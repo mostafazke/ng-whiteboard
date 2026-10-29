@@ -99,7 +99,7 @@
     "nx": "21.6.11",
     "postcss": "^8.5.20",
     "postcss-url": "~10.1.4",
-    "prettier": "^2.6.2",
+    "prettier": "^3.9.10",
     "replace-json-property": "^1.9.0",
     "ts-jest": "^29.4.11",
     "ts-node": "10.9.2",
