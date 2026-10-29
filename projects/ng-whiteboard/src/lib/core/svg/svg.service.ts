@@ -292,8 +292,14 @@ export class SvgService {
    */
   private tryBeginSelectionGesture(info: PointerInfo): boolean {
     if (this.toolsService.getActiveToolType() === ToolType.Select) return false;
-    if (!this.apiService.getBoundingBox()) return false;
-    if (!this.isSelectionHandleTarget(getMouseTarget(info))) return false;
+    // Need an existing selection to manipulate. We can't gate on getBoundingBox() here: line and
+    // arrow selections have NO bounding box (they use their own endpoint/curve handles), so that
+    // guard would wrongly exclude them and the gesture would fall through to the drawing tool.
+    if (this.apiService.selectedElements().length === 0) return false;
+    // Capture when the gesture starts on the selection's own UI (box / resize / rotate / endpoint /
+    // curve handles) OR on the body of an already-selected element — the latter lets a selected
+    // line/arrow be moved by its body, matching the Select tool (they have no box to grab).
+    if (!this.isSelectionHandleTarget(getMouseTarget(info)) && !this.isSelectedElementTarget(info)) return false;
 
     const selectTool = this.safeGetToolInstance(ToolType.Select);
     if (!selectTool) return false;
@@ -303,6 +309,17 @@ export class SvgService {
     selectTool.handlePointerDown?.(info);
     this.pointerDownSig.set(info);
     return true;
+  }
+
+  /**
+   * True when the pointer landed on the body of an element that is currently selected. Lets a
+   * selected line/arrow — which has no bounding box, only endpoint/curve handles — be moved by
+   * dragging its body while a drawing tool stays active, matching the Select tool's behaviour.
+   */
+  private isSelectedElementTarget(info: PointerInfo): boolean {
+    const targetElement = this.getTargetElementFromPointer(info);
+    if (!targetElement) return false;
+    return this.apiService.selectedElements().some((el) => el.id === targetElement.id);
   }
 
   /**

@@ -232,9 +232,12 @@ describe('SvgService', () => {
     beforeEach(() => {
       jest.clearAllMocks(); // shared tool mocks accumulate calls across tests; reset before each
       toolsService = TestBed.inject(ToolsService) as jest.Mocked<ToolsService>;
-      // Something is selected, and the gesture starts on the selection's own UI.
+      // Something is selected, and the gesture starts on the selection's own UI. A non-empty
+      // selection is the gate (NOT the bounding box — line/arrow selections have none).
+      apiService.selectedElements.mockReturnValue([{ id: 'sel-1' } as WhiteboardElement]);
       apiService.getBoundingBox.mockReturnValue({} as never);
       (getMouseTarget as jest.Mock).mockReturnValue(gripTarget);
+      (getTargetElement as jest.Mock).mockReturnValue(null); // body-target off by default
     });
 
     it('routes the whole gesture to the Select tool, not the active drawing tool', () => {
@@ -263,7 +266,7 @@ describe('SvgService', () => {
     });
 
     it('draws normally when nothing is selected', () => {
-      apiService.getBoundingBox.mockReturnValue(null);
+      apiService.selectedElements.mockReturnValue([]);
       const down = createMockPointerInfo();
       service.onPointerDown(down);
       expect(currentTool.handlePointerDown).toHaveBeenCalledWith(down);
@@ -329,6 +332,52 @@ describe('SvgService', () => {
       service.onPointerDown(down);
       expect(selectTool.handlePointerDown).toHaveBeenCalledWith(down);
       expect(currentTool.handlePointerDown).not.toHaveBeenCalled();
+    });
+
+    it('captures on a line/arrow handle even though the selection has no bounding box', () => {
+      // Regression: line/arrow selections use endpoint/curve handles and have NO bounding box.
+      // The capture must not gate on getBoundingBox() or it would never fire for them — the bug
+      // where a just-drawn arrow looked selected but a click started a new arrow instead.
+      apiService.getBoundingBox.mockReturnValue(null);
+      (getMouseTarget as jest.Mock).mockReturnValue({
+        id: '',
+        getAttribute: (a: string) => (a === 'data-handle' ? 'end' : null),
+      } as unknown as SVGGraphicsElement);
+      const down = createMockPointerInfo();
+      service.onPointerDown(down);
+      expect(selectTool.handlePointerDown).toHaveBeenCalledWith(down);
+      expect(currentTool.handlePointerDown).not.toHaveBeenCalled();
+    });
+
+    it('captures when the gesture starts on the body of an already-selected element', () => {
+      // A selected line/arrow has no box to grab — dragging its body should move it (like the
+      // Select tool), so the capture also fires when the pointer's element is in the selection.
+      apiService.getBoundingBox.mockReturnValue(null);
+      const selected = { id: 'sel-1' } as WhiteboardElement;
+      apiService.selectedElements.mockReturnValue([selected]);
+      (getMouseTarget as jest.Mock).mockReturnValue({
+        id: 'item_sel-1',
+        getAttribute: () => null,
+      } as unknown as SVGGraphicsElement);
+      (getTargetElement as jest.Mock).mockReturnValue(selected);
+      const down = createMockPointerInfo();
+      service.onPointerDown(down);
+      expect(selectTool.handlePointerDown).toHaveBeenCalledWith(down);
+      expect(currentTool.handlePointerDown).not.toHaveBeenCalled();
+    });
+
+    it('draws normally on the body of an element that is not selected', () => {
+      const selected = { id: 'sel-1' } as WhiteboardElement;
+      apiService.selectedElements.mockReturnValue([selected]);
+      (getMouseTarget as jest.Mock).mockReturnValue({
+        id: 'item_other',
+        getAttribute: () => null,
+      } as unknown as SVGGraphicsElement);
+      (getTargetElement as jest.Mock).mockReturnValue({ id: 'other' } as WhiteboardElement);
+      const down = createMockPointerInfo();
+      service.onPointerDown(down);
+      expect(currentTool.handlePointerDown).toHaveBeenCalledWith(down);
+      expect(selectTool.handlePointerDown).not.toHaveBeenCalled();
     });
 
     it('draws normally when there is no pointer target', () => {
