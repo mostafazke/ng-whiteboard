@@ -29,8 +29,14 @@ a:hover {
   border-style: solid;
   border-width: 1px;
   border-radius: 0.3rem;
-  -webkit-transition: color 0.2s, background-color 0.2s, border-color 0.2s;
-  transition: color 0.2s, background-color 0.2s, border-color 0.2s;
+  -webkit-transition:
+    color 0.2s,
+    background-color 0.2s,
+    border-color 0.2s;
+  transition:
+    color 0.2s,
+    background-color 0.2s,
+    border-color 0.2s;
 }
 
 .special-btn {
