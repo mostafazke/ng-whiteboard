@@ -2,76 +2,76 @@
   <!-- Portal container for context menu -->
   <div id="ng-whiteboard-portals">
     @if (showLayerContextMenu() !== null) {
-    <div
-      class="context-menu-backdrop"
-      (click)="closeLayerContextMenu(); $event.stopPropagation()"
-      (keydown.escape)="closeLayerContextMenu()"
-      tabindex="-1"
-      role="button"
-      aria-label="Close context menu"
-    ></div>
-    <div
-      class="layer-context-menu"
-      role="menu"
-      tabindex="-1"
-      (click)="$event.stopPropagation()"
-      (keydown)="$event.stopPropagation()"
-      [style.position]="'fixed'"
-      [style.top.px]="contextMenuPosition().top"
-      [style.left.px]="contextMenuPosition().left"
-      [style.zIndex]="99999"
-    >
-      <button
-        class="context-menu-item"
-        (click)="startRenameLayer(showLayerContextMenu()!); closeLayerContextMenu()"
-        role="menuitem"
+      <div
+        class="context-menu-backdrop"
+        (click)="closeLayerContextMenu(); $event.stopPropagation()"
+        (keydown.escape)="closeLayerContextMenu()"
+        tabindex="-1"
+        role="button"
+        aria-label="Close context menu"
+      ></div>
+      <div
+        class="layer-context-menu"
+        role="menu"
+        tabindex="-1"
+        (click)="$event.stopPropagation()"
+        (keydown)="$event.stopPropagation()"
+        [style.position]="'fixed'"
+        [style.top.px]="contextMenuPosition().top"
+        [style.left.px]="contextMenuPosition().left"
+        [style.zIndex]="99999"
       >
-        <span class="material-icons">edit</span>
-        Rename
-      </button>
-      <div class="context-menu-divider"></div>
-      <button
-        class="context-menu-item danger"
-        (click)="deleteLayer(showLayerContextMenu()!); closeLayerContextMenu()"
-        [disabled]="layers().length === 1"
-        role="menuitem"
-      >
-        <span class="material-icons">delete</span>
-        Delete
-      </button>
-      <div class="context-menu-divider"></div>
-      <button
-        class="context-menu-item"
-        (click)="duplicateLayer(showLayerContextMenu()!); closeLayerContextMenu()"
-        role="menuitem"
-      >
-        <span class="material-icons">content_copy</span>
-        Duplicate
-      </button>
-      <div class="context-menu-divider"></div>
-      <div class="context-menu-section">
-        <div class="context-menu-label">
-          <span class="material-icons">layers</span>
-          Blend Mode
-        </div>
-        <select
-          class="blend-mode-select"
-          [value]="getLayerBlendMode(showLayerContextMenu()!)"
-          (change)="setLayerBlendMode(showLayerContextMenu()!, $any($event.target).value)"
-          (click)="$event.stopPropagation()"
+        <button
+          class="context-menu-item"
+          (click)="startRenameLayer(showLayerContextMenu()!); closeLayerContextMenu()"
+          role="menuitem"
         >
-          @for (category of blendModeCategories; track category.name) {
-          <optgroup [label]="category.name">
-            @for (mode of category.modes; track mode.value) {
-            <option [value]="mode.value" [title]="mode.description">
-              {{ mode.label }}
-            </option>
+          <span class="material-icons">edit</span>
+          Rename
+        </button>
+        <div class="context-menu-divider"></div>
+        <button
+          class="context-menu-item danger"
+          (click)="deleteLayer(showLayerContextMenu()!); closeLayerContextMenu()"
+          [disabled]="layers().length === 1"
+          role="menuitem"
+        >
+          <span class="material-icons">delete</span>
+          Delete
+        </button>
+        <div class="context-menu-divider"></div>
+        <button
+          class="context-menu-item"
+          (click)="duplicateLayer(showLayerContextMenu()!); closeLayerContextMenu()"
+          role="menuitem"
+        >
+          <span class="material-icons">content_copy</span>
+          Duplicate
+        </button>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-section">
+          <div class="context-menu-label">
+            <span class="material-icons">layers</span>
+            Blend Mode
+          </div>
+          <select
+            class="blend-mode-select"
+            [value]="getLayerBlendMode(showLayerContextMenu()!)"
+            (change)="setLayerBlendMode(showLayerContextMenu()!, $any($event.target).value)"
+            (click)="$event.stopPropagation()"
+          >
+            @for (category of blendModeCategories; track category.name) {
+              <optgroup [label]="category.name">
+                @for (mode of category.modes; track mode.value) {
+                  <option [value]="mode.value" [title]="mode.description">
+                    {{ mode.label }}
+                  </option>
+                }
+              </optgroup>
             }
-          </optgroup>
-          }
-        </select>
+          </select>
+        </div>
       </div>
-    </div>
     }
   </div>
 
@@ -84,146 +84,146 @@
       </button>
 
       @if (showLayersMenu()) {
-      <div
-        class="layers-dropdown"
-        (click)="$event.stopPropagation()"
-        (keyup)="$event.stopPropagation()"
-        tabindex="-1"
-        role="dialog"
-        aria-label="Layers menu"
-      >
-        <div class="layers-dropdown-header">
-          <span class="layers-dropdown-title">Layers</span>
-          <button class="header-action-btn" (click)="addLayer()" title="Add New Layer">
-            <span class="material-icons">add</span>
-          </button>
-        </div>
+        <div
+          class="layers-dropdown"
+          (click)="$event.stopPropagation()"
+          (keyup)="$event.stopPropagation()"
+          tabindex="-1"
+          role="dialog"
+          aria-label="Layers menu"
+        >
+          <div class="layers-dropdown-header">
+            <span class="layers-dropdown-title">Layers</span>
+            <button class="header-action-btn" (click)="addLayer()" title="Add New Layer">
+              <span class="material-icons">add</span>
+            </button>
+          </div>
 
-        <div class="layers-list" (scroll)="onLayersListScroll()">
-          @for (layer of layers(); track layer.id; let i = $index) {
-          <div
-            class="layer-item"
-            (dragover)="onDragOver($event, i)"
-            (dragleave)="onDragLeave($event)"
-            (drop)="onDrop($event, i)"
-            [class.active]="activeLayerId() === layer.id"
-            [class.locked-layer]="layer.locked"
-            [attr.data-locked]="layer.locked"
-            [attr.data-visible]="layer.visible"
-            tabindex="0"
-            role="button"
-            [attr.aria-label]="'Switch to ' + layer.name + (layer.locked ? ' (locked - no editing allowed)' : '')"
-          >
-            <div
-              class="layer-item-left"
-              (click)="switchToLayer(layer.id)"
-              (keyup.enter)="switchToLayer(layer.id)"
-              (keyup.space)="switchToLayer(layer.id)"
-              tabindex="0"
-              role="button"
-            >
+          <div class="layers-list" (scroll)="onLayersListScroll()">
+            @for (layer of layers(); track layer.id; let i = $index) {
               <div
-                class="layer-drag-handle"
-                draggable="true"
-                (dragstart)="onDragStart($event, i)"
-                (dragend)="onDragEnd()"
+                class="layer-item"
+                (dragover)="onDragOver($event, i)"
+                (dragleave)="onDragLeave($event)"
+                (drop)="onDrop($event, i)"
+                [class.active]="activeLayerId() === layer.id"
+                [class.locked-layer]="layer.locked"
+                [attr.data-locked]="layer.locked"
+                [attr.data-visible]="layer.visible"
+                tabindex="0"
+                role="button"
+                [attr.aria-label]="'Switch to ' + layer.name + (layer.locked ? ' (locked - no editing allowed)' : '')"
               >
-                <span class="material-icons">drag_indicator</span>
-              </div>
-
-              <div class="layer-info">
-                @if (editingLayerId() === layer.id) {
-                <input
-                  type="text"
-                  [value]="layer.name"
-                  (blur)="finishRenameLayer($event, layer.id)"
-                  (keyup.enter)="finishRenameLayer($event, layer.id)"
-                  (click)="$event.stopPropagation()"
-                  class="layer-name-input"
-                  #layerNameInput
-                />
-                } @else {
-                <span class="layer-name">{{ layer.name }}</span>
-                }
-                <span class="layer-meta">{{ layer.elements.length }} elements</span>
-
-                <!-- Opacity Control -->
                 <div
-                  class="layer-opacity-control"
-                  (mousedown)="$event.stopPropagation()"
-                  (dragstart)="$event.preventDefault(); $event.stopPropagation()"
+                  class="layer-item-left"
+                  (click)="switchToLayer(layer.id)"
+                  (keyup.enter)="switchToLayer(layer.id)"
+                  (keyup.space)="switchToLayer(layer.id)"
+                  tabindex="0"
+                  role="button"
                 >
-                  <span class="opacity-label">{{ getLayerOpacityPercent(layer.id) }}%</span>
-                  <input
-                    type="range"
-                    class="opacity-slider-inline"
-                    min="0"
-                    max="100"
-                    [value]="getLayerOpacityPercent(layer.id)"
-                    (input)="setLayerOpacity(layer.id, $any($event.target).value / 100)"
-                    (pointerdown)="$event.stopPropagation()"
-                    (click)="$event.stopPropagation()"
-                    (dragstart)="$event.preventDefault(); $event.stopPropagation()"
-                    [disabled]="layer.locked"
-                    [attr.aria-label]="'Layer opacity: ' + getLayerOpacityPercent(layer.id) + '%'"
-                    draggable="false"
-                  />
+                  <div
+                    class="layer-drag-handle"
+                    draggable="true"
+                    (dragstart)="onDragStart($event, i)"
+                    (dragend)="onDragEnd()"
+                  >
+                    <span class="material-icons">drag_indicator</span>
+                  </div>
+
+                  <div class="layer-info">
+                    @if (editingLayerId() === layer.id) {
+                      <input
+                        type="text"
+                        [value]="layer.name"
+                        (blur)="finishRenameLayer($event, layer.id)"
+                        (keyup.enter)="finishRenameLayer($event, layer.id)"
+                        (click)="$event.stopPropagation()"
+                        class="layer-name-input"
+                        #layerNameInput
+                      />
+                    } @else {
+                      <span class="layer-name">{{ layer.name }}</span>
+                    }
+                    <span class="layer-meta">{{ layer.elements.length }} elements</span>
+
+                    <!-- Opacity Control -->
+                    <div
+                      class="layer-opacity-control"
+                      (mousedown)="$event.stopPropagation()"
+                      (dragstart)="$event.preventDefault(); $event.stopPropagation()"
+                    >
+                      <span class="opacity-label">{{ getLayerOpacityPercent(layer.id) }}%</span>
+                      <input
+                        type="range"
+                        class="opacity-slider-inline"
+                        min="0"
+                        max="100"
+                        [value]="getLayerOpacityPercent(layer.id)"
+                        (input)="setLayerOpacity(layer.id, $any($event.target).value / 100)"
+                        (pointerdown)="$event.stopPropagation()"
+                        (click)="$event.stopPropagation()"
+                        (dragstart)="$event.preventDefault(); $event.stopPropagation()"
+                        [disabled]="layer.locked"
+                        [attr.aria-label]="'Layer opacity: ' + getLayerOpacityPercent(layer.id) + '%'"
+                        draggable="false"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="layer-item-right">
+                  <button
+                    class="layer-action-btn"
+                    (click)="toggleLayerVisibility(layer.id); $event.stopPropagation()"
+                    [title]="layer.visible ? 'Hide layer' : 'Show layer'"
+                  >
+                    <span class="material-icons">{{ layer.visible ? 'visibility' : 'visibility_off' }}</span>
+                  </button>
+
+                  <button
+                    class="layer-action-btn"
+                    (click)="toggleLayerLock(layer.id); $event.stopPropagation()"
+                    [title]="layer.locked ? 'Unlock layer (allow editing)' : 'Lock layer (prevent editing)'"
+                  >
+                    <span class="material-icons">{{ layer.locked ? 'lock' : 'lock_open' }}</span>
+                  </button>
+
+                  <div class="layer-more-wrapper">
+                    <button
+                      class="layer-action-btn layer-more-btn"
+                      (click)="toggleLayerContextMenu($event, layer.id)"
+                      title="More options"
+                      #contextMenuTrigger
+                    >
+                      <span class="material-icons">more_vert</span>
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            <div class="layer-item-right">
-              <button
-                class="layer-action-btn"
-                (click)="toggleLayerVisibility(layer.id); $event.stopPropagation()"
-                [title]="layer.visible ? 'Hide layer' : 'Show layer'"
-              >
-                <span class="material-icons">{{ layer.visible ? 'visibility' : 'visibility_off' }}</span>
-              </button>
-
-              <button
-                class="layer-action-btn"
-                (click)="toggleLayerLock(layer.id); $event.stopPropagation()"
-                [title]="layer.locked ? 'Unlock layer (allow editing)' : 'Lock layer (prevent editing)'"
-              >
-                <span class="material-icons">{{ layer.locked ? 'lock' : 'lock_open' }}</span>
-              </button>
-
-              <div class="layer-more-wrapper">
-                <button
-                  class="layer-action-btn layer-more-btn"
-                  (click)="toggleLayerContextMenu($event, layer.id)"
-                  title="More options"
-                  #contextMenuTrigger
-                >
-                  <span class="material-icons">more_vert</span>
-                </button>
-              </div>
-            </div>
+            }
           </div>
-          }
         </div>
-      </div>
       }
     </div>
 
     <!-- Board Name -->
     <div class="board-name-section">
       @if (isEditingTitle()) {
-      <input
-        type="text"
-        [value]="boardTitle()"
-        (blur)="finishEditingTitle($event)"
-        (keyup.enter)="finishEditingTitle($event)"
-        class="board-name-input"
-        #titleInput
-      />
+        <input
+          type="text"
+          [value]="boardTitle()"
+          (blur)="finishEditingTitle($event)"
+          (keyup.enter)="finishEditingTitle($event)"
+          class="board-name-input"
+          #titleInput
+        />
       } @else {
-      <button (click)="startEditingTitle()" class="board-name-display" title="Click to edit board name">
-        <span class="material-icons">dashboard</span>
-        <span class="board-name-text">{{ boardTitle() }}</span>
-        <span class="material-icons edit-icon">edit</span>
-      </button>
+        <button (click)="startEditingTitle()" class="board-name-display" title="Click to edit board name">
+          <span class="material-icons">dashboard</span>
+          <span class="board-name-text">{{ boardTitle() }}</span>
+          <span class="material-icons edit-icon">edit</span>
+        </button>
       }
     </div>
 
@@ -236,58 +236,58 @@
       </button>
 
       @if (showMoreMenu()) {
-      <div class="more-menu">
-        <button class="menu-item" (click)="toggleFullscreen()">
-          <span class="material-icons">{{ isFullscreen() ? 'fullscreen_exit' : 'fullscreen' }}</span>
-          {{ isFullscreen() ? 'Exit Fullscreen' : 'Enter Fullscreen' }}
-        </button>
+        <div class="more-menu">
+          <button class="menu-item" (click)="toggleFullscreen()">
+            <span class="material-icons">{{ isFullscreen() ? 'fullscreen_exit' : 'fullscreen' }}</span>
+            {{ isFullscreen() ? 'Exit Fullscreen' : 'Enter Fullscreen' }}
+          </button>
 
-        <div class="menu-divider"></div>
+          <div class="menu-divider"></div>
 
-        <button class="menu-item" (click)="toggleGrid()">
-          <span class="material-icons">{{ config().enableGrid ? 'check_box' : 'check_box_outline_blank' }}</span>
-          Toggle Grid
-        </button>
+          <button class="menu-item" (click)="toggleGrid()">
+            <span class="material-icons">{{ config().enableGrid ? 'check_box' : 'check_box_outline_blank' }}</span>
+            Toggle Grid
+          </button>
 
-        <button class="menu-item" (click)="clear()">
-          <span class="material-icons">clear_all</span>
-          Clear Board
-        </button>
-        <button class="menu-item" (click)="saveAsImage()">
-          <span class="material-icons">download</span>
-          Save as PNG
-        </button>
-        <button class="menu-item" (click)="exportBoard()">
-          <span class="material-icons">file_download</span>
-          Export Board
-        </button>
+          <button class="menu-item" (click)="clear()">
+            <span class="material-icons">clear_all</span>
+            Clear Board
+          </button>
+          <button class="menu-item" (click)="saveAsImage()">
+            <span class="material-icons">download</span>
+            Save as PNG
+          </button>
+          <button class="menu-item" (click)="exportBoard()">
+            <span class="material-icons">file_download</span>
+            Export Board
+          </button>
 
-        <input
-          type="file"
-          id="importFile"
-          accept=".json"
-          (change)="importBoard($event)"
-          class="hidden-input"
-          #importFileInput
-        />
-        <button class="menu-item" (click)="importFileInput.click()">
-          <span class="material-icons">file_upload</span>
-          Import Board
-        </button>
+          <input
+            type="file"
+            id="importFile"
+            accept=".json"
+            (change)="importBoard($event)"
+            class="hidden-input"
+            #importFileInput
+          />
+          <button class="menu-item" (click)="importFileInput.click()">
+            <span class="material-icons">file_upload</span>
+            Import Board
+          </button>
 
-        <input
-          type="file"
-          id="imageFile"
-          accept="image/*"
-          (change)="uploadImage($event)"
-          class="hidden-input"
-          #imageFileInput
-        />
-        <button class="menu-item" (click)="imageFileInput.click()">
-          <span class="material-icons">image</span>
-          Add Image
-        </button>
-      </div>
+          <input
+            type="file"
+            id="imageFile"
+            accept="image/*"
+            (change)="uploadImage($event)"
+            class="hidden-input"
+            #imageFileInput
+          />
+          <button class="menu-item" (click)="imageFileInput.click()">
+            <span class="material-icons">image</span>
+            Add Image
+          </button>
+        </div>
       }
     </div>
   </div>
@@ -308,9 +308,9 @@
 
       <!-- Fullscreen Hint -->
       @if (showFullscreenHint()) {
-      <div class="fullscreen-hint">
-        <p>Press <kbd>ESC</kbd> or click <span class="material-icons">close</span> to exit fullscreen</p>
-      </div>
+        <div class="fullscreen-hint">
+          <p>Press <kbd>ESC</kbd> or click <span class="material-icons">close</span> to exit fullscreen</p>
+        </div>
       }
     </main>
   </div>
@@ -350,36 +350,37 @@
     <!-- Main Tools Row -->
     <div class="toolbar-main-tools">
       @for (tool of visibleTools(); track tool.type) {
-      <button
-        class="bottom-btn"
-        [class.active]="selectedTool() === tool.type"
-        (click)="selectTool(tool.type)"
-        [title]="tool.name"
-        [innerHTML]="tool.icon"
-      ></button>
-      } @if (hasOverflowTools()) {
-      <div class="separator"></div>
+        <button
+          class="bottom-btn"
+          [class.active]="selectedTool() === tool.type"
+          (click)="selectTool(tool.type)"
+          [title]="tool.name"
+          [innerHTML]="tool.icon"
+        ></button>
+      }
+      @if (hasOverflowTools()) {
+        <div class="separator"></div>
 
-      <div class="tools-overflow-wrapper">
-        <button class="bottom-btn" (click)="toggleToolsOverflow()" title="More Tools">
-          <span class="material-icons">more_horiz</span>
-        </button>
-
-        @if (showToolsOverflow()) {
-        <div class="tools-overflow-menu">
-          @for (tool of overflowTools(); track tool.type) {
-          <button
-            class="menu-item tool-menu-item"
-            [class.active]="selectedTool() === tool.type"
-            (click)="selectTool(tool.type)"
-          >
-            <span [innerHTML]="tool.icon" class="tool-icon"></span>
-            {{ tool.name }}
+        <div class="tools-overflow-wrapper">
+          <button class="bottom-btn" (click)="toggleToolsOverflow()" title="More Tools">
+            <span class="material-icons">more_horiz</span>
           </button>
+
+          @if (showToolsOverflow()) {
+            <div class="tools-overflow-menu">
+              @for (tool of overflowTools(); track tool.type) {
+                <button
+                  class="menu-item tool-menu-item"
+                  [class.active]="selectedTool() === tool.type"
+                  (click)="selectTool(tool.type)"
+                >
+                  <span [innerHTML]="tool.icon" class="tool-icon"></span>
+                  {{ tool.name }}
+                </button>
+              }
+            </div>
           }
         </div>
-        }
-      </div>
       }
     </div>
   </div>
@@ -412,23 +413,23 @@
       </button>
 
       @if (showColorPalette()) {
-      <div class="floating-color-palette">
-        <div class="palette-grid">
-          @for (color of quickColors; track color) {
-          <button
-            class="palette-color-item"
-            [style.background]="color"
-            [class.selected]="selectedColor() === color"
-            (click)="selectColor(color)"
-            [title]="color"
-          >
-            @if (selectedColor() === color) {
-            <span class="material-icons check-icon">check</span>
+        <div class="floating-color-palette">
+          <div class="palette-grid">
+            @for (color of quickColors; track color) {
+              <button
+                class="palette-color-item"
+                [style.background]="color"
+                [class.selected]="selectedColor() === color"
+                (click)="selectColor(color)"
+                [title]="color"
+              >
+                @if (selectedColor() === color) {
+                  <span class="material-icons check-icon">check</span>
+                }
+              </button>
             }
-          </button>
-          }
+          </div>
         </div>
-      </div>
       }
     </div>
 
@@ -447,23 +448,23 @@
       </button>
 
       @if (showBackgroundPalette()) {
-      <div class="floating-color-palette">
-        <div class="palette-grid">
-          @for (color of quickColors; track color) {
-          <button
-            class="palette-color-item"
-            [style.background]="color"
-            [class.selected]="config().backgroundColor === color"
-            (click)="selectBackgroundColor(color)"
-            [title]="color"
-          >
-            @if (config().backgroundColor === color) {
-            <span class="material-icons check-icon">check</span>
+        <div class="floating-color-palette">
+          <div class="palette-grid">
+            @for (color of quickColors; track color) {
+              <button
+                class="palette-color-item"
+                [style.background]="color"
+                [class.selected]="config().backgroundColor === color"
+                (click)="selectBackgroundColor(color)"
+                [title]="color"
+              >
+                @if (config().backgroundColor === color) {
+                  <span class="material-icons check-icon">check</span>
+                }
+              </button>
             }
-          </button>
-          }
+          </div>
         </div>
-      </div>
       }
     </div>
 
@@ -478,14 +479,14 @@
       </button>
 
       @if (showWidthMenu()) {
-      <div class="floating-width-menu">
-        @for (width of strokeWidths; track width) {
-        <button class="width-menu-item" [class.selected]="selectedWidth() === width" (click)="selectWidth(width)">
-          <div class="width-menu-preview" [style.height.px]="width" [style.background]="selectedColor()"></div>
-          <span class="width-menu-label">{{ width }}px</span>
-        </button>
-        }
-      </div>
+        <div class="floating-width-menu">
+          @for (width of strokeWidths; track width) {
+            <button class="width-menu-item" [class.selected]="selectedWidth() === width" (click)="selectWidth(width)">
+              <div class="width-menu-preview" [style.height.px]="width" [style.background]="selectedColor()"></div>
+              <span class="width-menu-label">{{ width }}px</span>
+            </button>
+          }
+        </div>
       }
     </div>
   </div>

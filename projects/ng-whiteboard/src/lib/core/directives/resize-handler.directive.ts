@@ -8,7 +8,11 @@ import { ApiService } from '../api/api.service';
 export class ResizeHandlerDirective implements OnInit, OnDestroy {
   private resizeObserver!: ResizeObserver;
 
-  constructor(private elementRef: ElementRef, private apiService: ApiService, private _cd: ChangeDetectorRef) {}
+  constructor(
+    private elementRef: ElementRef,
+    private apiService: ApiService,
+    private _cd: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
     this.resizeObserver = new ResizeObserver(([entry]) => {

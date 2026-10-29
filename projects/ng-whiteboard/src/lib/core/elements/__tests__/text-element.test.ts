@@ -392,23 +392,58 @@ describe('TextElementUtil', () => {
     // box must reflect that or it drifts away from the rendered text.
 
     it('keeps the bounding-box center fixed when scaleX changes', () => {
-      const base = textElementUtil.create({ x: 100, y: 50, text: 'Hello', scaleX: 1, scaleY: 1, style: { fontSize: 16 } });
-      const scaled = textElementUtil.create({ x: 100, y: 50, text: 'Hello', scaleX: 3, scaleY: 1, style: { fontSize: 16 } });
+      const base = textElementUtil.create({
+        x: 100,
+        y: 50,
+        text: 'Hello',
+        scaleX: 1,
+        scaleY: 1,
+        style: { fontSize: 16 },
+      });
+      const scaled = textElementUtil.create({
+        x: 100,
+        y: 50,
+        text: 'Hello',
+        scaleX: 3,
+        scaleY: 1,
+        style: { fontSize: 16 },
+      });
       const b1 = textElementUtil.getBounds(base);
       const b2 = textElementUtil.getBounds(scaled);
       expect(b2.minX + b2.width / 2).toBeCloseTo(b1.minX + b1.width / 2, 6);
     });
 
     it('keeps the bounding-box center fixed when scaleY changes', () => {
-      const base = textElementUtil.create({ x: 100, y: 50, text: 'Hello', scaleX: 1, scaleY: 1, style: { fontSize: 16 } });
-      const scaled = textElementUtil.create({ x: 100, y: 50, text: 'Hello', scaleX: 1, scaleY: 3, style: { fontSize: 16 } });
+      const base = textElementUtil.create({
+        x: 100,
+        y: 50,
+        text: 'Hello',
+        scaleX: 1,
+        scaleY: 1,
+        style: { fontSize: 16 },
+      });
+      const scaled = textElementUtil.create({
+        x: 100,
+        y: 50,
+        text: 'Hello',
+        scaleX: 1,
+        scaleY: 3,
+        style: { fontSize: 16 },
+      });
       const b1 = textElementUtil.getBounds(base);
       const b2 = textElementUtil.getBounds(scaled);
       expect(b2.minY + b2.height / 2).toBeCloseTo(b1.minY + b1.height / 2, 6);
     });
 
     it('anchors the left edge and moves the right edge by the drag delta when resizing E', () => {
-      const el = textElementUtil.create({ x: 100, y: 50, text: 'Hello', scaleX: 1, scaleY: 1, style: { fontSize: 16 } });
+      const el = textElementUtil.create({
+        x: 100,
+        y: 50,
+        text: 'Hello',
+        scaleX: 1,
+        scaleY: 1,
+        style: { fontSize: 16 },
+      });
       const before = textElementUtil.getBounds(el);
       const dx = 40;
       const resized = textElementUtil.resize({ ...el }, Direction.E, dx, 0);
@@ -418,7 +453,14 @@ describe('TextElementUtil', () => {
     });
 
     it('anchors the right edge and moves the left edge by the drag delta when resizing W', () => {
-      const el = textElementUtil.create({ x: 100, y: 50, text: 'Hello', scaleX: 1, scaleY: 1, style: { fontSize: 16 } });
+      const el = textElementUtil.create({
+        x: 100,
+        y: 50,
+        text: 'Hello',
+        scaleX: 1,
+        scaleY: 1,
+        style: { fontSize: 16 },
+      });
       const before = textElementUtil.getBounds(el);
       const dx = -30;
       const resized = textElementUtil.resize({ ...el }, Direction.W, dx, 0);
@@ -428,7 +470,14 @@ describe('TextElementUtil', () => {
     });
 
     it('anchors the top edge and moves the bottom edge by the drag delta when resizing S', () => {
-      const el = textElementUtil.create({ x: 100, y: 50, text: 'Hello', scaleX: 1, scaleY: 1, style: { fontSize: 16 } });
+      const el = textElementUtil.create({
+        x: 100,
+        y: 50,
+        text: 'Hello',
+        scaleX: 1,
+        scaleY: 1,
+        style: { fontSize: 16 },
+      });
       const before = textElementUtil.getBounds(el);
       const dy = 25;
       const resized = textElementUtil.resize({ ...el }, Direction.S, 0, dy);

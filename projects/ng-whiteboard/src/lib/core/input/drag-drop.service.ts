@@ -8,7 +8,10 @@ import { FILE_TYPE_PREFIX } from '../constants';
 
 @Injectable({ providedIn: 'root' })
 export class DragDropService {
-  constructor(private apiService: ApiService, private configService: ConfigService) {}
+  constructor(
+    private apiService: ApiService,
+    private configService: ConfigService
+  ) {}
 
   handleFiles(files: FileList): void {
     Array.from(files).forEach((file) => {

@@ -190,7 +190,7 @@ describe('WhiteboardCanvasComponent', () => {
         fullScreen: true,
         canvasWidth: 1000,
         canvasHeight: 500,
-        zoom: 2
+        zoom: 2,
       });
       const viewBox = component.svgViewBox();
       expect(viewBox).toBe('0 0 500 250');
@@ -359,7 +359,7 @@ describe('WhiteboardCanvasComponent', () => {
         ...mockLayer,
         id: 'locked-layer',
         locked: true,
-        blendMode: 'multiply'
+        blendMode: 'multiply',
       };
       const elementOnLockedLayer = {
         ...mockElement,
@@ -369,7 +369,7 @@ describe('WhiteboardCanvasComponent', () => {
         scaleY: 3,
         rotation: 45,
         x: 100,
-        y: 200
+        y: 200,
       };
 
       mockLayers.set([lockedLayer]);
@@ -397,8 +397,8 @@ describe('WhiteboardCanvasComponent', () => {
       mockLayers.set([layer1, layer2]);
 
       const el1 = { ...mockElement, id: 'el1', layerId: 'l1', zIndex: 10 }; // 1*1000 + 10 = 1010
-      const el2 = { ...mockElement, id: 'el2', layerId: 'l1', zIndex: 5 };  // 1*1000 + 5 = 1005
-      const el3 = { ...mockElement, id: 'el3', layerId: 'l2', zIndex: 1 };  // 2*1000 + 1 = 2001
+      const el2 = { ...mockElement, id: 'el2', layerId: 'l1', zIndex: 5 }; // 1*1000 + 5 = 1005
+      const el3 = { ...mockElement, id: 'el3', layerId: 'l2', zIndex: 1 }; // 2*1000 + 1 = 2001
 
       mockAllElements.set([el1, el2, el3]);
 

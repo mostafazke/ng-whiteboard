@@ -21,7 +21,7 @@ describe('ExamplesComponent', () => {
         MinimalComponent,
         BasicComponent,
         ComprehensiveComponent,
-        NoopAnimationsModule
+        NoopAnimationsModule,
       ],
     }).compileComponents();
 

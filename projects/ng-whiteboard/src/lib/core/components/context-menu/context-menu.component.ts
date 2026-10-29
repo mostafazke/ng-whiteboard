@@ -17,63 +17,64 @@ import { ContextMenuService, ContextMenuItem, ContextMenuSection } from './conte
     >
       <div class="context-menu-content">
         @for (section of sections(); track section.id) {
-        <div class="context-menu-section">
-          @for (item of section.items; track item.id) {
-          <div
-            class="context-menu-item"
-            [class.disabled]="!item.enabled"
-            [class.divider-after]="item.divider"
-            [class.has-submenu]="item.submenu"
-            [class.active]="hoveredItem === item"
-            [class.focused]="isFocused(item)"
-            (click)="onItemClick(item, $event)"
-            (mouseenter)="onItemHover(item, $event)"
-            (mouseleave)="onItemLeave()"
-            [attr.title]="item.shortcut || null"
-          >
-            <div class="item-content">
-              <span class="item-label">{{ item.label }}</span>
-              @if (item.shortcut) {
-              <span class="item-shortcut">{{ item.shortcut }}</span>
-              } @if (item.submenu) {
-              <span class="item-arrow">›</span>
-              }
-            </div>
+          <div class="context-menu-section">
+            @for (item of section.items; track item.id) {
+              <div
+                class="context-menu-item"
+                [class.disabled]="!item.enabled"
+                [class.divider-after]="item.divider"
+                [class.has-submenu]="item.submenu"
+                [class.active]="hoveredItem === item"
+                [class.focused]="isFocused(item)"
+                (click)="onItemClick(item, $event)"
+                (mouseenter)="onItemHover(item, $event)"
+                (mouseleave)="onItemLeave()"
+                [attr.title]="item.shortcut || null"
+              >
+                <div class="item-content">
+                  <span class="item-label">{{ item.label }}</span>
+                  @if (item.shortcut) {
+                    <span class="item-shortcut">{{ item.shortcut }}</span>
+                  }
+                  @if (item.submenu) {
+                    <span class="item-arrow">›</span>
+                  }
+                </div>
+              </div>
+            }
           </div>
-          }
-        </div>
         }
       </div>
     </div>
 
     <!-- Submenu rendered separately outside main menu -->
     @if (hoveredItem && hoveredItem.submenu) {
-    <div
-      class="submenu"
-      [style.left.px]="submenuPosition.left"
-      [style.top.px]="submenuPosition.top"
-      (mouseenter)="onSubmenuEnter()"
-      (mouseleave)="onSubmenuLeave()"
-      (click)="$event.stopPropagation()"
-    >
-      @for (subitem of hoveredItem.submenu; track subitem.id) {
       <div
-        class="context-menu-item submenu-item"
-        [class.disabled]="!subitem.enabled"
-        [class.divider-after]="subitem.divider"
-        [class.focused]="isFocused(subitem)"
-        (click)="onItemClick(subitem, $event)"
-        [attr.title]="subitem.shortcut || null"
+        class="submenu"
+        [style.left.px]="submenuPosition.left"
+        [style.top.px]="submenuPosition.top"
+        (mouseenter)="onSubmenuEnter()"
+        (mouseleave)="onSubmenuLeave()"
+        (click)="$event.stopPropagation()"
       >
-        <div class="item-content">
-          <span class="item-label">{{ subitem.label }}</span>
-          @if (subitem.shortcut) {
-          <span class="item-shortcut">{{ subitem.shortcut }}</span>
-          }
-        </div>
+        @for (subitem of hoveredItem.submenu; track subitem.id) {
+          <div
+            class="context-menu-item submenu-item"
+            [class.disabled]="!subitem.enabled"
+            [class.divider-after]="subitem.divider"
+            [class.focused]="isFocused(subitem)"
+            (click)="onItemClick(subitem, $event)"
+            [attr.title]="subitem.shortcut || null"
+          >
+            <div class="item-content">
+              <span class="item-label">{{ subitem.label }}</span>
+              @if (subitem.shortcut) {
+                <span class="item-shortcut">{{ subitem.shortcut }}</span>
+              }
+            </div>
+          </div>
+        }
       </div>
-      }
-    </div>
     }
   `,
   styles: [
@@ -214,7 +215,9 @@ import { ContextMenuService, ContextMenuItem, ContextMenuSection } from './conte
         z-index: 10001;
         opacity: 1;
         transform: scale(1);
-        transition: opacity 0.1s ease, transform 0.1s ease;
+        transition:
+          opacity 0.1s ease,
+          transform 0.1s ease;
       }
 
       .submenu-item {

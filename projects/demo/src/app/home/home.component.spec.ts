@@ -17,7 +17,7 @@ describe('HomeComponent', () => {
         NgWhiteboardComponent,
         HomeComponent,
         NoopAnimationsModule,
-        HttpClientTestingModule
+        HttpClientTestingModule,
       ],
     }).compileComponents();
 

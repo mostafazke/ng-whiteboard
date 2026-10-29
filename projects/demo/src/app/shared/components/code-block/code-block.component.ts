@@ -9,18 +9,18 @@ import { copyToClipboard } from '../../utils/helpers';
   template: `
     <div class="code-block" [ngClass]="{ 'with-header': title }">
       @if (title) {
-      <div class="code-header">
-        <span class="code-title">{{ title }}</span>
-        <button class="copy-btn" (click)="copy()" [attr.aria-label]="copied() ? 'Copied!' : 'Copy code'">
-          {{ copied() ? '✓ Copied' : '📋 Copy' }}
-        </button>
-      </div>
+        <div class="code-header">
+          <span class="code-title">{{ title }}</span>
+          <button class="copy-btn" (click)="copy()" [attr.aria-label]="copied() ? 'Copied!' : 'Copy code'">
+            {{ copied() ? '✓ Copied' : '📋 Copy' }}
+          </button>
+        </div>
       }
       <pre><code [attr.class]="language">{{ code }}</code></pre>
       @if (!title) {
-      <button class="copy-btn-floating" (click)="copy()" [attr.aria-label]="copied() ? 'Copied!' : 'Copy code'">
-        {{ copied() ? '✓' : '📋' }}
-      </button>
+        <button class="copy-btn-floating" (click)="copy()" [attr.aria-label]="copied() ? 'Copied!' : 'Copy code'">
+          {{ copied() ? '✓' : '📋' }}
+        </button>
       }
     </div>
   `,

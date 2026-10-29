@@ -29,7 +29,7 @@ describe('ContextMenuService', () => {
         strokeStyle: 'solid',
       },
       ...overrides,
-    } as WhiteboardElement);
+    }) as WhiteboardElement;
 
   beforeEach(() => {
     mockApiService = {

@@ -9,12 +9,12 @@
       </div>
       <ul class="nav-list">
         @for (item of navigationItems; track item.route) {
-        <li class="nav-item">
-          <a [routerLink]="item.route" routerLinkActive="active" class="nav-link">
-            <span class="nav-icon">{{ item.icon }}</span>
-            <span class="nav-label">{{ item.label }}</span>
-          </a>
-        </li>
+          <li class="nav-item">
+            <a [routerLink]="item.route" routerLinkActive="active" class="nav-link">
+              <span class="nav-icon">{{ item.icon }}</span>
+              <span class="nav-label">{{ item.label }}</span>
+            </a>
+          </li>
         }
       </ul>
     </nav>

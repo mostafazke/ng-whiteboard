@@ -24,7 +24,7 @@ describe('HistoryService', () => {
         fillStyle: 'solid',
         strokeStyle: 'solid',
       },
-    } as WhiteboardElement);
+    }) as WhiteboardElement;
 
   const createMockPenElement = (id: string, points: [number, number][]): WhiteboardElement =>
     ({
@@ -44,7 +44,7 @@ describe('HistoryService', () => {
         fillStyle: 'solid',
         strokeStyle: 'solid',
       },
-    } as WhiteboardElement);
+    }) as WhiteboardElement;
 
   beforeEach(() => {
     TestBed.configureTestingModule({

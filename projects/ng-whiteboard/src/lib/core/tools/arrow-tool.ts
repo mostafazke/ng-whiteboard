@@ -99,8 +99,8 @@ export class ArrowTool extends BaseTool {
           this.whiteboardConfig.arrowConfig?.lineStyle === 'curve'
             ? { type: 'quadratic' as const, cx: x, cy: y }
             : this.whiteboardConfig.arrowConfig?.lineStyle === 'elbow'
-            ? { type: 'elbow' as const, midRatio: 0.5 }
-            : { type: 'straight' as const },
+              ? { type: 'elbow' as const, midRatio: 0.5 }
+              : { type: 'straight' as const },
         startBinding: this.startSnap
           ? this.arrowBindingService.createBinding(this.startSnap.elementId, this.startSnap.pointId)
           : null,

@@ -12,7 +12,10 @@ export class PanService {
   private readonly DEFAULT_PAN_BOUNDS = { x: -Infinity, y: -Infinity, width: Infinity, height: Infinity };
   private panBounds = this.DEFAULT_PAN_BOUNDS;
 
-  constructor(private configService: ConfigService, private eventBusService: EventBusService) {}
+  constructor(
+    private configService: ConfigService,
+    private eventBusService: EventBusService
+  ) {}
 
   private getConfig(): WhiteboardConfig {
     return this.configService.getConfig();

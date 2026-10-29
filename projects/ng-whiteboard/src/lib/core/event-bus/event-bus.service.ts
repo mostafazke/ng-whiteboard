@@ -113,8 +113,7 @@ export class EventBusService implements OnDestroy {
 
     if (config.distinctUntilChanged) {
       const compareFn = config.comparator as
-        | ((a: WhiteboardEventPayloads[T], b: WhiteboardEventPayloads[T]) => boolean)
-        | undefined;
+        ((a: WhiteboardEventPayloads[T], b: WhiteboardEventPayloads[T]) => boolean) | undefined;
       stream = stream.pipe(distinctUntilChanged(compareFn));
     }
 

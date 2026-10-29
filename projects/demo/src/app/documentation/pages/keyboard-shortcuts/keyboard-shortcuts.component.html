@@ -11,34 +11,38 @@
   <div class="shortcuts-container">
     <div class="shortcuts-grid">
       @for (category of shortcutCategories; track category.title) {
-      <div class="category-group">
-        <h4 class="category-title">{{ category.title }}</h4>
-        @for (shortcut of category.shortcuts; track shortcut.action) {
-        <div class="shortcut-item">
-          <div class="shortcut-keys">
-            @if (shortcut.arrowKeys && shortcut.arrowKeys.length > 0) {
-            <!-- Has arrow keys - render modifiers first -->
-            @for (modifier of shortcut.modifierKeys || []; track modifier) {
-            <kbd>{{ modifier }}</kbd>
-            <span class="separator">+</span>
-            }
-            <!-- Then render arrows with / separator -->
-            @for (arrow of shortcut.arrowKeys; track arrow; let isLast = $last) {
-            <kbd>{{ arrow }}</kbd>
-            @if (!isLast) {
-            <span class="separator">/</span>
-            } } } @else {
-            <!-- No arrow keys - normal display -->
-            @for (key of shortcut.keys; track key; let isLast = $last) {
-            <kbd>{{ key }}</kbd>
-            @if (!isLast) {
-            <span class="separator">+</span>
-            } } }
-          </div>
-          <span class="shortcut-action">{{ shortcut.action }}</span>
+        <div class="category-group">
+          <h4 class="category-title">{{ category.title }}</h4>
+          @for (shortcut of category.shortcuts; track shortcut.action) {
+            <div class="shortcut-item">
+              <div class="shortcut-keys">
+                @if (shortcut.arrowKeys && shortcut.arrowKeys.length > 0) {
+                  <!-- Has arrow keys - render modifiers first -->
+                  @for (modifier of shortcut.modifierKeys || []; track modifier) {
+                    <kbd>{{ modifier }}</kbd>
+                    <span class="separator">+</span>
+                  }
+                  <!-- Then render arrows with / separator -->
+                  @for (arrow of shortcut.arrowKeys; track arrow; let isLast = $last) {
+                    <kbd>{{ arrow }}</kbd>
+                    @if (!isLast) {
+                      <span class="separator">/</span>
+                    }
+                  }
+                } @else {
+                  <!-- No arrow keys - normal display -->
+                  @for (key of shortcut.keys; track key; let isLast = $last) {
+                    <kbd>{{ key }}</kbd>
+                    @if (!isLast) {
+                      <span class="separator">+</span>
+                    }
+                  }
+                }
+              </div>
+              <span class="shortcut-action">{{ shortcut.action }}</span>
+            </div>
+          }
         </div>
-        }
-      </div>
       }
     </div>
   </div>
