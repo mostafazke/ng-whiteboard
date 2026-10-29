@@ -14,14 +14,7 @@ export type SelectAfterDrawConfig = boolean | Partial<Record<ElementType, boolea
  * Mirrors ArrowheadType for config usage.
  */
 export type ArrowHeadStyle =
-  | 'none'
-  | 'arrow'
-  | 'open-arrow'
-  | 'diamond'
-  | 'open-diamond'
-  | 'circle'
-  | 'open-circle'
-  | 'bar';
+  'none' | 'arrow' | 'open-arrow' | 'diamond' | 'open-diamond' | 'circle' | 'open-circle' | 'bar';
 
 /**
  * Describes the default path style for new arrows.

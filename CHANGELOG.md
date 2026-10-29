@@ -1,131 +1,114 @@
 # [5.6.0](https://github.com/mostafazke/ng-whiteboard/compare/v5.5.0...v5.6.0) (2026-06-30)
 
-
 ### Features
 
-* **selection:** manipulate the selection regardless of the active tool ([a2fd499](https://github.com/mostafazke/ng-whiteboard/commit/a2fd499c77822f238ac675ee4975d97c59a19d64))
-* **tools:** ZoomArea marquee tool ([234ad9b](https://github.com/mostafazke/ng-whiteboard/commit/234ad9b999c1ced4bb97ae9029d37ff41e2abe80)), closes [#392](https://github.com/mostafazke/ng-whiteboard/issues/392)
+- **selection:** manipulate the selection regardless of the active tool ([a2fd499](https://github.com/mostafazke/ng-whiteboard/commit/a2fd499c77822f238ac675ee4975d97c59a19d64))
+- **tools:** ZoomArea marquee tool ([234ad9b](https://github.com/mostafazke/ng-whiteboard/commit/234ad9b999c1ced4bb97ae9029d37ff41e2abe80)), closes [#392](https://github.com/mostafazke/ng-whiteboard/issues/392)
 
 # [5.5.0](https://github.com/mostafazke/ng-whiteboard/compare/v5.4.1...v5.5.0) (2026-06-26)
 
-
 ### Features
 
-* **config:** selectAfterDraw — configurable post-draw select & tool behavior ([4c81ff8](https://github.com/mostafazke/ng-whiteboard/commit/4c81ff8d93c9d1161be0aceee9629babc0342f31)), closes [#394](https://github.com/mostafazke/ng-whiteboard/issues/394)
+- **config:** selectAfterDraw — configurable post-draw select & tool behavior ([4c81ff8](https://github.com/mostafazke/ng-whiteboard/commit/4c81ff8d93c9d1161be0aceee9629babc0342f31)), closes [#394](https://github.com/mostafazke/ng-whiteboard/issues/394)
 
 ## [5.4.1](https://github.com/mostafazke/ng-whiteboard/compare/v5.4.0...v5.4.1) (2026-06-25)
 
-
 ### Bug Fixes
 
-* **ci:** publish demo from dist/demo/browser for Angular 20 builder ([ecae9cc](https://github.com/mostafazke/ng-whiteboard/commit/ecae9ccacd7284c9f44c4c5a3fb864785cb5347f)), closes [#386](https://github.com/mostafazke/ng-whiteboard/issues/386)
-* **deps:** bump Angular 20.3.9 -> 20.3.25 to clear security advisories ([0e296a4](https://github.com/mostafazke/ng-whiteboard/commit/0e296a4805dca69d6299dc5020e72cf299733617))
+- **ci:** publish demo from dist/demo/browser for Angular 20 builder ([ecae9cc](https://github.com/mostafazke/ng-whiteboard/commit/ecae9ccacd7284c9f44c4c5a3fb864785cb5347f)), closes [#386](https://github.com/mostafazke/ng-whiteboard/issues/386)
+- **deps:** bump Angular 20.3.9 -> 20.3.25 to clear security advisories ([0e296a4](https://github.com/mostafazke/ng-whiteboard/commit/0e296a4805dca69d6299dc5020e72cf299733617))
 
 # [5.4.0](https://github.com/mostafazke/ng-whiteboard/compare/v5.3.5...v5.4.0) (2026-06-25)
 
-
 ### Features
 
-* **zoom:** pan to target in zoomToArea/zoomToElements + add zoomToRegion ([941104b](https://github.com/mostafazke/ng-whiteboard/commit/941104b894ed223e89445f4d95ec18ed0f4bb1d0)), closes [#392](https://github.com/mostafazke/ng-whiteboard/issues/392)
+- **zoom:** pan to target in zoomToArea/zoomToElements + add zoomToRegion ([941104b](https://github.com/mostafazke/ng-whiteboard/commit/941104b894ed223e89445f4d95ec18ed0f4bb1d0)), closes [#392](https://github.com/mostafazke/ng-whiteboard/issues/392)
 
 ## [5.3.5](https://github.com/mostafazke/ng-whiteboard/compare/v5.3.4...v5.3.5) (2026-06-25)
 
-
 ### Bug Fixes
 
-* **selection:** exclude locked elements from selectAll ([62a2444](https://github.com/mostafazke/ng-whiteboard/commit/62a24448f96792815cea69e415f528b8025e1dad))
+- **selection:** exclude locked elements from selectAll ([62a2444](https://github.com/mostafazke/ng-whiteboard/commit/62a24448f96792815cea69e415f528b8025e1dad))
 
 ## [5.3.4](https://github.com/mostafazke/ng-whiteboard/compare/v5.3.3...v5.3.4) (2026-06-22)
 
-
 ### Bug Fixes
 
-* **deps:** bump Angular 20.3.9 -> 20.3.25 to clear security advisories ([#389](https://github.com/mostafazke/ng-whiteboard/issues/389)) ([95f1cdc](https://github.com/mostafazke/ng-whiteboard/commit/95f1cdc5c9bf0c27aa5959bca6a000dc79e57a31))
+- **deps:** bump Angular 20.3.9 -> 20.3.25 to clear security advisories ([#389](https://github.com/mostafazke/ng-whiteboard/issues/389)) ([95f1cdc](https://github.com/mostafazke/ng-whiteboard/commit/95f1cdc5c9bf0c27aa5959bca6a000dc79e57a31))
 
 ## [5.3.3](https://github.com/mostafazke/ng-whiteboard/compare/v5.3.2...v5.3.3) (2026-06-20)
 
-
 ### Bug Fixes
 
-* **ci:** satisfy no-empty-function in demo test-setup ([25e607e](https://github.com/mostafazke/ng-whiteboard/commit/25e607e2964d940c507c1f89459ebd2eb84c399d)), closes [#336](https://github.com/mostafazke/ng-whiteboard/issues/336) [#353](https://github.com/mostafazke/ng-whiteboard/issues/353) [#354](https://github.com/mostafazke/ng-whiteboard/issues/354)
-* **export:** keep rotated elements in place when exporting ([#339](https://github.com/mostafazke/ng-whiteboard/issues/339)) ([b973a67](https://github.com/mostafazke/ng-whiteboard/commit/b973a67d18444fcf9ab6c0b5737c300d7484a3a6))
-* **selection:** align bounding box with rendered transform-origin ([#338](https://github.com/mostafazke/ng-whiteboard/issues/338)) ([89eabc9](https://github.com/mostafazke/ng-whiteboard/commit/89eabc9bd341550632686ecfbae0423178457327))
-* **selection:** keep rotated elements from drifting on resize ([099fd8d](https://github.com/mostafazke/ng-whiteboard/commit/099fd8d3a724c7e470bc1ae427e763ab9eead5fd))
-
+- **ci:** satisfy no-empty-function in demo test-setup ([25e607e](https://github.com/mostafazke/ng-whiteboard/commit/25e607e2964d940c507c1f89459ebd2eb84c399d)), closes [#336](https://github.com/mostafazke/ng-whiteboard/issues/336) [#353](https://github.com/mostafazke/ng-whiteboard/issues/353) [#354](https://github.com/mostafazke/ng-whiteboard/issues/354)
+- **export:** keep rotated elements in place when exporting ([#339](https://github.com/mostafazke/ng-whiteboard/issues/339)) ([b973a67](https://github.com/mostafazke/ng-whiteboard/commit/b973a67d18444fcf9ab6c0b5737c300d7484a3a6))
+- **selection:** align bounding box with rendered transform-origin ([#338](https://github.com/mostafazke/ng-whiteboard/issues/338)) ([89eabc9](https://github.com/mostafazke/ng-whiteboard/commit/89eabc9bd341550632686ecfbae0423178457327))
+- **selection:** keep rotated elements from drifting on resize ([099fd8d](https://github.com/mostafazke/ng-whiteboard/commit/099fd8d3a724c7e470bc1ae427e763ab9eead5fd))
 
 ### Performance Improvements
 
-* optimize rendering and drawing performance, fix demo test suite ([316d87a](https://github.com/mostafazke/ng-whiteboard/commit/316d87a40d7fa9ff45b734713720463cb382749d))
-* optimize rendering and improve test stability ([4cb13b5](https://github.com/mostafazke/ng-whiteboard/commit/4cb13b5756c41b28542352c27857b6db7a7d0508))
-* optimize rendering and improve test stability ([98e69cf](https://github.com/mostafazke/ng-whiteboard/commit/98e69cf89d68c182f96423108a7ac2c6b2ae3634))
-* optimize rendering and improve test stability ([f903a54](https://github.com/mostafazke/ng-whiteboard/commit/f903a5449303183168eb9a0966b0da96a5a833d9))
+- optimize rendering and drawing performance, fix demo test suite ([316d87a](https://github.com/mostafazke/ng-whiteboard/commit/316d87a40d7fa9ff45b734713720463cb382749d))
+- optimize rendering and improve test stability ([4cb13b5](https://github.com/mostafazke/ng-whiteboard/commit/4cb13b5756c41b28542352c27857b6db7a7d0508))
+- optimize rendering and improve test stability ([98e69cf](https://github.com/mostafazke/ng-whiteboard/commit/98e69cf89d68c182f96423108a7ac2c6b2ae3634))
+- optimize rendering and improve test stability ([f903a54](https://github.com/mostafazke/ng-whiteboard/commit/f903a5449303183168eb9a0966b0da96a5a833d9))
 
 ## [5.3.2](https://github.com/mostafazke/ng-whiteboard/compare/v5.3.1...v5.3.2) (2026-06-11)
 
-
 ### Bug Fixes
 
-* fix ci workflow ([550cf39](https://github.com/mostafazke/ng-whiteboard/commit/550cf398639640970670550108ad93494f62a0c6))
+- fix ci workflow ([550cf39](https://github.com/mostafazke/ng-whiteboard/commit/550cf398639640970670550108ad93494f62a0c6))
 
 ## [5.3.1](https://github.com/mostafazke/ng-whiteboard/compare/v5.3.0...v5.3.1) (2026-06-11)
 
-
 ### Bug Fixes
 
-* **select-tool:** commit transform gestures as a single history entry ([dfba0c5](https://github.com/mostafazke/ng-whiteboard/commit/dfba0c5cefe5237a4dd0562a5bf8ef5f6b35f702))
+- **select-tool:** commit transform gestures as a single history entry ([dfba0c5](https://github.com/mostafazke/ng-whiteboard/commit/dfba0c5cefe5237a4dd0562a5bf8ef5f6b35f702))
 
 # [5.3.0](https://github.com/mostafazke/ng-whiteboard/compare/v5.2.1...v5.3.0) (2026-04-04)
 
-
 ### Features
 
-* add Turborepo migration guide and Vite-specific guidance for nx import ([2e51591](https://github.com/mostafazke/ng-whiteboard/commit/2e5159143edd17a875091be0948552db8dfa9186))
+- add Turborepo migration guide and Vite-specific guidance for nx import ([2e51591](https://github.com/mostafazke/ng-whiteboard/commit/2e5159143edd17a875091be0948552db8dfa9186))
 
 ## [5.2.1](https://github.com/mostafazke/ng-whiteboard/compare/v5.2.0...v5.2.1) (2026-03-16)
 
-
 ### Bug Fixes
 
-* **docs:** update arrow tools description in README ([6018e2a](https://github.com/mostafazke/ng-whiteboard/commit/6018e2a5092874add2b339b4a16e42e343c6d7cf))
+- **docs:** update arrow tools description in README ([6018e2a](https://github.com/mostafazke/ng-whiteboard/commit/6018e2a5092874add2b339b4a16e42e343c6d7cf))
 
 # [5.2.0](https://github.com/mostafazke/ng-whiteboard/compare/v5.1.1...v5.2.0) (2026-03-16)
 
-
 ### Bug Fixes
 
-* downgrade @angular/compiler and @angular/core to version 17.3.0 ([ebc5b2a](https://github.com/mostafazke/ng-whiteboard/commit/ebc5b2a3a220f820d948c4462f7cca4d26da3c5b))
-* downgrade @angular/compiler and @angular/core to version 17.3.12 ([5e6dc99](https://github.com/mostafazke/ng-whiteboard/commit/5e6dc99e39fc033c3c3ca31eddf22fa7fc3f556f))
-* package.json & yarn.lock to reduce vulnerabilities ([f951a35](https://github.com/mostafazke/ng-whiteboard/commit/f951a35d7cfed3b4cc65cb4be9d1f4b1a11e1531))
-* upgrade zone.js from 0.15.1 to 0.16.0 ([2176431](https://github.com/mostafazke/ng-whiteboard/commit/217643198338d59879be96dd4480bb894b302018))
-
+- downgrade @angular/compiler and @angular/core to version 17.3.0 ([ebc5b2a](https://github.com/mostafazke/ng-whiteboard/commit/ebc5b2a3a220f820d948c4462f7cca4d26da3c5b))
+- downgrade @angular/compiler and @angular/core to version 17.3.12 ([5e6dc99](https://github.com/mostafazke/ng-whiteboard/commit/5e6dc99e39fc033c3c3ca31eddf22fa7fc3f556f))
+- package.json & yarn.lock to reduce vulnerabilities ([f951a35](https://github.com/mostafazke/ng-whiteboard/commit/f951a35d7cfed3b4cc65cb4be9d1f4b1a11e1531))
+- upgrade zone.js from 0.15.1 to 0.16.0 ([2176431](https://github.com/mostafazke/ng-whiteboard/commit/217643198338d59879be96dd4480bb894b302018))
 
 ### Features
 
-* **demo:** add arrow configuration documentation and examples ([a2b2b51](https://github.com/mostafazke/ng-whiteboard/commit/a2b2b5179a637841abc48a8a8b7509b6ccc274b6))
-* **elements:** add arrow binding service ([ba824e8](https://github.com/mostafazke/ng-whiteboard/commit/ba824e8c96144063ae9f3a99e797593e39d106e9))
-* **elements:** add connection points service ([14a67c8](https://github.com/mostafazke/ng-whiteboard/commit/14a67c8c4c90e20eeede5b2b60f2be48533399e6))
-* **elements:** add connection UI service ([9380f9d](https://github.com/mostafazke/ng-whiteboard/commit/9380f9d934a5087b00970b2eed2dc02ca00816da))
-* **elements:** add handle service for resize and connection handles ([07e4028](https://github.com/mostafazke/ng-whiteboard/commit/07e402806cf4f44e927a89c78be6f5a61a50a664))
-* **pipes:** add arrowhead pipe for SVG marker rendering ([db55159](https://github.com/mostafazke/ng-whiteboard/commit/db5515990d4eee09a27378743d7d8508bb28c8a0))
-* **types:** add connection types and arrow configuration options ([59355b1](https://github.com/mostafazke/ng-whiteboard/commit/59355b107d30b8d49ccfb39113966ba67cea9546))
+- **demo:** add arrow configuration documentation and examples ([a2b2b51](https://github.com/mostafazke/ng-whiteboard/commit/a2b2b5179a637841abc48a8a8b7509b6ccc274b6))
+- **elements:** add arrow binding service ([ba824e8](https://github.com/mostafazke/ng-whiteboard/commit/ba824e8c96144063ae9f3a99e797593e39d106e9))
+- **elements:** add connection points service ([14a67c8](https://github.com/mostafazke/ng-whiteboard/commit/14a67c8c4c90e20eeede5b2b60f2be48533399e6))
+- **elements:** add connection UI service ([9380f9d](https://github.com/mostafazke/ng-whiteboard/commit/9380f9d934a5087b00970b2eed2dc02ca00816da))
+- **elements:** add handle service for resize and connection handles ([07e4028](https://github.com/mostafazke/ng-whiteboard/commit/07e402806cf4f44e927a89c78be6f5a61a50a664))
+- **pipes:** add arrowhead pipe for SVG marker rendering ([db55159](https://github.com/mostafazke/ng-whiteboard/commit/db5515990d4eee09a27378743d7d8508bb28c8a0))
+- **types:** add connection types and arrow configuration options ([59355b1](https://github.com/mostafazke/ng-whiteboard/commit/59355b107d30b8d49ccfb39113966ba67cea9546))
 
 ## [5.1.1](https://github.com/mostafazke/ng-whiteboard/compare/v5.1.0...v5.1.1) (2025-12-06)
 
-
 ### Bug Fixes
 
-* **build:** 🐛 downgrade @angular/compiler to version 17.3.0 ([43e2a03](https://github.com/mostafazke/ng-whiteboard/commit/43e2a03041b9f9649ffedd38fcffff613152f806))
-* package.json & yarn.lock to reduce vulnerabilities ([9473a8e](https://github.com/mostafazke/ng-whiteboard/commit/9473a8ebf5d5a1c0471eea78dff849a0d3e9acb2))
-
+- **build:** 🐛 downgrade @angular/compiler to version 17.3.0 ([43e2a03](https://github.com/mostafazke/ng-whiteboard/commit/43e2a03041b9f9649ffedd38fcffff613152f806))
+- package.json & yarn.lock to reduce vulnerabilities ([9473a8e](https://github.com/mostafazke/ng-whiteboard/commit/9473a8ebf5d5a1c0471eea78dff849a0d3e9acb2))
 
 ### Code Refactoring
 
-* **demo:** replace Angular CDK with custom drag-drop implementation ([60ee447](https://github.com/mostafazke/ng-whiteboard/commit/60ee447c29396b27f4e1cb3ceeb6f92c3bec651d))
-
+- **demo:** replace Angular CDK with custom drag-drop implementation ([60ee447](https://github.com/mostafazke/ng-whiteboard/commit/60ee447c29396b27f4e1cb3ceeb6f92c3bec651d))
 
 ### BREAKING CHANGES
 
-* **demo:** Removed Angular CDK Overlay and Drag-Drop modules
+- **demo:** Removed Angular CDK Overlay and Drag-Drop modules
 
 # [5.1.0](https://github.com/mostafazke/ng-whiteboard/compare/v5.0.3...v5.1.0) (2025-11-29)
 

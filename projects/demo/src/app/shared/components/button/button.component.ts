@@ -11,7 +11,7 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
   template: `
     <button [type]="type" [disabled]="disabled || loading" [ngClass]="classes" (click)="handleClick($event)">
       @if (loading) {
-      <span class="spinner"></span>
+        <span class="spinner"></span>
       }
       <ng-content></ng-content>
     </button>

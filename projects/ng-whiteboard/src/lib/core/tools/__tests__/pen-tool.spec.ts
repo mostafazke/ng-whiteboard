@@ -48,7 +48,7 @@ describe('PenTool', () => {
         start: { cap: true, taper: 0.5 },
         end: { cap: true, taper: 0.6 },
       },
-      opacity: 1
+      opacity: 1,
     });
 
     penTool = new PenTool(apiService as unknown as ApiService);
@@ -160,7 +160,7 @@ describe('PenTool', () => {
       points: [[100, 200]],
       path: '',
       style: {},
-      selectAfterDraw: true
+      selectAfterDraw: true,
     } as unknown as PenElement;
 
     penTool.handlePointerUp();

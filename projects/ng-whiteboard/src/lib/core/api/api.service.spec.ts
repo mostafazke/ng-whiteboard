@@ -39,10 +39,13 @@ const createMockService = (serviceClass: { prototype: object }) => ({
   // Add minimal method stubs to prevent errors
   ...Object.getOwnPropertyNames(serviceClass.prototype)
     .filter((name) => name !== 'constructor')
-    .reduce((acc, methodName) => {
-      acc[methodName] = jest.fn();
-      return acc;
-    }, {} as Record<string, jest.Mock>),
+    .reduce(
+      (acc, methodName) => {
+        acc[methodName] = jest.fn();
+        return acc;
+      },
+      {} as Record<string, jest.Mock>
+    ),
 });
 
 describe('ApiService', () => {

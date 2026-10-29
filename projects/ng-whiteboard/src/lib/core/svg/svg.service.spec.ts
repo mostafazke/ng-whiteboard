@@ -18,7 +18,12 @@ import { ContextMenuService } from '../components/context-menu/context-menu.serv
 import { DragDropService } from '../input/drag-drop.service';
 import { WheelHandlerService } from '../viewport/wheel-handler.service';
 global.DOMRect = class DOMRect {
-  constructor(public x = 0, public y = 0, public width = 0, public height = 0) {
+  constructor(
+    public x = 0,
+    public y = 0,
+    public width = 0,
+    public height = 0
+  ) {
     this.left = x;
     this.top = y;
     this.right = x + width;

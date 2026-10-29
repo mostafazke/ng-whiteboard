@@ -4,10 +4,10 @@
 
 We regularly update **ng-whiteboard** to ensure it remains secure and compatible with the latest versions of Angular. Below are the currently supported versions:
 
-| Version  | Supported          |
-| -------- | ------------------ |
-| 3.0.x    | ✅ Fully supported |
-| < 3.x    | ❌ No longer supported |
+| Version | Supported              |
+| ------- | ---------------------- |
+| 3.0.x   | ✅ Fully supported     |
+| < 3.x   | ❌ No longer supported |
 
 Please ensure you are using the latest version to benefit from security updates and fixes.
 

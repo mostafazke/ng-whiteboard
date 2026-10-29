@@ -104,474 +104,566 @@
 
   <div id="panels" class="tools_panel">
     @if (!selectedElements.length) {
-    <div id="canvas_panel" class="context_panel">
-      <h4>Whiteboard</h4>
-      <div class="draginputs">
-        <div title="Change canvas width" class="draginput">
-          <input
-            dragInput
-            [min]="10"
-            [max]=""
-            [step]="10"
-            [value]="options.canvasWidth"
-            (valueChange)="updateSize($event, options.canvasHeight!)"
-            readonly
-          />
-          <span>Width</span>
-        </div>
-        <div title="Change canvas height" class="draginput">
-          <input
-            dragInput
-            [min]="10"
-            [max]=""
-            [step]="10"
-            [value]="options.canvasHeight"
-            (valueChange)="updateSize(options.canvasWidth!, $event)"
-            readonly
-          />
-          <span>Height</span>
-        </div>
-        <div title="Change canvas color" class="draginput">
-          <span>Color</span>
-          <div id="color_canvas_tools">
-            <div
-              class="color_tool active"
-              id="tool_canvas"
-              ngx-colors-trigger
-              (change)="colorChange('backgroundColor', $event)"
-            >
-              <div class="color_block">
-                <div>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="60.5">
-                    <rect width="100%" height="100%" [attr.fill]="options.backgroundColor"></rect>
-                  </svg>
+      <div id="canvas_panel" class="context_panel">
+        <h4>Whiteboard</h4>
+        <div class="draginputs">
+          <div title="Change canvas width" class="draginput">
+            <input
+              dragInput
+              [min]="10"
+              [max]=""
+              [step]="10"
+              [value]="options.canvasWidth"
+              (valueChange)="updateSize($event, options.canvasHeight!)"
+              readonly
+            />
+            <span>Width</span>
+          </div>
+          <div title="Change canvas height" class="draginput">
+            <input
+              dragInput
+              [min]="10"
+              [max]=""
+              [step]="10"
+              [value]="options.canvasHeight"
+              (valueChange)="updateSize(options.canvasWidth!, $event)"
+              readonly
+            />
+            <span>Height</span>
+          </div>
+          <div title="Change canvas color" class="draginput">
+            <span>Color</span>
+            <div id="color_canvas_tools">
+              <div
+                class="color_tool active"
+                id="tool_canvas"
+                ngx-colors-trigger
+                (change)="colorChange('backgroundColor', $event)"
+              >
+                <div class="color_block">
+                  <div>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="60.5">
+                      <rect width="100%" height="100%" [attr.fill]="options.backgroundColor"></rect>
+                    </svg>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="draginput">
-          <span>Sizes</span>
-          <select #resolution (change)="setSizeResolution(resolution.value)">
-            <option selected>Custom</option>
-            <optgroup label="Social Media">
-              <option value="1012x506">Twitter Post (1012 × 506)</option>
-              <option value="1500x500">Twitter Header (1500 × 500)</option>
-              <option value="1200x630">Facebook Post (1200 × 630)</option>
-              <option value="820x312">Facebook Cover (820 × 312)</option>
-              <option value="1080x1080">Instagram Post (1080 × 1080)</option>
-              <option value="1080x1920">Instagram Story (1080 × 1920)</option>
-              <option value="400x300">Dribble Shot (400 × 300)</option>
-              <option value="800x600">Dribble Shot HD (800 × 600)</option>
-              <option value="1584x396">LinkedIn Cover (1584 × 396)</option>
-            </optgroup>
+          <div class="draginput">
+            <span>Sizes</span>
+            <select #resolution (change)="setSizeResolution(resolution.value)">
+              <option selected>Custom</option>
+              <optgroup label="Social Media">
+                <option value="1012x506">Twitter Post (1012 × 506)</option>
+                <option value="1500x500">Twitter Header (1500 × 500)</option>
+                <option value="1200x630">Facebook Post (1200 × 630)</option>
+                <option value="820x312">Facebook Cover (820 × 312)</option>
+                <option value="1080x1080">Instagram Post (1080 × 1080)</option>
+                <option value="1080x1920">Instagram Story (1080 × 1920)</option>
+                <option value="400x300">Dribble Shot (400 × 300)</option>
+                <option value="800x600">Dribble Shot HD (800 × 600)</option>
+                <option value="1584x396">LinkedIn Cover (1584 × 396)</option>
+              </optgroup>
 
-            <optgroup label="Presentation">
-              <option value="1920x1080">16:9 (1920 × 1080)</option>
-              <option value="1024x768">4:3 (1024 × 768)</option>
-            </optgroup>
+              <optgroup label="Presentation">
+                <option value="1920x1080">16:9 (1920 × 1080)</option>
+                <option value="1024x768">4:3 (1024 × 768)</option>
+              </optgroup>
 
-            <optgroup label="Desktop">
-              <option value="1140x1024">Desktop (1140 × 1024)</option>
-              <option value="834x1194">MacBook (834 × 1194)</option>
-              <option value="1024x1366">MacBook Pro (1024 × 1366)</option>
-              <option value="1440x990">Surface Book (1440 × 990)</option>
-              <option value="1368x912">iMac (1368 × 912)</option>
-            </optgroup>
+              <optgroup label="Desktop">
+                <option value="1140x1024">Desktop (1140 × 1024)</option>
+                <option value="834x1194">MacBook (834 × 1194)</option>
+                <option value="1024x1366">MacBook Pro (1024 × 1366)</option>
+                <option value="1440x990">Surface Book (1440 × 990)</option>
+                <option value="1368x912">iMac (1368 × 912)</option>
+              </optgroup>
 
-            <optgroup label="Tablet">
-              <option value="768x1024">iPad Mini (768 × 1024)</option>
-              <option value="834x1194">iPad Pro 11" (834 × 1194)</option>
-              <option value="1024x1366">iPad Pro 12.9" (1024 × 1366)</option>
-              <option value="1440x990">Surface Pro 3 (1440 × 990)</option>
-              <option value="1368x912">Surface Pro 4 (1368 × 912)</option>
-            </optgroup>
+              <optgroup label="Tablet">
+                <option value="768x1024">iPad Mini (768 × 1024)</option>
+                <option value="834x1194">iPad Pro 11" (834 × 1194)</option>
+                <option value="1024x1366">iPad Pro 12.9" (1024 × 1366)</option>
+                <option value="1440x990">Surface Pro 3 (1440 × 990)</option>
+                <option value="1368x912">Surface Pro 4 (1368 × 912)</option>
+              </optgroup>
 
-            <optgroup label="Phone">
-              <option value="414x896">iPhone 11 ProMax (414 × 896)</option>
-              <option value="375x812">iPhone 11 Pro / X (375 × 812)</option>
-              <option value="414x736">iPhone 8 Plus (414 × 736)</option>
-              <option value="375x667">iPhone 8 (375 × 667)</option>
-              <option value="411x731">Google Pixel 2 (411 × 731)</option>
-              <option value="411x823">Google Pixel XL (411 × 823)</option>
-              <option value="360x640">Android (360 × 640)</option>
-            </optgroup>
+              <optgroup label="Phone">
+                <option value="414x896">iPhone 11 ProMax (414 × 896)</option>
+                <option value="375x812">iPhone 11 Pro / X (375 × 812)</option>
+                <option value="414x736">iPhone 8 Plus (414 × 736)</option>
+                <option value="375x667">iPhone 8 (375 × 667)</option>
+                <option value="411x731">Google Pixel 2 (411 × 731)</option>
+                <option value="411x823">Google Pixel XL (411 × 823)</option>
+                <option value="360x640">Android (360 × 640)</option>
+              </optgroup>
 
-            <optgroup label="Paper">
-              <option value="595x842">A4 (595 × 842)</option>
-              <option value="420x595">A5 (420 × 595)</option>
-              <option value="297x420">A6 (297 × 420)</option>
-              <option value="612x792">Letter (612 × 792)</option>
-              <option value="792x1224">Tabloid (792 × 1224)</option>
-            </optgroup>
-          </select>
-          <div class="caret"></div>
-          <label for="" id="resolution_label">{{ resolution.value }}</label>
-        </div>
-      </div>
-    </div>
-    } @if (selectedElements[0]; as selectedElement) { @if (selectedElement.type === elementType.Rectangle) {
-    <div class="context_panel">
-      <h4>Rectangle</h4>
-      <div class="draginputs">
-        <div class="draginput" title="Change X coordinate">
-          <input
-            dragInput
-            [step]="1"
-            [value]="selectedElement.x"
-            (valueChange)="updateSelectedElement({ x: $event })"
-            readonly
-          />
-          <span>X</span>
-        </div>
-        <div class="draginput" title="Change Y coordinate">
-          <input
-            dragInput
-            [step]="1"
-            [value]="selectedElement.y"
-            (valueChange)="updateSelectedElement({ y: $event })"
-            readonly
-          />
-          <span>Y</span>
-        </div>
-        <div class="draginput" title="Change rectangle width">
-          <input
-            dragInput
-            [step]="1"
-            [min]="0"
-            [value]="selectedElement.width"
-            (valueChange)="updateSelectedElement({ width: $event })"
-            readonly
-          />
-          <span>Width</span>
-        </div>
-        <div class="draginput" title="Change rectangle height">
-          <input
-            dragInput
-            [step]="1"
-            [min]="0"
-            [value]="selectedElement.height"
-            (valueChange)="updateSelectedElement({ height: $event })"
-            readonly
-          />
-          <span>Height</span>
-        </div>
-      </div>
-    </div>
-    } @if (selectedElement.type === elementType.Pen) {
-    <div class="context_panel clearfix">
-      <h4>Pen</h4>
-      <div class="draginputs">
-        <div class="draginput" title="Change X coordinate">
-          <input
-            dragInput
-            [step]="1"
-            [value]="selectedElement.x"
-            (valueChange)="updateSelectedElement({ x: $event })"
-            readonly
-          />
-          <span>X</span>
-        </div>
-        <div class="draginput" title="Change Y coordinate">
-          <input
-            dragInput
-            [step]="1"
-            [value]="selectedElement.y"
-            (valueChange)="updateSelectedElement({ y: $event })"
-            readonly
-          />
-          <span>Y</span>
-        </div>
-      </div>
-    </div>
-    } @if (selectedElement.type === elementType.Image) {
-    <div class="context_panel clearfix">
-      <h4>Image</h4>
-      <div class="draginputs">
-        <div class="draginput" title="Change X coordinate">
-          <input
-            dragInput
-            [step]="1"
-            [value]="selectedElement.x"
-            (valueChange)="updateSelectedElement({ x: $event })"
-            readonly
-          />
-          <span>X</span>
-        </div>
-        <div class="draginput" title="Change Y coordinate">
-          <input
-            dragInput
-            [step]="1"
-            [value]="selectedElement.y"
-            (valueChange)="updateSelectedElement({ y: $event })"
-            readonly
-          />
-          <span>Y</span>
-        </div>
-        <div class="draginput" title="Change image width">
-          <input
-            dragInput
-            [step]="1"
-            [min]="0"
-            [value]="selectedElement.width"
-            (valueChange)="updateSelectedElement({ width: $event })"
-            readonly
-          />
-          <span>Width</span>
-        </div>
-        <div class="draginput" title="Change image height">
-          <input
-            dragInput
-            [step]="1"
-            [min]="0"
-            [value]="selectedElement.height"
-            (valueChange)="updateSelectedElement({ height: $event })"
-            readonly
-          />
-          <span>Height</span>
-        </div>
-      </div>
-    </div>
-    } @if (selectedElement.type === elementType.Ellipse) {
-    <div class="context_panel">
-      <h4>Ellipse</h4>
-      <div class="draginputs">
-        <div class="draginput" title="Change X coordinate">
-          <input
-            dragInput
-            [step]="1"
-            [value]="selectedElement.x"
-            (valueChange)="updateSelectedElement({ x: $event })"
-            readonly
-          />
-          <span>X</span>
-        </div>
-        <div class="draginput" title="Change Y coordinate">
-          <input
-            dragInput
-            [step]="1"
-            [value]="selectedElement.y"
-            (valueChange)="updateSelectedElement({ y: $event })"
-            readonly
-          />
-          <span>Y</span>
-        </div>
-        <div class="draginput" title="Change ellipse's x radius">
-          <input
-            dragInput
-            [min]="0"
-            [step]="1"
-            [value]="selectedElement.rx"
-            (valueChange)="updateSelectedElement({ rx: $event })"
-            readonly
-          />
-          <span>Radius X</span>
-        </div>
-        <div class="draginput" title="Change ellipse's y radius">
-          <input
-            dragInput
-            [min]="0"
-            [step]="1"
-            [value]="selectedElement.ry"
-            (valueChange)="updateSelectedElement({ ry: $event })"
-            readonly
-          />
-          <span>Radius Y</span>
-        </div>
-      </div>
-    </div>
-    } @if (selectedElement.type === elementType.Line || selectedElement.type === elementType.Arrow) {
-    <div class="context_panel clearfix">
-      <h4>{{ selectedElement.type === elementType.Line ? 'Line' : 'Arrow' }}</h4>
-      <div class="draginputs">
-        <div class="draginput" title="Change line's starting x coordinate">
-          <input
-            dragInput
-            [step]="1"
-            [value]="selectedElement.x1"
-            (valueChange)="updateSelectedElement({ x1: $event })"
-            readonly
-          />
-          <span>Start X</span>
-        </div>
-        <div class="draginput" title="Change line's starting y coordinate">
-          <input
-            dragInput
-            [step]="1"
-            [value]="selectedElement.y1"
-            (valueChange)="updateSelectedElement({ y1: $event })"
-            readonly
-          />
-          <span>Start Y</span>
-        </div>
-        <div class="draginput" title="Change line's ending x coordinate">
-          <input
-            dragInput
-            [step]="1"
-            [value]="selectedElement.x2"
-            (valueChange)="updateSelectedElement({ x2: $event })"
-            readonly
-          />
-          <span>End X</span>
-        </div>
-        <div class="draginput" title="Change line's ending y coordinate">
-          <input
-            dragInput
-            [step]="1"
-            [value]="selectedElement.y2"
-            (valueChange)="updateSelectedElement({ y2: $event })"
-            readonly
-          />
-          <span>End Y</span>
-        </div>
-      </div>
-    </div>
-    } @if (selectedElement.type === elementType.Text) {
-    <div class="context_panel">
-      <h4>Text</h4>
-      <div class="draginputs">
-        <div class="draginput twocol textcontent hidden" title="Change Content">
-          <input #text autocomplete="off" [value]="selectedElement.text" (input)="updateTextContent(text.value)" />
-          <span>Content</span>
-        </div>
-        <div class="draginput" title="Change X coordinate">
-          <input
-            dragInput
-            [step]="1"
-            [value]="selectedElement.x"
-            (valueChange)="updateSelectedElement({ x: $event })"
-            readonly
-          />
-          <span>X</span>
-        </div>
-        <div class="draginput" title="Change Y coordinate">
-          <input
-            dragInput
-            [step]="1"
-            [value]="selectedElement.y"
-            (valueChange)="updateSelectedElement({ y: $event })"
-            readonly
-          />
-          <span>Y</span>
-        </div>
-        <div class="toolset draginput twocol" title="Change Font Family">
-          <!-- Font family -->
-          <span>Font</span>
-          <div id="preview_font" [style.fontFamily]="selectedElement.style.fontFamily">
-            {{ selectedElement.style.fontFamily }}
+              <optgroup label="Paper">
+                <option value="595x842">A4 (595 × 842)</option>
+                <option value="420x595">A5 (420 × 595)</option>
+                <option value="297x420">A6 (297 × 420)</option>
+                <option value="612x792">Letter (612 × 792)</option>
+                <option value="792x1224">Tabloid (792 × 1224)</option>
+              </optgroup>
+            </select>
+            <div class="caret"></div>
+            <label for="" id="resolution_label">{{ resolution.value }}</label>
           </div>
-          <div class="caret"></div>
-          <select
-            #font_family
-            [value]="selectedElement.style.fontFamily"
-            (change)="updateFontFamily(font_family.value)"
-          >
-            <option value="Arial, sans-serif" style="font-family: Arial, sans-serif">Arial</option>
-            <option value="Comic Sans MS, cursive, sans-serif" style="font-family: Comic Sans MS, cursive">
-              Comic Sans MS
-            </option>
-            <option value="Brush Script MT, cursive" style="font-family: Brush Script MT, cursive">
-              Brush Script MT
-            </option>
-            <option value="Lucida Handwriting, cursive" style="font-family: Lucida Handwriting, cursive">
-              Lucida Handwriting
-            </option>
-            <option value="Papyrus, fantasy" style="font-family: Papyrus, fantasy">Papyrus</option>
-            <option value="Courier New, monospace" style="font-family: Courier New, monospace">Courier New</option>
-            <option value="Lucida Console, Monaco, monospace" style="font-family: Lucida Console, monospace">
-              Lucida Console
-            </option>
-            <option value="Consolas, monospace" style="font-family: Consolas, monospace">Consolas</option>
-            <option value="Arial Narrow, sans-serif" style="font-family: Arial Narrow, sans-serif">Arial Narrow</option>
-            <option value="Century Gothic, sans-serif" style="font-family: Century Gothic, sans-serif">
-              Century Gothic
-            </option>
-            <option value="Trebuchet MS, sans-serif" style="font-family: Trebuchet MS, sans-serif">Trebuchet MS</option>
-            <option value="Georgia, serif" style="font-family: Georgia, serif">Georgia</option>
-            <option value="Palatino Linotype, Book Antiqua, serif" style="font-family: Palatino Linotype, serif">
-              Palatino Linotype
-            </option>
-            <option value="Garamond, serif" style="font-family: Garamond, serif">Garamond</option>
-            <option value="Impact, sans-serif" style="font-family: Impact, sans-serif">Impact</option>
-            <option value="Franklin Gothic Medium, sans-serif" style="font-family: Franklin Gothic Medium, sans-serif">
-              Franklin Gothic Medium
-            </option>
-            <option value="Copperplate, fantasy" style="font-family: Copperplate, fantasy">Copperplate</option>
-            <option value="OCR A Std, monospace" style="font-family: OCR A Std, monospace">OCR A Std</option>
-            <option value="Terminal, monospace" style="font-family: Terminal, monospace">Terminal</option>
-          </select>
-        </div>
-        <div class="draginput font_style">
-          <span>Font Style</span>
-          <button id="tool_bold" title="Bold Text" (click)="toggleFontWeight()">B</button>
-          <button id="tool_italic" title="Italic Text" (click)="toggleFontStyle()">i</button>
-        </div>
-        <div class="draginput" title="Change Font Size">
-          <input
-            dragInput
-            [min]="0"
-            [step]="1"
-            [value]="selectedElement.style.fontSize"
-            (valueChange)="updateFontSize($event)"
-            readonly
-          />
-          <span>Font Size</span>
         </div>
       </div>
-    </div>
     }
-    <!-- Buttons when a single element is selected -->
-    <div class="context_panel">
-      <div class="draginputs">
-        <div class="draginput" title="Change rotation angle">
-          <input
-            dragInput
-            [min]="-180"
-            [max]="180"
-            [step]="1"
-            [value]="selectedElement.rotation || 0"
-            (valueChange)="updateRotation($event)"
-            readonly
-          />
-          <span>Rotation</span>
-          <div class="angle" [attr.style]="'transform: rotate(' + selectedElement.rotation + 'deg)'">
-            <div class="angle-cursor"></div>
+    @if (selectedElements[0]; as selectedElement) {
+      @if (selectedElement.type === elementType.Rectangle) {
+        <div class="context_panel">
+          <h4>Rectangle</h4>
+          <div class="draginputs">
+            <div class="draginput" title="Change X coordinate">
+              <input
+                dragInput
+                [step]="1"
+                [value]="selectedElement.x"
+                (valueChange)="updateSelectedElement({ x: $event })"
+                readonly
+              />
+              <span>X</span>
+            </div>
+            <div class="draginput" title="Change Y coordinate">
+              <input
+                dragInput
+                [step]="1"
+                [value]="selectedElement.y"
+                (valueChange)="updateSelectedElement({ y: $event })"
+                readonly
+              />
+              <span>Y</span>
+            </div>
+            <div class="draginput" title="Change rectangle width">
+              <input
+                dragInput
+                [step]="1"
+                [min]="0"
+                [value]="selectedElement.width"
+                (valueChange)="updateSelectedElement({ width: $event })"
+                readonly
+              />
+              <span>Width</span>
+            </div>
+            <div class="draginput" title="Change rectangle height">
+              <input
+                dragInput
+                [step]="1"
+                [min]="0"
+                [value]="selectedElement.height"
+                (valueChange)="updateSelectedElement({ height: $event })"
+                readonly
+              />
+              <span>Height</span>
+            </div>
           </div>
         </div>
+      }
+      @if (selectedElement.type === elementType.Pen) {
+        <div class="context_panel clearfix">
+          <h4>Pen</h4>
+          <div class="draginputs">
+            <div class="draginput" title="Change X coordinate">
+              <input
+                dragInput
+                [step]="1"
+                [value]="selectedElement.x"
+                (valueChange)="updateSelectedElement({ x: $event })"
+                readonly
+              />
+              <span>X</span>
+            </div>
+            <div class="draginput" title="Change Y coordinate">
+              <input
+                dragInput
+                [step]="1"
+                [value]="selectedElement.y"
+                (valueChange)="updateSelectedElement({ y: $event })"
+                readonly
+              />
+              <span>Y</span>
+            </div>
+          </div>
+        </div>
+      }
+      @if (selectedElement.type === elementType.Image) {
+        <div class="context_panel clearfix">
+          <h4>Image</h4>
+          <div class="draginputs">
+            <div class="draginput" title="Change X coordinate">
+              <input
+                dragInput
+                [step]="1"
+                [value]="selectedElement.x"
+                (valueChange)="updateSelectedElement({ x: $event })"
+                readonly
+              />
+              <span>X</span>
+            </div>
+            <div class="draginput" title="Change Y coordinate">
+              <input
+                dragInput
+                [step]="1"
+                [value]="selectedElement.y"
+                (valueChange)="updateSelectedElement({ y: $event })"
+                readonly
+              />
+              <span>Y</span>
+            </div>
+            <div class="draginput" title="Change image width">
+              <input
+                dragInput
+                [step]="1"
+                [min]="0"
+                [value]="selectedElement.width"
+                (valueChange)="updateSelectedElement({ width: $event })"
+                readonly
+              />
+              <span>Width</span>
+            </div>
+            <div class="draginput" title="Change image height">
+              <input
+                dragInput
+                [step]="1"
+                [min]="0"
+                [value]="selectedElement.height"
+                (valueChange)="updateSelectedElement({ height: $event })"
+                readonly
+              />
+              <span>Height</span>
+            </div>
+          </div>
+        </div>
+      }
+      @if (selectedElement.type === elementType.Ellipse) {
+        <div class="context_panel">
+          <h4>Ellipse</h4>
+          <div class="draginputs">
+            <div class="draginput" title="Change X coordinate">
+              <input
+                dragInput
+                [step]="1"
+                [value]="selectedElement.x"
+                (valueChange)="updateSelectedElement({ x: $event })"
+                readonly
+              />
+              <span>X</span>
+            </div>
+            <div class="draginput" title="Change Y coordinate">
+              <input
+                dragInput
+                [step]="1"
+                [value]="selectedElement.y"
+                (valueChange)="updateSelectedElement({ y: $event })"
+                readonly
+              />
+              <span>Y</span>
+            </div>
+            <div class="draginput" title="Change ellipse's x radius">
+              <input
+                dragInput
+                [min]="0"
+                [step]="1"
+                [value]="selectedElement.rx"
+                (valueChange)="updateSelectedElement({ rx: $event })"
+                readonly
+              />
+              <span>Radius X</span>
+            </div>
+            <div class="draginput" title="Change ellipse's y radius">
+              <input
+                dragInput
+                [min]="0"
+                [step]="1"
+                [value]="selectedElement.ry"
+                (valueChange)="updateSelectedElement({ ry: $event })"
+                readonly
+              />
+              <span>Radius Y</span>
+            </div>
+          </div>
+        </div>
+      }
+      @if (selectedElement.type === elementType.Line || selectedElement.type === elementType.Arrow) {
+        <div class="context_panel clearfix">
+          <h4>{{ selectedElement.type === elementType.Line ? 'Line' : 'Arrow' }}</h4>
+          <div class="draginputs">
+            <div class="draginput" title="Change line's starting x coordinate">
+              <input
+                dragInput
+                [step]="1"
+                [value]="selectedElement.x1"
+                (valueChange)="updateSelectedElement({ x1: $event })"
+                readonly
+              />
+              <span>Start X</span>
+            </div>
+            <div class="draginput" title="Change line's starting y coordinate">
+              <input
+                dragInput
+                [step]="1"
+                [value]="selectedElement.y1"
+                (valueChange)="updateSelectedElement({ y1: $event })"
+                readonly
+              />
+              <span>Start Y</span>
+            </div>
+            <div class="draginput" title="Change line's ending x coordinate">
+              <input
+                dragInput
+                [step]="1"
+                [value]="selectedElement.x2"
+                (valueChange)="updateSelectedElement({ x2: $event })"
+                readonly
+              />
+              <span>End X</span>
+            </div>
+            <div class="draginput" title="Change line's ending y coordinate">
+              <input
+                dragInput
+                [step]="1"
+                [value]="selectedElement.y2"
+                (valueChange)="updateSelectedElement({ y2: $event })"
+                readonly
+              />
+              <span>End Y</span>
+            </div>
+          </div>
+        </div>
+      }
+      @if (selectedElement.type === elementType.Text) {
+        <div class="context_panel">
+          <h4>Text</h4>
+          <div class="draginputs">
+            <div class="draginput twocol textcontent hidden" title="Change Content">
+              <input #text autocomplete="off" [value]="selectedElement.text" (input)="updateTextContent(text.value)" />
+              <span>Content</span>
+            </div>
+            <div class="draginput" title="Change X coordinate">
+              <input
+                dragInput
+                [step]="1"
+                [value]="selectedElement.x"
+                (valueChange)="updateSelectedElement({ x: $event })"
+                readonly
+              />
+              <span>X</span>
+            </div>
+            <div class="draginput" title="Change Y coordinate">
+              <input
+                dragInput
+                [step]="1"
+                [value]="selectedElement.y"
+                (valueChange)="updateSelectedElement({ y: $event })"
+                readonly
+              />
+              <span>Y</span>
+            </div>
+            <div class="toolset draginput twocol" title="Change Font Family">
+              <!-- Font family -->
+              <span>Font</span>
+              <div id="preview_font" [style.fontFamily]="selectedElement.style.fontFamily">
+                {{ selectedElement.style.fontFamily }}
+              </div>
+              <div class="caret"></div>
+              <select
+                #font_family
+                [value]="selectedElement.style.fontFamily"
+                (change)="updateFontFamily(font_family.value)"
+              >
+                <option value="Arial, sans-serif" style="font-family: Arial, sans-serif">Arial</option>
+                <option
+                  value="Comic Sans MS, cursive, sans-serif"
+                  style="
+                    font-family:
+                      Comic Sans MS,
+                      cursive;
+                  "
+                >
+                  Comic Sans MS
+                </option>
+                <option
+                  value="Brush Script MT, cursive"
+                  style="
+                    font-family:
+                      Brush Script MT,
+                      cursive;
+                  "
+                >
+                  Brush Script MT
+                </option>
+                <option
+                  value="Lucida Handwriting, cursive"
+                  style="
+                    font-family:
+                      Lucida Handwriting,
+                      cursive;
+                  "
+                >
+                  Lucida Handwriting
+                </option>
+                <option value="Papyrus, fantasy" style="font-family: Papyrus, fantasy">Papyrus</option>
+                <option
+                  value="Courier New, monospace"
+                  style="
+                    font-family:
+                      Courier New,
+                      monospace;
+                  "
+                >
+                  Courier New
+                </option>
+                <option
+                  value="Lucida Console, Monaco, monospace"
+                  style="
+                    font-family:
+                      Lucida Console,
+                      monospace;
+                  "
+                >
+                  Lucida Console
+                </option>
+                <option value="Consolas, monospace" style="font-family: Consolas, monospace">Consolas</option>
+                <option
+                  value="Arial Narrow, sans-serif"
+                  style="
+                    font-family:
+                      Arial Narrow,
+                      sans-serif;
+                  "
+                >
+                  Arial Narrow
+                </option>
+                <option
+                  value="Century Gothic, sans-serif"
+                  style="
+                    font-family:
+                      Century Gothic,
+                      sans-serif;
+                  "
+                >
+                  Century Gothic
+                </option>
+                <option
+                  value="Trebuchet MS, sans-serif"
+                  style="
+                    font-family:
+                      Trebuchet MS,
+                      sans-serif;
+                  "
+                >
+                  Trebuchet MS
+                </option>
+                <option value="Georgia, serif" style="font-family: Georgia, serif">Georgia</option>
+                <option
+                  value="Palatino Linotype, Book Antiqua, serif"
+                  style="
+                    font-family:
+                      Palatino Linotype,
+                      serif;
+                  "
+                >
+                  Palatino Linotype
+                </option>
+                <option value="Garamond, serif" style="font-family: Garamond, serif">Garamond</option>
+                <option value="Impact, sans-serif" style="font-family: Impact, sans-serif">Impact</option>
+                <option
+                  value="Franklin Gothic Medium, sans-serif"
+                  style="
+                    font-family:
+                      Franklin Gothic Medium,
+                      sans-serif;
+                  "
+                >
+                  Franklin Gothic Medium
+                </option>
+                <option value="Copperplate, fantasy" style="font-family: Copperplate, fantasy">Copperplate</option>
+                <option
+                  value="OCR A Std, monospace"
+                  style="
+                    font-family:
+                      OCR A Std,
+                      monospace;
+                  "
+                >
+                  OCR A Std
+                </option>
+                <option value="Terminal, monospace" style="font-family: Terminal, monospace">Terminal</option>
+              </select>
+            </div>
+            <div class="draginput font_style">
+              <span>Font Style</span>
+              <button id="tool_bold" title="Bold Text" (click)="toggleFontWeight()">B</button>
+              <button id="tool_italic" title="Italic Text" (click)="toggleFontStyle()">i</button>
+            </div>
+            <div class="draginput" title="Change Font Size">
+              <input
+                dragInput
+                [min]="0"
+                [step]="1"
+                [value]="selectedElement.style.fontSize"
+                (valueChange)="updateFontSize($event)"
+                readonly
+              />
+              <span>Font Size</span>
+            </div>
+          </div>
+        </div>
+      }
+      <!-- Buttons when a single element is selected -->
+      <div class="context_panel">
+        <div class="draginputs">
+          <div class="draginput" title="Change rotation angle">
+            <input
+              dragInput
+              [min]="-180"
+              [max]="180"
+              [step]="1"
+              [value]="selectedElement.rotation || 0"
+              (valueChange)="updateRotation($event)"
+              readonly
+            />
+            <span>Rotation</span>
+            <div class="angle" [attr.style]="'transform: rotate(' + selectedElement.rotation + 'deg)'">
+              <div class="angle-cursor"></div>
+            </div>
+          </div>
 
-        <div class="draginput" title="Change selected item opacity">
-          <input
-            dragInput
-            [min]="0"
-            [max]="100"
-            [step]="1"
-            [value]="selectedElement.opacity || 0"
-            (valueChange)="updateOpacity($event)"
-            readonly
-          />
-          <span>Opacity</span>
-          <div
-            class="draginput_cursor"
-            [attr.style]="'top:' + (selectedElement.opacity | dragInputCursor) + 'px'"
-          ></div>
+          <div class="draginput" title="Change selected item opacity">
+            <input
+              dragInput
+              [min]="0"
+              [max]="100"
+              [step]="1"
+              [value]="selectedElement.opacity || 0"
+              (valueChange)="updateOpacity($event)"
+              readonly
+            />
+            <span>Opacity</span>
+            <div
+              class="draginput_cursor"
+              [attr.style]="'top:' + (selectedElement.opacity | dragInputCursor) + 'px'"
+            ></div>
+          </div>
+          @if (selectedElement.type === elementType.Rectangle) {
+            <div class="draginput" title="Change Rectangle Corner Radius">
+              <input
+                dragInput
+                [min]="0"
+                [max]="100"
+                [step]="1"
+                [value]="selectedElement.rx"
+                (valueChange)="updateCornerRadius($event)"
+                readonly
+              />
+              <span>Roundness</span>
+              <div class="draginput_cursor" [attr.style]="'top:' + (selectedElement.rx | dragInputCursor) + 'px'"></div>
+            </div>
+          }
         </div>
-        @if (selectedElement.type === elementType.Rectangle) {
-        <div class="draginput" title="Change Rectangle Corner Radius">
-          <input
-            dragInput
-            [min]="0"
-            [max]="100"
-            [step]="1"
-            [value]="selectedElement.rx"
-            (valueChange)="updateCornerRadius($event)"
-            readonly
-          />
-          <span>Roundness</span>
-          <div class="draginput_cursor" [attr.style]="'top:' + (selectedElement.rx | dragInputCursor) + 'px'"></div>
-        </div>
-        }
       </div>
-    </div>
     }
     <div class="context_panel">
       <h4>Stroke</h4>
@@ -607,20 +699,22 @@
             [value]="(selectedElements.length && selectedElements[0].style.dasharray) || 'none'"
           >
             @for (dashArray of dashArrays; track dashArray.value) {
-            <option [value]="dashArray.value">
-              {{ dashArray.label }}
-            </option>
+              <option [value]="dashArray.value">
+                {{ dashArray.label }}
+              </option>
             }
           </select>
           <div class="caret"></div>
           <label for="stroke_style" id="stroke_style_label">
-            @if (selectedElements.length && selectedElements[0].style || options; as style) { @if (style.dasharray) {
-            <ng-container>
-              {{ style.dasharray | findDashArray }}
-            </ng-container>
-            } @else {
-            <ng-container>──────</ng-container>
-            } }
+            @if ((selectedElements.length && selectedElements[0].style) || options; as style) {
+              @if (style.dasharray) {
+                <ng-container>
+                  {{ style.dasharray | findDashArray }}
+                </ng-container>
+              } @else {
+                <ng-container>──────</ng-container>
+              }
+            }
           </label>
         </div>
 
@@ -639,10 +733,22 @@
           </select>
           <div class="caret"></div>
           <label for="stroke_join">
-            @if (selectedElements.length && selectedElements[0].style || options; as style) { @switch (style.lineJoin) {
-            @case('miter') {<ng-container>Miter</ng-container>} @case('bevel') {<ng-container>Bevel</ng-container>}
-            @case('miter-clip') {<ng-container>Miter Clip</ng-container>} @default {<ng-container>Round</ng-container>}
-            } }
+            @if ((selectedElements.length && selectedElements[0].style) || options; as style) {
+              @switch (style.lineJoin) {
+                @case ('miter') {
+                  <ng-container>Miter</ng-container>
+                }
+                @case ('bevel') {
+                  <ng-container>Bevel</ng-container>
+                }
+                @case ('miter-clip') {
+                  <ng-container>Miter Clip</ng-container>
+                }
+                @default {
+                  <ng-container>Round</ng-container>
+                }
+              }
+            }
           </label>
         </div>
 
@@ -660,183 +766,37 @@
           </select>
           <div class="caret"></div>
           <label for="stroke_cap">
-            @if (selectedElements.length && selectedElements[0].style || options; as style) { @switch (style.lineCap) {
-            @case('square') {<ng-container>Square</ng-container>} @case('butt') {<ng-container>Butt</ng-container>}
-            @default {<ng-container>Round</ng-container>} } }
+            @if ((selectedElements.length && selectedElements[0].style) || options; as style) {
+              @switch (style.lineCap) {
+                @case ('square') {
+                  <ng-container>Square</ng-container>
+                }
+                @case ('butt') {
+                  <ng-container>Butt</ng-container>
+                }
+                @default {
+                  <ng-container>Round</ng-container>
+                }
+              }
+            }
           </label>
         </div>
       </div>
     </div>
-    @if (selectedElements[0]; as selectedElement) { @if (selectedElement.type === elementType.Arrow) {
-    <div class="context_panel clearfix">
-      <h4>Arrow Style</h4>
-      <div class="arrow-options">
-        <!-- Line style toggle buttons -->
-        <div class="arrow-prop-row">
-          <span class="arrow-prop-label">Line</span>
-          <div class="arrow-btn-group">
-            <button
-              class="arrow-icon-btn"
-              [class.active]="selectedElement.pathType.type === 'straight'"
-              (click)="setArrowLineStyle('straight')"
-              title="Straight"
-            >
-              <svg
-                viewBox="0 0 32 20"
-                width="32"
-                height="20"
-                stroke="currentColor"
-                fill="none"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <line x1="2" y1="10" x2="22" y2="10" />
-                <polygon points="20,7 28,10 20,13" fill="currentColor" stroke="none" />
-              </svg>
-            </button>
-            <button
-              class="arrow-icon-btn"
-              [class.active]="selectedElement.pathType.type !== 'straight' && selectedElement.pathType.type !== 'elbow'"
-              (click)="setArrowLineStyle('curve')"
-              title="Curved"
-            >
-              <svg
-                viewBox="0 0 32 20"
-                width="32"
-                height="20"
-                stroke="currentColor"
-                fill="none"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M 2 16 Q 14 2 22 10" />
-                <polygon points="20,7 28,10 20,13" fill="currentColor" stroke="none" />
-              </svg>
-            </button>
-            <button
-              class="arrow-icon-btn"
-              [class.active]="selectedElement.pathType.type === 'elbow'"
-              (click)="setArrowLineStyle('elbow')"
-              title="Elbow"
-            >
-              <svg
-                viewBox="0 0 32 20"
-                width="32"
-                height="20"
-                stroke="currentColor"
-                fill="none"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <polyline points="2,16 12,16 12,7 22,7" />
-                <polygon points="20,5 28,7 20,9" fill="currentColor" stroke="none" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <div class="arrow-line">
-          <!-- Start head picker -->
-          <div class="arrow-prop-row">
-            <span class="arrow-prop-label">Start</span>
-            <div class="head-picker" [class.open]="startHeadOpen">
-              <button class="arrow-icon-btn head-current" (click)="toggleStartHead($event)" title="Start head style">
-                <svg
-                  viewBox="0 0 32 20"
-                  width="32"
-                  height="20"
-                  stroke="currentColor"
-                  fill="none"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  style="transform: scaleX(-1)"
-                >
-                  <path [attr.d]="headIconData[$any(selectedElement).startHead.type].linePath" />
-                  @if (headIconData[$any(selectedElement).startHead.type].headPath) {
-                  <path
-                    [attr.d]="headIconData[$any(selectedElement).startHead.type].headPath"
-                    [attr.fill]="headIconData[$any(selectedElement).startHead.type].filled ? 'currentColor' : 'none'"
-                    [attr.stroke]="headIconData[$any(selectedElement).startHead.type].filled ? 'none' : 'currentColor'"
-                  />
-                  }
-                </svg>
-                <svg class="caret-chevron" viewBox="0 0 10 6" width="8" height="5" fill="currentColor" stroke="none">
-                  <path d="M 0 0 L 10 0 L 5 6 Z" />
-                </svg>
-              </button>
-              <div class="head-dropdown" [ngStyle]="startHeadDropdownStyle">
-                @for (style of arrowHeadStyles; track style) {
+    @if (selectedElements[0]; as selectedElement) {
+      @if (selectedElement.type === elementType.Arrow) {
+        <div class="context_panel clearfix">
+          <h4>Arrow Style</h4>
+          <div class="arrow-options">
+            <!-- Line style toggle buttons -->
+            <div class="arrow-prop-row">
+              <span class="arrow-prop-label">Line</span>
+              <div class="arrow-btn-group">
                 <button
-                  class="head-option"
-                  [class.active]="$any(selectedElement).startHead.type === style"
-                  (click)="setArrowStartHead(style); startHeadOpen = false"
-                  [title]="style"
-                >
-                  <svg
-                    viewBox="0 0 32 20"
-                    width="32"
-                    height="20"
-                    stroke="currentColor"
-                    fill="none"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    style="transform: scaleX(-1)"
-                  >
-                    <path [attr.d]="headIconData[style].linePath" />
-                    @if (headIconData[style].headPath) {
-                    <path
-                      [attr.d]="headIconData[style].headPath"
-                      [attr.fill]="headIconData[style].filled ? 'currentColor' : 'none'"
-                      [attr.stroke]="headIconData[style].filled ? 'none' : 'currentColor'"
-                    />
-                    }
-                  </svg>
-                </button>
-                }
-              </div>
-            </div>
-          </div>
-
-          <!-- End head picker -->
-          <div class="arrow-prop-row">
-            <span class="arrow-prop-label">End</span>
-            <div class="head-picker" [class.open]="endHeadOpen">
-              <button class="arrow-icon-btn head-current" (click)="toggleEndHead($event)" title="End head style">
-                <svg
-                  viewBox="0 0 32 20"
-                  width="32"
-                  height="20"
-                  stroke="currentColor"
-                  fill="none"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path [attr.d]="headIconData[$any(selectedElement).endHead.type].linePath" />
-                  @if (headIconData[$any(selectedElement).endHead.type].headPath) {
-                  <path
-                    [attr.d]="headIconData[$any(selectedElement).endHead.type].headPath"
-                    [attr.fill]="headIconData[$any(selectedElement).endHead.type].filled ? 'currentColor' : 'none'"
-                    [attr.stroke]="headIconData[$any(selectedElement).endHead.type].filled ? 'none' : 'currentColor'"
-                  />
-                  }
-                </svg>
-                <svg class="caret-chevron" viewBox="0 0 10 6" width="8" height="5" fill="currentColor" stroke="none">
-                  <path d="M 0 0 L 10 0 L 5 6 Z" />
-                </svg>
-              </button>
-              <div class="head-dropdown" [ngStyle]="endHeadDropdownStyle">
-                @for (style of arrowHeadStyles; track style) {
-                <button
-                  class="head-option"
-                  [class.active]="$any(selectedElement).endHead.type === style"
-                  (click)="setArrowEndHead(style); endHeadOpen = false"
-                  [title]="style"
+                  class="arrow-icon-btn"
+                  [class.active]="selectedElement.pathType.type === 'straight'"
+                  (click)="setArrowLineStyle('straight')"
+                  title="Straight"
                 >
                   <svg
                     viewBox="0 0 32 20"
@@ -848,24 +808,210 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                   >
-                    <path [attr.d]="headIconData[style].linePath" />
-                    @if (headIconData[style].headPath) {
-                    <path
-                      [attr.d]="headIconData[style].headPath"
-                      [attr.fill]="headIconData[style].filled ? 'currentColor' : 'none'"
-                      [attr.stroke]="headIconData[style].filled ? 'none' : 'currentColor'"
-                    />
-                    }
+                    <line x1="2" y1="10" x2="22" y2="10" />
+                    <polygon points="20,7 28,10 20,13" fill="currentColor" stroke="none" />
                   </svg>
                 </button>
-                }
+                <button
+                  class="arrow-icon-btn"
+                  [class.active]="
+                    selectedElement.pathType.type !== 'straight' && selectedElement.pathType.type !== 'elbow'
+                  "
+                  (click)="setArrowLineStyle('curve')"
+                  title="Curved"
+                >
+                  <svg
+                    viewBox="0 0 32 20"
+                    width="32"
+                    height="20"
+                    stroke="currentColor"
+                    fill="none"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M 2 16 Q 14 2 22 10" />
+                    <polygon points="20,7 28,10 20,13" fill="currentColor" stroke="none" />
+                  </svg>
+                </button>
+                <button
+                  class="arrow-icon-btn"
+                  [class.active]="selectedElement.pathType.type === 'elbow'"
+                  (click)="setArrowLineStyle('elbow')"
+                  title="Elbow"
+                >
+                  <svg
+                    viewBox="0 0 32 20"
+                    width="32"
+                    height="20"
+                    stroke="currentColor"
+                    fill="none"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <polyline points="2,16 12,16 12,7 22,7" />
+                    <polygon points="20,5 28,7 20,9" fill="currentColor" stroke="none" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="arrow-line">
+              <!-- Start head picker -->
+              <div class="arrow-prop-row">
+                <span class="arrow-prop-label">Start</span>
+                <div class="head-picker" [class.open]="startHeadOpen">
+                  <button
+                    class="arrow-icon-btn head-current"
+                    (click)="toggleStartHead($event)"
+                    title="Start head style"
+                  >
+                    <svg
+                      viewBox="0 0 32 20"
+                      width="32"
+                      height="20"
+                      stroke="currentColor"
+                      fill="none"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      style="transform: scaleX(-1)"
+                    >
+                      <path [attr.d]="headIconData[$any(selectedElement).startHead.type].linePath" />
+                      @if (headIconData[$any(selectedElement).startHead.type].headPath) {
+                        <path
+                          [attr.d]="headIconData[$any(selectedElement).startHead.type].headPath"
+                          [attr.fill]="
+                            headIconData[$any(selectedElement).startHead.type].filled ? 'currentColor' : 'none'
+                          "
+                          [attr.stroke]="
+                            headIconData[$any(selectedElement).startHead.type].filled ? 'none' : 'currentColor'
+                          "
+                        />
+                      }
+                    </svg>
+                    <svg
+                      class="caret-chevron"
+                      viewBox="0 0 10 6"
+                      width="8"
+                      height="5"
+                      fill="currentColor"
+                      stroke="none"
+                    >
+                      <path d="M 0 0 L 10 0 L 5 6 Z" />
+                    </svg>
+                  </button>
+                  <div class="head-dropdown" [ngStyle]="startHeadDropdownStyle">
+                    @for (style of arrowHeadStyles; track style) {
+                      <button
+                        class="head-option"
+                        [class.active]="$any(selectedElement).startHead.type === style"
+                        (click)="setArrowStartHead(style); startHeadOpen = false"
+                        [title]="style"
+                      >
+                        <svg
+                          viewBox="0 0 32 20"
+                          width="32"
+                          height="20"
+                          stroke="currentColor"
+                          fill="none"
+                          stroke-width="1.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          style="transform: scaleX(-1)"
+                        >
+                          <path [attr.d]="headIconData[style].linePath" />
+                          @if (headIconData[style].headPath) {
+                            <path
+                              [attr.d]="headIconData[style].headPath"
+                              [attr.fill]="headIconData[style].filled ? 'currentColor' : 'none'"
+                              [attr.stroke]="headIconData[style].filled ? 'none' : 'currentColor'"
+                            />
+                          }
+                        </svg>
+                      </button>
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <!-- End head picker -->
+              <div class="arrow-prop-row">
+                <span class="arrow-prop-label">End</span>
+                <div class="head-picker" [class.open]="endHeadOpen">
+                  <button class="arrow-icon-btn head-current" (click)="toggleEndHead($event)" title="End head style">
+                    <svg
+                      viewBox="0 0 32 20"
+                      width="32"
+                      height="20"
+                      stroke="currentColor"
+                      fill="none"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path [attr.d]="headIconData[$any(selectedElement).endHead.type].linePath" />
+                      @if (headIconData[$any(selectedElement).endHead.type].headPath) {
+                        <path
+                          [attr.d]="headIconData[$any(selectedElement).endHead.type].headPath"
+                          [attr.fill]="
+                            headIconData[$any(selectedElement).endHead.type].filled ? 'currentColor' : 'none'
+                          "
+                          [attr.stroke]="
+                            headIconData[$any(selectedElement).endHead.type].filled ? 'none' : 'currentColor'
+                          "
+                        />
+                      }
+                    </svg>
+                    <svg
+                      class="caret-chevron"
+                      viewBox="0 0 10 6"
+                      width="8"
+                      height="5"
+                      fill="currentColor"
+                      stroke="none"
+                    >
+                      <path d="M 0 0 L 10 0 L 5 6 Z" />
+                    </svg>
+                  </button>
+                  <div class="head-dropdown" [ngStyle]="endHeadDropdownStyle">
+                    @for (style of arrowHeadStyles; track style) {
+                      <button
+                        class="head-option"
+                        [class.active]="$any(selectedElement).endHead.type === style"
+                        (click)="setArrowEndHead(style); endHeadOpen = false"
+                        [title]="style"
+                      >
+                        <svg
+                          viewBox="0 0 32 20"
+                          width="32"
+                          height="20"
+                          stroke="currentColor"
+                          fill="none"
+                          stroke-width="1.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        >
+                          <path [attr.d]="headIconData[style].linePath" />
+                          @if (headIconData[style].headPath) {
+                            <path
+                              [attr.d]="headIconData[style].headPath"
+                              [attr.fill]="headIconData[style].filled ? 'currentColor' : 'none'"
+                              [attr.stroke]="headIconData[style].filled ? 'none' : 'currentColor'"
+                            />
+                          }
+                        </svg>
+                      </button>
+                    }
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-    }}
+      }
+    }
   </div>
 
   <div id="tools_left" class="tools_panel">
@@ -1013,12 +1159,14 @@
           <div id="fill_bg"></div>
           <div id="fill_color" class="color_block">
             <svg xmlns="http://www.w3.org/2000/svg" width="100%">
-              @if (selectedElements[0]; as selectedElement) { @if (selectedElement.type === elementType.Text) {
-              <rect width="100%" height="100%" [attr.fill]="selectedElement.style.strokeColor"></rect>
+              @if (selectedElements[0]; as selectedElement) {
+                @if (selectedElement.type === elementType.Text) {
+                  <rect width="100%" height="100%" [attr.fill]="selectedElement.style.strokeColor"></rect>
+                } @else {
+                  <rect width="100%" height="100%" [attr.fill]="selectedElement.style.fill"></rect>
+                }
               } @else {
-              <rect width="100%" height="100%" [attr.fill]="selectedElement.style.fill"></rect>
-              } } @else {
-              <rect width="100%" height="100%" [attr.fill]="options.fill"></rect>
+                <rect width="100%" height="100%" [attr.fill]="options.fill"></rect>
               }
             </svg>
           </div>
@@ -1031,12 +1179,14 @@
           <div id="stroke_bg"></div>
           <div id="stroke_color" class="color_block" title="Change stroke color">
             <svg xmlns="http://www.w3.org/2000/svg" width="100%">
-              @if (selectedElements[0]; as selectedElement) { @if (selectedElement.type === elementType.Text) {
-              <rect width="100%" height="100%" [attr.fill]="selectedElement.style.color"></rect>
+              @if (selectedElements[0]; as selectedElement) {
+                @if (selectedElement.type === elementType.Text) {
+                  <rect width="100%" height="100%" [attr.fill]="selectedElement.style.color"></rect>
+                } @else {
+                  <rect width="100%" height="100%" [attr.fill]="selectedElement.style.strokeColor"></rect>
+                }
               } @else {
-              <rect width="100%" height="100%" [attr.fill]="selectedElement.style.strokeColor"></rect>
-              } } @else {
-              <rect width="100%" height="100%" [attr.fill]="options.strokeColor"></rect>
+                <rect width="100%" height="100%" [attr.fill]="options.strokeColor"></rect>
               }
             </svg>
           </div>

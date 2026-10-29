@@ -392,13 +392,13 @@ export class SelectTool extends BaseTool {
         localDx = handle.includes(Direction.E)
           ? currentPoint.x - naturalBounds.maxX
           : handle.includes(Direction.W)
-          ? currentPoint.x - naturalBounds.minX
-          : 0;
+            ? currentPoint.x - naturalBounds.minX
+            : 0;
         localDy = handle.includes(Direction.S)
           ? currentPoint.y - naturalBounds.maxY
           : handle.includes(Direction.N)
-          ? currentPoint.y - naturalBounds.minY
-          : 0;
+            ? currentPoint.y - naturalBounds.minY
+            : 0;
       }
 
       let snappedX = localDx;

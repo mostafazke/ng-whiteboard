@@ -222,7 +222,7 @@ describe('DragDropService', () => {
         () =>
           ({
             readAsDataURL: readAsDataURLSpy,
-          } as unknown as FileReader)
+          }) as unknown as FileReader
       );
 
       service.handleFiles(fileList);
@@ -394,7 +394,7 @@ describe('DragDropService', () => {
             id: 'text-1',
             type,
             ...props,
-          } as WhiteboardElement)
+          }) as WhiteboardElement
       );
 
       const mockElement = document.createElement('p');
@@ -438,7 +438,7 @@ describe('DragDropService', () => {
             id: 'text-1',
             type,
             ...props,
-          } as WhiteboardElement)
+          }) as WhiteboardElement
       );
 
       const mockElement = document.createElement('p');
