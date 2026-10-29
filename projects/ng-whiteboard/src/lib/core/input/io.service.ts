@@ -244,6 +244,7 @@ export class IOService {
       settings: {
         drawingEnabled: canvasConfig.drawingEnabled,
         keyboardShortcutsEnabled: canvasConfig.keyboardShortcutsEnabled,
+        theme: canvasConfig.theme,
       },
     };
 
@@ -367,6 +368,7 @@ export class IOService {
         if (settings.keyboardShortcutsEnabled !== undefined) {
           settingsConfig.keyboardShortcutsEnabled = settings.keyboardShortcutsEnabled;
         }
+        if (settings.theme !== undefined) settingsConfig.theme = settings.theme;
 
         this.configService.updateConfig(settingsConfig, false);
       }

@@ -1,0 +1,203 @@
+// Floating Toolbar Styles
+.toolbar-floating {
+  position: relative;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--space-1) var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  user-select: none;
+
+  .toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    position: relative;
+
+    .tool-group-label {
+      font-size: 0.75rem;
+      color: var(--color-gray-500);
+      font-weight: 500;
+      margin-right: var(--space-1);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .icon-btn {
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: transparent;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--color-gray-600);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+
+      ng-icon {
+        font-size: 16px;
+      }
+
+      &:hover {
+        background-color: var(--color-gray-100);
+        color: var(--color-gray-900);
+      }
+
+      &.active {
+        background-color: var(--color-primary);
+        color: white;
+
+        &:hover {
+          background-color: var(--color-primary-dark, #2563eb);
+        }
+      }
+
+      &.tool-btn {
+        &[data-tool]:hover::after {
+          content: attr(title);
+          position: absolute;
+          bottom: -35px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: var(--color-gray-900);
+          color: white;
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-size: 0.75rem;
+          white-space: nowrap;
+          z-index: 100;
+          animation: tooltipFadeIn 0.2s ease;
+        }
+      }
+
+      &.more-tools {
+        margin-left: var(--space-1);
+      }
+    }
+  }
+
+  .toolbar-separator {
+    width: 1px;
+    height: 20px;
+    background-color: var(--color-gray-200);
+    margin: 0 var(--space-1);
+  }
+
+  // Extended Tools Dropdown
+  .dropdown-wrapper {
+    position: relative;
+
+    .extended-tools {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      right: 0;
+      background: var(--color-white);
+      border: 1px solid var(--color-gray-200);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+      min-width: 200px;
+      z-index: 1000;
+      animation: dropdownSlideUp 0.2s ease;
+
+      .extended-section {
+        padding: var(--space-3);
+
+        &:not(:last-child) {
+          border-bottom: 1px solid var(--color-gray-100);
+        }
+
+        .section-label {
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: var(--color-gray-700);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          margin-bottom: var(--space-2);
+        }
+
+        .section-tools {
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-1);
+
+          .extended-tool-btn {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2);
+            border: none;
+            background: transparent;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            color: var(--color-gray-700);
+            transition: all 0.2s ease;
+            width: 100%;
+            text-align: left;
+
+            &:hover {
+              background-color: var(--color-gray-50);
+              color: var(--color-gray-900);
+            }
+
+            &.active {
+              background-color: var(--color-primary);
+              color: white;
+            }
+
+            span {
+              font-size: 0.875rem;
+              font-weight: 500;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Animations
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes dropdownSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .toolbar-floating {
+    .toolbar-group {
+      .icon-btn {
+        width: 36px;
+        height: 36px;
+      }
+    }
+
+    .extended-tools {
+      right: auto;
+      left: 0;
+      min-width: 180px;
+    }
+  }
+}

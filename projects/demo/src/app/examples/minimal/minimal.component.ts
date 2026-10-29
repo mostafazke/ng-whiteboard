@@ -6,7 +6,12 @@ const PersistKey = 'whiteboardData';
 @Component({
   selector: 'app-minimal-component',
   template: `<div class="demo">
-    <ng-whiteboard [data]="data" [config]="config" (dataChange)="onDataChange($event)"></ng-whiteboard>
+    <ng-whiteboard
+      [data]="data"
+      [config]="config"
+      [showEditor]="true"
+      (dataChange)="onDataChange($event)"
+    ></ng-whiteboard>
   </div>`,
   standalone: true,
   imports: [CommonModule, NgWhiteboardComponent],

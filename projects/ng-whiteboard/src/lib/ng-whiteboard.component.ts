@@ -16,6 +16,7 @@ import { CanvasService, InstanceService } from './core/canvas';
 import { WhiteboardCanvasComponent } from './core/components/canvas/whiteboard-canvas.component';
 import { ContextMenuComponent } from './core/components/context-menu/context-menu.component';
 import { ContextMenuService } from './core/components/context-menu/context-menu.service';
+import { WhiteboardEditorComponent } from './core/components/editor/whiteboard-editor.component';
 import { ConfigService } from './core/config/config.service';
 import {
   ArrowBindingService,
@@ -45,9 +46,10 @@ import { PanService, WheelHandlerService, ZoomService } from './core/viewport';
 @Component({
   selector: 'ng-whiteboard',
   standalone: true,
-  imports: [CommonModule, WhiteboardCanvasComponent, ContextMenuComponent],
+  imports: [CommonModule, WhiteboardCanvasComponent, ContextMenuComponent, WhiteboardEditorComponent],
   template: `
     <div style="width: 100%; height: 100%; position: relative;">
+      <ng-whiteboard-editor *ngIf="showEditor"></ng-whiteboard-editor>
       <ng-whiteboard-canvas></ng-whiteboard-canvas>
       <wb-context-menu></wb-context-menu>
     </div>
@@ -105,6 +107,12 @@ export class NgWhiteboardComponent implements OnInit, OnDestroy {
    * Auto-generated if not provided.
    */
   @Input() boardId = generateUUID();
+
+  /**
+   * Show editor UI with toolbar, panels, and controls.
+   * When false, shows only the canvas.
+   */
+  @Input() showEditor = false;
 
   /**
    * Whiteboard configuration options.

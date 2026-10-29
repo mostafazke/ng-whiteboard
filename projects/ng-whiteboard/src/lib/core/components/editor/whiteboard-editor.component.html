@@ -1,0 +1,84 @@
+<div class="editor" [attr.data-theme]="themeSignal()">
+  <div class="editor-container">
+    <!-- Header Panel -->
+    <ng-header-panel
+      class="header-panel"
+      [editorConfig]="editorConfigSignal()"
+      [layers]="layersSignal()"
+      [activeLayerId]="activeLayerIdSignal()"
+      [showLayers]="showLayersDropdownSignal()"
+      [isEditingTitle]="isEditingTitleSignal()"
+      (titleChange)="onTitleChange($event)"
+      (titleEditStart)="onTitleEditStart()"
+      (titleEditEnd)="onTitleEditEnd()"
+      (layersToggle)="toggleLayersDropdown()"
+      (layerVisibilityToggle)="onLayerVisibilityToggle($event)"
+      (layerLockToggle)="onLayerLockToggle($event)"
+      (layerAdd)="onLayerAdd()"
+      (layerSelected)="onLayerPanelLayerSelected($event)"
+      (layerDeleted)="onLayerPanelLayerDeleted($event)"
+      (layerRenamed)="onLayerPanelLayerRenamed($event)"
+      (layerOpacityChanged)="onLayerPanelOpacityChanged($event)"
+      (layerMoved)="onLayerPanelLayerMoved($event)"
+      (layerBlendModeChanged)="onLayerPanelBlendModeChanged($event)"
+      (newDocument)="clear()"
+      (saveDocument)="save()"
+      (exportDocument)="export()"
+    >
+    </ng-header-panel>
+
+    <!-- History Panel (Left Side) -->
+    <ng-history-panel
+      class="history-panel"
+      [canUndo]="canUndoSignal()"
+      [canRedo]="canRedoSignal()"
+      (undo)="undo()"
+      (redo)="redo()"
+    >
+    </ng-history-panel>
+
+    <!-- Properties Panel -->
+    <ng-properties-panel
+      class="properties-panel"
+      [config]="configSignal()"
+      [selectedElements]="selectedElementsSignal()"
+      [selectedProperties]="selectedPropertiesSignal()"
+      [isOpen]="isPanelOpenSignal()"
+      (colorChange)="onColorChange($event)"
+      (propertyChange)="onPropertyChange($event)"
+      (gridToggle)="toggleGrid()"
+      (snapToggle)="toggleSnapToGrid()"
+      (deleteSelected)="deleteElement()"
+      (togglePanel)="togglePanel()"
+      (alignmentChange)="onAlignmentChange($event)"
+    >
+    </ng-properties-panel>
+
+    <!-- Floating Toolbar -->
+    <ng-toolbar
+      class="toolbar"
+      [selectedTool]="selectedToolSignal()"
+      [showExtended]="showExtendedToolsSignal()"
+      (toolSelect)="setSelectedTool($event)"
+      (extendedToggle)="toggleExtendedTools()"
+    >
+    </ng-toolbar>
+
+    <!-- Controls Panel -->
+    <ng-controls-panel
+      class="controls-panel"
+      [config]="configSignal()"
+      [showZoomMenu]="showZoomPopupSignal()"
+      [hasSelection]="hasSelectionSignal()"
+      (zoomIn)="zoomIn()"
+      (zoomOut)="zoomOut()"
+      (zoomTo)="onZoomTo($event)"
+      (zoomToFit)="zoomToFit()"
+      (zoomToSelection)="zoomToSelection()"
+      (resetZoom)="resetZoom()"
+      (zoomMenuToggle)="toggleZoomPopup()"
+      (centerView)="onCenterView()"
+    >
+    </ng-controls-panel>
+  </div>
+</div>

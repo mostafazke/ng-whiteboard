@@ -544,4 +544,46 @@ describe('ConfigService', () => {
       expect(service.resolveSelectAfterDraw(ElementType.Rectangle, false)).toBe(false); // missing → default
     });
   });
+
+  describe('theme', () => {
+    it('should swap default light colors to dark defaults when switching to dark', () => {
+      service.updateConfig({ backgroundColor: '#F8F9FA', strokeColor: '#333333' });
+      service.updateConfig({ theme: 'dark' });
+
+      expect(service.getConfig().backgroundColor).toBe('#1a1a1a');
+      expect(service.getConfig().strokeColor).toBe('#e5e7eb');
+    });
+
+    it('should swap default dark colors back to light defaults when switching to light', () => {
+      service.updateConfig({ backgroundColor: '#F8F9FA', strokeColor: '#333333' });
+      service.updateConfigValue('theme', 'dark');
+      service.setConfigValue('theme', 'light');
+
+      expect(service.getConfig().backgroundColor).toBe('#F8F9FA');
+      expect(service.getConfig().strokeColor).toBe('#333333');
+    });
+
+    it('should keep a custom stroke color when switching theme', () => {
+      service.updateConfig({ backgroundColor: '#F8F9FA', strokeColor: '#ff0000' });
+      service.updateConfig({ theme: 'dark' });
+
+      expect(service.getConfig().backgroundColor).toBe('#1a1a1a');
+      expect(service.getConfig().strokeColor).toBe('#ff0000');
+    });
+
+    it('should not change colors when the background is custom', () => {
+      service.updateConfig({ backgroundColor: '#abcdef', strokeColor: '#333333' });
+      service.updateConfig({ theme: 'dark' });
+
+      expect(service.getConfig().backgroundColor).toBe('#abcdef');
+      expect(service.getConfig().strokeColor).toBe('#333333');
+    });
+
+    it('should not change colors when other options are updated', () => {
+      service.updateConfig({ theme: 'dark', backgroundColor: '#F8F9FA', strokeColor: '#333333' });
+      service.updateConfig({ backgroundColor: '#F8F9FA' });
+
+      expect(service.getConfig().backgroundColor).toBe('#F8F9FA');
+    });
+  });
 });
