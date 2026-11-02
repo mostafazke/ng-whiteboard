@@ -94,8 +94,8 @@
       }
 
       &.danger:hover:not(:disabled) {
-        background-color: #fee2e2;
-        color: #dc2626;
+        background-color: var(--wb-color-danger-subtle);
+        color: var(--wb-color-danger);
       }
     }
   }

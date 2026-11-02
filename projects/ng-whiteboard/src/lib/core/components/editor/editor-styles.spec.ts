@@ -19,6 +19,11 @@ describe('editor styles stay inside the editor', () => {
     expect(foreign).toEqual([]);
   });
 
+  it('the layer panel takes every color from a theme token', () => {
+    const sheet = readFileSync(join(__dirname, 'panels/layer-panel/layer-panel.component.scss'), 'utf8');
+    expect(sheet.match(/#[0-9a-f]{3,8}\b|rgba?\(|(?<![\w-])white(?![\w-])/gi) ?? []).toEqual([]);
+  });
+
   it('the unencapsulated sheet defines nothing on :root and prefixes its keyframes', () => {
     expect(globalSheet).not.toMatch(/:root/);
     expect(globalSheet.match(/@keyframes\s+[\w-]+/g)?.every((k) => /@keyframes\s+wb-/.test(k))).toBe(true);
