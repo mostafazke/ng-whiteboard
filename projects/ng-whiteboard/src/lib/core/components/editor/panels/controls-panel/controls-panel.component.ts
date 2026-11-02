@@ -127,18 +127,6 @@ export class ControlsPanelComponent {
     this.zoomTo.emit(value);
   }
 
-  onZoomToFit() {
-    this.zoomToFit.emit();
-  }
-
-  onZoomToSelection() {
-    this.zoomToSelection.emit();
-  }
-
-  onResetZoom() {
-    this.resetZoom.emit();
-  }
-
   runZoomAction(id: ZoomActionId) {
     const outputs = { fit: this.zoomToFit, selection: this.zoomToSelection, reset: this.resetZoom };
     outputs[id].emit();

@@ -10,7 +10,7 @@
   align-items: center;
   flex-wrap: nowrap;
   gap: var(--wb-space-1);
-  padding: 6px;
+  padding: var(--wb-space-2);
   background: var(--wb-color-gray-50);
   border: 1px solid var(--wb-color-gray-200);
   border-radius: var(--wb-radius-sm);
@@ -53,7 +53,7 @@
     width: 1px;
     height: 26px;
     background: var(--wb-color-gray-300);
-    margin: 0 2px;
+    margin: 0 calc(var(--wb-space-1) / 2);
     flex-shrink: 0;
   }
 
@@ -97,10 +97,12 @@
 
 @include bp.coarse {
   // Seven 44px targets fit the 390px sheet; narrower rows scroll instead of wrapping.
+  // The scroller clips both axes, so the padding must hold the scaled active ring and the focus outline.
   .color-swatches {
     gap: 3px;
-    padding: var(--wb-space-1);
+    padding: var(--wb-space-2);
     overflow-x: auto;
+    overscroll-behavior-x: contain;
     scrollbar-width: thin;
 
     .color-swatch,

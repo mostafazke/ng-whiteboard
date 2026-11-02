@@ -13,6 +13,7 @@ export default {
   },
   coverageDirectory: '../../coverage/ng-whiteboard',
   coverageProvider: 'v8',
+  coveragePathIgnorePatterns: ['/node_modules/', '/testing/'],
   coverageThreshold: {
     global: {
       branches: 70,

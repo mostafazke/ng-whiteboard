@@ -1,5 +1,5 @@
-import { Layer } from '../editor-state.service';
-import { WhiteboardLayer } from '../panels/layer-panel/layer-panel.component';
+import type { Layer } from '../editor-state.service';
+import type { WhiteboardLayer } from '../panels/layer-panel/layer-panel.component';
 
 export function toWhiteboardLayers(layers: Layer[]): WhiteboardLayer[] {
   return layers.map((layer) => ({

@@ -33,6 +33,31 @@ describe('editor styles stay inside the editor', () => {
     expect(magic).toEqual([]);
   });
 
+  it('the bars sized by --wb-bar / --wb-header draw their border with --wb-border-width', () => {
+    const bars: Record<string, string> = {
+      'panels/toolbar/toolbar.component.scss': '.toolbar-floating',
+      'panels/history-panel/history-panel.component.scss': '.history-panel',
+      'panels/controls-panel/controls-panel.component.scss': '.controls-panel',
+      'panels/header-panel/header-panel.component.scss': '.header-panel',
+    };
+    const borders = Object.entries(bars).map(([file, selector]) => {
+      const sheet = readFileSync(join(__dirname, file), 'utf8');
+      const rule = sheet.slice(sheet.indexOf(`${selector} {`));
+      return `${selector}: ${rule.match(/\n {2}border:\s*([^;]+);/)?.[1]}`;
+    });
+    expect(borders).toEqual(
+      Object.values(bars).map((s) => `${s}: var(--wb-border-width) solid var(--wb-color-border)`)
+    );
+  });
+
+  it('the coarse swatch row leaves room for the active ring and focus outline and contains overscroll', () => {
+    const sheet = readFileSync(join(__dirname, 'ui/color-picker/color-picker.component.scss'), 'utf8');
+    const coarse = sheet.slice(sheet.indexOf('@include bp.coarse'));
+    expect(coarse).toMatch(/\.color-swatches \{[^}]*padding: var\(--wb-space-2\);/);
+    expect(coarse).toMatch(/overscroll-behavior-x: contain;/);
+    expect(sheet).not.toMatch(/padding: 6px|margin: 0 2px/);
+  });
+
   it('the unencapsulated sheet defines nothing on :root and prefixes its keyframes', () => {
     expect(globalSheet).not.toMatch(/:root/);
     expect(globalSheet.match(/@keyframes\s+[\w-]+/g)?.every((k) => /@keyframes\s+wb-/.test(k))).toBe(true);

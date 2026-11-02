@@ -36,6 +36,7 @@ module.exports = [
       '@nx/dependency-checks': [
         'error',
         {
+          // Added in cde0cfa for a reported false positive; lint stays clean without it today, so it can likely go.
           ignoredDependencies: ['@angular/common'],
           ignoredFiles: [
             '{projectRoot}/eslint.config.{js,cjs,mjs}',

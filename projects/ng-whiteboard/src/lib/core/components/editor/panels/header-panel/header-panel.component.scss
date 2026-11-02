@@ -6,7 +6,7 @@
   align-items: center;
   justify-content: space-between;
   background: var(--wb-color-surface);
-  border: 1px solid var(--wb-color-border);
+  border: var(--wb-border-width) solid var(--wb-color-border);
   border-radius: var(--wb-radius);
   box-shadow: var(--wb-shadow-md);
   padding: var(--wb-header-padding);

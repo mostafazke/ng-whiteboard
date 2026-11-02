@@ -260,10 +260,14 @@ export class WhiteboardEditorComponent {
     return this.editorStateService.save(FormatType.Png, this.editorConfigSignal().title);
   }
 
+  private readonly documentActionHandlers: Record<DocumentActionId, () => void> = {
+    new: () => this.clear(),
+    save: () => this.save(),
+    export: () => this.export(),
+  };
+
   runDocumentAction(id: DocumentActionId) {
-    if (id === 'new') this.clear();
-    else if (id === 'save') this.save();
-    else this.export();
+    this.documentActionHandlers[id]();
   }
 
   // Properties Panel Events
@@ -362,10 +366,14 @@ export class WhiteboardEditorComponent {
     this.toggleZoomPopup();
   }
 
+  private readonly zoomActionHandlers: Record<ZoomActionId, () => void> = {
+    fit: () => this.zoomToFit(),
+    selection: () => this.zoomToSelection(),
+    reset: () => this.resetZoom(),
+  };
+
   runZoomAction(id: ZoomActionId) {
-    if (id === 'fit') this.zoomToFit();
-    else if (id === 'selection') this.zoomToSelection();
-    else this.resetZoom();
+    this.zoomActionHandlers[id]();
   }
 
   toggleZoomPopup(opener?: HTMLElement | null) {

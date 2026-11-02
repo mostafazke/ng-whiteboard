@@ -4,7 +4,7 @@ import { EditorStateService } from '../../editor-state.service';
 import { EditorConfig } from '../../../../types';
 import { Layer } from '../../editor-state.service';
 import { IconComponent } from '../../icon/icon.component';
-import { DOCUMENT_ACTIONS, DocumentActionId, EditorAction } from '../../utils/editor-actions';
+import { DOCUMENT_ACTIONS, DocumentActionId } from '../../utils/editor-actions';
 import { themeToggleLabel } from '../../utils/theme-label';
 import { toWhiteboardLayers } from '../../utils/whiteboard-layers';
 import {
@@ -112,16 +112,17 @@ let nextMenuId = 0;
         </div>
         <ng-template #fullActions>
           <div class="actions">
-            <button
-              *ngFor="let action of documentActions; trackBy: trackByAction"
-              class="action-btn"
-              [title]="action.label"
-              [attr.aria-label]="action.label"
-              (click)="runDocumentAction(action.id)"
-            >
-              <ng-icon [name]="action.icon"></ng-icon>
-              <span class="action-label">{{ action.label }}</span>
-            </button>
+            @for (action of documentActions; track action.id) {
+              <button
+                class="action-btn"
+                [title]="action.label"
+                [attr.aria-label]="action.label"
+                (click)="runDocumentAction(action.id)"
+              >
+                <ng-icon [name]="action.icon"></ng-icon>
+                <span class="action-label">{{ action.label }}</span>
+              </button>
+            }
             <button
               class="action-btn theme-btn"
               (click)="editorState.toggleTheme()"
@@ -229,10 +230,6 @@ export class HeaderPanelComponent {
 
   trackByLayer(index: number, layer: Layer): string {
     return layer.id;
-  }
-
-  trackByAction(index: number, action: EditorAction<DocumentActionId>): string {
-    return action.id;
   }
 
   // Layer panel helper methods
