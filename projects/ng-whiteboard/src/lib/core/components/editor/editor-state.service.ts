@@ -13,6 +13,7 @@ import { ZoomService } from '../../viewport/zoom.service';
 import { AlignmentType } from './ui/alignment-controls/alignment-controls.component';
 import { PanService } from '../../viewport';
 import { computeAlignmentUpdates } from './utils/alignment';
+import { buildDasharray } from './utils/dasharray';
 import { mergeSelectedProperties } from './utils/selected-properties';
 
 export interface Layer {
@@ -256,10 +257,12 @@ export class EditorStateService implements OnDestroy {
     const selectedElements = this.selectedElementsSignal();
     if (selectedElements.length === 0) return;
 
-    const updates = selectedElements.map((element) => ({
-      id: element.id,
-      opacity,
-    }));
+    const updates = selectedElements.map((element) => {
+      if (element.style?.opacity === undefined) return { id: element.id, opacity };
+      const style = { ...element.style };
+      delete style.opacity;
+      return { id: element.id, opacity, style };
+    });
 
     this.applyUpdates(updates);
   }
@@ -378,6 +381,28 @@ export class EditorStateService implements OnDestroy {
   }
 
   /**
+   * Apply a line style, scaling the pattern to each element's own stroke width
+   */
+  updateLineStyle(lineStyle: string) {
+    const selectedElements = this.selectedElementsSignal();
+
+    if (selectedElements.length === 0) {
+      this.configService.updateConfigValue('dasharray', buildDasharray(lineStyle, this.configService.getConfig().strokeWidth));
+      return;
+    }
+
+    const updates = selectedElements.map((element) => ({
+      id: element.id,
+      style: {
+        ...element.style,
+        dasharray: buildDasharray(lineStyle, element.style?.strokeWidth || 1),
+      },
+    }));
+
+    this.applyUpdates(updates);
+  }
+
+  /**
    * Generic method to update any property for selected elements or global config
    */
   updateElementProperty(property: string, value: string | number | boolean) {
@@ -413,6 +438,9 @@ export class EditorStateService implements OnDestroy {
       case 'dasharray':
         this.updateDashArray(value as string);
         break;
+      case 'lineStyle':
+        this.updateLineStyle(value as string);
+        break;
       default: {
         // Generic property update for style properties (element-only)
         const selectedElements = this.selectedElementsSignal();
@@ -442,8 +470,10 @@ export class EditorStateService implements OnDestroy {
     this.toggleEditListeners(true);
   }
 
-  endEdit() {
+  /** With `owner`, closes the batch only if that control opened it. */
+  endEdit(owner?: EventTarget | null) {
     if (!this.editBatch) return;
+    if (owner !== undefined && owner !== this.editOwner) return;
     const batch = this.editBatch;
     this.editBatch = null;
     this.editOwner = null;

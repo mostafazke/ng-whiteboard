@@ -129,4 +129,27 @@ describe('Editor edit batch vs canvas history (integration)', () => {
     api.redo();
     expect(r1().style.strokeColor).toBe('#123456');
   });
+
+  it('a stale color settle timer does not close a slider drag started within 400ms', () => {
+    jest.useFakeTimers();
+    selectR1();
+    pickStrokeColor(['#123456']);
+    const slider = host().querySelector('ng-properties-panel input[aria-label="Opacity"]') as HTMLInputElement;
+    slider.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0 }));
+    const drag = (value: string) => {
+      slider.value = value;
+      slider.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+    };
+    drag('80');
+    jest.advanceTimersByTime(400);
+    drag('60');
+    drag('40');
+    slider.dispatchEvent(new Event('change'));
+
+    expect(r1().opacity).toBe(40);
+    api.undo();
+    expect(r1().opacity).toBe(100);
+    expect(r1().style.strokeColor).toBe('#123456');
+  });
 });

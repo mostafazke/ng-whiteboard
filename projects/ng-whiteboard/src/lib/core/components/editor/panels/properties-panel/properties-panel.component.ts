@@ -53,7 +53,7 @@ interface PropertyChangeEvent {
                 <ng-color-picker
                   [value]="config().backgroundColor"
                   (colorChange)="onColorChange('backgroundColor', $event)"
-                  (editStart)="editStart.emit($event)" (editEnd)="editEnd.emit()"
+                  (editStart)="editStart.emit($event)" (editEnd)="editEnd.emit($event)"
                 >
                 </ng-color-picker>
               </div>
@@ -64,7 +64,7 @@ interface PropertyChangeEvent {
                 <ng-color-picker
                   [value]="fillColorValue()"
                   (colorChange)="onColorChange('fillColor', $event)"
-                  (editStart)="editStart.emit($event)" (editEnd)="editEnd.emit()"
+                  (editStart)="editStart.emit($event)" (editEnd)="editEnd.emit($event)"
                 >
                 </ng-color-picker>
               </div>
@@ -81,7 +81,7 @@ interface PropertyChangeEvent {
                   <ng-color-picker
                     [value]="strokeColorValue()"
                     (colorChange)="onColorChange('strokeColor', $event)"
-                    (editStart)="editStart.emit($event)" (editEnd)="editEnd.emit()"
+                    (editStart)="editStart.emit($event)" (editEnd)="editEnd.emit($event)"
                   >
                   </ng-color-picker>
                 </div>
@@ -96,8 +96,8 @@ interface PropertyChangeEvent {
                       aria-label="Stroke width"
                       [value]="strokeWidthNumber()"
                       (input)="onSliderInput('strokeWidth', $event)"
-                      (change)="editEnd.emit()"
-                      (blur)="editEnd.emit()"
+                      (change)="editEnd.emit($any($event.target))"
+                      (blur)="editEnd.emit($any($event.target))"
                     />
                     <span class="value-display">{{
                       isMixed(strokeWidthValue()) ? '—' : strokeWidthNumber() + 'px'
@@ -188,8 +188,8 @@ interface PropertyChangeEvent {
                       aria-label="Opacity"
                       [value]="opacityNumber()"
                       (input)="onSliderInput('opacity', $event)"
-                      (change)="editEnd.emit()"
-                      (blur)="editEnd.emit()"
+                      (change)="editEnd.emit($any($event.target))"
+                      (blur)="editEnd.emit($any($event.target))"
                     />
                     <span class="value-display">{{ isMixed(opacityValue()) ? '—' : opacityNumber() + '%' }}</span>
                   </div>
@@ -239,8 +239,8 @@ interface PropertyChangeEvent {
                     aria-label="Font size"
                     [value]="fontSizeNumber()"
                     (input)="onSliderInput('fontSize', $event)"
-                    (change)="editEnd.emit()"
-                    (blur)="editEnd.emit()"
+                    (change)="editEnd.emit($any($event.target))"
+                    (blur)="editEnd.emit($any($event.target))"
                   />
                   <span class="value-display">{{ isMixed(fontSizeValue()) ? '—' : fontSizeNumber() + 'px' }}</span>
                 </div>
@@ -293,7 +293,7 @@ export class PropertiesPanelComponent {
   @Output() alignmentChange = new EventEmitter<AlignmentType>();
   /** A continuous edit (slider drag, native color picker) started; closed by `editEnd`. */
   @Output() editStart = new EventEmitter<EventTarget | null>();
-  @Output() editEnd = new EventEmitter<void>();
+  @Output() editEnd = new EventEmitter<EventTarget | null>();
 
   // Computed properties for better performance
   selectedElement = computed(() => this.selectedElements()[0] || null);
@@ -446,26 +446,6 @@ export class PropertiesPanelComponent {
   }
 
   onLineStyleChange(style: string) {
-    const width = this.strokeWidthNumber();
-    let dasharray = '';
-
-    switch (style) {
-      case 'dashed':
-        dasharray = `${width * 3},${width * 3}`;
-        break;
-      case 'dotted':
-        dasharray = `${width},${width * 2}`;
-        break;
-      case 'dashdot':
-        dasharray = `${width * 5},${width * 2},${width},${width * 2}`;
-        break;
-      default:
-        dasharray = ''; // solid
-    }
-
-    this.propertyChange.emit({
-      property: 'dasharray',
-      value: dasharray,
-    });
+    this.propertyChange.emit({ property: 'lineStyle', value: style });
   }
 }

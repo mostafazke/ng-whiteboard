@@ -259,8 +259,8 @@ export class WhiteboardEditorComponent {
     this.editorStateService.beginEdit(owner);
   }
 
-  onEditEnd() {
-    this.editorStateService.endEdit();
+  onEditEnd(owner?: EventTarget | null) {
+    this.editorStateService.endEdit(owner);
   }
 
   toggleGrid() {

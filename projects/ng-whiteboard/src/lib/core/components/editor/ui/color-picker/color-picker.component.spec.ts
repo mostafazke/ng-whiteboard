@@ -53,4 +53,34 @@ describe('ColorPickerComponent', () => {
 
     expect(events).toEqual(['start', 'end']);
   });
+
+  it('picking the first seed gray on a mixed selection applies it', () => {
+    fixture.componentInstance.value = MIXED;
+    fixture.detectChanges();
+
+    pickInBrowser('#808080');
+
+    expect(emitted).toEqual(['#808080']);
+  });
+
+  it('a seed the user picked is not the seed on the next pick', () => {
+    fixture.componentInstance.value = MIXED;
+    fixture.detectChanges();
+    const first = nativeInput().value;
+    pickInBrowser(first === '#7f7f80' ? '#808081' : '#7f7f80');
+    fixture.componentInstance.finishEdit();
+    fixture.componentInstance.value = MIXED;
+    fixture.detectChanges();
+
+    expect(nativeInput().value).not.toBe(first);
+  });
+
+  it('a transparent value seeds the picker so black can be picked', () => {
+    fixture.componentInstance.value = 'transparent';
+    fixture.detectChanges();
+
+    pickInBrowser('#000000');
+
+    expect(emitted).toEqual(['#000000']);
+  });
 });

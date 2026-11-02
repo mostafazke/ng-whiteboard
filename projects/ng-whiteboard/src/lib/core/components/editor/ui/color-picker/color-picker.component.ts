@@ -12,10 +12,13 @@ import {
 import { MIXED, Mixed } from '../../utils/selected-properties';
 
 /**
- * Seed for the native picker on a mixed selection. A native color input only reports a pick that
- * differs from its current value, so the seed must not be a likely choice such as black.
+ * Seeds for the native picker when the value is mixed or not a hex color. A native color input only
+ * reports a pick that differs from its current value, so the seeds are unlikely picks and alternate
+ * after each completed edit, so a seed the user picked once is not the seed next time.
  */
-const MIXED_SEED = '#808080';
+const NATIVE_SEEDS = ['#7f7f80', '#808081'];
+
+const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 
 /** A cancelled native picker may fire neither `change` nor `blur`, so an edit also ends this long after its last `input`. */
 const COLOR_EDIT_SETTLE_MS = 400;
@@ -69,8 +72,10 @@ export class ColorPickerComponent implements OnDestroy {
   @Output() colorChange = new EventEmitter<string>();
   /** The native picker started a continuous edit; `editEnd` fires on commit, blur or once input settles. */
   @Output() editStart = new EventEmitter<EventTarget>();
-  @Output() editEnd = new EventEmitter<void>();
+  @Output() editEnd = new EventEmitter<EventTarget | null>();
   @ViewChild('colorInput') colorInput!: ElementRef<HTMLInputElement>;
+  private seedIndex = 0;
+  private editTarget: EventTarget | null = null;
   private settleTimer: ReturnType<typeof setTimeout> | null = null;
 
   ngOnDestroy() {
@@ -82,7 +87,7 @@ export class ColorPickerComponent implements OnDestroy {
   }
 
   get currentColor(): string {
-    return this.value === MIXED ? MIXED_SEED : this.value;
+    return this.value !== MIXED && HEX_COLOR.test(this.value) ? this.value : NATIVE_SEEDS[this.seedIndex];
   }
 
   // Curated preset colors - most commonly used
@@ -97,6 +102,7 @@ export class ColorPickerComponent implements OnDestroy {
 
   onColorChange(event: Event) {
     const target = event.target as HTMLInputElement;
+    this.editTarget = target;
     this.editStart.emit(target);
     this.colorChange.emit(target.value);
     this.clearSettleTimer();
@@ -105,7 +111,11 @@ export class ColorPickerComponent implements OnDestroy {
 
   finishEdit() {
     this.clearSettleTimer();
-    this.editEnd.emit();
+    if (this.editTarget === null) return;
+    const target = this.editTarget;
+    this.editTarget = null;
+    this.seedIndex = 1 - this.seedIndex;
+    this.editEnd.emit(target);
   }
 
   private clearSettleTimer() {

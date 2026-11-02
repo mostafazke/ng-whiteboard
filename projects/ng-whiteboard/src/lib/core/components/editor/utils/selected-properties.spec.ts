@@ -30,6 +30,21 @@ describe('mergeSelectedProperties', () => {
     expect(result?.opacity).toBe(0);
   });
 
+  it('keeps a missing or none fill distinct from a black fill', () => {
+    expect(mergeSelectedProperties([el('a', ElementType.Rectangle, {})])?.fillColor).toBe('transparent');
+    expect(mergeSelectedProperties([el('a', ElementType.Rectangle, { fill: 'none' })])?.fillColor).toBe('transparent');
+    const result = mergeSelectedProperties([
+      el('a', ElementType.Rectangle, {}),
+      el('b', ElementType.Rectangle, { fill: '#000000' }),
+    ]);
+    expect(result?.fillColor).toBe(MIXED);
+  });
+
+  it('reports the effective opacity including a style opacity', () => {
+    const result = mergeSelectedProperties([el('a', ElementType.Pen, { opacity: 0.4 })]);
+    expect(result?.opacity).toBe(40);
+  });
+
   it('font fields only when all text', () => {
     const texts = mergeSelectedProperties([
       el('a', ElementType.Text, { fontSize: 20 }),

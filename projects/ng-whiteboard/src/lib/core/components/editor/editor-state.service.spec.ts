@@ -87,6 +87,35 @@ describe('EditorStateService', () => {
       expect(history.undo()).toBeNull();
     });
 
+    it('line style scales the dasharray to each element stroke width in one undo step', () => {
+      elements.setElements([
+        rect('a', 0, 0, 10, 10, { style: { strokeWidth: 2 } }),
+        rect('b', 20, 0, 10, 10, { style: { strokeWidth: 8 } }),
+      ]);
+      selection.selectElements(['a', 'b']);
+      history.clearHistory();
+
+      service.updateElementProperty('lineStyle', 'dashed');
+
+      expect(elements.getElements().map((e) => e.style.dasharray)).toEqual(['6,6', '24,24']);
+      const before = history.undo() as WhiteboardElement[];
+      expect(before.map((e) => e.style.dasharray)).toEqual([undefined, undefined]);
+      expect(history.undo()).toBeNull();
+    });
+
+    it('setting opacity folds a preset style opacity so the shown value is the rendered one', () => {
+      elements.setElements([rect('a', 0, 0, 10, 10, { style: { opacity: 0.4 } })]);
+      selection.selectElements(['a']);
+      expect(service.selectedPropertiesSignal()?.opacity).toBe(40);
+
+      service.updateElementProperty('opacity', 70);
+
+      const el = elements.getElements()[0];
+      expect(el.opacity).toBe(70);
+      expect(el.style.opacity).toBeUndefined();
+      expect(service.selectedPropertiesSignal()?.opacity).toBe(70);
+    });
+
     it('reports MIXED for differing selected values', () => {
       elements.setElements([
         rect('a', 0, 0, 10, 10, { style: { strokeColor: '#000' } }),
