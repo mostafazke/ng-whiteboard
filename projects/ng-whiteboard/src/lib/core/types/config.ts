@@ -85,71 +85,138 @@ export interface WhiteboardConfig {
 
 export interface EditorConfig {
   title: string;
-  showTitle: boolean;
-  showZoom: boolean;
-  showLayers: boolean;
-  showTools: boolean;
-  showGrid: boolean;
-  showBackground: boolean;
-  showStroke: boolean;
-  showFill: boolean;
-  showOpacity: boolean;
-  showFont: boolean;
-  showDash: boolean;
-  showEraser: boolean;
-  showUndo: boolean;
-  showRedo: boolean;
-  showClear: boolean;
-  showSave: boolean;
-  showLoad: boolean;
-  showExport: boolean;
-  showImport: boolean;
-  showShare: boolean;
-  showSettings: boolean;
-  showHelp: boolean;
-  showAbout: boolean;
-  showFeedback: boolean;
-  showSupport: boolean;
-  showContact: boolean;
-  showPrivacy: boolean;
-  showTerms: boolean;
-  showLicense: boolean;
-  showAttribution: boolean;
-  showCredits: boolean;
-  showChangelog: boolean;
-  showReleaseNotes: boolean;
-  showRoadmap: boolean;
-  showBlog: boolean;
-  showForum: boolean;
-  showCommunity: boolean;
-  showEvents: boolean;
-  showWebinars: boolean;
-  showWorkshops: boolean;
-  showTutorials: boolean;
-  showDocumentation: boolean;
-  showAPI: boolean;
-  showSDK: boolean;
-  showCLI: boolean;
-  showPlugins: boolean;
-  showExtensions: boolean;
-  showIntegrations: boolean;
-  showAddons: boolean;
-  showThemes: boolean;
-  showTemplates: boolean;
-  showSnippets: boolean;
-  showExamples: boolean;
-  showDemos: boolean;
-  showSamples: boolean;
-  showShowcases: boolean;
-  showPortfolios: boolean;
-  showCaseStudies: boolean;
-  showSuccessStories: boolean;
-  showTestimonials: boolean;
-  showReviews: boolean;
-  showRatings: boolean;
-  showComparisons: boolean;
-  showAlternatives: boolean;
-  showInsights: boolean;
-  enableEditor: boolean;
+  /** @deprecated unused; removed in next major */
+  showTitle?: boolean;
+  /** @deprecated unused; removed in next major */
+  showZoom?: boolean;
+  /** @deprecated unused; removed in next major */
+  showLayers?: boolean;
+  /** @deprecated unused; removed in next major */
+  showTools?: boolean;
+  /** @deprecated unused; removed in next major */
+  showGrid?: boolean;
+  /** @deprecated unused; removed in next major */
+  showBackground?: boolean;
+  /** @deprecated unused; removed in next major */
+  showStroke?: boolean;
+  /** @deprecated unused; removed in next major */
+  showFill?: boolean;
+  /** @deprecated unused; removed in next major */
+  showOpacity?: boolean;
+  /** @deprecated unused; removed in next major */
+  showFont?: boolean;
+  /** @deprecated unused; removed in next major */
+  showDash?: boolean;
+  /** @deprecated unused; removed in next major */
+  showEraser?: boolean;
+  /** @deprecated unused; removed in next major */
+  showUndo?: boolean;
+  /** @deprecated unused; removed in next major */
+  showRedo?: boolean;
+  /** @deprecated unused; removed in next major */
+  showClear?: boolean;
+  /** @deprecated unused; removed in next major */
+  showSave?: boolean;
+  /** @deprecated unused; removed in next major */
+  showLoad?: boolean;
+  /** @deprecated unused; removed in next major */
+  showExport?: boolean;
+  /** @deprecated unused; removed in next major */
+  showImport?: boolean;
+  /** @deprecated unused; removed in next major */
+  showShare?: boolean;
+  /** @deprecated unused; removed in next major */
+  showSettings?: boolean;
+  /** @deprecated unused; removed in next major */
+  showHelp?: boolean;
+  /** @deprecated unused; removed in next major */
+  showAbout?: boolean;
+  /** @deprecated unused; removed in next major */
+  showFeedback?: boolean;
+  /** @deprecated unused; removed in next major */
+  showSupport?: boolean;
+  /** @deprecated unused; removed in next major */
+  showContact?: boolean;
+  /** @deprecated unused; removed in next major */
+  showPrivacy?: boolean;
+  /** @deprecated unused; removed in next major */
+  showTerms?: boolean;
+  /** @deprecated unused; removed in next major */
+  showLicense?: boolean;
+  /** @deprecated unused; removed in next major */
+  showAttribution?: boolean;
+  /** @deprecated unused; removed in next major */
+  showCredits?: boolean;
+  /** @deprecated unused; removed in next major */
+  showChangelog?: boolean;
+  /** @deprecated unused; removed in next major */
+  showReleaseNotes?: boolean;
+  /** @deprecated unused; removed in next major */
+  showRoadmap?: boolean;
+  /** @deprecated unused; removed in next major */
+  showBlog?: boolean;
+  /** @deprecated unused; removed in next major */
+  showForum?: boolean;
+  /** @deprecated unused; removed in next major */
+  showCommunity?: boolean;
+  /** @deprecated unused; removed in next major */
+  showEvents?: boolean;
+  /** @deprecated unused; removed in next major */
+  showWebinars?: boolean;
+  /** @deprecated unused; removed in next major */
+  showWorkshops?: boolean;
+  /** @deprecated unused; removed in next major */
+  showTutorials?: boolean;
+  /** @deprecated unused; removed in next major */
+  showDocumentation?: boolean;
+  /** @deprecated unused; removed in next major */
+  showAPI?: boolean;
+  /** @deprecated unused; removed in next major */
+  showSDK?: boolean;
+  /** @deprecated unused; removed in next major */
+  showCLI?: boolean;
+  /** @deprecated unused; removed in next major */
+  showPlugins?: boolean;
+  /** @deprecated unused; removed in next major */
+  showExtensions?: boolean;
+  /** @deprecated unused; removed in next major */
+  showIntegrations?: boolean;
+  /** @deprecated unused; removed in next major */
+  showAddons?: boolean;
+  /** @deprecated unused; removed in next major */
+  showThemes?: boolean;
+  /** @deprecated unused; removed in next major */
+  showTemplates?: boolean;
+  /** @deprecated unused; removed in next major */
+  showSnippets?: boolean;
+  /** @deprecated unused; removed in next major */
+  showExamples?: boolean;
+  /** @deprecated unused; removed in next major */
+  showDemos?: boolean;
+  /** @deprecated unused; removed in next major */
+  showSamples?: boolean;
+  /** @deprecated unused; removed in next major */
+  showShowcases?: boolean;
+  /** @deprecated unused; removed in next major */
+  showPortfolios?: boolean;
+  /** @deprecated unused; removed in next major */
+  showCaseStudies?: boolean;
+  /** @deprecated unused; removed in next major */
+  showSuccessStories?: boolean;
+  /** @deprecated unused; removed in next major */
+  showTestimonials?: boolean;
+  /** @deprecated unused; removed in next major */
+  showReviews?: boolean;
+  /** @deprecated unused; removed in next major */
+  showRatings?: boolean;
+  /** @deprecated unused; removed in next major */
+  showComparisons?: boolean;
+  /** @deprecated unused; removed in next major */
+  showAlternatives?: boolean;
+  /** @deprecated unused; removed in next major */
+  showInsights?: boolean;
+  /** @deprecated unused; removed in next major */
+  enableEditor?: boolean;
+  /** @deprecated use WhiteboardConfig.theme */
   theme?: 'light' | 'dark';
 }

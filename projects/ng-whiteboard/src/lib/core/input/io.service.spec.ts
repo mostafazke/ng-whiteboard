@@ -11,6 +11,7 @@ import { WhiteboardEvent } from '../types/events';
 import { createElement } from '../elements/element.utils';
 import { downloadFile } from '../utils/common';
 import { svgToBase64 } from '../utils/svg';
+import { ConfigService } from '../config/config.service';
 
 // Mock the modules
 jest.mock('../elements/element.utils');
@@ -747,6 +748,12 @@ describe('IOService', () => {
       expect(parsed.canvas.height).toBe(600);
     });
 
+    it('exports only title in editor block', () => {
+      const parsed = JSON.parse(service.exportData());
+
+      expect(parsed.editor).toEqual({ title: 'Whiteboard' });
+    });
+
     it('should not export a theme by default', () => {
       const parsed = JSON.parse(service.exportData());
 
@@ -794,6 +801,20 @@ describe('IOService', () => {
       expect(mockZoomService.zoom).toHaveBeenCalledWith(1.5);
       expect(mockPanService.panTo).toHaveBeenCalledWith(100, 50);
       expect(mockEventBusService.emit).toHaveBeenCalledWith(WhiteboardEvent.ElementsAdded, [mockElement]);
+    });
+
+    it('imports legacy editor block', () => {
+      const configService = TestBed.inject(ConfigService);
+      const jsonData = JSON.stringify({
+        version: '1.0',
+        elements: [mockElement],
+        editor: { title: 'Old', showBlog: false, showWebinars: true, theme: 'dark', enableEditor: true },
+      });
+
+      expect(() => service.importData(jsonData)).not.toThrow();
+      expect(configService.getEditorConfig().title).toBe('Old');
+      expect(configService.getEditorConfig()).toEqual({ title: 'Old' });
+      expect(configService.getConfig().theme).toBeUndefined();
     });
 
     it('should import data without config', () => {

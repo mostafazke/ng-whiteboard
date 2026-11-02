@@ -1,4 +1,4 @@
-import { computed, inject, Injectable, Signal, signal, effect } from '@angular/core';
+import { computed, inject, Injectable, Signal, signal } from '@angular/core';
 import { ConfigService } from '../../config/config.service';
 import { ElementsService } from '../../elements/elements.service';
 import { LayerManagementService } from '../../elements/layer-management.service';
@@ -34,18 +34,6 @@ export class EditorStateService {
 
   // Theme handling - use WhiteboardConfig as the source of truth
   themeSignal = computed(() => this.getConfigSignal()().theme ?? 'light');
-
-  constructor() {
-    // Sync theme between WhiteboardConfig and EditorConfig
-    effect(() => {
-      const theme: 'light' | 'dark' = this.themeSignal();
-      const editorConfigTheme = this.getEditorConfigSignal()().theme;
-      // Keep EditorConfig in sync with WhiteboardConfig
-      if (editorConfigTheme !== theme) {
-        this.configService.updateEditorConfigValue('theme', theme);
-      }
-    });
-  }
 
   toggleTheme(): void {
     const current = this.themeSignal();

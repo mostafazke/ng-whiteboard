@@ -29,9 +29,7 @@ describe('ConfigService', () => {
     it('should have default editor config values', () => {
       const editorConfig = service.getEditorConfig();
       expect(editorConfig.title).toBe('Whiteboard');
-      expect(editorConfig.enableEditor).toBe(true);
-      expect(editorConfig.showTitle).toBe(true);
-      expect(editorConfig.showZoom).toBe(true);
+      expect(editorConfig).toEqual({ title: 'Whiteboard' });
     });
   });
 

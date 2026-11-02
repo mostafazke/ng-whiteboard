@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { createElement } from '../elements/element.utils';
 import { EventBusService } from '../event-bus/event-bus.service';
-import { AddImage, ElementType, FormatType, WhiteboardConfig, EditorConfig } from '../types';
+import { AddImage, ElementType, FormatType, WhiteboardConfig } from '../types';
 import { WhiteboardEvent } from '../types/events';
 import { downloadFile } from '../utils/common';
 import { svgToBase64 } from '../utils/svg';
@@ -240,7 +240,7 @@ export class IOService {
         fontFamily: canvasConfig.fontFamily,
         fontSize: canvasConfig.fontSize,
       },
-      editor: editorConfig,
+      editor: { title: editorConfig.title },
       settings: {
         drawingEnabled: canvasConfig.drawingEnabled,
         keyboardShortcutsEnabled: canvasConfig.keyboardShortcutsEnabled,
@@ -354,10 +354,9 @@ export class IOService {
       }
 
       if (data.editor) {
-        const editorKeys = Object.keys(data.editor) as Array<keyof EditorConfig>;
-        editorKeys.forEach((key) => {
-          this.configService.updateEditorConfigValue(key, data.editor[key]);
-        });
+        if (typeof data.editor.title === 'string') {
+          this.configService.updateEditorConfigValue('title', data.editor.title);
+        }
       }
 
       if (data.settings) {
