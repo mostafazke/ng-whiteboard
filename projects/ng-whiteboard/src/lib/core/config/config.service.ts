@@ -46,6 +46,10 @@ export class ConfigService {
 
   private editorConfig = signal<EditorConfig>({ title: 'Whiteboard' });
 
+  private eventsHeld = false;
+  private heldZoomChange = false;
+  private heldConfigChange = false;
+
   constructor(private eventBusService: EventBusService) {}
 
   getConfig(): Readonly<WhiteboardConfig> {
@@ -81,6 +85,12 @@ export class ConfigService {
 
     const hasZoomRelatedChanges = 'zoom' in partialConfig;
 
+    if (this.eventsHeld) {
+      this.heldZoomChange ||= hasZoomRelatedChanges;
+      this.heldConfigChange ||= emitEvent;
+      return;
+    }
+
     if (hasZoomRelatedChanges) {
       const config = this.config();
       this.eventBusService.emit(WhiteboardEvent.ZoomChange, {
@@ -88,6 +98,31 @@ export class ConfigService {
       });
     }
     if (emitEvent) {
+      this.eventBusService.emit(WhiteboardEvent.ConfigChange, this.config());
+    }
+  }
+
+  /**
+   * Coalesce the ZoomChange/ConfigChange events of `updateConfig` until {@link releaseEvents},
+   * e.g. for the per-frame updates of a pinch. The config itself still updates immediately.
+   */
+  holdEvents(): void {
+    this.eventsHeld = true;
+  }
+
+  /** Stop holding and emit at most one ZoomChange and one ConfigChange for the held updates. */
+  releaseEvents(): void {
+    if (!this.eventsHeld) return;
+    const zoomChanged = this.heldZoomChange;
+    const configChanged = this.heldConfigChange;
+    this.eventsHeld = false;
+    this.heldZoomChange = false;
+    this.heldConfigChange = false;
+
+    if (zoomChanged) {
+      this.eventBusService.emit(WhiteboardEvent.ZoomChange, { zoom: this.config().zoom });
+    }
+    if (configChanged) {
       this.eventBusService.emit(WhiteboardEvent.ConfigChange, this.config());
     }
   }

@@ -1,4 +1,4 @@
-import { Directive, HostListener, ElementRef, inject } from '@angular/core';
+import { Directive, HostListener, ElementRef, OnDestroy, inject } from '@angular/core';
 import { SvgService } from './svg.service';
 import { PointerInfo } from '../types';
 import { MOUSE_BUTTON } from '../constants';
@@ -13,7 +13,7 @@ const TOUCH = 'touch';
   selector: '[svg]',
   standalone: true,
 })
-export class SvgDirective {
+export class SvgDirective implements OnDestroy {
   private elementRef = inject(ElementRef);
   private zoomService = inject(ZoomService);
   private panService = inject(PanService);
@@ -21,6 +21,7 @@ export class SvgDirective {
   private gestureTracker = new GestureTracker();
   /** The touch pointer currently forwarded to the svg service as a normal single-pointer interaction. */
   private singleTouchId: number | null = null;
+  private holdingConfigEvents = false;
   lastX!: number;
   lastY!: number;
 
@@ -31,6 +32,10 @@ export class SvgDirective {
   private readonly DOUBLE_CLICK_DISTANCE = 10;
 
   constructor(private svgService: SvgService) {}
+
+  ngOnDestroy(): void {
+    this.releaseConfigEvents();
+  }
 
   @HostListener('pointerdown', ['$event'])
   onPointerDown(event: PointerEvent): void {
@@ -127,16 +132,33 @@ export class SvgDirective {
 
   /** Forget a touch pointer; true when it was the forwarded single pointer and should reach the svg service. */
   private releaseTouch(pointerId: number): boolean {
-    const isSingle = this.gestureTracker.up(pointerId) === 'single' && pointerId === this.singleTouchId;
+    const result = this.gestureTracker.up(pointerId);
+    if (result === 'end-gesture') this.releaseConfigEvents();
+    const isSingle = result === 'single' && pointerId === this.singleTouchId;
     if (pointerId === this.singleTouchId) this.singleTouchId = null;
     return isSingle;
   }
 
-  /** Zoom about the previous midpoint, then pan by its movement, so the content under the fingers follows it. */
+  /**
+   * Zoom about the previous midpoint, then pan by its movement, so the content under the fingers follows it.
+   * Config events are held until the gesture ends, so consumers get one ZoomChange/ConfigChange per gesture.
+   */
   private applyGesture({ scale, dx, dy, centerX, centerY }: GestureFrame): void {
-    this.zoomService.zoomAtPoint(this.zoomService.getZoomLevel() * scale, centerX - dx, centerY - dy);
+    if (!this.holdingConfigEvents) {
+      this.holdingConfigEvents = true;
+      this.configService.holdEvents();
+    }
+    if (scale !== 1) {
+      this.zoomService.zoomAtPoint(this.zoomService.getZoomLevel() * scale, centerX - dx, centerY - dy);
+    }
     const zoom = this.zoomService.getZoomLevel();
     this.panService.pan(dx / zoom, dy / zoom);
+  }
+
+  private releaseConfigEvents(): void {
+    if (!this.holdingConfigEvents) return;
+    this.holdingConfigEvents = false;
+    this.configService.releaseEvents();
   }
 
   @HostListener('wheel', ['$event'])

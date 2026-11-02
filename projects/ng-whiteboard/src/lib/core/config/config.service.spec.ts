@@ -588,4 +588,41 @@ describe('ConfigService', () => {
       expect(service.getConfig().backgroundColor).toBe('#F8F9FA');
     });
   });
+
+  describe('holdEvents / releaseEvents', () => {
+    let emitted: WhiteboardEvent[];
+
+    beforeEach(() => {
+      emitted = [];
+      eventBusService.listen().subscribe((event) => emitted.push(event.type));
+    });
+
+    it('applies updates immediately but emits one ZoomChange and one ConfigChange on release', () => {
+      service.holdEvents();
+      service.updateConfig({ zoom: 2 });
+      service.updateConfig({ zoom: 3, x: 10 });
+      service.updateConfig({ x: 20 });
+
+      expect(service.getConfig()).toMatchObject({ zoom: 3, x: 20 });
+      expect(emitted).toEqual([]);
+
+      service.releaseEvents();
+
+      expect(emitted).toEqual([WhiteboardEvent.ZoomChange, WhiteboardEvent.ConfigChange]);
+    });
+
+    it('emits only what the held updates would have emitted', () => {
+      service.holdEvents();
+      service.updateConfig({ x: 5 });
+      service.updateConfig({ canvasX: 1 }, false);
+      service.releaseEvents();
+
+      expect(emitted).toEqual([WhiteboardEvent.ConfigChange]);
+    });
+
+    it('release without hold emits nothing', () => {
+      service.releaseEvents();
+      expect(emitted).toEqual([]);
+    });
+  });
 });

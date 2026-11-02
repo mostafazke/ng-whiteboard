@@ -10,6 +10,7 @@ import { ApiService } from '../api/api.service';
 import { HistoryService } from '../history/history.service';
 import { ToolType } from '../types';
 import { ConfigService } from '../config/config.service';
+import { getCanvasCoordinates } from '../utils/geometry/coordinate';
 
 interface MockSvgElement {
   getBoundingClientRect: () => { left: number; top: number };
@@ -256,6 +257,17 @@ describe('SvgDirective', () => {
       expect(panServiceMock.pan).toHaveBeenCalledWith(2.5, 1.5);
     });
 
+    it('a pure two-finger pan does not zoom', () => {
+      // Each finger steps so the pair distance stays exactly 100 (scale === 1)
+      down(1, 0, 0);
+      down(2, 100, 0);
+      move(1, 100, 100);
+      move(2, 200, 100);
+
+      expect(zoomServiceMock.zoomAtPoint).not.toHaveBeenCalled();
+      expect(panServiceMock.pan).toHaveBeenCalledTimes(2);
+    });
+
     it('pinch zooms around the gesture centre', () => {
       down(1, 100, 100);
       down(2, 200, 100);
@@ -304,6 +316,8 @@ describe('SvgDirective (integration)', () => {
   let directive: SvgDirective;
   let api: ApiService;
   let history: HistoryService;
+  let component: NgWhiteboardComponent;
+  let config: ConfigService;
 
   const rect: MockSvgElement = {
     getBoundingClientRect: () => ({ left: 0, top: 0 }),
@@ -334,6 +348,7 @@ describe('SvgDirective (integration)', () => {
     }));
     await TestBed.configureTestingModule({ imports: [NgWhiteboardComponent] }).compileComponents();
     const fixture = TestBed.createComponent(NgWhiteboardComponent);
+    component = fixture.componentInstance;
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -341,7 +356,80 @@ describe('SvgDirective (integration)', () => {
     directive = svgDebug.injector.get(SvgDirective);
     api = svgDebug.injector.get(ApiService);
     history = svgDebug.injector.get(HistoryService);
+    config = svgDebug.injector.get(ConfigService);
     api.setActiveTool(ToolType.Pen);
+  });
+
+  describe('gesture events', () => {
+    let zoomChanges: number;
+    let configChanges: number;
+
+    beforeEach(() => {
+      zoomChanges = 0;
+      configChanges = 0;
+      component.zoomChange.subscribe(() => zoomChanges++);
+      component.configChange.subscribe(() => configChanges++);
+    });
+
+    const canvasPointAt = (sx: number, sy: number) => getCanvasCoordinates(config.getConfig(), { x: sx, y: sy });
+
+    it('a 10-frame pinch emits exactly one ZoomChange and one ConfigChange, when it ends', () => {
+      directive.onPointerDown(touch('pointerdown', 1, 100, 100));
+      directive.onPointerDown(touch('pointerdown', 2, 200, 100));
+      for (let i = 1; i <= 10; i++) {
+        directive.onPointerMove(touch('pointermove', 2, 200 + i * 10, 100 + i));
+      }
+
+      expect(zoomChanges).toBe(0);
+      expect(configChanges).toBe(0);
+      expect(config.getConfig().zoom).toBeCloseTo(Math.hypot(200, 10) / 100);
+
+      directive.onPointerUp(touch('pointerup', 2, 300, 110));
+      directive.onPointerUp(touch('pointerup', 1, 100, 100));
+
+      expect(zoomChanges).toBe(1);
+      expect(configChanges).toBe(1);
+    });
+
+    it('a pan-only gesture emits no ZoomChange', () => {
+      // Fingers leapfrog so the pair distance stays exactly 100 (scale === 1) while the midpoint moves
+      directive.onPointerDown(touch('pointerdown', 1, 0, 0));
+      directive.onPointerDown(touch('pointerdown', 2, 100, 0));
+      for (let i = 1; i <= 5; i++) {
+        directive.onPointerMove(touch('pointermove', 1, i * 100, i * 100));
+        directive.onPointerMove(touch('pointermove', 2, i * 100 + 100, i * 100));
+      }
+      directive.onPointerUp(touch('pointerup', 1, 500, 500));
+      directive.onPointerUp(touch('pointerup', 2, 600, 500));
+
+      expect(config.getConfig().zoom).toBe(1);
+      expect(config.getConfig().x).toBeCloseTo(500);
+      expect(config.getConfig().y).toBeCloseTo(500);
+      expect(zoomChanges).toBe(0);
+      expect(configChanges).toBe(1);
+    });
+
+    it('keeps the canvas point under the fingers fixed on a centred page', () => {
+      config.updateConfig({ fullScreen: false, center: true, canvasX: 0, canvasY: 0 }, false);
+      directive.onPointerDown(touch('pointerdown', 1, 100, 100));
+      directive.onPointerDown(touch('pointerdown', 2, 200, 100));
+      const before = canvasPointAt(150, 100);
+
+      for (let i = 1; i <= 10; i++) {
+        directive.onPointerMove(touch('pointermove', 1, 100 - i * 5, 100));
+        directive.onPointerMove(touch('pointermove', 2, 200 + i * 5, 100));
+      }
+      const during = canvasPointAt(150, 100);
+      directive.onPointerUp(touch('pointerup', 1, 50, 100));
+      directive.onPointerUp(touch('pointerup', 2, 250, 100));
+      const after = canvasPointAt(150, 100);
+
+      expect(config.getConfig().zoom).toBeCloseTo(2);
+      expect(during.x).toBeCloseTo(before.x);
+      expect(during.y).toBeCloseTo(before.y);
+      expect(after.x).toBeCloseTo(before.x);
+      expect(after.y).toBeCloseTo(before.y);
+    });
   });
 
   it('cancels draft when second pointer goes down', () => {
