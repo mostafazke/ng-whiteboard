@@ -145,6 +145,39 @@ describe('WhiteboardCanvasComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  describe('data-theme', () => {
+    beforeEach(() => {
+      (globalThis as unknown as { ResizeObserver: unknown }).ResizeObserver = class {
+        observe() {
+          // No-op
+        }
+        disconnect() {
+          // No-op
+        }
+        unobserve() {
+          // No-op
+        }
+      };
+    });
+
+    afterEach(() => {
+      delete (globalThis as unknown as { ResizeObserver?: unknown }).ResizeObserver;
+    });
+
+    it('is absent by default', () => {
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.hasAttribute('data-theme')).toBe(false);
+    });
+
+    it('is dark when theme is dark', () => {
+      mockConfigSignal.set({ ...mockConfig, theme: 'dark' } as typeof mockConfig);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.getAttribute('data-theme')).toBe('dark');
+    });
+  });
+
   describe('selectedToolSignal', () => {
     it('should return the selected tool from toolsService', () => {
       expect(component.selectedToolSignal()).toBe(ToolType.Pen);

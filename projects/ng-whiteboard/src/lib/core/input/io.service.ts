@@ -244,7 +244,7 @@ export class IOService {
       settings: {
         drawingEnabled: canvasConfig.drawingEnabled,
         keyboardShortcutsEnabled: canvasConfig.keyboardShortcutsEnabled,
-        theme: canvasConfig.theme,
+        ...(canvasConfig.theme ? { theme: canvasConfig.theme } : {}),
       },
     };
 

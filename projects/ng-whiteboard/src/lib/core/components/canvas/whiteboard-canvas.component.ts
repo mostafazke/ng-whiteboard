@@ -44,7 +44,7 @@ export class WhiteboardCanvasComponent implements AfterViewInit {
 
   @HostBinding('attr.data-theme')
   get theme() {
-    return this.themeSignal();
+    return this.themeSignal() ?? null;
   }
 
   apiService = inject(ApiService);

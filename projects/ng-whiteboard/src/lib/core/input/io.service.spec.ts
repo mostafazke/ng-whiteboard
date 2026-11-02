@@ -747,6 +747,20 @@ describe('IOService', () => {
       expect(parsed.canvas.height).toBe(600);
     });
 
+    it('should not export a theme by default', () => {
+      const parsed = JSON.parse(service.exportData());
+
+      expect(parsed.settings).not.toHaveProperty('theme');
+    });
+
+    it('should export theme when set', () => {
+      mockCanvasService.getConfig.mockReturnValue({ ...mockConfig, theme: 'dark' });
+
+      const parsed = JSON.parse(service.exportData());
+
+      expect(parsed.settings.theme).toBe('dark');
+    });
+
     it('should include timestamp in ISO format', () => {
       const result = service.exportData();
       const parsed = JSON.parse(result);

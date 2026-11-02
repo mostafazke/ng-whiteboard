@@ -8,29 +8,7 @@
 
   --canvas-grid-light: #374151;
   --canvas-grid-dark: #374151;
-  --canvas-selection-light: #3b82f6;
   --canvas-selection-dark: #60a5fa;
-
-  &[data-theme='light'] {
-    .svgroot {
-      // Grid colors for light theme
-      #smallGrid path {
-        stroke: var(--canvas-grid-light);
-      }
-      #grid path {
-        stroke: var(--canvas-grid-dark);
-      }
-
-      // Selection colors for light theme
-      #selectionBox {
-        stroke: var(--canvas-selection-light);
-      }
-
-      #selectorBox {
-        stroke: var(--canvas-selection-light);
-      }
-    }
-  }
 
   &[data-theme='dark'] {
     .svgroot {

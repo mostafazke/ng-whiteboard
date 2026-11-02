@@ -546,6 +546,10 @@ describe('ConfigService', () => {
   });
 
   describe('theme', () => {
+    it('default config has no theme', () => {
+      expect(service.getConfig().theme).toBeUndefined();
+    });
+
     it('should swap default light colors to dark defaults when switching to dark', () => {
       service.updateConfig({ backgroundColor: '#F8F9FA', strokeColor: '#333333' });
       service.updateConfig({ theme: 'dark' });
@@ -571,12 +575,12 @@ describe('ConfigService', () => {
       expect(service.getConfig().strokeColor).toBe('#ff0000');
     });
 
-    it('should not change colors when the background is custom', () => {
+    it('should keep a custom background and still swap a default stroke', () => {
       service.updateConfig({ backgroundColor: '#abcdef', strokeColor: '#333333' });
       service.updateConfig({ theme: 'dark' });
 
       expect(service.getConfig().backgroundColor).toBe('#abcdef');
-      expect(service.getConfig().strokeColor).toBe('#333333');
+      expect(service.getConfig().strokeColor).toBe('#e5e7eb');
     });
 
     it('should not change colors when other options are updated', () => {
