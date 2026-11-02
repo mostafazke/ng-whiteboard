@@ -1,5 +1,8 @@
+@use '../../breakpoints' as bp;
+
 .layer-panel {
   width: 300px;
+  max-width: 100%;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 8px;
@@ -462,5 +465,27 @@
     right: var(--space-1);
     left: var(--space-1);
     width: auto;
+  }
+}
+
+@include bp.coarse {
+  .layer-panel {
+    width: 360px;
+  }
+
+  .add-layer-btn,
+  .visibility-btn,
+  .lock-btn,
+  .delete-btn,
+  .move-up-btn,
+  .move-down-btn,
+  .add-first-layer {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .layer-controls {
+    gap: 0;
+    margin-right: 4px;
   }
 }

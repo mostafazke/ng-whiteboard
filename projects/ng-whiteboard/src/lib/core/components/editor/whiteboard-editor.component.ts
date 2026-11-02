@@ -1,18 +1,37 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, signal, ViewEncapsulation } from '@angular/core';
+import {
+  afterNextRender,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  ElementRef,
+  inject,
+  Signal,
+  signal,
+  viewChild,
+  ViewEncapsulation,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { SvgService } from '../../svg/svg.service';
 import { BlendMode, FormatType, ToolType } from '../../types';
 import { isEditableTarget } from '../../utils/dom/is-editable-target';
+import { EditorLayout, layoutFor } from './editor-layout';
 import { EditorStateService, Layer } from './editor-state.service';
 import { IconComponent } from './icon/icon.component';
 import { ControlsPanelComponent } from './panels/controls-panel/controls-panel.component';
-import { HeaderPanelComponent } from './panels/header-panel/header-panel.component';
+import {
+  HeaderPanelComponent,
+  themeToggleLabel,
+  toWhiteboardLayers,
+} from './panels/header-panel/header-panel.component';
 import { HistoryPanelComponent } from './panels/history-panel/history-panel.component';
+import { LayerPanelComponent } from './panels/layer-panel/layer-panel.component';
 import { PropertiesPanelComponent } from './panels/properties-panel/properties-panel.component';
 import { ToolbarComponent } from './panels/toolbar/toolbar.component';
 import { AlignmentControlsComponent, AlignmentType } from './ui/alignment-controls/alignment-controls.component';
+import { BottomSheetComponent } from './ui/bottom-sheet/bottom-sheet.component';
 import { ColorPickerComponent } from './ui/color-picker/color-picker.component';
 
 @Component({
@@ -29,6 +48,8 @@ import { ColorPickerComponent } from './ui/color-picker/color-picker.component';
     ControlsPanelComponent,
     ColorPickerComponent,
     AlignmentControlsComponent,
+    BottomSheetComponent,
+    LayerPanelComponent,
   ],
   templateUrl: './whiteboard-editor.component.html',
   styleUrl: './whiteboard-editor.component.scss',
@@ -39,6 +60,12 @@ import { ColorPickerComponent } from './ui/color-picker/color-picker.component';
 export class WhiteboardEditorComponent {
   public editorStateService = inject(EditorStateService);
   private svgService = inject(SvgService);
+  private destroyRef = inject(DestroyRef);
+  private root = viewChild.required<ElementRef<HTMLElement>>('root');
+
+  private layoutState = signal<EditorLayout>('wide');
+  readonly layout: Signal<EditorLayout> = this.layoutState.asReadonly();
+  readonly isCompact = computed(() => this.layout() === 'compact');
 
   // Reactive signals for better performance
   configSignal = this.editorStateService.getConfigSignal();
@@ -50,6 +77,8 @@ export class WhiteboardEditorComponent {
   showLayersDropdownSignal = signal(false);
   showLayerPanelSignal = signal(false);
   showZoomPopupSignal = signal(false);
+  propertiesSheetOpenSignal = signal(false);
+  menuSheetOpenSignal = signal(false);
 
   // Expose editor state signals
   selectedElementsSignal = this.editorStateService.selectedElementsSignal;
@@ -60,9 +89,36 @@ export class WhiteboardEditorComponent {
   canUndoSignal = this.editorStateService.canUndoSignal;
   canRedoSignal = this.editorStateService.canRedoSignal;
   selectedPropertiesSignal = this.editorStateService.selectedPropertiesSignal;
+  whiteboardLayersSignal = computed(() => toWhiteboardLayers(this.layersSignal()));
+  themeToggleLabelSignal = computed(() => themeToggleLabel(this.themeSignal()));
 
   constructor() {
     this.svgService.keyDown$.pipe(takeUntilDestroyed()).subscribe((event) => this.handleKeyboardShortcut(event));
+    afterNextRender(() => this.observeSize());
+  }
+
+  private observeSize() {
+    const el = this.root().nativeElement;
+    const rect = el.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) this.setLayout(rect.width, rect.height);
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(([entry]) => this.setLayout(entry.contentRect.width, entry.contentRect.height));
+    observer.observe(el);
+    this.destroyRef.onDestroy(() => observer.disconnect());
+  }
+
+  private setLayout(width: number, height: number) {
+    const next = layoutFor(width, height);
+    if (next === this.layoutState()) return;
+    this.layoutState.set(next);
+    this.closeSheets();
+  }
+
+  private closeSheets() {
+    this.propertiesSheetOpenSignal.set(false);
+    this.menuSheetOpenSignal.set(false);
+    this.showLayersDropdownSignal.set(false);
+    this.showZoomPopupSignal.set(false);
   }
 
   private handleKeyboardShortcut(event: KeyboardEvent) {
@@ -97,6 +153,14 @@ export class WhiteboardEditorComponent {
 
   onLayerLockToggle(layer: Layer) {
     this.editorStateService.toggleLayerLock(layer.id);
+  }
+
+  onLayerPanelVisibilityToggled(event: { layerId: string }) {
+    this.editorStateService.toggleLayerVisibility(event.layerId);
+  }
+
+  onLayerPanelLockToggled(event: { layerId: string }) {
+    this.editorStateService.toggleLayerLock(event.layerId);
   }
 
   onLayerAdd() {
@@ -177,7 +241,20 @@ export class WhiteboardEditorComponent {
   }
 
   togglePanel() {
-    this.isPanelOpenSignal.update((value) => !value);
+    if (this.isCompact()) this.togglePropertiesSheet();
+    else this.isPanelOpenSignal.update((value) => !value);
+  }
+
+  togglePropertiesSheet() {
+    this.propertiesSheetOpenSignal.update((value) => !value);
+  }
+
+  toggleMenuSheet() {
+    this.menuSheetOpenSignal.update((value) => !value);
+  }
+
+  toggleTheme() {
+    this.editorStateService.toggleTheme();
   }
 
   onAlignmentChange(alignment: AlignmentType) {

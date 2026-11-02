@@ -1,3 +1,5 @@
+@use '../../breakpoints' as bp;
+
 // Controls Panel Styles
 .controls-panel {
   display: flex;
@@ -191,43 +193,17 @@
   }
 }
 
-// Mobile responsive
-@media (max-width: 768px) {
+@include bp.coarse {
   .controls-panel {
-    flex-wrap: wrap;
-    gap: 2px; // Very tight gap on mobile
-    padding: var(--space-1);
-
-    .icon-btn {
-      width: 24px; // Even smaller on mobile
-      height: 24px;
-    }
-
-    .zoom-controls,
-    .history-controls,
-    .view-controls {
-      gap: 1px;
-
-      &:not(:last-child) {
-        padding-right: 2px;
-        margin-right: 2px;
-      }
-    }
-
+    .icon-btn,
     .zoom-value {
-      min-width: 35px;
-      height: 24px;
-      font-size: 0.65rem;
+      min-width: 44px;
+      min-height: 44px;
     }
 
-    .zoom-dropdown {
-      min-width: 100px;
-
-      .zoom-option,
-      .zoom-action {
-        font-size: 0.65rem;
-        padding: 2px;
-      }
+    .zoom-dropdown .zoom-actions .zoom-action {
+      min-height: 44px;
+      font-size: 0.8125rem;
     }
   }
 }

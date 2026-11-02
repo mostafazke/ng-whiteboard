@@ -1,3 +1,5 @@
+@use '../../breakpoints' as bp;
+
 // Alignment Controls Styles
 .alignment-buttons {
   display: flex;
@@ -52,20 +54,9 @@
 }
 
 // Responsive adjustments
-@media (max-width: 480px) {
-  .alignment-buttons {
-    .alignment-group {
-      .button-row {
-        .alignment-btn {
-          width: 28px;
-          height: 28px;
-
-          ng-icon {
-            width: 14px;
-            height: 14px;
-          }
-        }
-      }
-    }
+@include bp.coarse {
+  .alignment-buttons .alignment-group .button-row .alignment-btn {
+    width: 44px;
+    height: 44px;
   }
 }

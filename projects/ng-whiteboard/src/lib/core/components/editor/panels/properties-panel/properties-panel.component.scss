@@ -1,10 +1,8 @@
+@use '../../breakpoints' as bp;
+
 // Properties Panel Styles
 
 .properties-panel {
-  position: absolute;
-  top: var(--space-4);
-  right: var(--space-4);
-  z-index: 100;
   pointer-events: auto;
 }
 
@@ -21,8 +19,12 @@
   transform: translateX(0);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   min-height: 200px;
-  max-height: 60vh;
+  max-height: calc(100cqh - 110px);
   overflow-y: auto;
+
+  @include bp.medium {
+    max-height: calc(100cqh - 170px);
+  }
   height: auto;
 
   &:not(.open) {
@@ -385,5 +387,39 @@
 
   ng-icon {
     font-size: 18px;
+  }
+}
+
+@include bp.coarse {
+  .panel-header .actions-bar .icon-btn,
+  .panel-toggle-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .panel-sections .section .controls {
+    .line-style-buttons .line-style-btn,
+    .button-group .style-btn {
+      min-height: 44px;
+    }
+  }
+}
+
+:host(.embedded) {
+  display: block;
+
+  .panel-content {
+    width: 100%;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background: var(--color-surface);
+  }
+
+  .panel-sections {
+    overflow: visible;
   }
 }

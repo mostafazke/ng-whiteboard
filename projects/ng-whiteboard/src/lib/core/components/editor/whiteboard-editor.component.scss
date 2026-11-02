@@ -1,3 +1,5 @@
+@use 'breakpoints' as bp;
+
 :root {
   // Spacing
   --space-1: 0.25rem;
@@ -84,11 +86,17 @@
   --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
 }
 
-// Main editor container
+// Main editor container. It is the `wb-editor` size container for every layout query.
 .editor {
   position: absolute;
   inset: 0;
-  font-family: system-ui, -apple-system, sans-serif;
+  container: wb-editor / size;
+  --wb-gap: var(--space-4);
+  --wb-bar: 38px;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   color: var(--color-text-primary);
   pointer-events: none;
   user-select: none;
@@ -99,38 +107,154 @@
   * {
     box-sizing: border-box;
   }
+
+  @include bp.coarse {
+    --wb-bar: 54px;
+
+    button {
+      min-width: 44px;
+      min-height: 44px;
+    }
+  }
 }
 
 .editor-container {
   position: absolute;
   inset: 0;
   pointer-events: none; // Allow pointer events to pass through to canvas
-  padding: var(--space-4);
 
-  // Panel positioning - use class selectors for better maintainability
-  .header-panel {
+  > .wb-header,
+  > .wb-history,
+  > .wb-properties,
+  > .wb-toolbar,
+  > .wb-controls {
     position: absolute;
-    top: var(--space-4);
-    left: var(--space-4);
     z-index: 100;
     pointer-events: auto;
   }
 
-  .toolbar {
-    position: absolute;
-    bottom: var(--space-4);
+  > .wb-header {
+    top: var(--wb-gap);
+    left: var(--wb-gap);
+    max-width: calc(100% - 2 * var(--wb-gap));
+    padding: env(safe-area-inset-top) 0 0 env(safe-area-inset-left);
+  }
+
+  > .wb-properties {
+    top: var(--wb-gap);
+    right: var(--wb-gap);
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 0;
+  }
+
+  > .wb-toolbar {
+    bottom: var(--wb-gap);
     left: 50%;
     transform: translateX(-50%);
-    z-index: 100;
-    pointer-events: auto;
+    max-width: calc(100% - 2 * var(--wb-gap));
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
-  .controls-panel {
-    position: absolute;
-    bottom: var(--space-4);
-    right: var(--space-4);
-    z-index: 100;
-    pointer-events: auto;
+  > .wb-history {
+    bottom: var(--wb-gap);
+    left: var(--wb-gap);
+    padding: 0 0 env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+
+  > .wb-controls {
+    bottom: var(--wb-gap);
+    right: var(--wb-gap);
+    padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) 0;
+  }
+
+  // Undo/redo and zoom sit on a row above the toolbar so they never collide with it.
+  @include bp.not-wide {
+    > .wb-history,
+    > .wb-controls {
+      bottom: calc(2 * var(--wb-gap) + var(--wb-bar));
+    }
+  }
+
+  @include bp.medium {
+    > .wb-header {
+      max-width: calc(100% - 280px - 3 * var(--wb-gap));
+    }
+  }
+
+  @include bp.compact {
+    --wb-gap: var(--space-2);
+
+    > .wb-header {
+      right: var(--wb-gap);
+      max-width: none;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
+    }
+
+    > .wb-toolbar {
+      left: var(--wb-gap);
+      right: var(--wb-gap);
+      transform: none;
+      max-width: none;
+      padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+  }
+}
+
+// Bottom sheet content (compact layout)
+.wb-sheet-menu {
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--space-2) var(--space-3);
+}
+
+.wb-sheet-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 48px;
+  padding: 0 var(--space-3);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: 0.9375rem;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--color-gray-100);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  ng-icon {
+    display: flex;
+    color: var(--color-text-secondary);
+  }
+}
+
+// Layer panel hosted in the header popover or a sheet: drop its own card chrome.
+.layers-dropdown ng-ng-layer-panel .layer-panel-header h3 {
+  display: none;
+}
+
+.layers-dropdown ng-ng-layer-panel,
+ng-bottom-sheet .wb-sheet-layers {
+  display: block;
+
+  .layer-panel {
+    width: 100%;
+    padding-top: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .layer-list {
+    max-height: none;
   }
 }
 
@@ -199,97 +323,5 @@
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-// Responsive design
-@media (max-width: 768px) {
-  .editor-container {
-    .header-panel {
-      top: var(--space-2);
-      left: var(--space-2);
-    }
-
-    .properties-panel {
-      top: var(--space-2);
-      right: var(--space-2);
-    }
-
-    .toolbar {
-      bottom: var(--space-2);
-    }
-
-    .controls-panel {
-      bottom: var(--space-2);
-      right: var(--space-2);
-    }
-  }
-}
-
-@media (max-width: 480px) {
-  :root {
-    --space-4: 0.75rem;
-    --space-2: 0.375rem;
-  }
-
-  .editor-container {
-    padding: var(--space-2);
-
-    .header-panel,
-    .history-panel,
-    .properties-panel,
-    .toolbar,
-    .controls-panel {
-      position: absolute;
-      top: var(--space-2);
-      bottom: var(--space-2);
-      left: var(--space-2);
-      right: var(--space-2);
-    }
-
-    .header-panel {
-      top: var(--space-2);
-      left: var(--space-2);
-      right: auto;
-      bottom: auto;
-    }
-
-    .history-panel {
-      left: var(--space-2);
-      bottom: var(--space-2);
-      right: auto;
-      top: auto;
-    }
-
-    .properties-panel {
-      top: var(--space-2);
-      right: var(--space-2);
-      left: auto;
-      bottom: auto;
-      max-height: calc(100vh - calc(var(--space-2) * 2) - 100px);
-    }
-
-    .toolbar {
-      bottom: var(--space-2);
-      left: 50%;
-      transform: translateX(-50%);
-      top: auto;
-      right: auto;
-    }
-
-    .controls-panel {
-      bottom: var(--space-2);
-      right: var(--space-2);
-      top: auto;
-      left: auto;
-    }
-  }
-}
-
-@media (max-width: 768px) {
-  .editor-container {
-    .properties-panel {
-      max-height: calc(100vh - calc(var(--space-4) * 2) - 80px);
-    }
   }
 }

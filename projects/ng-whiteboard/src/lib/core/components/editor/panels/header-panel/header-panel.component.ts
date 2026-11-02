@@ -15,6 +15,24 @@ import {
   LayerBlendModeEvent,
 } from '../layer-panel/layer-panel.component';
 
+export function themeToggleLabel(theme: string): string {
+  return theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+}
+
+export function toWhiteboardLayers(layers: Layer[]): WhiteboardLayer[] {
+  return layers.map((layer) => ({
+    id: layer.id,
+    name: layer.name,
+    visible: layer.visible,
+    locked: layer.locked,
+    opacity: layer.opacity ?? 1,
+    zIndex: layer.zIndex,
+    type: 'drawing' as const,
+    elements: [],
+    blendMode: layer.blendMode || 'normal',
+  }));
+}
+
 interface HeaderAction {
   id: string;
   label: string;
@@ -32,11 +50,18 @@ interface HeaderAction {
       <!-- Left Section: Layers & Title -->
       <div class="header-left">
         <div class="dropdown-wrapper">
-          <button (click)="toggleLayers()" class="icon-btn layers-button" [class.active]="showLayers()">
+          <button
+            (click)="toggleLayers()"
+            class="icon-btn layers-button"
+            [class.active]="showLayers()"
+            title="Layers"
+            aria-label="Layers"
+            [attr.aria-expanded]="showLayers()"
+          >
             <ng-icon name="layers"></ng-icon>
           </button>
 
-          <div class="layers-dropdown" *ngIf="showLayers()">
+          <div class="layers-dropdown" *ngIf="showLayers() && !compact()">
             <div class="dropdown-header">
               <h4>Layers</h4>
               <button class="close-btn" (click)="closeLayers()">
@@ -83,25 +108,52 @@ interface HeaderAction {
 
       <!-- Right Section: Actions -->
       <div class="header-right">
-        <div class="actions">
+        <div class="actions" *ngIf="compact(); else fullActions">
           <button
-            *ngFor="let action of headerActions; trackBy: trackByAction"
-            class="action-btn"
-            [disabled]="action.disabled"
-            [title]="action.label"
-            (click)="action.action()"
+            class="action-btn properties-btn"
+            [class.has-selection]="hasSelection()"
+            [class.active]="propertiesOpen()"
+            title="Properties"
+            aria-label="Properties"
+            [attr.aria-expanded]="propertiesOpen()"
+            (click)="propertiesToggle.emit()"
           >
-            <ng-icon [name]="action.icon"></ng-icon>
-            <span class="action-label">{{ action.label }}</span>
+            <ng-icon name="properties"></ng-icon>
           </button>
           <button
-            class="theme-toggle-btn"
-            (click)="editorState.toggleTheme()"
-            [attr.aria-label]="'Switch to ' + (editorState.themeSignal() === 'light' ? 'dark' : 'light') + ' mode'"
+            class="action-btn menu-btn"
+            [class.active]="menuOpen()"
+            title="Menu"
+            aria-label="Menu"
+            [attr.aria-expanded]="menuOpen()"
+            (click)="menuToggle.emit()"
           >
-            {{ editorState.themeSignal() === 'dark' ? 'Light Mode' : 'Dark Mode' }}
+            <ng-icon name="menu"></ng-icon>
           </button>
         </div>
+        <ng-template #fullActions>
+          <div class="actions">
+            <button
+              *ngFor="let action of headerActions; trackBy: trackByAction"
+              class="action-btn"
+              [disabled]="action.disabled"
+              [title]="action.label"
+              [attr.aria-label]="action.label"
+              (click)="action.action()"
+            >
+              <ng-icon [name]="action.icon"></ng-icon>
+              <span class="action-label">{{ action.label }}</span>
+            </button>
+            <button
+              class="action-btn theme-btn"
+              (click)="editorState.toggleTheme()"
+              [title]="themeToggleLabel()"
+              [attr.aria-label]="themeToggleLabel()"
+            >
+              <ng-icon [name]="editorState.themeSignal() === 'dark' ? 'sun' : 'moon'"></ng-icon>
+            </button>
+          </div>
+        </ng-template>
       </div>
     </div>
   `,
@@ -115,6 +167,10 @@ export class HeaderPanelComponent {
   activeLayerId = input<string>(''); // Add activeLayerId as input
   showLayers = input<boolean>(false);
   isEditingTitle = input<boolean>(false);
+  compact = input<boolean>(false);
+  hasSelection = input<boolean>(false);
+  propertiesOpen = input<boolean>(false);
+  menuOpen = input<boolean>(false);
 
   @Output() titleChange = new EventEmitter<string>();
   @Output() titleEditStart = new EventEmitter<void>();
@@ -127,6 +183,8 @@ export class HeaderPanelComponent {
   @Output() newDocument = new EventEmitter<void>();
   @Output() saveDocument = new EventEmitter<void>();
   @Output() exportDocument = new EventEmitter<void>();
+  @Output() propertiesToggle = new EventEmitter<void>();
+  @Output() menuToggle = new EventEmitter<void>();
 
   // New layer panel events
   @Output() layerSelected = new EventEmitter<string>();
@@ -156,6 +214,10 @@ export class HeaderPanelComponent {
       action: () => this.exportDocument.emit(),
     },
   ];
+
+  themeToggleLabel(): string {
+    return themeToggleLabel(this.editorState.themeSignal());
+  }
 
   toggleLayers() {
     this.layersToggle.emit();
@@ -202,17 +264,7 @@ export class HeaderPanelComponent {
 
   // Layer panel helper methods
   convertLayersToWhiteboardLayers(): WhiteboardLayer[] {
-    return this.layers().map((layer) => ({
-      id: layer.id,
-      name: layer.name,
-      visible: layer.visible,
-      locked: layer.locked,
-      opacity: layer.opacity ?? 1,
-      zIndex: layer.zIndex,
-      type: 'drawing' as const, // Default type
-      elements: [], // Elements are managed separately in the data service
-      blendMode: layer.blendMode || 'normal', // Use actual blend mode
-    }));
+    return toWhiteboardLayers(this.layers());
   }
 
   getActiveLayerId(): string {

@@ -24,6 +24,8 @@ interface ZoomLevel {
         <div class="dropdown-wrapper">
           <button
             class="zoom-value"
+            title="Zoom options"
+            [attr.aria-expanded]="showZoomMenu()"
             (click)="toggleZoomMenu()"
             (dblclick)="onCenterView()"
             [class.active]="showZoomMenu()"
@@ -31,7 +33,7 @@ interface ZoomLevel {
             {{ formatZoom(config().zoom) }}
           </button>
 
-          <div class="zoom-dropdown" *ngIf="showZoomMenu()">
+          <div class="zoom-dropdown" *ngIf="showZoomMenu() && !compact()">
             <div class="zoom-actions">
               <button class="zoom-action" (click)="onZoomToFit()">
                 <ng-icon name="fit"></ng-icon>
@@ -62,6 +64,7 @@ export class ControlsPanelComponent {
   config = input<WhiteboardConfig>({} as WhiteboardConfig);
   showZoomMenu = input<boolean>(false);
   hasSelection = input<boolean>(false);
+  compact = input<boolean>(false);
 
   @Output() zoomIn = new EventEmitter<void>();
   @Output() zoomOut = new EventEmitter<void>();

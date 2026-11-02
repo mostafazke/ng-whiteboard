@@ -1,3 +1,5 @@
+@use '../../breakpoints' as bp;
+
 // History Panel Styles
 .history-panel {
   display: flex;
@@ -9,11 +11,6 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  position: absolute;
-  left: var(--space-4);
-  bottom: var(--space-4);
-  z-index: 100;
-  pointer-events: auto;
 
   .icon-btn {
     width: 28px;
@@ -60,18 +57,9 @@
   }
 }
 
-// Responsive adjustments
-@media (max-width: 768px) {
-  .history-panel {
-    padding: var(--space-1);
-
-    .icon-btn {
-      width: 36px;
-      height: 36px;
-
-      ng-icon {
-        font-size: 16px;
-      }
-    }
+@include bp.coarse {
+  .history-panel .icon-btn {
+    min-width: 44px;
+    min-height: 44px;
   }
 }

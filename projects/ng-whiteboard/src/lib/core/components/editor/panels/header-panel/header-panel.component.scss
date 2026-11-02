@@ -1,20 +1,5 @@
-// Theme toggle button styles
-.theme-toggle-btn {
-  margin-left: var(--space-3);
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-gray-200);
-  background: var(--color-gray-50);
-  color: var(--color-gray-700);
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+@use '../../breakpoints' as bp;
 
-  &:hover {
-    background: var(--color-primary);
-    color: var(--color-white);
-    border-color: var(--color-primary);
-  }
-}
 // Header Panel Styles
 .header-panel {
   display: flex;
@@ -25,13 +10,15 @@
   border-radius: var(--radius);
   box-shadow: var(--shadow-md);
   padding: var(--space-2);
-  min-width: 400px;
-  backdrop-filter: blur(8px);
+  gap: var(--space-2);
+  max-width: 100%;
 
   .header-left {
     display: flex;
     align-items: center;
     gap: var(--space-3);
+    flex: 1 1 auto;
+    min-width: 0;
 
     .dropdown-wrapper {
       position: relative;
@@ -70,6 +57,8 @@
         border-radius: var(--radius);
         box-shadow: var(--shadow-lg);
         z-index: 1000;
+        max-height: calc(100cqh - 100px);
+        overflow-y: auto;
         animation: slideUp 0.2s ease;
 
         .dropdown-header {
@@ -101,23 +90,6 @@
             &:hover {
               background-color: var(--color-gray-100);
               color: var(--color-gray-700);
-            }
-          }
-        }
-
-        .layer-panel-wrapper {
-          // Reset any potential conflicts and ensure the layer panel fits well
-          ng-ng-layer-panel {
-            display: block;
-            width: 100%;
-
-            // Override layer panel styles to fit in dropdown
-            .layer-panel {
-              border: none;
-              border-radius: 0;
-              box-shadow: none;
-              background: transparent;
-              max-height: 300px;
             }
           }
         }
@@ -231,7 +203,9 @@
     }
 
     .title-section {
-      min-width: 200px;
+      flex: 0 1 auto;
+      min-width: 0;
+      max-width: 240px;
 
       .title-input {
         font-size: 1.125rem;
@@ -271,6 +245,8 @@
   }
 
   .header-right {
+    flex: none;
+
     .actions {
       display: flex;
       gap: var(--space-1);
@@ -305,26 +281,61 @@
         }
 
         .action-label {
-          display: none;
-
-          @media (min-width: 640px) {
-            display: block;
+          @include bp.not-wide {
+            display: none;
           }
+        }
+
+        &.theme-btn,
+        &.properties-btn,
+        &.menu-btn {
+          padding: var(--space-2);
+        }
+
+        &.active {
+          background-color: var(--color-primary);
+          color: var(--color-white);
+        }
+
+        &.has-selection {
+          position: relative;
+
+          &::after {
+            content: '';
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--color-primary);
+            box-shadow: 0 0 0 2px var(--color-surface);
+          }
+        }
+
+        &.has-selection.active::after {
+          background: var(--color-white);
+          box-shadow: none;
         }
       }
     }
   }
-}
 
-// Responsive adjustments
-@media (max-width: 640px) {
-  .header-panel {
-    min-width: 300px;
+  .action-btn,
+  .layers-button {
+    flex: none;
+    justify-content: center;
 
-    .header-left {
-      .title-section {
-        min-width: 150px;
-      }
+    @include bp.coarse {
+      min-width: 44px;
+      min-height: 44px;
+    }
+  }
+
+  .header-left .dropdown-wrapper .layers-dropdown .dropdown-header .close-btn {
+    @include bp.coarse {
+      width: 44px;
+      height: 44px;
     }
   }
 }

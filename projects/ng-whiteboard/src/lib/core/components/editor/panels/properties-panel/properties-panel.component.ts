@@ -40,7 +40,7 @@ interface PropertyChangeEvent {
             </button>
             <div class="flex-spacer"></div>
             <button title="Close Panel" class="icon-btn toggle-panel" (click)="togglePanel.emit()">
-              <ng-icon name="panelRightClose"></ng-icon>
+              <ng-icon [name]="embedded() ? 'close' : 'panelRightClose'"></ng-icon>
             </button>
           </div>
         </div>
@@ -74,10 +74,7 @@ interface PropertyChangeEvent {
               <div class="control-group">
                 <div class="control-row">
                   <label>Stroke</label>
-                  <ng-color-picker
-                    [value]="strokeColorValue()"
-                    (colorChange)="onColorChange('strokeColor', $event)"
-                  >
+                  <ng-color-picker [value]="strokeColorValue()" (colorChange)="onColorChange('strokeColor', $event)">
                   </ng-color-picker>
                 </div>
 
@@ -91,7 +88,9 @@ interface PropertyChangeEvent {
                       [value]="strokeWidthNumber()"
                       (input)="onPropertyChange('strokeWidth', $event)"
                     />
-                    <span class="value-display">{{ isMixed(strokeWidthValue()) ? '—' : strokeWidthValue() + 'px' }}</span>
+                    <span class="value-display">{{
+                      isMixed(strokeWidthValue()) ? '—' : strokeWidthNumber() + 'px'
+                    }}</span>
                   </div>
                 </div>
 
@@ -172,7 +171,7 @@ interface PropertyChangeEvent {
                   <label class="slider-label">Opacity</label>
                   <div class="slider-container">
                     <input type="range" min="0" max="100" [value]="opacityNumber()" (input)="onOpacityChange($event)" />
-                    <span class="value-display">{{ isMixed(opacityValue()) ? '—' : opacityValue() + '%' }}</span>
+                    <span class="value-display">{{ isMixed(opacityValue()) ? '—' : opacityNumber() + '%' }}</span>
                   </div>
                 </div>
               </div>
@@ -194,7 +193,10 @@ interface PropertyChangeEvent {
             <div class="controls">
               <div class="control-row">
                 <label>Font Family</label>
-                <select [value]="isMixed(fontFamilyValue()) ? '' : fontFamilyValue()" (change)="onPropertyChange('fontFamily', $event)">
+                <select
+                  [value]="isMixed(fontFamilyValue()) ? '' : fontFamilyValue()"
+                  (change)="onPropertyChange('fontFamily', $event)"
+                >
                   <option *ngIf="isMixed(fontFamilyValue())" value="" disabled>Mixed</option>
                   <option value="Arial">Arial</option>
                   <option value="Helvetica">Helvetica</option>
@@ -216,7 +218,7 @@ interface PropertyChangeEvent {
                     [value]="fontSizeNumber()"
                     (input)="onPropertyChange('fontSize', $event)"
                   />
-                  <span class="value-display">{{ isMixed(fontSizeValue()) ? '—' : fontSizeValue() + 'px' }}</span>
+                  <span class="value-display">{{ isMixed(fontSizeValue()) ? '—' : fontSizeNumber() + 'px' }}</span>
                 </div>
               </div>
 
@@ -237,19 +239,26 @@ interface PropertyChangeEvent {
       </div>
 
       <!-- Panel Toggle Button -->
-      <button *ngIf="!isOpen()" class="panel-toggle-btn" title="Open Properties Panel" (click)="togglePanel.emit()">
+      <button
+        *ngIf="!isOpen() && !embedded()"
+        class="panel-toggle-btn"
+        title="Open Properties Panel"
+        (click)="togglePanel.emit()"
+      >
         <ng-icon name="panelRightOpen"></ng-icon>
       </button>
     </div>
   `,
   styleUrl: './properties-panel.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '[class.embedded]': 'embedded()' },
 })
 export class PropertiesPanelComponent {
   config = input<WhiteboardConfig>({} as WhiteboardConfig);
   selectedElements = input<WhiteboardElement[]>([]);
   selectedProperties = input<SelectedProperties | null>(null);
   isOpen = input<boolean>(true);
+  embedded = input<boolean>(false);
 
   @Output() colorChange = new EventEmitter<ColorPickerEvent>();
   @Output() propertyChange = new EventEmitter<PropertyChangeEvent>();

@@ -1,3 +1,5 @@
+@use '../../breakpoints' as bp;
+
 // Floating Toolbar Styles
 .toolbar-floating {
   position: relative;
@@ -59,26 +61,32 @@
       }
 
       &.tool-btn {
-        &[data-tool]:hover::after {
-          content: attr(title);
-          position: absolute;
-          bottom: -35px;
-          left: 50%;
-          transform: translateX(-50%);
-          background: var(--color-gray-900);
-          color: white;
-          padding: 4px 8px;
-          border-radius: 4px;
-          font-size: 0.75rem;
-          white-space: nowrap;
-          z-index: 100;
-          animation: tooltipFadeIn 0.2s ease;
+        flex: none;
+        scroll-snap-align: start;
+
+        @media (hover: hover) {
+          &[data-tool]:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--color-gray-900);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            z-index: 100;
+            animation: tooltipFadeIn 0.2s ease;
+          }
         }
       }
     }
   }
 
   .toolbar-separator {
+    flex: none;
     width: 1px;
     height: 20px;
     background-color: var(--color-gray-200);
@@ -98,14 +106,23 @@
   }
 }
 
-// Responsive Design
-@media (max-width: 768px) {
+@include bp.coarse {
+  .toolbar-floating .toolbar-group .icon-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+@include bp.compact {
   .toolbar-floating {
+    justify-content: safe center;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+
     .toolbar-group {
-      .icon-btn {
-        width: 36px;
-        height: 36px;
-      }
+      flex: none;
     }
   }
 }

@@ -12,7 +12,7 @@ import { MIXED, Mixed } from '../../utils/selected-properties';
         <button
           class="custom-color-swatch"
           (click)="openCustomPicker()"
-          [attr.title]="isMixed ? 'Mixed' : 'Custom color: ' + value"
+          [attr.title]="isMixed ? 'Mixed' : 'Custom color: ' + currentColor"
           [attr.aria-label]="isMixed ? 'Mixed' : null"
         >
           <div class="color-preview" [style.backgroundColor]="isMixed ? null : currentColor"></div>

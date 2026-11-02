@@ -1,13 +1,16 @@
-<div class="editor" [attr.data-theme]="themeSignal()">
+<div #root class="editor" [attr.data-theme]="themeSignal()" [attr.data-layout]="layout()">
   <div class="editor-container">
-    <!-- Header Panel -->
     <ng-header-panel
-      class="header-panel"
+      class="wb-header"
       [editorConfig]="editorConfigSignal()"
       [layers]="layersSignal()"
       [activeLayerId]="activeLayerIdSignal()"
       [showLayers]="showLayersDropdownSignal()"
       [isEditingTitle]="isEditingTitleSignal()"
+      [compact]="isCompact()"
+      [hasSelection]="hasSelectionSignal()"
+      [propertiesOpen]="propertiesSheetOpenSignal()"
+      [menuOpen]="menuSheetOpenSignal()"
       (titleChange)="onTitleChange($event)"
       (titleEditStart)="onTitleEditStart()"
       (titleEditEnd)="onTitleEditEnd()"
@@ -24,12 +27,13 @@
       (newDocument)="clear()"
       (saveDocument)="save()"
       (exportDocument)="export()"
+      (propertiesToggle)="togglePropertiesSheet()"
+      (menuToggle)="toggleMenuSheet()"
     >
     </ng-header-panel>
 
-    <!-- History Panel (Left Side) -->
     <ng-history-panel
-      class="history-panel"
+      class="wb-history"
       [canUndo]="canUndoSignal()"
       [canRedo]="canRedoSignal()"
       (undo)="undo()"
@@ -37,37 +41,33 @@
     >
     </ng-history-panel>
 
-    <!-- Properties Panel -->
-    <ng-properties-panel
-      class="properties-panel"
-      [config]="configSignal()"
-      [selectedElements]="selectedElementsSignal()"
-      [selectedProperties]="selectedPropertiesSignal()"
-      [isOpen]="isPanelOpenSignal()"
-      (colorChange)="onColorChange($event)"
-      (propertyChange)="onPropertyChange($event)"
-      (gridToggle)="toggleGrid()"
-      (snapToggle)="toggleSnapToGrid()"
-      (deleteSelected)="deleteElement()"
-      (togglePanel)="togglePanel()"
-      (alignmentChange)="onAlignmentChange($event)"
-    >
-    </ng-properties-panel>
+    @if (!isCompact()) {
+      <ng-properties-panel
+        class="wb-properties"
+        [config]="configSignal()"
+        [selectedElements]="selectedElementsSignal()"
+        [selectedProperties]="selectedPropertiesSignal()"
+        [isOpen]="isPanelOpenSignal()"
+        (colorChange)="onColorChange($event)"
+        (propertyChange)="onPropertyChange($event)"
+        (gridToggle)="toggleGrid()"
+        (snapToggle)="toggleSnapToGrid()"
+        (deleteSelected)="deleteElement()"
+        (togglePanel)="togglePanel()"
+        (alignmentChange)="onAlignmentChange($event)"
+      >
+      </ng-properties-panel>
+    }
 
-    <!-- Floating Toolbar -->
-    <ng-toolbar
-      class="toolbar"
-      [selectedTool]="selectedToolSignal()"
-      (toolSelect)="setSelectedTool($event)"
-    >
+    <ng-toolbar class="wb-toolbar" [selectedTool]="selectedToolSignal()" (toolSelect)="setSelectedTool($event)">
     </ng-toolbar>
 
-    <!-- Controls Panel -->
     <ng-controls-panel
-      class="controls-panel"
+      class="wb-controls"
       [config]="configSignal()"
       [showZoomMenu]="showZoomPopupSignal()"
       [hasSelection]="hasSelectionSignal()"
+      [compact]="isCompact()"
       (zoomIn)="zoomIn()"
       (zoomOut)="zoomOut()"
       (zoomTo)="onZoomTo($event)"
@@ -79,4 +79,78 @@
     >
     </ng-controls-panel>
   </div>
+
+  @if (isCompact()) {
+    <ng-bottom-sheet
+      label="Properties"
+      [open]="propertiesSheetOpenSignal()"
+      (closed)="propertiesSheetOpenSignal.set(false)"
+    >
+      <ng-properties-panel
+        [embedded]="true"
+        [config]="configSignal()"
+        [selectedElements]="selectedElementsSignal()"
+        [selectedProperties]="selectedPropertiesSignal()"
+        [isOpen]="true"
+        (colorChange)="onColorChange($event)"
+        (propertyChange)="onPropertyChange($event)"
+        (gridToggle)="toggleGrid()"
+        (snapToggle)="toggleSnapToGrid()"
+        (deleteSelected)="deleteElement()"
+        (togglePanel)="togglePropertiesSheet()"
+        (alignmentChange)="onAlignmentChange($event)"
+      >
+      </ng-properties-panel>
+    </ng-bottom-sheet>
+
+    <ng-bottom-sheet label="Menu" [open]="menuSheetOpenSignal()" (closed)="menuSheetOpenSignal.set(false)">
+      <div class="wb-sheet-menu">
+        <button class="wb-sheet-item" (click)="menuSheetOpenSignal.set(false); clear()">
+          <ng-icon name="new"></ng-icon><span>New</span>
+        </button>
+        <button class="wb-sheet-item" (click)="menuSheetOpenSignal.set(false); save()">
+          <ng-icon name="save"></ng-icon><span>Save</span>
+        </button>
+        <button class="wb-sheet-item" (click)="menuSheetOpenSignal.set(false); export()">
+          <ng-icon name="download"></ng-icon><span>Export</span>
+        </button>
+        <button class="wb-sheet-item" [attr.aria-label]="themeToggleLabelSignal()" (click)="toggleTheme()">
+          <ng-icon [name]="themeSignal() === 'dark' ? 'sun' : 'moon'"></ng-icon>
+          <span>{{ themeSignal() === 'dark' ? 'Light mode' : 'Dark mode' }}</span>
+        </button>
+      </div>
+    </ng-bottom-sheet>
+
+    <ng-bottom-sheet label="Layers" [open]="showLayersDropdownSignal()" (closed)="showLayersDropdownSignal.set(false)">
+      <ng-ng-layer-panel
+        class="wb-sheet-layers"
+        [layers]="whiteboardLayersSignal()"
+        [activeLayerId]="activeLayerIdSignal()"
+        (layerSelected)="onLayerPanelLayerSelected($event)"
+        (layerAdded)="onLayerAdd()"
+        (layerDeleted)="onLayerPanelLayerDeleted($event)"
+        (layerRenamed)="onLayerPanelLayerRenamed($event)"
+        (layerVisibilityToggled)="onLayerPanelVisibilityToggled($event)"
+        (layerLockToggled)="onLayerPanelLockToggled($event)"
+        (layerOpacityChanged)="onLayerPanelOpacityChanged($event)"
+        (layerMoved)="onLayerPanelLayerMoved($event)"
+        (layerBlendModeChanged)="onLayerPanelBlendModeChanged($event)"
+      >
+      </ng-ng-layer-panel>
+    </ng-bottom-sheet>
+
+    <ng-bottom-sheet label="Zoom" [open]="showZoomPopupSignal()" (closed)="showZoomPopupSignal.set(false)">
+      <div class="wb-sheet-menu">
+        <button class="wb-sheet-item" (click)="zoomToFit()">
+          <ng-icon name="fit"></ng-icon><span>Zoom to Fit</span>
+        </button>
+        <button class="wb-sheet-item" [disabled]="!hasSelectionSignal()" (click)="zoomToSelection()">
+          <ng-icon name="selection"></ng-icon><span>Zoom to Selection</span>
+        </button>
+        <button class="wb-sheet-item" (click)="resetZoom()">
+          <ng-icon name="reset"></ng-icon><span>Reset Zoom</span>
+        </button>
+      </div>
+    </ng-bottom-sheet>
+  }
 </div>
