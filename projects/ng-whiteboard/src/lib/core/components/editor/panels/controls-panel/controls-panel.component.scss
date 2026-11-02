@@ -5,7 +5,7 @@
   display: flex;
   align-items: center;
   gap: var(--wb-space-1); // Reduced gap
-  padding: var(--wb-space-1) var(--wb-space-2); // Reduced padding
+  padding: var(--wb-bar-padding) var(--wb-space-2);
   background: var(--wb-color-surface);
   border: 1px solid var(--wb-color-border);
   border-radius: var(--wb-radius);
@@ -30,8 +30,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 28px; // Smaller buttons
-    height: 28px;
+    width: var(--wb-control-size);
+    height: var(--wb-control-size);
     border: none;
     background: transparent;
     color: var(--wb-color-gray-600);
@@ -87,7 +87,7 @@
     justify-content: center;
     padding: var(--wb-space-1);
     min-width: 45px; // Smaller width
-    height: 28px; // Match icon button height
+    height: var(--wb-control-size);
     font-size: 0.7rem; // Smaller font
     font-weight: 500;
     color: var(--wb-color-gray-700);

@@ -7,7 +7,7 @@
   border: 1px solid var(--wb-color-border);
   border-radius: var(--wb-radius);
   box-shadow: var(--wb-shadow);
-  padding: var(--wb-space-1) var(--wb-space-2);
+  padding: var(--wb-bar-padding) var(--wb-space-2);
   display: flex;
   align-items: center;
   gap: 2px;
@@ -29,8 +29,8 @@
     }
 
     .icon-btn {
-      width: 28px;
-      height: 28px;
+      width: var(--wb-control-size);
+      height: var(--wb-control-size);
       border: none;
       background: transparent;
       border-radius: var(--wb-radius-sm);

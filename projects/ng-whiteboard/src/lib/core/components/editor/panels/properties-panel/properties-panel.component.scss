@@ -7,7 +7,7 @@
 }
 
 .panel-content {
-  width: 280px;
+  width: var(--wb-panel-width);
   background: var(--wb-color-white);
   border: 1px solid var(--wb-color-gray-200);
   border-radius: var(--wb-radius);
@@ -19,12 +19,8 @@
   transform: translateX(0);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   min-height: 200px;
-  max-height: calc(100cqh - 110px);
+  max-height: var(--wb-panel-max-height);
   overflow-y: auto;
-
-  @include bp.medium {
-    max-height: calc(100cqh - 170px);
-  }
   height: auto;
 
   &:not(.open) {

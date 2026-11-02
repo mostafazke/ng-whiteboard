@@ -103,7 +103,17 @@
   inset: 0;
   container: wb-editor / size;
   --wb-gap: var(--wb-space-4);
-  --wb-bar: 38px;
+  --wb-border-width: 1px;
+  // Floating bars (toolbar, history, zoom): one row of controls plus padding and border.
+  --wb-control-size: 28px;
+  --wb-bar-padding: var(--wb-space-1);
+  --wb-bar: calc(var(--wb-control-size) + 2 * var(--wb-bar-padding) + 2 * var(--wb-border-width));
+  --wb-header-control-size: 40px;
+  --wb-header-padding: var(--wb-space-2);
+  --wb-header: calc(var(--wb-header-control-size) + 2 * var(--wb-header-padding) + 2 * var(--wb-border-width));
+  --wb-panel-width: 280px;
+  --wb-safe-top: env(safe-area-inset-top, 0px);
+  --wb-safe-bottom: env(safe-area-inset-bottom, 0px);
   font-family:
     system-ui,
     -apple-system,
@@ -120,7 +130,8 @@
   }
 
   @include bp.coarse {
-    --wb-bar: 54px;
+    --wb-control-size: 44px;
+    --wb-header-control-size: 44px;
 
     button {
       min-width: 44px;
@@ -133,6 +144,13 @@
   position: absolute;
   inset: 0;
   pointer-events: none; // Allow pointer events to pass through to canvas
+  // Height taken from the bottom edge by the bottom bars, outer gap included.
+  --wb-bottom-reserve: calc(var(--wb-gap) + var(--wb-bar));
+  // Floating panels stop one gap above the bottom bars.
+  --wb-panel-max-height: calc(
+    100cqh - var(--wb-safe-top) - var(--wb-safe-bottom) - 2 * var(--wb-gap) - var(--wb-bottom-reserve)
+  );
+  --wb-popover-max-height: calc(var(--wb-panel-max-height) - var(--wb-header) - var(--wb-space-2));
 
   > .wb-header,
   > .wb-history,
@@ -179,6 +197,8 @@
 
   // Undo/redo and zoom sit on a row above the toolbar so they never collide with it.
   @include bp.not-wide {
+    --wb-bottom-reserve: calc(2 * var(--wb-gap) + 2 * var(--wb-bar));
+
     > .wb-history,
     > .wb-controls {
       bottom: calc(2 * var(--wb-gap) + var(--wb-bar));
@@ -187,7 +207,7 @@
 
   @include bp.medium {
     > .wb-header {
-      max-width: calc(100% - 280px - 3 * var(--wb-gap));
+      max-width: calc(100% - var(--wb-panel-width) - 3 * var(--wb-gap));
     }
   }
 

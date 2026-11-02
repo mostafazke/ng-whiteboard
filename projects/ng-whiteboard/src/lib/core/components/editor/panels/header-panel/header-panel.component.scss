@@ -9,7 +9,7 @@
   border: 1px solid var(--wb-color-border);
   border-radius: var(--wb-radius);
   box-shadow: var(--wb-shadow-md);
-  padding: var(--wb-space-2);
+  padding: var(--wb-header-padding);
   gap: var(--wb-space-2);
   max-width: 100%;
 
@@ -24,8 +24,8 @@
       position: relative;
 
       .layers-button {
-        width: 40px;
-        height: 40px;
+        width: var(--wb-header-control-size);
+        height: var(--wb-header-control-size);
         border: none;
         background: transparent;
         border-radius: var(--wb-radius-sm);
@@ -49,7 +49,7 @@
 
       .layers-dropdown {
         position: absolute;
-        top: calc(100% + 8px);
+        top: calc(100% + var(--wb-space-2));
         left: 0;
         min-width: 280px;
         background: var(--wb-color-surface);
@@ -57,7 +57,7 @@
         border-radius: var(--wb-radius);
         box-shadow: var(--wb-shadow-lg);
         z-index: 1000;
-        max-height: calc(100cqh - 100px);
+        max-height: var(--wb-popover-max-height);
         overflow-y: auto;
         animation: wb-slide-up 0.2s ease;
 

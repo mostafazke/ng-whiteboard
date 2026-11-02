@@ -24,6 +24,15 @@ describe('editor styles stay inside the editor', () => {
     expect(sheet.match(/#[0-9a-f]{3,8}\b|rgba?\(|(?<![\w-])white(?![\w-])/gi) ?? []).toEqual([]);
   });
 
+  it('container-relative sizes subtract tokens, never pixel literals tied to panel heights', () => {
+    const magic = files.flatMap((file) =>
+      (readFileSync(file, 'utf8').match(/calc\(100(?:cqh|cqw|%)[^;]*?-\s*\d+px[^;]*;/g) ?? []).map(
+        (rule) => `${file.split(/[\\/]/).pop()}: ${rule}`
+      )
+    );
+    expect(magic).toEqual([]);
+  });
+
   it('the unencapsulated sheet defines nothing on :root and prefixes its keyframes', () => {
     expect(globalSheet).not.toMatch(/:root/);
     expect(globalSheet.match(/@keyframes\s+[\w-]+/g)?.every((k) => /@keyframes\s+wb-/.test(k))).toBe(true);
