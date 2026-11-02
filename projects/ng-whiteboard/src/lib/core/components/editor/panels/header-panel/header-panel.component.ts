@@ -207,7 +207,7 @@ export class HeaderPanelComponent {
       name: layer.name,
       visible: layer.visible,
       locked: layer.locked,
-      opacity: (layer.opacity || 1) * 100, // Convert to percentage
+      opacity: layer.opacity ?? 1,
       zIndex: layer.zIndex,
       type: 'drawing' as const, // Default type
       elements: [], // Elements are managed separately in the data service

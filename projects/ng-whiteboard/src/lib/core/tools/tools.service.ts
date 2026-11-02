@@ -157,8 +157,7 @@ export class ToolsService {
         if (apiService) {
           this.updateCurrentToolInstance(toolType);
         }
-      },
-      { allowSignalWrites: true }
+      }
     );
 
     effect(
@@ -167,8 +166,7 @@ export class ToolsService {
         if (this._currentToolInstance()) {
           this.updateCursorForActiveTool();
         }
-      },
-      { allowSignalWrites: true }
+      }
     );
   }
 

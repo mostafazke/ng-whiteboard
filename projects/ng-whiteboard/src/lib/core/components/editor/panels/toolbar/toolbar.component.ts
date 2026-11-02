@@ -32,31 +32,6 @@ interface Tool {
         </button>
         <div class="toolbar-separator" *ngIf="group !== toolGroups[toolGroups.length - 1]"></div>
       </div>
-
-      <!-- Extended Tools Menu -->
-      <div class="dropdown-wrapper">
-        <button class="icon-btn more-tools" (click)="toggleExtendedTools()" [class.active]="showExtended()">
-          <ng-icon name="more"></ng-icon>
-        </button>
-
-        <div class="extended-tools" *ngIf="showExtended()">
-          <div class="extended-section" *ngFor="let section of extendedSections">
-            <div class="section-label">{{ section.label }}</div>
-            <div class="section-tools">
-              <button
-                *ngFor="let tool of section.tools"
-                (click)="onToolSelect(tool.id)"
-                [class.active]="tool.id === selectedTool()"
-                class="extended-tool-btn"
-                [attr.title]="tool.label"
-              >
-                <ng-icon [name]="tool.icon"></ng-icon>
-                <span>{{ tool.label }}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   `,
   styleUrl: './toolbar.component.scss',
@@ -64,10 +39,8 @@ interface Tool {
 })
 export class ToolbarComponent {
   selectedTool = input<ToolType>(ToolType.Pen);
-  showExtended = input<boolean>(false);
 
   @Output() toolSelect = new EventEmitter<ToolType>();
-  @Output() extendedToggle = new EventEmitter<void>();
 
   private readonly allTools: Tool[] = [
     { id: ToolType.Hand, label: 'Pan', icon: 'Hand', group: 'utility', shortcut: 'H' },
@@ -111,24 +84,8 @@ export class ToolbarComponent {
     },
   ];
 
-  // Extended tools for dropdown
-  extendedSections: { label: string; tools: Tool[] }[] = [
-    {
-      label: 'Advanced Drawing',
-      tools: [],
-    },
-    {
-      label: 'Annotations',
-      tools: [],
-    },
-  ];
-
   onToolSelect(toolId: ToolType) {
     this.toolSelect.emit(toolId);
-  }
-
-  toggleExtendedTools() {
-    this.extendedToggle.emit();
   }
 
   getTooltip(tool: Tool): string {

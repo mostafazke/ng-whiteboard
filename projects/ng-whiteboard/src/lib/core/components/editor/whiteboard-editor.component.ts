@@ -1,7 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, HostListener, inject, signal, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, ViewEncapsulation } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { SvgService } from '../../svg/svg.service';
 import { BlendMode, FormatType, ToolType } from '../../types';
+import { isEditableTarget } from '../../utils/dom/is-editable-target';
 import { EditorStateService, Layer } from './editor-state.service';
 import { IconComponent } from './icon/icon.component';
 import { ControlsPanelComponent } from './panels/controls-panel/controls-panel.component';
@@ -35,6 +38,7 @@ import { ColorPickerComponent } from './ui/color-picker/color-picker.component';
 })
 export class WhiteboardEditorComponent {
   public editorStateService = inject(EditorStateService);
+  private svgService = inject(SvgService);
 
   // Reactive signals for better performance
   configSignal = this.editorStateService.getConfigSignal();
@@ -46,7 +50,6 @@ export class WhiteboardEditorComponent {
   showLayersDropdownSignal = signal(false);
   showLayerPanelSignal = signal(false);
   showZoomPopupSignal = signal(false);
-  showExtendedToolsSignal = signal(false);
 
   // Expose editor state signals
   selectedElementsSignal = this.editorStateService.selectedElementsSignal;
@@ -58,20 +61,16 @@ export class WhiteboardEditorComponent {
   canRedoSignal = this.editorStateService.canRedoSignal;
   selectedPropertiesSignal = this.editorStateService.selectedPropertiesSignal;
 
-  /**
-   * Handle editor-specific keyboard shortcuts
-   * Note: Most shortcuts (undo/redo, copy/paste, zoom, etc.) are handled by the whiteboard library's KeyboardShortcutService
-   */
-  @HostListener('window:keydown', ['$event'])
-  handleKeyboardShortcut(event: KeyboardEvent) {
-    // Don't handle shortcuts when editing text
-    if (this.isEditingTitleSignal()) return;
+  constructor() {
+    this.svgService.keyDown$.pipe(takeUntilDestroyed()).subscribe((event) => this.handleKeyboardShortcut(event));
+  }
 
-    // Toggle Properties Panel: P (editor-specific UI shortcut)
-    if (event.key === 'p' && !event.ctrlKey && !event.metaKey) {
+  private handleKeyboardShortcut(event: KeyboardEvent) {
+    if (this.isEditingTitleSignal() || isEditableTarget(event.target)) return;
+
+    if (event.altKey && !event.ctrlKey && !event.metaKey && event.key.toLowerCase() === 'p') {
       event.preventDefault();
       this.togglePanel();
-      return;
     }
   }
 
@@ -107,7 +106,6 @@ export class WhiteboardEditorComponent {
 
   // Layer Panel Event Handlers (for header panel integration)
   onLayerPanelLayerSelected(layerId: string) {
-    console.log(`Editor: Received layer selection event for ${layerId}`);
     this.editorStateService.setActiveLayer(layerId);
   }
 
@@ -120,9 +118,7 @@ export class WhiteboardEditorComponent {
   }
 
   onLayerPanelOpacityChanged(event: { layerId: string; opacity: number }) {
-    // Convert percentage to decimal (0-1)
-    const opacity = event.opacity / 100;
-    this.editorStateService.setLayerOpacity(event.layerId, opacity);
+    this.editorStateService.setLayerOpacity(event.layerId, event.opacity);
   }
 
   onLayerPanelLayerMoved(event: { layerId: string; direction: 'up' | 'down' }) {
@@ -191,10 +187,6 @@ export class WhiteboardEditorComponent {
   // Toolbar Events
   setSelectedTool(tool: ToolType) {
     this.editorStateService.selectTool(tool);
-  }
-
-  toggleExtendedTools() {
-    this.showExtendedToolsSignal.update((value) => !value);
   }
 
   // Controls Panel Events

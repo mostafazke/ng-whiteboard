@@ -75,10 +75,6 @@
           animation: tooltipFadeIn 0.2s ease;
         }
       }
-
-      &.more-tools {
-        margin-left: var(--space-1);
-      }
     }
   }
 
@@ -87,77 +83,6 @@
     height: 20px;
     background-color: var(--color-gray-200);
     margin: 0 var(--space-1);
-  }
-
-  // Extended Tools Dropdown
-  .dropdown-wrapper {
-    position: relative;
-
-    .extended-tools {
-      position: absolute;
-      bottom: calc(100% + 8px);
-      right: 0;
-      background: var(--color-white);
-      border: 1px solid var(--color-gray-200);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-md);
-      min-width: 200px;
-      z-index: 1000;
-      animation: dropdownSlideUp 0.2s ease;
-
-      .extended-section {
-        padding: var(--space-3);
-
-        &:not(:last-child) {
-          border-bottom: 1px solid var(--color-gray-100);
-        }
-
-        .section-label {
-          font-size: 0.75rem;
-          font-weight: 600;
-          color: var(--color-gray-700);
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-          margin-bottom: var(--space-2);
-        }
-
-        .section-tools {
-          display: flex;
-          flex-direction: column;
-          gap: var(--space-1);
-
-          .extended-tool-btn {
-            display: flex;
-            align-items: center;
-            gap: var(--space-2);
-            padding: var(--space-2);
-            border: none;
-            background: transparent;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            color: var(--color-gray-700);
-            transition: all 0.2s ease;
-            width: 100%;
-            text-align: left;
-
-            &:hover {
-              background-color: var(--color-gray-50);
-              color: var(--color-gray-900);
-            }
-
-            &.active {
-              background-color: var(--color-primary);
-              color: white;
-            }
-
-            span {
-              font-size: 0.875rem;
-              font-weight: 500;
-            }
-          }
-        }
-      }
-    }
   }
 }
 
@@ -173,17 +98,6 @@
   }
 }
 
-@keyframes dropdownSlideUp {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 // Responsive Design
 @media (max-width: 768px) {
   .toolbar-floating {
@@ -192,12 +106,6 @@
         width: 36px;
         height: 36px;
       }
-    }
-
-    .extended-tools {
-      right: auto;
-      left: 0;
-      min-width: 180px;
     }
   }
 }

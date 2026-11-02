@@ -104,7 +104,6 @@ export class LayerPanelComponent implements OnInit {
   }
 
   onSelectLayer(layerId: string): void {
-    console.log(`Layer panel: Selecting layer ${layerId}`);
     this.layerSelected.emit(layerId);
   }
 

@@ -1,4 +1,5 @@
 import { Injectable, signal, WritableSignal } from '@angular/core';
+import { Observable, Subject } from 'rxjs';
 import { ApiService } from '../api/api.service';
 import { ContextMenuService } from '../components/context-menu';
 import { ConfigService } from '../config/config.service';
@@ -26,6 +27,9 @@ export class SvgService {
   private readonly pointerDownSig: WritableSignal<PointerInfo | null> = signal<PointerInfo | null>(null);
   private readonly pointerMoveSig: WritableSignal<PointerInfo | null> = signal<PointerInfo | null>(null);
   private readonly pointerUpSig: WritableSignal<PointerInfo | null> = signal<PointerInfo | null>(null);
+
+  private readonly keyDownSubject = new Subject<KeyboardEvent>();
+  readonly keyDown$: Observable<KeyboardEvent> = this.keyDownSubject.asObservable();
 
   private isSpaceHeld = false;
   /** True while a pointer gesture is manipulating the selection (move/resize/rotate) even though
@@ -141,6 +145,8 @@ export class SvgService {
   }
 
   onKeyDown(event: KeyboardEvent) {
+    this.keyDownSubject.next(event);
+
     if (event.code === KEY.SPACE && !this.isSpaceHeld && !this.isTextToolEditing()) {
       this.isSpaceHeld = true;
       this.toolsService.pushTemporaryTool(ToolType.Hand, TEMPORARY_TOOL_ID.PAN_SPACE);

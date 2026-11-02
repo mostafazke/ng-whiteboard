@@ -101,26 +101,6 @@ export class EditorStateService {
     return {};
   });
 
-  private updateLayersFromElements(elements: WhiteboardElement[]) {
-    // Group elements by their layer IDs
-    const elementsByLayer = elements.reduce((acc, element) => {
-      const layerId = element.layerId || 'default';
-      if (!acc[layerId]) {
-        acc[layerId] = [];
-      }
-      acc[layerId].push(element.id);
-      return acc;
-    }, {} as Record<string, string[]>);
-
-    // Update layers with their elements using LayerManagementService
-    const layers = this.layersSignal();
-    layers.forEach((layer) => {
-      // TODO: Update LayerManagementService to handle bulk element assignment
-      // For now, we'll skip this update to avoid breaking the computed signal
-      console.debug(`Layer ${layer.id} has ${elementsByLayer[layer.id]?.length || 0} elements`);
-    });
-  }
-
   // Public API methods
   getConfigSignal(): Signal<WhiteboardConfig> {
     return this.configService.getConfigSignal();
@@ -140,8 +120,6 @@ export class EditorStateService {
   alignElements(alignment: AlignmentType) {
     const selectedElements = this.selectedElementsSignal();
     if (selectedElements.length < 2) return; // Need at least 2 elements to align
-
-    console.log('Aligning elements:', alignment, selectedElements.length);
 
     // Create element data with positions and dimensions
     const elementData = selectedElements.map((element) => {
@@ -174,8 +152,6 @@ export class EditorStateService {
         bottom: element.y + height,
       };
     });
-
-    console.log('Element data:', elementData);
 
     const updates: (Partial<WhiteboardElement> & { id: string })[] = [];
 
@@ -268,8 +244,6 @@ export class EditorStateService {
         break;
       }
     }
-
-    console.log('Alignment updates:', updates);
 
     // Apply updates
     if (updates.length > 0) {
@@ -688,10 +662,7 @@ export class EditorStateService {
 
   // Save/export current board
   save(format: FormatType, title?: string) {
-    // Get data from elementsService
-    const data = this.elementsService.getElements();
-    // For now simply emit serialized data; format hint included in title suffix
-    console.log('Saving whiteboard:', { format, title: title || 'Whiteboard', elementCount: data.length });
+    // Persistence is not implemented yet; kept for the public editor API
   }
 
   undo() {

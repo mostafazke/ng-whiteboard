@@ -49,7 +49,6 @@ export class ColorPickerComponent {
   ];
 
   onColorChange(event: Event) {
-    console.log('🚀 ~ ColorPickerComponent ~ onColorChange ~ event:', event);
     const target = event.target as HTMLInputElement;
     this.colorChange.emit(target.value);
   }
