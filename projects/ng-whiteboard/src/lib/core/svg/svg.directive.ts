@@ -8,6 +8,8 @@ import { ConfigService } from '../config/config.service';
 import { GestureFrame, GestureTracker } from './gesture-tracker';
 
 const TOUCH = 'touch';
+/** Finger-distance jitter below this per-frame scale change is a pure pan, so it never emits a ZoomChange. */
+const PINCH_DEAD_ZONE = 1e-3;
 
 @Directive({
   selector: '[svg]',
@@ -148,7 +150,7 @@ export class SvgDirective implements OnDestroy {
       this.holdingConfigEvents = true;
       this.configService.holdEvents();
     }
-    if (scale !== 1) {
+    if (Math.abs(scale - 1) >= PINCH_DEAD_ZONE) {
       this.zoomService.zoomAtPoint(this.zoomService.getZoomLevel() * scale, centerX - dx, centerY - dy);
     }
     const zoom = this.zoomService.getZoomLevel();

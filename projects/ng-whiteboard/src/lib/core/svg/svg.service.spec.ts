@@ -482,6 +482,22 @@ describe('SvgService', () => {
       configService.getConfig.mockReturnValue({ drawingEnabled: true, keyboardShortcutsEnabled: true } as WhiteboardConfig);
     });
 
+    it('a stale DrawStart never yields a DrawEnd for a later blocked down followed by a pinch', () => {
+      service.onPointerDown(createMockPointerInfo());
+      configService.getConfig.mockReturnValue({ drawingEnabled: false } as WhiteboardConfig);
+      service.onPointerUp(createMockPointerInfo({ eventType: 'pointerup' }));
+      eventBusService.emit.mockClear();
+
+      service.onPointerDown(createMockPointerInfo());
+      service.cancelInteraction();
+
+      expect(drawEndCount()).toBe(0);
+      configService.getConfig.mockReturnValue({
+        drawingEnabled: true,
+        keyboardShortcutsEnabled: true,
+      } as WhiteboardConfig);
+    });
+
     it('pairs DrawEnd with DrawStart when a gesture resumes', () => {
       service.onPointerDown(createMockPointerInfo());
       service.cancelInteraction();

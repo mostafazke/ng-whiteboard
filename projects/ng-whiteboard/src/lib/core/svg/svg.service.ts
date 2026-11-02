@@ -53,6 +53,7 @@ export class SvgService {
   ) {}
 
   onPointerDown(info: PointerInfo) {
+    this.drawStarted = false;
     if (info.button === MOUSE_BUTTON.MIDDLE) {
       this.toolsService.pushTemporaryTool(ToolType.Hand, TEMPORARY_TOOL_ID.PAN_MIDDLE);
       const hand = this.safeGetHandTool();

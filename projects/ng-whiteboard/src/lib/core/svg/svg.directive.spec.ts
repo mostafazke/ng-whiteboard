@@ -8,7 +8,8 @@ import { PanService } from '../viewport/pan.service';
 import { NgWhiteboardComponent } from '../../ng-whiteboard.component';
 import { ApiService } from '../api/api.service';
 import { HistoryService } from '../history/history.service';
-import { ToolType } from '../types';
+import { ToolType, WhiteboardEvent } from '../types';
+import { EventBusService } from '../event-bus/event-bus.service';
 import { ConfigService } from '../config/config.service';
 import { getCanvasCoordinates } from '../utils/geometry/coordinate';
 
@@ -37,6 +38,7 @@ describe('SvgDirective', () => {
   let debugElement: DebugElement;
   let zoomServiceMock: { getZoomLevel: jest.Mock; zoomAtPoint: jest.Mock };
   let panServiceMock: { pan: jest.Mock };
+  let unitFixture: ComponentFixture<TestComponent>;
 
   beforeEach(() => {
     svgServiceMock = {
@@ -59,10 +61,10 @@ describe('SvgDirective', () => {
       ],
     });
 
-    const fixture = TestBed.createComponent(TestComponent);
-    fixture.detectChanges();
+    unitFixture = TestBed.createComponent(TestComponent);
+    unitFixture.detectChanges();
 
-    debugElement = fixture.debugElement.query(By.directive(SvgDirective));
+    debugElement = unitFixture.debugElement.query(By.directive(SvgDirective));
     directive = debugElement.injector.get(SvgDirective);
   });
 
@@ -303,6 +305,25 @@ describe('SvgDirective', () => {
       expect(svgServiceMock.onPointerDown).toHaveBeenCalledTimes(2);
     });
 
+    it('destroying the directive mid-pinch releases the config hold so events flow again', () => {
+      const config = TestBed.inject(ConfigService);
+      const emitted: WhiteboardEvent[] = [];
+      TestBed.inject(EventBusService)
+        .listen()
+        .subscribe((e) => emitted.push(e.type));
+      down(1, 0, 0);
+      down(2, 100, 0);
+      move(1, 10, 6);
+
+      config.updateConfig({ x: 3 });
+      expect(emitted).toEqual([]);
+
+      unitFixture.destroy();
+      config.updateConfig({ x: 7 });
+
+      expect(emitted).toEqual([WhiteboardEvent.ConfigChange, WhiteboardEvent.ConfigChange]);
+    });
+
     it('single-touch pointercancel still reaches the svg service', () => {
       down(1, 0, 0);
       directive.onPointerCancel(pointer('pointercancel', { pointerId: 1, button: 0, buttons: 0 }));
@@ -410,6 +431,82 @@ describe('SvgDirective (integration)', () => {
       expect(config.getConfig().y).toBeCloseTo(500);
       expect(zoomChanges).toBe(0);
       expect(configChanges).toBe(1);
+    });
+
+    it('a pan whose finger distance jitters below the dead zone emits no ZoomChange', () => {
+      // Fingers leapfrog along x; each hop lands 100px (± up to 0.04px) past the other finger.
+      const x = [0, 100];
+      directive.onPointerDown(touch('pointerdown', 1, x[0], 0));
+      directive.onPointerDown(touch('pointerdown', 2, x[1], 0));
+      [0.04, -0.03, 0.02, -0.04, 0.03, -0.01].forEach((jitter, i) => {
+        const finger = i % 2;
+        x[finger] = x[1 - finger] + 100 + jitter;
+        directive.onPointerMove(touch('pointermove', finger + 1, x[finger], 0));
+      });
+      directive.onPointerUp(touch('pointerup', 1, x[0], 0));
+      directive.onPointerUp(touch('pointerup', 2, x[1], 0));
+
+      expect(config.getConfig().zoom).toBe(1);
+      expect(zoomChanges).toBe(0);
+      expect(configChanges).toBe(1);
+    });
+
+    describe('the hold is released', () => {
+      const startPinch = () => {
+        directive.onPointerDown(touch('pointerdown', 1, 100, 100));
+        directive.onPointerDown(touch('pointerdown', 2, 200, 100));
+        directive.onPointerMove(touch('pointermove', 2, 300, 100));
+        expect(zoomChanges).toBe(0);
+      };
+      const end = (type: 'pointercancel' | 'pointerleave', id: number) =>
+        directive.onPointerCancel(touch(type, id, 0, 0));
+      const expectEventsFlowAgain = () => {
+        config.updateConfig({ x: 42 });
+        expect(configChanges).toBe(2);
+      };
+
+      it('by pointercancel', () => {
+        startPinch();
+        end('pointercancel', 2);
+
+        expect([zoomChanges, configChanges]).toEqual([1, 1]);
+        expectEventsFlowAgain();
+      });
+
+      it('by pointerleave', () => {
+        startPinch();
+        end('pointerleave', 1);
+
+        expect([zoomChanges, configChanges]).toEqual([1, 1]);
+        expectEventsFlowAgain();
+      });
+
+      it('only when a third finger lifting leaves fewer than two', () => {
+        startPinch();
+        directive.onPointerDown(touch('pointerdown', 3, 400, 400));
+        directive.onPointerUp(touch('pointerup', 3, 400, 400));
+        directive.onPointerMove(touch('pointermove', 2, 350, 100));
+        expect(zoomChanges).toBe(0);
+
+        directive.onPointerUp(touch('pointerup', 2, 350, 100));
+
+        expect([zoomChanges, configChanges]).toEqual([1, 1]);
+        expectEventsFlowAgain();
+      });
+
+      it('by destroying the board mid-pinch', () => {
+        const emitted: WhiteboardEvent[] = [];
+        fixture.debugElement.injector
+          .get(EventBusService)
+          .listen()
+          .subscribe((e) => emitted.push(e.type));
+        startPinch();
+
+        fixture.destroy();
+
+        const viewport = [WhiteboardEvent.ZoomChange, WhiteboardEvent.ConfigChange];
+        expect(emitted.filter((type) => viewport.includes(type))).toEqual(viewport);
+      });
     });
 
     it('keeps the canvas point under the fingers fixed on a centred page', () => {

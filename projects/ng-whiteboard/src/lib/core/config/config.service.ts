@@ -46,7 +46,8 @@ export class ConfigService {
 
   private editorConfig = signal<EditorConfig>({ title: 'Whiteboard' });
 
-  private eventsHeld = false;
+  /** Nesting depth of {@link holdEvents}; events flow again once every hold is released. */
+  private holdDepth = 0;
   private heldZoomChange = false;
   private heldConfigChange = false;
 
@@ -85,7 +86,7 @@ export class ConfigService {
 
     const hasZoomRelatedChanges = 'zoom' in partialConfig;
 
-    if (this.eventsHeld) {
+    if (this.holdDepth > 0) {
       this.heldZoomChange ||= hasZoomRelatedChanges;
       this.heldConfigChange ||= emitEvent;
       return;
@@ -103,19 +104,20 @@ export class ConfigService {
   }
 
   /**
-   * Coalesce the ZoomChange/ConfigChange events of `updateConfig` until {@link releaseEvents},
-   * e.g. for the per-frame updates of a pinch. The config itself still updates immediately.
+   * Coalesce the ZoomChange/ConfigChange events of `updateConfig` until the matching {@link releaseEvents},
+   * e.g. for the per-frame updates of a pinch. The config itself still updates immediately. Holds nest.
    */
   holdEvents(): void {
-    this.eventsHeld = true;
+    this.holdDepth++;
   }
 
-  /** Stop holding and emit at most one ZoomChange and one ConfigChange for the held updates. */
+  /** Release one hold; the last release emits at most one ZoomChange and one ConfigChange for the held updates. */
   releaseEvents(): void {
-    if (!this.eventsHeld) return;
+    if (this.holdDepth === 0) return;
+    this.holdDepth--;
+    if (this.holdDepth > 0) return;
     const zoomChanged = this.heldZoomChange;
     const configChanged = this.heldConfigChange;
-    this.eventsHeld = false;
     this.heldZoomChange = false;
     this.heldConfigChange = false;
 

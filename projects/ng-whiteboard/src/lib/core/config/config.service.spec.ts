@@ -639,5 +639,31 @@ describe('ConfigService', () => {
       service.releaseEvents();
       expect(emitted).toEqual([]);
     });
+
+    it('nested holds emit only when the outermost hold is released', () => {
+      service.holdEvents();
+      service.holdEvents();
+      service.updateConfig({ zoom: 2 });
+
+      service.releaseEvents();
+      expect(emitted).toEqual([]);
+      service.updateConfig({ x: 3 });
+      expect(emitted).toEqual([]);
+
+      service.releaseEvents();
+      expect(emitted).toEqual([WhiteboardEvent.ZoomChange, WhiteboardEvent.ConfigChange]);
+    });
+
+    it('an extra release does not underflow: the next hold still holds', () => {
+      service.holdEvents();
+      service.releaseEvents();
+      service.releaseEvents();
+
+      service.holdEvents();
+      service.updateConfig({ x: 1 });
+      expect(emitted).toEqual([]);
+      service.releaseEvents();
+      expect(emitted).toEqual([WhiteboardEvent.ConfigChange]);
+    });
   });
 });
