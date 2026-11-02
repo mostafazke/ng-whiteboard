@@ -83,4 +83,42 @@ describe('ColorPickerComponent', () => {
 
     expect(emitted).toEqual(['#000000']);
   });
+
+  describe('preview', () => {
+    const preview = (): HTMLElement => fixture.nativeElement.querySelector('.color-preview');
+    const button = (): HTMLElement => fixture.nativeElement.querySelector('.custom-color-swatch');
+
+    it('shows the real transparent value, not the native seed', () => {
+      fixture.componentInstance.value = 'transparent';
+      fixture.detectChanges();
+
+      expect(preview().style.backgroundColor).toBe('transparent');
+      expect(button().getAttribute('title')).toBe('Custom color: transparent');
+      expect(nativeInput().value).toMatch(/^#(7f7f80|808081)$/);
+    });
+
+    it('previews 3-digit hex and named colors as given', () => {
+      fixture.componentInstance.value = '#f00';
+      fixture.detectChanges();
+      expect(preview().style.backgroundColor).toBe('rgb(255, 0, 0)');
+      expect(button().getAttribute('title')).toBe('Custom color: #f00');
+
+      fixture.componentInstance.value = 'red';
+      fixture.componentInstance.finishEdit();
+      fixture.detectChanges();
+      expect(preview().style.backgroundColor).toBe('rgb(255, 0, 0)');
+    });
+  });
+
+  it('re-renders the native seed after an edit ends while still mixed', () => {
+    fixture.componentInstance.value = MIXED;
+    fixture.detectChanges();
+    const first = nativeInput().value;
+    pickInBrowser('#123456');
+
+    fixture.componentInstance.finishEdit();
+    fixture.detectChanges();
+
+    expect(nativeInput().value).not.toBe(first);
+  });
 });

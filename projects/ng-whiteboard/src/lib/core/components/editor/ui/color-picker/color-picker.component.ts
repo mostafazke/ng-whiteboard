@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  inject,
   Component,
   ElementRef,
   EventEmitter,
@@ -42,7 +44,7 @@ const COLOR_EDIT_SETTLE_MS = 400;
             type="color"
             tabindex="-1"
             aria-hidden="true"
-            [value]="currentColor"
+            [value]="nativeColor"
             (input)="onColorChange($event)"
             (change)="finishEdit()"
             (blur)="finishEdit()"
@@ -74,6 +76,7 @@ export class ColorPickerComponent implements OnDestroy {
   @Output() editStart = new EventEmitter<EventTarget>();
   @Output() editEnd = new EventEmitter<EventTarget | null>();
   @ViewChild('colorInput') colorInput!: ElementRef<HTMLInputElement>;
+  private cdr = inject(ChangeDetectorRef);
   private seedIndex = 0;
   private editTarget: EventTarget | null = null;
   private settleTimer: ReturnType<typeof setTimeout> | null = null;
@@ -87,6 +90,10 @@ export class ColorPickerComponent implements OnDestroy {
   }
 
   get currentColor(): string {
+    return this.value === MIXED ? NATIVE_SEEDS[this.seedIndex] : this.value;
+  }
+
+  get nativeColor(): string {
     return this.value !== MIXED && HEX_COLOR.test(this.value) ? this.value : NATIVE_SEEDS[this.seedIndex];
   }
 
@@ -115,6 +122,7 @@ export class ColorPickerComponent implements OnDestroy {
     const target = this.editTarget;
     this.editTarget = null;
     this.seedIndex = 1 - this.seedIndex;
+    this.cdr.markForCheck();
     this.editEnd.emit(target);
   }
 

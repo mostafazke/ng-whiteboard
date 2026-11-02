@@ -103,6 +103,18 @@ describe('EditorStateService', () => {
       expect(history.undo()).toBeNull();
     });
 
+    it('solid line style clears the dasharray on every selected element', () => {
+      elements.setElements([
+        rect('a', 0, 0, 10, 10, { style: { strokeWidth: 2, dasharray: '6,6' } }),
+        rect('b', 20, 0, 10, 10, { style: { strokeWidth: 8, dasharray: '8,16' } }),
+      ]);
+      selection.selectElements(['a', 'b']);
+
+      service.updateLineStyle('solid');
+
+      expect(elements.getElements().map((e) => e.style.dasharray)).toEqual(['', '']);
+    });
+
     it('setting opacity folds a preset style opacity so the shown value is the rendered one', () => {
       elements.setElements([rect('a', 0, 0, 10, 10, { style: { opacity: 0.4 } })]);
       selection.selectElements(['a']);

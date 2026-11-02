@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, EventEmitter, input, Outp
 import { ElementType, WhiteboardConfig, WhiteboardElement } from '../../../../types';
 import { AlignmentType } from '../../ui/alignment-controls/alignment-controls.component';
 import { IconComponent } from '../../icon/icon.component';
+import { buildDasharray } from '../../utils/dasharray';
 import { MIXED, SelectedProperties } from '../../utils/selected-properties';
 import { ColorPickerComponent } from '../../ui/color-picker/color-picker.component';
 import { AlignmentControlsComponent } from '../../ui/alignment-controls/alignment-controls.component';
@@ -374,21 +375,21 @@ export class PropertiesPanelComponent {
     const dasharray = this.dashArrayValue();
     const width = this.strokeWidthNumber();
     // Dashed pattern: dash length ~3x width, gap ~3x width
-    return dasharray === `${width * 3},${width * 3}`;
+    return dasharray === buildDasharray('dashed', width);
   });
 
   isDottedActive = computed(() => {
     const dasharray = this.dashArrayValue();
     const width = this.strokeWidthNumber();
     // Dotted pattern: dash length ~1x width, gap ~2x width
-    return dasharray === `${width},${width * 2}`;
+    return dasharray === buildDasharray('dotted', width);
   });
 
   isDashDotActive = computed(() => {
     const dasharray = this.dashArrayValue();
     const width = this.strokeWidthNumber();
     // Dash-dot pattern: long dash ~5x, gap ~2x, short dash ~1x, gap ~2x
-    return dasharray === `${width * 5},${width * 2},${width},${width * 2}`;
+    return dasharray === buildDasharray('dashdot', width);
   });
 
   isMixed(value: unknown): boolean {
