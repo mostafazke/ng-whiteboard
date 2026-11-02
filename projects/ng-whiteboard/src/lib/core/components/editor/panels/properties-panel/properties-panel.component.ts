@@ -29,17 +29,17 @@ interface PropertyChangeEvent {
         <div class="panel-header">
           <h3 class="panel-title">Actions</h3>
           <div class="actions-bar">
-            <button title="Toggle Grid" class="icon-btn" (click)="onGridToggle()" [class.active]="config().enableGrid">
+            <button title="Toggle Grid" aria-label="Toggle Grid" class="icon-btn" (click)="onGridToggle()" [class.active]="config().enableGrid">
               <ng-icon name="grid"></ng-icon>
             </button>
-            <button title="Snap to Grid" class="icon-btn" (click)="onSnapToggle()" [class.active]="config().snapToGrid">
+            <button title="Snap to Grid" aria-label="Snap to Grid" class="icon-btn" (click)="onSnapToggle()" [class.active]="config().snapToGrid">
               <ng-icon name="snap"></ng-icon>
             </button>
-            <button title="Delete" class="icon-btn danger" (click)="onDelete()" [disabled]="!hasSelection()">
+            <button title="Delete" aria-label="Delete" class="icon-btn danger" (click)="onDelete()" [disabled]="!hasSelection()">
               <ng-icon name="clear"></ng-icon>
             </button>
             <div class="flex-spacer"></div>
-            <button title="Close Panel" class="icon-btn toggle-panel" (click)="togglePanel.emit()">
+            <button title="Close Panel" aria-label="Close Panel" class="icon-btn toggle-panel" (click)="togglePanel.emit()">
               <ng-icon [name]="embedded() ? 'close' : 'panelRightClose'"></ng-icon>
             </button>
           </div>
@@ -85,6 +85,7 @@ interface PropertyChangeEvent {
                       type="range"
                       min="1"
                       max="20"
+                      aria-label="Stroke width"
                       [value]="strokeWidthNumber()"
                       (input)="onPropertyChange('strokeWidth', $event)"
                     />
@@ -101,7 +102,7 @@ interface PropertyChangeEvent {
                       class="line-style-btn"
                       [class.active]="dashArrayValue() === ''"
                       (click)="onLineStyleChange('')"
-                      title="Solid"
+                      title="Solid" aria-label="Solid"
                     >
                       <svg width="32" height="4" viewBox="0 0 32 4">
                         <line x1="0" y1="2" x2="32" y2="2" stroke="currentColor" stroke-width="2" />
@@ -111,7 +112,7 @@ interface PropertyChangeEvent {
                       class="line-style-btn"
                       [class.active]="isDashedActive()"
                       (click)="onLineStyleChange('dashed')"
-                      title="Dashed"
+                      title="Dashed" aria-label="Dashed"
                     >
                       <svg width="32" height="4" viewBox="0 0 32 4">
                         <line
@@ -129,7 +130,7 @@ interface PropertyChangeEvent {
                       class="line-style-btn"
                       [class.active]="isDottedActive()"
                       (click)="onLineStyleChange('dotted')"
-                      title="Dotted"
+                      title="Dotted" aria-label="Dotted"
                     >
                       <svg width="32" height="4" viewBox="0 0 32 4">
                         <line
@@ -147,7 +148,7 @@ interface PropertyChangeEvent {
                       class="line-style-btn"
                       [class.active]="isDashDotActive()"
                       (click)="onLineStyleChange('dashdot')"
-                      title="Dash-Dot"
+                      title="Dash-Dot" aria-label="Dash-Dot"
                     >
                       <svg width="32" height="4" viewBox="0 0 32 4">
                         <line
@@ -170,7 +171,7 @@ interface PropertyChangeEvent {
                 <div class="control-slider">
                   <label class="slider-label">Opacity</label>
                   <div class="slider-container">
-                    <input type="range" min="0" max="100" [value]="opacityNumber()" (input)="onOpacityChange($event)" />
+                    <input type="range" min="0" max="100" aria-label="Opacity" [value]="opacityNumber()" (input)="onOpacityChange($event)" />
                     <span class="value-display">{{ isMixed(opacityValue()) ? '—' : opacityNumber() + '%' }}</span>
                   </div>
                 </div>
@@ -194,6 +195,7 @@ interface PropertyChangeEvent {
               <div class="control-row">
                 <label>Font Family</label>
                 <select
+                  aria-label="Font family"
                   [value]="isMixed(fontFamilyValue()) ? '' : fontFamilyValue()"
                   (change)="onPropertyChange('fontFamily', $event)"
                 >
@@ -215,6 +217,7 @@ interface PropertyChangeEvent {
                     type="range"
                     min="8"
                     max="72"
+                    aria-label="Font size"
                     [value]="fontSizeNumber()"
                     (input)="onPropertyChange('fontSize', $event)"
                   />
@@ -225,10 +228,10 @@ interface PropertyChangeEvent {
               <div class="control-group">
                 <label class="group-label">Text Style</label>
                 <div class="button-group">
-                  <button class="style-btn" [class.active]="isBold()" (click)="toggleBold()" title="Bold">
+                  <button class="style-btn" [class.active]="isBold()" (click)="toggleBold()" title="Bold" aria-label="Bold">
                     <strong>B</strong>
                   </button>
-                  <button class="style-btn" [class.active]="isItalic()" (click)="toggleItalic()" title="Italic">
+                  <button class="style-btn" [class.active]="isItalic()" (click)="toggleItalic()" title="Italic" aria-label="Italic">
                     <em>I</em>
                   </button>
                 </div>
@@ -242,7 +245,7 @@ interface PropertyChangeEvent {
       <button
         *ngIf="!isOpen() && !embedded()"
         class="panel-toggle-btn"
-        title="Open Properties Panel"
+        title="Open Properties Panel" aria-label="Open Properties Panel"
         (click)="togglePanel.emit()"
       >
         <ng-icon name="panelRightOpen"></ng-icon>

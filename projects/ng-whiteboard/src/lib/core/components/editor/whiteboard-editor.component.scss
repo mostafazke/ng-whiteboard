@@ -325,3 +325,8 @@ ng-bottom-sheet .wb-sheet-layers {
     transform: translateY(0);
   }
 }
+
+.editor :focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}

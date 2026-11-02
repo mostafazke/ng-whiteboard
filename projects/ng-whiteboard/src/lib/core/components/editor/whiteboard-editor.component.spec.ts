@@ -122,6 +122,92 @@ describe('WhiteboardEditorComponent', () => {
     expect(fixture.nativeElement.querySelector('.more-tools')).toBeNull();
   });
 
+  describe('accessibility', () => {
+    const resize = (width: number, height: number) => {
+      FakeResizeObserver.instances.forEach((o) => o.resize(width, height));
+      fixture.detectChanges();
+    };
+    const unnamed = (): string[] =>
+      Array.from(fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>)
+        .filter((b) => !(b.getAttribute('aria-label') ?? '').trim() && !(b.textContent ?? '').trim())
+        .map((b) => b.className || b.outerHTML);
+    const rect = (id: string, x: number, zIndex: number) =>
+      ({
+        id,
+        type: ElementType.Rectangle,
+        x,
+        y: 0,
+        width: 10,
+        height: 10,
+        rx: 0,
+        rotation: 0,
+        opacity: 100,
+        zIndex,
+        selectAfterDraw: false,
+        style: {},
+      }) as WhiteboardElement;
+    const selectThree = () => {
+      TestBed.inject(ElementsService).setElements([rect('r1', 0, 1), rect('r2', 20, 2), rect('r3', 40, 3)]);
+      TestBed.inject(SelectionService).selectElements(['r1', 'r2', 'r3']);
+      fixture.detectChanges();
+    };
+    const escape = (target: HTMLElement) =>
+      target.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }));
+
+    beforeEach(() => document.body.appendChild(fixture.nativeElement));
+    afterEach(() => fixture.nativeElement.remove());
+    afterAll(() => {
+      delete (globalThis as unknown as { ResizeObserver?: unknown }).ResizeObserver;
+    });
+
+    it('every editor button has an accessible name (wide, popovers open)', () => {
+      resize(1440, 900);
+      selectThree();
+      component.showZoomPopupSignal.set(true);
+      component.showLayersDropdownSignal.set(true);
+      fixture.detectChanges();
+      expect(unnamed()).toEqual([]);
+    });
+
+    it('every editor button has an accessible name (compact, sheets open)', () => {
+      resize(390, 844);
+      selectThree();
+      component.propertiesSheetOpenSignal.set(true);
+      component.menuSheetOpenSignal.set(true);
+      component.showLayersDropdownSignal.set(true);
+      component.showZoomPopupSignal.set(true);
+      fixture.detectChanges();
+      expect(unnamed()).toEqual([]);
+    });
+
+    it('Escape closes zoom menu and focuses its trigger', () => {
+      resize(1440, 900);
+      const trigger = fixture.nativeElement.querySelector('.zoom-value') as HTMLButtonElement;
+      trigger.click();
+      fixture.detectChanges();
+      const action = fixture.nativeElement.querySelector('.zoom-action') as HTMLButtonElement;
+      action.focus();
+      escape(action);
+      fixture.detectChanges();
+      expect(component.showZoomPopupSignal()).toBe(false);
+      expect(fixture.nativeElement.querySelector('.zoom-dropdown')).toBeNull();
+      expect(document.activeElement).toBe(trigger);
+    });
+
+    it('Escape closes layers popover and focuses its trigger', () => {
+      resize(1440, 900);
+      const trigger = fixture.nativeElement.querySelector('.layers-button') as HTMLButtonElement;
+      trigger.click();
+      fixture.detectChanges();
+      const close = fixture.nativeElement.querySelector('.layers-dropdown .close-btn') as HTMLButtonElement;
+      close.focus();
+      escape(close);
+      fixture.detectChanges();
+      expect(component.showLayersDropdownSignal()).toBe(false);
+      expect(document.activeElement).toBe(trigger);
+    });
+  });
+
   describe('layout', () => {
     const resize = (width: number, height: number) => {
       FakeResizeObserver.instances.forEach((o) => o.resize(width, height));

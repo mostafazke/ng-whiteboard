@@ -1,7 +1,7 @@
 <div class="layer-panel">
   <div class="layer-panel-header">
     <h3>Layers</h3>
-    <button class="add-layer-btn" (click)="onAddLayer()" title="Add new layer">
+    <button class="add-layer-btn" (click)="onAddLayer()" title="Add new layer" aria-label="Add new layer">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
         <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
       </svg>
@@ -31,7 +31,7 @@
           class="visibility-btn"
           [class.hidden]="!layer.visible"
           (click)="onToggleVisibility(layer.id, $event)"
-          title="Toggle visibility"
+          title="Toggle visibility" aria-label="Toggle visibility" [attr.aria-pressed]="!layer.visible"
         >
           <svg *ngIf="layer.visible" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path
@@ -49,7 +49,7 @@
           class="lock-btn"
           [class.locked]="layer.locked"
           (click)="onToggleLock(layer.id, $event)"
-          title="Toggle lock"
+          title="Toggle lock" aria-label="Toggle lock" [attr.aria-pressed]="layer.locked"
         >
           <svg *ngIf="!layer.locked" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path
@@ -67,6 +67,7 @@
       <div class="layer-info">
         <input
           class="layer-name"
+          aria-label="Layer name"
           [value]="layer.name"
           (blur)="onRenameLayer(layer.id, $event)"
           (keydown.enter)="onRenameLayerEnter(layer.id, $event)"
@@ -93,6 +94,7 @@
             (input)="onOpacityChange(layer.id, $event)"
             (click)="$event.stopPropagation()"
             [title]="'Opacity: ' + Math.round(layer.opacity * 100) + '%'"
+            aria-label="Layer opacity"
           />
           <span class="opacity-value">{{ Math.round(layer.opacity * 100) }}%</span>
         </div>
@@ -101,7 +103,7 @@
           class="delete-btn"
           (click)="onDeleteLayer(layer.id, $event)"
           [disabled]="layers.length <= 1"
-          title="Delete layer"
+          title="Delete layer" aria-label="Delete layer"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
@@ -123,12 +125,12 @@
 
   <div class="layer-panel-footer" *ngIf="layers.length > 0">
     <div class="layer-order-controls">
-      <button class="move-up-btn" (click)="onMoveLayerUp()" [disabled]="!canMoveUp()" title="Move layer up">
+      <button class="move-up-btn" (click)="onMoveLayerUp()" [disabled]="!canMoveUp()" title="Move layer up" aria-label="Move layer up">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
           <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" />
         </svg>
       </button>
-      <button class="move-down-btn" (click)="onMoveLayerDown()" [disabled]="!canMoveDown()" title="Move layer down">
+      <button class="move-down-btn" (click)="onMoveLayerDown()" [disabled]="!canMoveDown()" title="Move layer down" aria-label="Move layer down">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
           <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z" />
         </svg>
@@ -136,7 +138,7 @@
     </div>
 
     <div class="layer-blend-mode" *ngIf="activeLayer">
-      <select class="blend-mode-select" [value]="getBlendMode(activeLayer)" (change)="onBlendModeChange($event)">
+      <select class="blend-mode-select" aria-label="Blend mode" [value]="getBlendMode(activeLayer)" (change)="onBlendModeChange($event)">
         <option value="normal">Normal</option>
         <option value="multiply">Multiply</option>
         <option value="screen">Screen</option>

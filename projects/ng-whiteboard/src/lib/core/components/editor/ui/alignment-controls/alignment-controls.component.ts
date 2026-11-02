@@ -29,6 +29,7 @@ export type AlignmentType =
               *ngFor="let alignment of horizontalAlignments; trackBy: trackByAlignment"
               class="alignment-btn"
               [attr.title]="alignment.label"
+              [attr.aria-label]="alignment.label"
               (click)="onAlignment(alignment.type)"
             >
               <ng-icon [name]="alignment.icon"></ng-icon>
@@ -43,6 +44,7 @@ export type AlignmentType =
               *ngFor="let alignment of verticalAlignments; trackBy: trackByAlignment"
               class="alignment-btn"
               [attr.title]="alignment.label"
+              [attr.aria-label]="alignment.label"
               (click)="onAlignment(alignment.type)"
             >
               <ng-icon [name]="alignment.icon"></ng-icon>
@@ -57,6 +59,7 @@ export type AlignmentType =
               *ngFor="let distribution of distributions; trackBy: trackByAlignment"
               class="alignment-btn"
               [attr.title]="distribution.label"
+              [attr.aria-label]="distribution.label"
               (click)="onAlignment(distribution.type)"
             >
               <ng-icon [name]="distribution.icon"></ng-icon>

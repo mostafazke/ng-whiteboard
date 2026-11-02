@@ -13,12 +13,14 @@ import { MIXED, Mixed } from '../../utils/selected-properties';
           class="custom-color-swatch"
           (click)="openCustomPicker()"
           [attr.title]="isMixed ? 'Mixed' : 'Custom color: ' + currentColor"
-          [attr.aria-label]="isMixed ? 'Mixed' : null"
+          [attr.aria-label]="isMixed ? 'Mixed' : 'Custom color'"
         >
           <div class="color-preview" [style.backgroundColor]="isMixed ? null : currentColor"></div>
           <input
             #colorInput
             type="color"
+            tabindex="-1"
+            aria-hidden="true"
             [value]="currentColor"
             (input)="onColorChange($event)"
             style="opacity: 0; position: absolute; width: 1px; height: 1px; cursor: pointer;"
@@ -32,6 +34,8 @@ import { MIXED, Mixed } from '../../utils/selected-properties';
           [class.active]="!isMixed && color === value"
           (click)="selectPresetColor(color)"
           [attr.title]="color"
+          [attr.aria-label]="'Color ' + color"
+          [attr.aria-pressed]="!isMixed && color === value"
         ></button>
       </div>
     </div>

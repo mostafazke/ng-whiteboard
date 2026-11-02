@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, input, Output, viewChild } from '@angular/core';
 import { WhiteboardConfig } from '../../../../types';
 import { IconComponent } from '../../icon/icon.component';
 import { MIN_ZOOM, MAX_ZOOM } from '../../../../constants';
@@ -17,14 +17,17 @@ interface ZoomLevel {
     <div class="controls-panel">
       <!-- Zoom Controls -->
       <div class="zoom-controls">
-        <button title="Zoom In" class="icon-btn" (click)="onZoomIn()" [disabled]="isMaxZoom()">
+        <button title="Zoom In" aria-label="Zoom in" class="icon-btn" (click)="onZoomIn()" [disabled]="isMaxZoom()">
           <ng-icon name="plus"></ng-icon>
         </button>
 
-        <div class="dropdown-wrapper">
+        <div class="dropdown-wrapper" (keydown.escape)="onEscape($event)">
           <button
             class="zoom-value"
+            #zoomTrigger
             title="Zoom options"
+            [attr.aria-label]="'Zoom options, ' + formatZoom(config().zoom)"
+            aria-haspopup="true"
             [attr.aria-expanded]="showZoomMenu()"
             (click)="toggleZoomMenu()"
             (dblclick)="onCenterView()"
@@ -51,7 +54,7 @@ interface ZoomLevel {
           </div>
         </div>
 
-        <button title="Zoom Out" class="icon-btn" (click)="onZoomOut()" [disabled]="isMinZoom()">
+        <button title="Zoom Out" aria-label="Zoom out" class="icon-btn" (click)="onZoomOut()" [disabled]="isMinZoom()">
           <ng-icon name="minus"></ng-icon>
         </button>
       </div>
@@ -74,6 +77,8 @@ export class ControlsPanelComponent {
   @Output() resetZoom = new EventEmitter<void>();
   @Output() zoomMenuToggle = new EventEmitter<void>();
   @Output() centerView = new EventEmitter<void>();
+
+  private zoomTrigger = viewChild<ElementRef<HTMLButtonElement>>('zoomTrigger');
 
   readonly minZoom = MIN_ZOOM;
   readonly maxZoom = MAX_ZOOM;
@@ -129,6 +134,13 @@ export class ControlsPanelComponent {
 
   onResetZoom() {
     this.resetZoom.emit();
+  }
+
+  onEscape(event: Event) {
+    if (!this.showZoomMenu() || this.compact()) return;
+    event.stopPropagation();
+    this.zoomMenuToggle.emit();
+    this.zoomTrigger()?.nativeElement.focus();
   }
 
   toggleZoomMenu() {

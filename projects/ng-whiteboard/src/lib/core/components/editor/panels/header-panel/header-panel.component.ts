@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, EventEmitter, input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, input, Output, viewChild } from '@angular/core';
 import { EditorStateService } from '../../editor-state.service';
 import { FormsModule } from '@angular/forms';
 import { EditorConfig } from '../../../../types';
@@ -49,8 +49,9 @@ interface HeaderAction {
     <div class="header-panel">
       <!-- Left Section: Layers & Title -->
       <div class="header-left">
-        <div class="dropdown-wrapper">
+        <div class="dropdown-wrapper" (keydown.escape)="onEscape($event)">
           <button
+            #layersTrigger
             (click)="toggleLayers()"
             class="icon-btn layers-button"
             [class.active]="showLayers()"
@@ -64,7 +65,7 @@ interface HeaderAction {
           <div class="layers-dropdown" *ngIf="showLayers() && !compact()">
             <div class="dropdown-header">
               <h4>Layers</h4>
-              <button class="close-btn" (click)="closeLayers()">
+              <button class="close-btn" aria-label="Close layers" title="Close" (click)="closeLayers()">
                 <ng-icon name="close"></ng-icon>
               </button>
             </div>
@@ -162,6 +163,7 @@ interface HeaderAction {
 })
 export class HeaderPanelComponent {
   constructor(public editorState: EditorStateService) {}
+  private layersTrigger = viewChild<ElementRef<HTMLButtonElement>>('layersTrigger');
   editorConfig = input<EditorConfig>({} as EditorConfig);
   layers = input<Layer[]>([]);
   activeLayerId = input<string>(''); // Add activeLayerId as input
@@ -221,6 +223,13 @@ export class HeaderPanelComponent {
 
   toggleLayers() {
     this.layersToggle.emit();
+  }
+
+  onEscape(event: Event) {
+    if (!this.showLayers() || this.compact()) return;
+    event.stopPropagation();
+    this.layersToggle.emit();
+    this.layersTrigger()?.nativeElement.focus();
   }
 
   closeLayers() {
