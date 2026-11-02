@@ -1,4 +1,11 @@
-<div #root class="editor" [attr.data-theme]="themeSignal()" [attr.data-layout]="layout()">
+<div
+  #root
+  class="editor"
+  [attr.data-theme]="themeSignal()"
+  [attr.data-layout]="layout()"
+  (keydown)="containKey($event)"
+  (keyup)="containKey($event)"
+>
   <div class="editor-container">
     <ng-header-panel
       class="wb-header"

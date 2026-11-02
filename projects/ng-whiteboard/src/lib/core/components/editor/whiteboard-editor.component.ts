@@ -34,6 +34,11 @@ import { AlignmentControlsComponent, AlignmentType } from './ui/alignment-contro
 import { BottomSheetComponent } from './ui/bottom-sheet/bottom-sheet.component';
 import { ColorPickerComponent } from './ui/color-picker/color-picker.component';
 
+function isCanvasKey(event: KeyboardEvent): boolean {
+  if (event.code === 'Space' || event.key === 'Delete' || event.key === 'Backspace') return true;
+  return event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey;
+}
+
 @Component({
   selector: 'ng-whiteboard-editor',
   standalone: true,
@@ -119,6 +124,15 @@ export class WhiteboardEditorComponent {
     this.menuSheetOpenSignal.set(false);
     this.showLayersDropdownSignal.set(false);
     this.showZoomPopupSignal.set(false);
+  }
+
+  /**
+   * Keys typed into editor controls must not reach the board's window-level shortcuts: text fields
+   * keep every key, other controls keep the keys the canvas would act on (Space, Delete/Backspace,
+   * unmodified printable keys). Modified chords such as Alt+P still pass through.
+   */
+  containKey(event: KeyboardEvent) {
+    if (isEditableTarget(event.target) || isCanvasKey(event)) event.stopPropagation();
   }
 
   private handleKeyboardShortcut(event: KeyboardEvent) {
