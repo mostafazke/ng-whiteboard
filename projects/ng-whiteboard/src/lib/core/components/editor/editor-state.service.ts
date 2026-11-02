@@ -11,6 +11,7 @@ import { ZoomService } from '../../viewport/zoom.service';
 import { AlignmentType } from './ui/alignment-controls/alignment-controls.component';
 import { PanService } from '../../viewport';
 import { computeAlignmentUpdates } from './utils/alignment';
+import { mergeSelectedProperties } from './utils/selected-properties';
 
 export interface Layer {
   id: string;
@@ -80,29 +81,7 @@ export class EditorStateService {
     return layers.find((layer) => layer.id === activeId) || layers[0];
   });
 
-  selectedPropertiesSignal = computed(() => {
-    const elements = this.selectedElementsSignal();
-    if (elements.length === 0) return {};
-
-    // If single element, return its properties
-    if (elements.length === 1) {
-      const element = elements[0];
-      return {
-        fillColor: element.style?.fill || '#000000',
-        strokeColor: element.style?.strokeColor || '#000000',
-        strokeWidth: element.style?.strokeWidth || 1,
-        opacity: element.opacity || 100,
-        fontSize: element.style?.fontSize || 16,
-        fontFamily: element.style?.fontFamily || 'Arial',
-        bold: element.style?.fontWeight === 'bold',
-        italic: element.style?.fontStyle === 'italic',
-        dasharray: element.style?.dasharray || '',
-      };
-    }
-
-    // If multiple elements, return empty for now (simplified)
-    return {};
-  });
+  selectedPropertiesSignal = computed(() => mergeSelectedProperties(this.selectedElementsSignal()));
 
   // Public API methods
   getConfigSignal(): Signal<WhiteboardConfig> {

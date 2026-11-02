@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ElementType, WhiteboardConfig, WhiteboardElement } from '../../../../types';
 import { AlignmentType } from '../../ui/alignment-controls/alignment-controls.component';
 import { IconComponent } from '../../icon/icon.component';
+import { MIXED, SelectedProperties } from '../../utils/selected-properties';
 import { ColorPickerComponent } from '../../ui/color-picker/color-picker.component';
 import { AlignmentControlsComponent } from '../../ui/alignment-controls/alignment-controls.component';
 
@@ -74,7 +75,7 @@ interface PropertyChangeEvent {
                 <div class="control-row">
                   <label>Stroke</label>
                   <ng-color-picker
-                    [value]="strokeColorValue() || '#000000'"
+                    [value]="strokeColorValue()"
                     (colorChange)="onColorChange('strokeColor', $event)"
                   >
                   </ng-color-picker>
@@ -87,10 +88,10 @@ interface PropertyChangeEvent {
                       type="range"
                       min="1"
                       max="20"
-                      [value]="strokeWidthValue()"
+                      [value]="strokeWidthNumber()"
                       (input)="onPropertyChange('strokeWidth', $event)"
                     />
-                    <span class="value-display">{{ strokeWidthValue() }}px</span>
+                    <span class="value-display">{{ isMixed(strokeWidthValue()) ? '—' : strokeWidthValue() + 'px' }}</span>
                   </div>
                 </div>
 
@@ -170,8 +171,8 @@ interface PropertyChangeEvent {
                 <div class="control-slider">
                   <label class="slider-label">Opacity</label>
                   <div class="slider-container">
-                    <input type="range" min="0" max="100" [value]="opacityValue()" (input)="onOpacityChange($event)" />
-                    <span class="value-display">{{ opacityValue() }}%</span>
+                    <input type="range" min="0" max="100" [value]="opacityNumber()" (input)="onOpacityChange($event)" />
+                    <span class="value-display">{{ isMixed(opacityValue()) ? '—' : opacityValue() + '%' }}</span>
                   </div>
                 </div>
               </div>
@@ -193,7 +194,8 @@ interface PropertyChangeEvent {
             <div class="controls">
               <div class="control-row">
                 <label>Font Family</label>
-                <select [value]="fontFamilyValue()" (change)="onPropertyChange('fontFamily', $event)">
+                <select [value]="isMixed(fontFamilyValue()) ? '' : fontFamilyValue()" (change)="onPropertyChange('fontFamily', $event)">
+                  <option *ngIf="isMixed(fontFamilyValue())" value="" disabled>Mixed</option>
                   <option value="Arial">Arial</option>
                   <option value="Helvetica">Helvetica</option>
                   <option value="Times New Roman">Times New Roman</option>
@@ -211,10 +213,10 @@ interface PropertyChangeEvent {
                     type="range"
                     min="8"
                     max="72"
-                    [value]="fontSizeValue()"
+                    [value]="fontSizeNumber()"
                     (input)="onPropertyChange('fontSize', $event)"
                   />
-                  <span class="value-display">{{ fontSizeValue() }}px</span>
+                  <span class="value-display">{{ isMixed(fontSizeValue()) ? '—' : fontSizeValue() + 'px' }}</span>
                 </div>
               </div>
 
@@ -246,7 +248,7 @@ interface PropertyChangeEvent {
 export class PropertiesPanelComponent {
   config = input<WhiteboardConfig>({} as WhiteboardConfig);
   selectedElements = input<WhiteboardElement[]>([]);
-  selectedProperties = input<Record<string, unknown>>({});
+  selectedProperties = input<SelectedProperties | null>(null);
   isOpen = input<boolean>(true);
 
   @Output() colorChange = new EventEmitter<ColorPickerEvent>();
@@ -263,82 +265,103 @@ export class PropertiesPanelComponent {
   hasTextSelection = computed(() => this.selectedElements().some((el) => el.type === ElementType.Text));
 
   strokeColorValue = computed(() => {
+    const props = this.selectedProperties();
+    if (props) return props.strokeColor;
     const element = this.selectedElement();
     if (!element) return this.config().strokeColor;
-
     return element.style.strokeColor || this.config().strokeColor;
   });
 
   fillColorValue = computed(() => {
+    const props = this.selectedProperties();
+    if (props) return props.fillColor;
     const element = this.selectedElement();
     if (!element) return this.config().fill;
     return element.style.fill || this.config().fill;
   });
 
   strokeWidthValue = computed(() => {
+    const props = this.selectedProperties();
+    if (props) return props.strokeWidth;
     const element = this.selectedElement();
     if (!element) return this.config().strokeWidth;
     return element.style.strokeWidth || this.config().strokeWidth;
   });
 
   opacityValue = computed(() => {
+    const props = this.selectedProperties();
+    if (props) return props.opacity;
     const element = this.selectedElement();
-    // Opacity only applies to selected elements, default to 100
     if (!element) return 100;
-    return element.opacity || 100;
+    return element.opacity ?? 100;
   });
 
   fontSizeValue = computed(() => {
+    const props = this.selectedProperties();
+    if (props?.fontSize !== undefined) return props.fontSize;
     const element = this.selectedElement();
     if (!element || element.type !== ElementType.Text) return this.config().fontSize;
     return element.style.fontSize || this.config().fontSize;
   });
 
   fontFamilyValue = computed(() => {
+    const props = this.selectedProperties();
+    if (props?.fontFamily !== undefined) return props.fontFamily;
     const element = this.selectedElement();
     if (!element || element.type !== ElementType.Text) return this.config().fontFamily;
     return element.style.fontFamily || this.config().fontFamily;
   });
 
   dashArrayValue = computed(() => {
+    const props = this.selectedProperties();
+    if (props) return props.dasharray;
     const element = this.selectedElement();
-    // Return config default or empty string when no selection
     if (!element) return this.config().dasharray || '';
     return element.style.dasharray || '';
   });
 
+  strokeWidthNumber = computed(() => this.numberOr(this.strokeWidthValue(), this.config().strokeWidth));
+  opacityNumber = computed(() => this.numberOr(this.opacityValue(), 100));
+  fontSizeNumber = computed(() => this.numberOr(this.fontSizeValue(), this.config().fontSize));
+
   isBold = computed(() => {
-    const element = this.selectedElement();
-    if (!element || element.type !== ElementType.Text) return false;
-    return element.style.fontWeight === 'bold';
+    const texts = this.selectedElements().filter((el) => el.type === ElementType.Text);
+    return texts.length > 0 && texts.every((el) => el.style.fontWeight === 'bold');
   });
 
   isItalic = computed(() => {
-    const element = this.selectedElement();
-    if (!element || element.type !== ElementType.Text) return false;
-    return element.style.fontStyle === 'italic';
+    const texts = this.selectedElements().filter((el) => el.type === ElementType.Text);
+    return texts.length > 0 && texts.every((el) => el.style.fontStyle === 'italic');
   });
 
   isDashedActive = computed(() => {
     const dasharray = this.dashArrayValue();
-    const width = this.strokeWidthValue();
+    const width = this.strokeWidthNumber();
     // Dashed pattern: dash length ~3x width, gap ~3x width
     return dasharray === `${width * 3},${width * 3}`;
   });
 
   isDottedActive = computed(() => {
     const dasharray = this.dashArrayValue();
-    const width = this.strokeWidthValue();
+    const width = this.strokeWidthNumber();
     // Dotted pattern: dash length ~1x width, gap ~2x width
     return dasharray === `${width},${width * 2}`;
   });
 
   isDashDotActive = computed(() => {
     const dasharray = this.dashArrayValue();
-    const width = this.strokeWidthValue();
+    const width = this.strokeWidthNumber();
     // Dash-dot pattern: long dash ~5x, gap ~2x, short dash ~1x, gap ~2x
     return dasharray === `${width * 5},${width * 2},${width},${width * 2}`;
   });
+
+  isMixed(value: unknown): boolean {
+    return value === MIXED;
+  }
+
+  private numberOr(value: number | typeof MIXED, fallback: number): number {
+    return value === MIXED ? fallback : value;
+  }
 
   onColorChange(property: ColorPickerEvent['property'], value: string) {
     this.colorChange.emit({ property, value });
@@ -392,7 +415,7 @@ export class PropertiesPanelComponent {
   }
 
   onLineStyleChange(style: string) {
-    const width = this.strokeWidthValue();
+    const width = this.strokeWidthNumber();
     let dasharray = '';
 
     switch (style) {

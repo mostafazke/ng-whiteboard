@@ -4,6 +4,7 @@ import { SelectionService } from '../../elements/selection.service';
 import { HistoryService } from '../../history/history.service';
 import { ElementType, WhiteboardElement } from '../../types';
 import { EditorStateService } from './editor-state.service';
+import { MIXED } from './utils/selected-properties';
 
 const rect = (id: string, x: number, y: number, width: number, height: number, extra = {}): WhiteboardElement =>
   ({
@@ -61,6 +62,35 @@ describe('EditorStateService', () => {
       expect(before.find((e) => e.id === 'b')?.x).toBe(50);
       expect(history.undo()).toBeNull();
       warn.mockRestore();
+    });
+  });
+  describe('updateElementProperty', () => {
+    it('stroke width edit applies to all selected in one undo step', () => {
+      elements.setElements([
+        rect('a', 0, 0, 10, 10, { style: { strokeWidth: 1 } }),
+        rect('b', 20, 0, 10, 10, { style: { strokeWidth: 3 } }),
+      ]);
+      selection.selectElements(['a', 'b']);
+      history.clearHistory();
+
+      service.updateElementProperty('strokeWidth', 7);
+
+      const widths = elements.getElements().map((e) => e.style.strokeWidth);
+      expect(widths).toEqual([7, 7]);
+
+      const before = history.undo() as WhiteboardElement[];
+      expect(before.map((e) => e.style.strokeWidth)).toEqual([1, 3]);
+      expect(history.undo()).toBeNull();
+    });
+
+    it('reports MIXED for differing selected values', () => {
+      elements.setElements([
+        rect('a', 0, 0, 10, 10, { style: { strokeColor: '#000' } }),
+        rect('b', 20, 0, 10, 10, { style: { strokeColor: '#f00' } }),
+      ]);
+      selection.selectElements(['a', 'b']);
+
+      expect(service.selectedPropertiesSignal()?.strokeColor).toBe(MIXED);
     });
   });
 });
