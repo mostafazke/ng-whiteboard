@@ -4,6 +4,7 @@ import { PointerInfo } from '../types';
 import { MOUSE_BUTTON } from '../constants';
 import { ZoomService } from '../viewport/zoom.service';
 import { PanService } from '../viewport/pan.service';
+import { ConfigService } from '../config/config.service';
 import { GestureFrame, GestureTracker } from './gesture-tracker';
 
 const TOUCH = 'touch';
@@ -16,6 +17,7 @@ export class SvgDirective {
   private elementRef = inject(ElementRef);
   private zoomService = inject(ZoomService);
   private panService = inject(PanService);
+  private configService = inject(ConfigService);
   private gestureTracker = new GestureTracker();
   /** The touch pointer currently forwarded to the svg service as a normal single-pointer interaction. */
   private singleTouchId: number | null = null;
@@ -84,7 +86,7 @@ export class SvgDirective {
     if (event.pointerType === TOUCH) {
       const { x, y } = this.getPointerPosition(event);
       const frame = this.gestureTracker.move(event.pointerId, x, y);
-      if (frame) this.applyGesture(frame);
+      if (frame && this.configService.getConfig().drawingEnabled) this.applyGesture(frame);
       if (this.gestureTracker.isGesturing || event.pointerId !== this.singleTouchId) return;
     }
 

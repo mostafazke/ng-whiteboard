@@ -9,6 +9,7 @@ import { NgWhiteboardComponent } from '../../ng-whiteboard.component';
 import { ApiService } from '../api/api.service';
 import { HistoryService } from '../history/history.service';
 import { ToolType } from '../types';
+import { ConfigService } from '../config/config.service';
 
 interface MockSvgElement {
   getBoundingClientRect: () => { left: number; top: number };
@@ -265,6 +266,17 @@ describe('SvgDirective', () => {
       // midpoint moved 50px at the new zoom 4 -> 12.5 canvas units
       expect(zoomServiceMock.zoomAtPoint).toHaveBeenCalledWith(4, 150, 100);
       expect(panServiceMock.pan).toHaveBeenCalledWith(12.5, 0);
+    });
+
+    it('pinch and two-finger pan do nothing when drawing is disabled (like wheel)', () => {
+      TestBed.inject(ConfigService).updateConfig({ drawingEnabled: false });
+      down(1, 100, 100);
+      down(2, 200, 100);
+      move(2, 300, 100);
+      move(1, 120, 130);
+
+      expect(zoomServiceMock.zoomAtPoint).not.toHaveBeenCalled();
+      expect(panServiceMock.pan).not.toHaveBeenCalled();
     });
 
     it('a finger leaving mid-gesture is forgotten without cancelling the svg service', () => {
