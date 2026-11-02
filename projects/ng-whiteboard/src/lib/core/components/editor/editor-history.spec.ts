@@ -4,6 +4,7 @@ import { NgWhiteboardComponent } from '../../../ng-whiteboard.component';
 import { ApiService } from '../../api/api.service';
 import { ElementType, ToolType, WhiteboardElement } from '../../types';
 import { WhiteboardEditorComponent } from './whiteboard-editor.component';
+import { wideEditorResizeObserver } from './testing/wide-editor-resize-observer';
 
 const rect = (id: string): WhiteboardElement =>
   ({
@@ -59,11 +60,7 @@ describe('Editor edit batch vs canvas history (integration)', () => {
   };
 
   beforeEach(async () => {
-    global.ResizeObserver = jest.fn().mockImplementation(() => ({
-      observe: jest.fn(),
-      unobserve: jest.fn(),
-      disconnect: jest.fn(),
-    }));
+    global.ResizeObserver = wideEditorResizeObserver();
     await TestBed.configureTestingModule({ imports: [NgWhiteboardComponent] }).compileComponents();
     fixture = TestBed.createComponent(NgWhiteboardComponent);
     fixture.componentRef.setInput('showEditor', true);

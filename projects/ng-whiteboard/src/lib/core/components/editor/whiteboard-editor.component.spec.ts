@@ -230,6 +230,7 @@ describe('WhiteboardEditorComponent', () => {
       }) as WhiteboardElement;
     const panel = (): HTMLElement => fixture.nativeElement.querySelector('ng-properties-panel');
     const select = () => {
+      FakeResizeObserver.instances.forEach((o) => o.resize(1440, 900));
       TestBed.inject(ElementsService).setElements([rectEl('r1')]);
       TestBed.inject(SelectionService).selectElements(['r1']);
       TestBed.inject(HistoryService).clearHistory();
@@ -500,6 +501,16 @@ describe('WhiteboardEditorComponent', () => {
 
     afterAll(() => {
       delete (globalThis as unknown as { ResizeObserver?: unknown }).ResizeObserver;
+    });
+
+    it('renders neither the floating properties panel nor a sheet before the first measurement', () => {
+      expect(fixture.nativeElement.querySelector('.editor').hasAttribute('data-layout')).toBe(false);
+      expect(fixture.nativeElement.querySelector('ng-properties-panel')).toBeNull();
+      expect(fixture.debugElement.queryAll(By.directive(BottomSheetComponent)).length).toBe(0);
+
+      resize(390, 844);
+      expect(fixture.nativeElement.querySelector('.editor').getAttribute('data-layout')).toBe('compact');
+      expect(fixture.debugElement.queryAll(By.directive(BottomSheetComponent)).length).toBeGreaterThan(0);
     });
 
     it('derives layout from the editor size and reflects it on the root', () => {

@@ -48,7 +48,7 @@
     >
     </ng-history-panel>
 
-    @if (!isCompact()) {
+    @if (isMeasured() && !isCompact()) {
       <ng-properties-panel
         class="wb-properties"
         [config]="configSignal()"

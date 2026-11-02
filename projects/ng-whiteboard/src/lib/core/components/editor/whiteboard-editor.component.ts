@@ -65,8 +65,10 @@ export class WhiteboardEditorComponent {
   private root = viewChild.required<ElementRef<HTMLElement>>('root');
 
   private lastShortcutEvent: KeyboardEvent | null = null;
-  private layoutState = signal<EditorLayout>('wide');
-  readonly layout: Signal<EditorLayout> = this.layoutState.asReadonly();
+  /** `null` until the container is first measured, so neither the floating panel nor a sheet flashes in. */
+  private layoutState = signal<EditorLayout | null>(null);
+  readonly layout: Signal<EditorLayout | null> = this.layoutState.asReadonly();
+  readonly isMeasured = computed(() => this.layout() !== null);
   readonly isCompact = computed(() => this.layout() === 'compact');
 
   // Reactive signals for better performance
@@ -104,7 +106,10 @@ export class WhiteboardEditorComponent {
     const el = this.root().nativeElement;
     const rect = el.getBoundingClientRect();
     if (rect.width > 0 && rect.height > 0) this.setLayout(rect.width, rect.height);
-    if (typeof ResizeObserver === 'undefined') return;
+    if (typeof ResizeObserver === 'undefined') {
+      if (!this.isMeasured()) this.layoutState.set('wide');
+      return;
+    }
     const observer = new ResizeObserver(([entry]) => this.setLayout(entry.contentRect.width, entry.contentRect.height));
     observer.observe(el);
     this.destroyRef.onDestroy(() => observer.disconnect());
