@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -46,10 +45,14 @@ import { PanService, WheelHandlerService, ZoomService } from './core/viewport';
 @Component({
   selector: 'ng-whiteboard',
   standalone: true,
-  imports: [CommonModule, WhiteboardCanvasComponent, ContextMenuComponent, WhiteboardEditorComponent],
+  imports: [WhiteboardCanvasComponent, ContextMenuComponent, WhiteboardEditorComponent],
   template: `
     <div style="width: 100%; height: 100%; position: relative;">
-      <ng-whiteboard-editor *ngIf="showEditor"></ng-whiteboard-editor>
+      @if (showEditor) {
+        @defer (on immediate) {
+          <ng-whiteboard-editor></ng-whiteboard-editor>
+        }
+      }
       <ng-whiteboard-canvas></ng-whiteboard-canvas>
       <wb-context-menu></wb-context-menu>
     </div>

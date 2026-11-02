@@ -10,6 +10,7 @@ import { ToolType, WhiteboardElement, ElementType } from './core/types';
 import { WhiteboardEvent } from './core/types/events';
 import { createElement } from './core/elements/element.utils';
 import { SvgService } from './core/svg/svg.service';
+import { renderDeferredEditor } from './core/components/editor/testing/render-deferred-editor';
 
 describe('NgWhiteboardComponent', () => {
   let component: NgWhiteboardComponent;
@@ -318,17 +319,17 @@ describe('NgWhiteboardComponent', () => {
       expect(editorEl()).toBeNull();
     });
 
-    it('renders editor when showEditor is true', () => {
+    it('renders editor when showEditor is true', async () => {
       component.showEditor = true;
       fixture.debugElement.injector.get(ChangeDetectorRef).markForCheck();
-      fixture.detectChanges();
+      await renderDeferredEditor(fixture);
       expect(editorEl()).not.toBeNull();
     });
 
-    it('toggling showEditor at runtime adds/removes editor', () => {
+    it('toggling showEditor at runtime adds/removes editor', async () => {
       component.showEditor = true;
       fixture.debugElement.injector.get(ChangeDetectorRef).markForCheck();
-      fixture.detectChanges();
+      await renderDeferredEditor(fixture);
       expect(editorEl()).not.toBeNull();
 
       component.showEditor = false;

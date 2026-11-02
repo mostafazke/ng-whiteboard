@@ -5,6 +5,7 @@ import { ApiService } from '../../api/api.service';
 import { ElementType, ToolType, WhiteboardElement } from '../../types';
 import { WhiteboardEditorComponent } from './whiteboard-editor.component';
 import { wideEditorResizeObserver } from './testing/wide-editor-resize-observer';
+import { renderDeferredEditor } from './testing/render-deferred-editor';
 
 const rect = (id: string): WhiteboardElement =>
   ({
@@ -40,9 +41,7 @@ describe('Editor keyboard containment (integration)', () => {
     fixture = TestBed.createComponent(NgWhiteboardComponent);
     fixture.componentRef.setInput('showEditor', true);
     document.body.appendChild(host());
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
+    await renderDeferredEditor(fixture);
 
     editor = fixture.debugElement.query(By.directive(WhiteboardEditorComponent)).componentInstance;
     api = fixture.debugElement.query(By.directive(WhiteboardEditorComponent)).injector.get(ApiService);
@@ -192,11 +191,9 @@ describe('Alt+P with several boards (integration)', () => {
       const f = TestBed.createComponent(NgWhiteboardComponent);
       f.componentRef.setInput('showEditor', true);
       document.body.appendChild(f.nativeElement);
-      f.detectChanges();
       return f;
     });
-    await fixtures[0].whenStable();
-    fixtures.forEach((f) => f.detectChanges());
+    for (const f of fixtures) await renderDeferredEditor(f);
     editors = fixtures.map((f) => f.debugElement.query(By.directive(WhiteboardEditorComponent)).componentInstance);
     (fixtures[1].nativeElement.querySelector('[globalKeyboard]') as HTMLElement).dispatchEvent(
       new MouseEvent('mouseenter'),
