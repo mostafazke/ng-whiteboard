@@ -406,24 +406,24 @@
     tslib "^2.3.0"
     yargs "^18.0.0"
 
-"@angular/compiler@20.3.26":
-  version "20.3.26"
-  resolved "https://registry.yarnpkg.com/@angular/compiler/-/compiler-20.3.26.tgz#d4a7a87401ae1ef3a354c91a82b71156db121801"
-  integrity sha512-H4DVTBCiyM4dGytFi2C8sMGflxXzPnoQ6Ajfs4hJ/Dekg6ypfvW5Ze7BDh4TaMQvaX2joM5LhBYW5jTxBx66hA==
+"@angular/compiler@20.3.34":
+  version "20.3.34"
+  resolved "https://registry.yarnpkg.com/@angular/compiler/-/compiler-20.3.34.tgz#2cb3f68e7a051a07e39af1f47722a02313123bb0"
+  integrity sha512-8agPW384c/JER1ersPTmJJfcCOnlYcBbdj0MYRxNdiYe+7gtnspF3ORuJmxqCEpMS17AljSmk2skwUcYnHB6xA==
   dependencies:
     tslib "^2.3.0"
 
-"@angular/core@20.3.26":
-  version "20.3.26"
-  resolved "https://registry.yarnpkg.com/@angular/core/-/core-20.3.26.tgz#1d4b75e40112e7ca4f55d888c62ab3fe0325eb35"
-  integrity sha512-v+YtZ9eQVDb6v3V1TbUUBHU63FEp8Hqqqb3UhM4MLAOm0chyyh9jah7FiHr3HbCKrV1f4long1coftFK/KThog==
+"@angular/core@20.3.34":
+  version "20.3.34"
+  resolved "https://registry.yarnpkg.com/@angular/core/-/core-20.3.34.tgz#341b148c6fcd894fac1b3ec2775536315ee28f49"
+  integrity sha512-xOvSmGoao3SVPz//R7zTrq7+WdrIGi+WNpAdxJEvJJXuSpLGS3kSUqukjY4kOMochg2v0NCEPIdCyH+yPs8JSw==
   dependencies:
     tslib "^2.3.0"
 
-"@angular/forms@20.3.26":
-  version "20.3.26"
-  resolved "https://registry.yarnpkg.com/@angular/forms/-/forms-20.3.26.tgz#14517c6204a2b290e63b02fbba33f26c565ee8fc"
-  integrity sha512-ia0YaPVjlG2oBFKCfaAgqQ0jGRrhGTAcrbZG3tVeFDpi7LQ6WdP3Syw2H+0D3GPyzpl/5UqU10Fum5Wr1br4QQ==
+"@angular/forms@20.3.34":
+  version "20.3.34"
+  resolved "https://registry.yarnpkg.com/@angular/forms/-/forms-20.3.34.tgz#73d148e08c6f386a105179533576a22de170eec4"
+  integrity sha512-DndQJEoORsdthFFVRvT9WHn8YcA85jkjMxCLtXyf+TDVk0zbqObbFDfrloRnJwsINqfDNsJrz23ko3YU6sjnTw==
   dependencies:
     tslib "^2.3.0"
 
@@ -439,10 +439,10 @@
   dependencies:
     tslib "^2.3.0"
 
-"@angular/platform-browser@20.3.26":
-  version "20.3.26"
-  resolved "https://registry.yarnpkg.com/@angular/platform-browser/-/platform-browser-20.3.26.tgz#29878dbdf52b2355ab002e7a29f71cfd19ec8a3e"
-  integrity sha512-In4wUiLUUT9LqyV9Rjz78k/dsnKAwec4AtDmwZoX8/ZmeJOSH7g5X1gTM+hxTxmifmZkrapQjXR299IcfIkzrw==
+"@angular/platform-browser@20.3.34":
+  version "20.3.34"
+  resolved "https://registry.yarnpkg.com/@angular/platform-browser/-/platform-browser-20.3.34.tgz#8791d8d5e02d5dd5a7fc14b722fc043028d19bb1"
+  integrity sha512-0bd2Bj05WPoBTFM0A13IwbzxKVQPstx/N+7X0ZWKCifliyydIc7DBHu+r37ybJpl8ZsCVBe7DoR9Gon4lZ+zlw==
   dependencies:
     tslib "^2.3.0"
 
@@ -455,17 +455,17 @@
     "@schematics/angular" "20.3.32"
     parse5-html-rewriting-stream "8.0.0"
 
-"@angular/router@20.3.33":
-  version "20.3.33"
-  resolved "https://registry.yarnpkg.com/@angular/router/-/router-20.3.33.tgz#714f0e031d370859db29f9f793cca06e297bfea4"
-  integrity sha512-M55ibvrJSWGP7sGf+uZFvC66cxRkFlS4TjtI4Owus4gDCqW69/jhUo8pNGXf0T3QpO3iorbHScZfGwVmLATLLA==
+"@angular/router@20.3.34":
+  version "20.3.34"
+  resolved "https://registry.yarnpkg.com/@angular/router/-/router-20.3.34.tgz#00fd332cf00c905cd70ddcc102bf37280891dc1e"
+  integrity sha512-vQo2f/94nUoNMZaxGY0+fK1t9Oe7zJuxHhoMVYhDbCqKxINVmxMX/9uEHlHeu9UIE7JMazepQjRzBLo7bf9xCw==
   dependencies:
     tslib "^2.3.0"
 
-"@angular/service-worker@20.3.26":
-  version "20.3.26"
-  resolved "https://registry.yarnpkg.com/@angular/service-worker/-/service-worker-20.3.26.tgz#11bd3b7deb708a6151eaadec6a5d28cf3cdba489"
-  integrity sha512-Lham5sD4yc6lDUgxyRm3i7zo9fjla4HfQAo3uoU4cA4iJ9pRmtTxWPJUA4/YFOD+pCDT7ffV4X9VfGmwvThwyw==
+"@angular/service-worker@20.3.34":
+  version "20.3.34"
+  resolved "https://registry.yarnpkg.com/@angular/service-worker/-/service-worker-20.3.34.tgz#e4d89be3704269481bbc05b2932e7d8804aeceef"
+  integrity sha512-O7mFfdkNOAE5lW3z4RK5wKKXCf9CdOLrn51gckLjpcCpJHjRbK96jynH/PD60nysU6VA5s5sEQwj7++AnAKIKA==
   dependencies:
     tslib "^2.3.0"
 
@@ -11552,10 +11552,10 @@ he@^1.2.0:
   resolved "https://registry.yarnpkg.com/he/-/he-1.2.0.tgz#84ae65fa7eafb165fddb61566ae14baf05664f0f"
   integrity sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==
 
-highlight.js@~11.11.0:
-  version "11.11.1"
-  resolved "https://registry.yarnpkg.com/highlight.js/-/highlight.js-11.11.1.tgz#fca06fa0e5aeecf6c4d437239135fabc15213585"
-  integrity sha512-Xwwo44whKBVCYoliBQwaPvtd/2tYFkRQtXDWj1nackaV2JPXx3L0+Jvd8/qCJ2p+ML0/XVkJ2q+Mr+UVdpJK5w==
+highlight.js@~11.12.0:
+  version "11.12.0"
+  resolved "https://registry.yarnpkg.com/highlight.js/-/highlight.js-11.12.0.tgz#470d918fd556a76debc40fe5e4b540b6b9cb9890"
+  integrity sha512-nbfWpyRMcMrPMmDwJB+dhX/eiaPKtc2RB+0QZskqJ3WjRA/FDS0e9hZrx8EC/lbEv8gXy98FcDbNa/dspAaJMg==
 
 homedir-polyfill@^1.0.1:
   version "1.0.3"
