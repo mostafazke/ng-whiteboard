@@ -2,6 +2,12 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { MIXED, Mixed } from '../../utils/selected-properties';
 
+/**
+ * Seed for the native picker on a mixed selection. A native color input only reports a pick that
+ * differs from its current value, so the seed must not be a likely choice such as black.
+ */
+const MIXED_SEED = '#808080';
+
 @Component({
   selector: 'ng-color-picker',
   standalone: true,
@@ -59,7 +65,7 @@ export class ColorPickerComponent {
   }
 
   get currentColor(): string {
-    return this.value === MIXED ? '#000000' : this.value;
+    return this.value === MIXED ? MIXED_SEED : this.value;
   }
 
   // Curated preset colors - most commonly used
