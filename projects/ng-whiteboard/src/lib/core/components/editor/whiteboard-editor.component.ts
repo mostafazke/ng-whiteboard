@@ -29,9 +29,8 @@ import { HistoryPanelComponent } from './panels/history-panel/history-panel.comp
 import { LayerPanelComponent } from './panels/layer-panel/layer-panel.component';
 import { PropertiesPanelComponent } from './panels/properties-panel/properties-panel.component';
 import { ToolbarComponent } from './panels/toolbar/toolbar.component';
-import { AlignmentControlsComponent, AlignmentType } from './ui/alignment-controls/alignment-controls.component';
+import { AlignmentType } from './ui/alignment-controls/alignment-controls.component';
 import { BottomSheetComponent } from './ui/bottom-sheet/bottom-sheet.component';
-import { ColorPickerComponent } from './ui/color-picker/color-picker.component';
 
 function isCanvasKey(event: KeyboardEvent): boolean {
   if (event.code === 'Space' || event.key === 'Delete' || event.key === 'Backspace') return true;
@@ -49,8 +48,6 @@ function isCanvasKey(event: KeyboardEvent): boolean {
     PropertiesPanelComponent,
     ToolbarComponent,
     ControlsPanelComponent,
-    ColorPickerComponent,
-    AlignmentControlsComponent,
     BottomSheetComponent,
     LayerPanelComponent,
   ],
