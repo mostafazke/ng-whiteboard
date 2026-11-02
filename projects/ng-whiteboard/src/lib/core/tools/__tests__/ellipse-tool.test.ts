@@ -236,4 +236,23 @@ describe('EllipseTool', () => {
 
     expect(ellipseTool.startPoint).toEqual({ x: 100, y: 200 });
   });
+
+  it('cancel() removes its draft so a later pointer up commits nothing', () => {
+    const removeDraftElements = jest.fn();
+    Object.assign(apiService, { removeDraftElements });
+    apiService.finalizeDraw = jest.fn();
+    (createElement as jest.Mock).mockReturnValue({ id: 'e1', type: ElementType.Ellipse });
+    ellipseTool.handlePointerDown(createMockPointerInfo({ x: 10, y: 10 }));
+
+    ellipseTool.cancel();
+    ellipseTool.handlePointerMove(createMockPointerInfo({ x: 50, y: 50 }));
+    ellipseTool.handlePointerUp();
+
+    expect(removeDraftElements).toHaveBeenCalledWith(['e1']);
+    expect(ellipseTool.element).toBeNull();
+    expect(ellipseTool.startPoint).toBeNull();
+    expect(apiService.updateDraftElements).not.toHaveBeenCalled();
+    expect(apiService.commitDraftElements).not.toHaveBeenCalled();
+    expect(apiService.finalizeDraw).not.toHaveBeenCalled();
+  });
 });

@@ -1,6 +1,6 @@
 import { SvgDirective } from './svg.directive';
 import { SvgService } from './svg.service';
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Component, DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
 import { ZoomService } from '../viewport/zoom.service';
@@ -318,6 +318,8 @@ describe('SvgDirective (integration)', () => {
   let history: HistoryService;
   let component: NgWhiteboardComponent;
   let config: ConfigService;
+  let host: HTMLElement;
+  let fixture: ComponentFixture<NgWhiteboardComponent>;
 
   const rect: MockSvgElement = {
     getBoundingClientRect: () => ({ left: 0, top: 0 }),
@@ -347,8 +349,9 @@ describe('SvgDirective (integration)', () => {
       disconnect: jest.fn(),
     }));
     await TestBed.configureTestingModule({ imports: [NgWhiteboardComponent] }).compileComponents();
-    const fixture = TestBed.createComponent(NgWhiteboardComponent);
+    fixture = TestBed.createComponent(NgWhiteboardComponent);
     component = fixture.componentInstance;
+    host = fixture.nativeElement;
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -512,5 +515,35 @@ describe('SvgDirective (integration)', () => {
 
     expect(api.getDraftElements()).toEqual([]);
     expect(api.getElements().length).toBe(1);
+  });
+
+  describe('a pinch started with a tool that has no draft', () => {
+    const pinch = () => {
+      directive.onPointerDown(touch('pointerdown', 1, 10, 10));
+      directive.onPointerDown(touch('pointerdown', 2, 200, 200));
+      directive.onPointerMove(touch('pointermove', 2, 260, 260));
+      directive.onPointerUp(touch('pointerup', 2, 260, 260));
+      directive.onPointerUp(touch('pointerup', 1, 10, 10));
+    };
+
+    it('text: leaves no text input open and adds no element', () => {
+      api.setActiveTool(ToolType.Text);
+      fixture.detectChanges();
+      pinch();
+
+      expect(host.querySelector('#whiteboard-text-input')).toBeNull();
+      expect(api.getElements()).toEqual([]);
+    });
+
+    it('image: adds no element (the first finger already opened the file picker)', () => {
+      const click = jest.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(() => undefined);
+      api.setActiveTool(ToolType.Image);
+      fixture.detectChanges();
+      pinch();
+
+      expect(click).toHaveBeenCalledTimes(1);
+      expect(api.getElements()).toEqual([]);
+      click.mockRestore();
+    });
   });
 });

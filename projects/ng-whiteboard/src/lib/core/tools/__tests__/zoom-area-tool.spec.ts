@@ -77,4 +77,22 @@ describe('ZoomAreaTool', () => {
     tool.handlePointerUp();
     expect(apiService.zoomToRegion).not.toHaveBeenCalled();
   });
+
+  it('cancel() clears the marquee and a later release does not zoom', () => {
+    tool.handlePointerDown(createMockPointerInfo({ x: 10, y: 10 }));
+    tool.handlePointerMove(createMockPointerInfo({ x: 110, y: 90 }));
+
+    tool.cancel();
+    tool.handlePointerMove(createMockPointerInfo({ x: 200, y: 200 }));
+    tool.handlePointerUp();
+
+    expect(apiService.clearSelectionBox).toHaveBeenCalled();
+    expect(apiService.setSelectionBox).toHaveBeenCalledTimes(2);
+    expect(apiService.zoomToRegion).not.toHaveBeenCalled();
+  });
+
+  it('cancel() without a marquee does nothing', () => {
+    tool.cancel();
+    expect(apiService.clearSelectionBox).not.toHaveBeenCalled();
+  });
 });

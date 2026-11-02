@@ -17,6 +17,11 @@ export class TextTool extends BaseTool {
     return this.textInput !== null;
   }
 
+  /** A pinch that began on the text tool must not leave the text box its first finger opened. */
+  override cancel(): void {
+    this.finishTextInput();
+  }
+
   override handlePointerDown(event: PointerInfo): void {
     if (!this.active) return;
 

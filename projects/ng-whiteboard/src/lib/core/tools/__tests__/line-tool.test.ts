@@ -274,4 +274,23 @@ describe('LineTool', () => {
     expect(lineTool.startPoint).toBeNull();
     expect(lineTool.element).toBeNull();
   });
+
+  it('cancel() removes its draft so a later pointer up commits nothing', () => {
+    const removeDraftElements = jest.fn();
+    Object.assign(apiService, { removeDraftElements });
+    apiService.finalizeDraw = jest.fn();
+    (createElement as jest.Mock).mockReturnValue({ id: 'l1', x1: 10, y1: 10, x2: 10, y2: 10, style: {} });
+    lineTool.handlePointerDown(createMockPointerInfo({ x: 10, y: 10 }));
+
+    lineTool.cancel();
+    lineTool.handlePointerMove(createMockPointerInfo({ x: 50, y: 50 }));
+    lineTool.handlePointerUp();
+
+    expect(removeDraftElements).toHaveBeenCalledWith(['l1']);
+    expect(lineTool.element).toBeNull();
+    expect(lineTool.startPoint).toBeNull();
+    expect(apiService.updateDraftElements).not.toHaveBeenCalled();
+    expect(apiService.commitDraftElements).not.toHaveBeenCalled();
+    expect(apiService.finalizeDraw).not.toHaveBeenCalled();
+  });
 });
