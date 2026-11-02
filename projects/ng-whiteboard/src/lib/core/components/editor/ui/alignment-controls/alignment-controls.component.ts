@@ -3,16 +3,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, input, Output } from 
 import { WhiteboardElement } from '../../../../types';
 import { IconComponent } from '../../icon/icon.component';
 import { IconName } from '../../icon/icons';
-
-export type AlignmentType =
-  | 'align-left'
-  | 'align-center'
-  | 'align-right'
-  | 'align-top'
-  | 'align-middle'
-  | 'align-bottom'
-  | 'distribute-horizontal'
-  | 'distribute-vertical';
+import { AlignmentType } from '../../utils/alignment';
 
 @Component({
   selector: 'ng-alignment-controls',

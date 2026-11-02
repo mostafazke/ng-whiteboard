@@ -20,18 +20,16 @@ import { EditorLayout, layoutFor } from './editor-layout';
 import { EditorStateService, Layer } from './editor-state.service';
 import { IconComponent } from './icon/icon.component';
 import { ControlsPanelComponent } from './panels/controls-panel/controls-panel.component';
-import {
-  HeaderPanelComponent,
-  themeToggleLabel,
-  toWhiteboardLayers,
-} from './panels/header-panel/header-panel.component';
+import { HeaderPanelComponent } from './panels/header-panel/header-panel.component';
 import { HistoryPanelComponent } from './panels/history-panel/history-panel.component';
 import { LayerPanelComponent } from './panels/layer-panel/layer-panel.component';
 import { PropertiesPanelComponent } from './panels/properties-panel/properties-panel.component';
 import { ToolbarComponent } from './panels/toolbar/toolbar.component';
-import { AlignmentType } from './ui/alignment-controls/alignment-controls.component';
 import { BottomSheetComponent } from './ui/bottom-sheet/bottom-sheet.component';
+import { AlignmentType } from './utils/alignment';
 import { DOCUMENT_ACTIONS, DocumentActionId, ZOOM_ACTIONS, ZoomActionId } from './utils/editor-actions';
+import { themeToggleLabel } from './utils/theme-label';
+import { toWhiteboardLayers } from './utils/whiteboard-layers';
 
 function isCanvasKey(event: KeyboardEvent): boolean {
   if (event.code === 'Space' || event.key === 'Delete' || event.key === 'Backspace') return true;

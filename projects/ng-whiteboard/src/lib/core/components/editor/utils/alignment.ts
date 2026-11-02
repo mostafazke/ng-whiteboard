@@ -1,6 +1,15 @@
 import { WhiteboardElement } from '../../../types';
 import { getElementBounds } from '../../../utils/dom/element';
-import { AlignmentType } from '../ui/alignment-controls/alignment-controls.component';
+
+export type AlignmentType =
+  | 'align-left'
+  | 'align-center'
+  | 'align-right'
+  | 'align-top'
+  | 'align-middle'
+  | 'align-bottom'
+  | 'distribute-horizontal'
+  | 'distribute-vertical';
 
 export interface AlignmentUpdate {
   id: string;

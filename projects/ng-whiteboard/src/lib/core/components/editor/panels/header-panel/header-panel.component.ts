@@ -5,6 +5,8 @@ import { EditorConfig } from '../../../../types';
 import { Layer } from '../../editor-state.service';
 import { IconComponent } from '../../icon/icon.component';
 import { DOCUMENT_ACTIONS, DocumentActionId, EditorAction } from '../../utils/editor-actions';
+import { themeToggleLabel } from '../../utils/theme-label';
+import { toWhiteboardLayers } from '../../utils/whiteboard-layers';
 import {
   LayerPanelComponent,
   WhiteboardLayer,
@@ -13,24 +15,6 @@ import {
   LayerRenameEvent,
   LayerBlendModeEvent,
 } from '../layer-panel/layer-panel.component';
-
-export function themeToggleLabel(theme: string): string {
-  return theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
-}
-
-export function toWhiteboardLayers(layers: Layer[]): WhiteboardLayer[] {
-  return layers.map((layer) => ({
-    id: layer.id,
-    name: layer.name,
-    visible: layer.visible,
-    locked: layer.locked,
-    opacity: layer.opacity ?? 1,
-    zIndex: layer.zIndex,
-    type: 'drawing' as const,
-    elements: [],
-    blendMode: layer.blendMode || 'normal',
-  }));
-}
 
 let nextMenuId = 0;
 

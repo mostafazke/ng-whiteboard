@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, EventEmitter, input, Output } from '@angular/core';
 import { ElementType, WhiteboardConfig, WhiteboardElement } from '../../../../types';
-import { AlignmentType } from '../../ui/alignment-controls/alignment-controls.component';
+import { AlignmentType } from '../../utils/alignment';
 import { IconComponent } from '../../icon/icon.component';
 import { buildDasharray } from '../../utils/dasharray';
 import { MIXED, SelectedProperties } from '../../utils/selected-properties';

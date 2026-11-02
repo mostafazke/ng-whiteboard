@@ -10,7 +10,7 @@ import { BatchHandle, HistoryService } from '../../history/history.service';
 import { ToolsService } from '../../tools/tools.service';
 import { BlendMode, EditorConfig, FormatType, ToolType, WhiteboardConfig, WhiteboardElement } from '../../types';
 import { ZoomService } from '../../viewport/zoom.service';
-import { AlignmentType } from './ui/alignment-controls/alignment-controls.component';
+import { AlignmentType } from './utils/alignment';
 import { PanService } from '../../viewport';
 import { computeAlignmentUpdates } from './utils/alignment';
 import { buildDasharray } from './utils/dasharray';
