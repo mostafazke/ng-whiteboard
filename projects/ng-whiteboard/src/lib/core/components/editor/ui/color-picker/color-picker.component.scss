@@ -8,8 +8,9 @@
 .color-swatches {
   display: flex;
   align-items: center;
-  gap: var(--wb-space-1-5, 6px);
-  padding: var(--wb-space-2);
+  flex-wrap: nowrap;
+  gap: var(--wb-space-1);
+  padding: 6px;
   background: var(--wb-color-gray-50);
   border: 1px solid var(--wb-color-gray-200);
   border-radius: var(--wb-radius-sm);
@@ -52,11 +53,12 @@
     width: 1px;
     height: 26px;
     background: var(--wb-color-gray-300);
-    margin: 0 var(--wb-space-1);
+    margin: 0 2px;
     flex-shrink: 0;
   }
 
   .custom-color-swatch {
+    flex: 0 0 auto;
     width: 30px;
     min-width: 30px;
     height: 26px;
@@ -94,8 +96,12 @@
 }
 
 @include bp.coarse {
+  // Seven 44px targets fit the 390px sheet; narrower rows scroll instead of wrapping.
   .color-swatches {
-    flex-wrap: wrap;
+    gap: 3px;
+    padding: var(--wb-space-1);
+    overflow-x: auto;
+    scrollbar-width: thin;
 
     .color-swatch,
     .custom-color-swatch {
