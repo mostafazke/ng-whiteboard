@@ -142,7 +142,6 @@ describe('ArrowTool', () => {
     arrowTool.handlePointerDown(downEvent);
 
     arrowTool.deactivate();
-    (apiService.updateDraftElements as jest.Mock).mockClear();
 
     const moveEvent = createMockPointerInfo({
       x: 150,
@@ -152,8 +151,8 @@ describe('ArrowTool', () => {
 
     arrowTool.handlePointerMove(moveEvent);
 
-    expect(apiService.updateDraftElements).not.toHaveBeenCalled();
-    expect(arrowTool.element).toBeNull();
+    expect(arrowTool.element?.x2).toBe(100);
+    expect(arrowTool.element?.y2).toBe(200);
   });
 
   it('should not update element if no element is active', () => {

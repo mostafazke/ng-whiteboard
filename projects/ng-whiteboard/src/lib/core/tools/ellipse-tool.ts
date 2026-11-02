@@ -11,7 +11,8 @@ export class EllipseTool extends BaseTool {
   element: EllipseElement | null = null;
   startPoint: Point | null = null;
 
-  override onDeactivate(): void {
+  override cancel(): void {
+    if (this.element) this.apiService.removeDraftElements([this.element.id]);
     this.element = null;
     this.startPoint = null;
   }

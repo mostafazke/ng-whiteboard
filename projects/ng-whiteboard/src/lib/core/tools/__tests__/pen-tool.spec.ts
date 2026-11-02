@@ -323,7 +323,23 @@ describe('PenTool', () => {
     });
   });
 
-  it('drops the in-progress stroke on deactivate/activate so a later pointer up commits nothing', () => {
+  it('cancel() removes its draft so a later pointer up commits nothing', () => {
+    const removeDraftElements = jest.fn();
+    Object.assign(apiService, { removeDraftElements });
+    jest.spyOn(penTool, 'getPointerPosition').mockReturnValue({ x: 10, y: 10 });
+    (createElement as jest.Mock).mockReturnValue({ id: 'p1', points: [[10, 10]], style: {} });
+    penTool.handlePointerDown(createMockPointerInfo({ eventType: 'pointerdown' }));
+
+    penTool.cancel();
+    penTool.handlePointerUp();
+
+    expect(removeDraftElements).toHaveBeenCalledWith(['p1']);
+    expect(penTool.element).toBeNull();
+    expect(apiService.commitDraftElements).not.toHaveBeenCalled();
+    expect(apiService.finalizeDraw).not.toHaveBeenCalled();
+  });
+
+  it('keeps the in-progress stroke across deactivate/activate (temporary tool switch)', () => {
     jest.spyOn(penTool, 'getPointerPosition').mockReturnValue({ x: 10, y: 10 });
     (createElement as jest.Mock).mockReturnValue({ id: 'p1', points: [[10, 10]], style: {} });
     penTool.handlePointerDown(createMockPointerInfo({ eventType: 'pointerdown' }));
@@ -332,8 +348,6 @@ describe('PenTool', () => {
     penTool.activate();
     penTool.handlePointerUp();
 
-    expect(penTool.element).toBeNull();
-    expect(apiService.commitDraftElements).not.toHaveBeenCalled();
-    expect(apiService.finalizeDraw).not.toHaveBeenCalled();
+    expect(apiService.commitDraftElements).toHaveBeenCalled();
   });
 });

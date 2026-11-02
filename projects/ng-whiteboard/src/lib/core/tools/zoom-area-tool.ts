@@ -17,10 +17,11 @@ export class ZoomAreaTool extends BaseTool {
   private start: Point | null = null;
   private current: Point | null = null;
 
-  override onDeactivate(): void {
-    if (this.start) this.apiService.clearSelectionBox();
+  override cancel(): void {
+    if (!this.start) return;
     this.start = null;
     this.current = null;
+    this.apiService.clearSelectionBox();
   }
 
   override handlePointerDown(event: PointerInfo): void {

@@ -43,10 +43,15 @@ export class ArrowTool extends BaseTool {
 
   override onDeactivate(): void {
     this.connectionUIService?.clearAll();
+  }
+
+  override cancel(): void {
+    if (this.element) this.apiService.removeDraftElements([this.element.id]);
     this.element = null;
     this.startPoint = null;
     this.startSnap = null;
     this.endSnap = null;
+    this.connectionUIService?.clearAll();
   }
 
   override handlePointerDown(event: PointerInfo): void {

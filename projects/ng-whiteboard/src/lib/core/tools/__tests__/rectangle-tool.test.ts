@@ -45,6 +45,7 @@ describe('RectangleTool', () => {
         }
       }),
       commitDraftElements: jest.fn(),
+      removeDraftElements: jest.fn(),
       getConfig: jest.fn().mockReturnValue(config),
       getNextZIndex: jest.fn().mockReturnValue(1),
       getActiveLayerId: jest.fn().mockReturnValue('layer-1'),
@@ -441,14 +442,14 @@ describe('RectangleTool', () => {
     });
   });
 
-  it('drops the in-progress shape on deactivate/activate so a later pointer up commits nothing', () => {
+  it('cancel() removes its draft so a later pointer up commits nothing', () => {
     (createElement as jest.Mock).mockReturnValue({ id: 'r1', type: ElementType.Rectangle });
     rectangleTool.handlePointerDown(createMockPointerInfo({ x: 10, y: 10 }));
 
-    rectangleTool.deactivate();
-    rectangleTool.activate();
+    rectangleTool.cancel();
     rectangleTool.handlePointerUp();
 
+    expect(apiService.removeDraftElements).toHaveBeenCalledWith(['r1']);
     expect(rectangleTool.element).toBeNull();
     expect(rectangleTool.startPoint).toBeNull();
     expect(apiService.commitDraftElements).not.toHaveBeenCalled();

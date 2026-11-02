@@ -34,7 +34,8 @@ export class PenTool extends BaseTool {
     };
   }
 
-  override onDeactivate(): void {
+  override cancel(): void {
+    if (this.element) this.apiService.removeDraftElements([this.element.id]);
     this.element = null;
   }
 

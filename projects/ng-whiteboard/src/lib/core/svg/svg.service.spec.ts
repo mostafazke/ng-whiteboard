@@ -417,16 +417,19 @@ describe('SvgService', () => {
       apiService.selectedElements.mockReturnValue([]);
     });
 
-    it('clears drafts and resets the active drawing tool', () => {
+    it('clears drafts and cancels the active drawing tool', () => {
+      const cancel = jest.fn();
+      (currentTool as { cancel?: () => void }).cancel = cancel;
       service.onPointerDown(createMockPointerInfo());
 
       service.cancelInteraction();
 
       expect(elementsService.clearDraftElements).toHaveBeenCalled();
-      expect(currentTool.deactivate).toHaveBeenCalled();
-      expect(currentTool.activate).toHaveBeenCalled();
+      expect(cancel).toHaveBeenCalledTimes(1);
+      expect(currentTool.deactivate).not.toHaveBeenCalled();
       expect(currentTool.handlePointerUp).not.toHaveBeenCalled();
       expect(eventBusService.emit).toHaveBeenCalledWith(WhiteboardEvent.DrawEnd);
+      delete (currentTool as { cancel?: () => void }).cancel;
     });
 
     it('ends a selection gesture captured from a drawing tool', () => {

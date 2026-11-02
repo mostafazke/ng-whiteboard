@@ -355,6 +355,34 @@ describe('SvgDirective (integration)', () => {
     expect(history.getCanUndoSignal()()).toBe(canUndoBefore);
   });
 
+  it('keeps a mouse stroke alive across Space down/up (temporary Hand)', () => {
+    const mouse = (type: string, x: number, y: number) => {
+      const event = new MouseEvent(type, {
+        clientX: x,
+        clientY: y,
+        button: type === 'pointermove' ? -1 : 0,
+        buttons: type === 'pointerup' ? 0 : 1,
+      }) as PointerEvent;
+      Object.defineProperty(event, 'pointerId', { value: 1 });
+      Object.defineProperty(event, 'pointerType', { value: 'mouse' });
+      return withCurrentTarget(event, rect);
+    };
+
+    directive.onPointerDown(mouse('pointerdown', 10, 10));
+    directive.onPointerMove(mouse('pointermove', 30, 30));
+
+    directive.onKeyDown(new KeyboardEvent('keydown', { code: 'Space' }));
+    TestBed.tick();
+    directive.onKeyUp(new KeyboardEvent('keyup', { code: 'Space' }));
+    TestBed.tick();
+
+    directive.onPointerMove(mouse('pointermove', 60, 60));
+    directive.onPointerUp(mouse('pointerup', 60, 60));
+
+    expect(api.getDraftElements()).toEqual([]);
+    expect(api.getElements().length).toBe(1);
+  });
+
   it('draws normally with a single finger after a gesture', () => {
     directive.onPointerDown(touch('pointerdown', 1, 10, 10));
     directive.onPointerDown(touch('pointerdown', 2, 200, 200));

@@ -11,7 +11,7 @@ export class EraserTool extends BaseTool {
   private readonly hoveredElementIds: Set<string> = new Set();
   private lastPosition: Point | null = null;
 
-  override onDeactivate(): void {
+  override cancel(): void {
     if (this.hoveredElementIds.size > 0) {
       const marked = this.apiService.getElements().filter((el) => this.hoveredElementIds.has(el.id));
       marked.forEach((el) => (el.isDeleting = false));

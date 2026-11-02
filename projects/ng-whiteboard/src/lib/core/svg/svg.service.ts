@@ -141,7 +141,7 @@ export class SvgService {
 
   /**
    * Abort the in-flight pointer interaction (e.g. a second finger turned it into a pinch):
-   * drop drafts and reset the active tool without committing anything. Select-tool drags are
+   * the active tool drops its draft and in-progress state via `cancel()`. Select-tool drags are
    * finished rather than reset, since deactivating Select would clear the selection.
    */
   cancelInteraction(): void {
@@ -164,8 +164,7 @@ export class SvgService {
     if (tool.type === ToolType.Select) {
       if (lastDown) tool.handlePointerUp?.(lastDown);
     } else {
-      tool.deactivate();
-      tool.activate();
+      tool.cancel?.();
     }
   }
 

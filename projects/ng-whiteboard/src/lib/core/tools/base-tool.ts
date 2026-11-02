@@ -48,4 +48,5 @@ export abstract class BaseTool implements Tool {
   handleKeyUp?(event: KeyboardEvent): void;
   onActivate?(): void;
   onDeactivate?(): void;
+  cancel?(): void;
 }
