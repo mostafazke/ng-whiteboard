@@ -1,4 +1,5 @@
-import { computed, inject, Injectable, OnDestroy, Signal, signal } from '@angular/core';
+import { computed, inject, Injectable, OnDestroy, Signal } from '@angular/core';
+import { ApiService } from '../../api/api.service';
 import { ConfigService } from '../../config/config.service';
 import { ElementsService } from '../../elements/elements.service';
 import { LayerManagementService } from '../../elements/layer-management.service';
@@ -35,6 +36,7 @@ export class EditorStateService implements OnDestroy {
   private zoomService = inject(ZoomService);
   private panService = inject(PanService);
   private layerManagementService = inject(LayerManagementService);
+  private apiService = inject(ApiService);
   private editBatch: BatchHandle | null = null;
 
   // Theme handling - use WhiteboardConfig as the source of truth
@@ -69,10 +71,6 @@ export class EditorStateService implements OnDestroy {
 
   canUndoSignal = this.historyService.getCanUndoSignal();
   canRedoSignal = this.historyService.getCanRedoSignal();
-  isFullscreenSignal = signal<boolean>(false);
-  gridVisibleSignal = signal<boolean>(false);
-  snapToGridSignal = signal<boolean>(false);
-  isEditorVisibleSignal = signal<boolean>(true);
 
   // Computed properties
   hasSelectionSignal = computed(() => this.selectedElementsSignal().length > 0);
@@ -99,9 +97,27 @@ export class EditorStateService implements OnDestroy {
 
   alignElements(alignment: AlignmentType) {
     const updates = computeAlignmentUpdates(this.selectedElementsSignal(), alignment);
-    if (updates.length > 0) {
-      this.elementsService.updateElements(updates);
+    this.applyUpdates(updates);
+  }
+
+  /**
+   * Send updates for the selection, skipping locked elements (own lock or locked layer) and updates
+   * that would change nothing, so the edit neither warns nor records an empty history step.
+   */
+  private applyUpdates(updates: (Partial<WhiteboardElement> & { id: string })[]) {
+    const byId = new Map(this.elementsService.getElements().map((element) => [element.id, element]));
+    const effective = updates.filter((update) => {
+      const element = byId.get(update.id);
+      return !!element && !this.isLocked(element) && changes(element, update);
+    });
+    if (effective.length > 0) {
+      this.elementsService.updateElements(effective);
     }
+  }
+
+  private isLocked(element: WhiteboardElement): boolean {
+    if (element.locked) return true;
+    return !!element.layerId && !!this.layerManagementService.getElementLayer(element.id)?.locked;
   }
 
   updateTitle(title: string) {
@@ -147,8 +163,7 @@ export class EditorStateService implements OnDestroy {
    * Update background color of the canvas
    */
   updateBackgroundColor(color: string) {
-    const config = this.configService.getConfig();
-    this.configService.updateConfig({ ...config, backgroundColor: color });
+    this.configService.updateConfig({ backgroundColor: color });
   }
 
   /**
@@ -173,7 +188,7 @@ export class EditorStateService implements OnDestroy {
       },
     }));
 
-    this.elementsService.updateElements(updates);
+    this.applyUpdates(updates);
   }
 
   /**
@@ -196,7 +211,7 @@ export class EditorStateService implements OnDestroy {
       },
     }));
 
-    this.elementsService.updateElements(updates);
+    this.applyUpdates(updates);
   }
 
   /**
@@ -219,7 +234,7 @@ export class EditorStateService implements OnDestroy {
       },
     }));
 
-    this.elementsService.updateElements(updates);
+    this.applyUpdates(updates);
   }
 
   /**
@@ -234,7 +249,7 @@ export class EditorStateService implements OnDestroy {
       opacity,
     }));
 
-    this.elementsService.updateElements(updates);
+    this.applyUpdates(updates);
   }
 
   /**
@@ -259,9 +274,7 @@ export class EditorStateService implements OnDestroy {
         },
       }));
 
-    if (updates.length > 0) {
-      this.elementsService.updateElements(updates);
-    }
+    this.applyUpdates(updates);
   }
 
   /**
@@ -286,9 +299,7 @@ export class EditorStateService implements OnDestroy {
         },
       }));
 
-    if (updates.length > 0) {
-      this.elementsService.updateElements(updates);
-    }
+    this.applyUpdates(updates);
   }
 
   /**
@@ -308,9 +319,7 @@ export class EditorStateService implements OnDestroy {
         },
       }));
 
-    if (updates.length > 0) {
-      this.elementsService.updateElements(updates);
-    }
+    this.applyUpdates(updates);
   }
 
   /**
@@ -330,9 +339,7 @@ export class EditorStateService implements OnDestroy {
         },
       }));
 
-    if (updates.length > 0) {
-      this.elementsService.updateElements(updates);
-    }
+    this.applyUpdates(updates);
   }
 
   /**
@@ -355,7 +362,7 @@ export class EditorStateService implements OnDestroy {
       },
     }));
 
-    this.elementsService.updateElements(updates);
+    this.applyUpdates(updates);
   }
 
   /**
@@ -406,7 +413,7 @@ export class EditorStateService implements OnDestroy {
             [property]: value,
           },
         }));
-        this.elementsService.updateElements(updates);
+        this.applyUpdates(updates);
       }
     }
   }
@@ -443,42 +450,19 @@ export class EditorStateService implements OnDestroy {
   }
 
   undo() {
-    const elements = this.historyService.undo();
-    if (elements) {
-      this.elementsService.setElements(elements);
-      this.selectionService.clearSelection();
-    }
+    this.apiService.undo();
   }
 
   redo() {
-    const elements = this.historyService.redo();
-    if (elements) {
-      this.elementsService.setElements(elements);
-      this.selectionService.clearSelection();
-    }
+    this.apiService.redo();
   }
 
-  // Grid management
   toggleGrid() {
-    this.gridVisibleSignal.update((visible) => !visible);
-    const config = this.configService.getConfig();
-    this.configService.updateConfig({ ...config, enableGrid: this.gridVisibleSignal() });
+    this.configService.updateConfig({ enableGrid: !this.configService.getConfig().enableGrid });
   }
 
   toggleSnapToGrid() {
-    this.snapToGridSignal.update((snap) => !snap);
-    const config = this.configService.getConfig();
-    this.configService.updateConfig({ ...config, snapToGrid: this.snapToGridSignal() });
-  }
-
-  // Fullscreen management
-  toggleFullscreen() {
-    this.isFullscreenSignal.update((fs) => !fs);
-  }
-
-  // Editor visibility
-  toggleEditorVisibility() {
-    this.isEditorVisibleSignal.update((visible) => !visible);
+    this.configService.updateConfig({ snapToGrid: !this.configService.getConfig().snapToGrid });
   }
 
   getActiveLayerId(): string {
@@ -602,4 +586,14 @@ export class EditorStateService implements OnDestroy {
   setLayerBlendMode(layerId: string, blendMode: BlendMode): boolean {
     return this.layerManagementService.setLayerBlendMode(layerId, blendMode);
   }
+}
+
+function changes(element: WhiteboardElement, update: Partial<WhiteboardElement>): boolean {
+  return Object.entries(update).some(([key, value]) => {
+    if (key === 'style') {
+      const style = (element.style ?? {}) as Record<string, unknown>;
+      return Object.entries(value as Record<string, unknown>).some(([styleKey, v]) => style[styleKey] !== v);
+    }
+    return (element as unknown as Record<string, unknown>)[key] !== value;
+  });
 }

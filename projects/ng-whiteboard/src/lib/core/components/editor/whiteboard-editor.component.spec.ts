@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { Subject } from 'rxjs';
+import { ApiService } from '../../api/api.service';
 import { ElementsService } from '../../elements/elements.service';
 import { HistoryService } from '../../history/history.service';
 import { SelectionService } from '../../elements/selection.service';
@@ -47,6 +48,7 @@ describe('WhiteboardEditorComponent', () => {
       providers: [
         { provide: SvgService, useValue: { keyDown$: keyDown$.asObservable() } },
         { provide: IOService, useValue: ioServiceMock },
+        ApiService,
       ],
     }).compileComponents();
 
