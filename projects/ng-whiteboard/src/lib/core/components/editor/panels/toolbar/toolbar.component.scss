@@ -3,11 +3,11 @@
 // Floating Toolbar Styles
 .toolbar-floating {
   position: relative;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: var(--space-1) var(--space-2);
+  background: var(--wb-color-surface);
+  border: 1px solid var(--wb-color-border);
+  border-radius: var(--wb-radius);
+  box-shadow: var(--wb-shadow);
+  padding: var(--wb-space-1) var(--wb-space-2);
   display: flex;
   align-items: center;
   gap: 2px;
@@ -21,9 +21,9 @@
 
     .tool-group-label {
       font-size: 0.75rem;
-      color: var(--color-gray-500);
+      color: var(--wb-color-gray-500);
       font-weight: 500;
-      margin-right: var(--space-1);
+      margin-right: var(--wb-space-1);
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
@@ -33,12 +33,12 @@
       height: 28px;
       border: none;
       background: transparent;
-      border-radius: var(--radius-sm);
+      border-radius: var(--wb-radius-sm);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      color: var(--color-gray-600);
+      color: var(--wb-color-gray-600);
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
 
@@ -47,16 +47,16 @@
       }
 
       &:hover {
-        background-color: var(--color-gray-100);
-        color: var(--color-gray-900);
+        background-color: var(--wb-color-gray-100);
+        color: var(--wb-color-gray-900);
       }
 
       &.active {
-        background-color: var(--color-primary);
+        background-color: var(--wb-color-primary);
         color: white;
 
         &:hover {
-          background-color: var(--color-primary-dark, #2563eb);
+          background-color: var(--wb-color-primary-dark, #2563eb);
         }
       }
 
@@ -71,7 +71,7 @@
             bottom: calc(100% + 8px);
             left: 50%;
             transform: translateX(-50%);
-            background: var(--color-gray-900);
+            background: var(--wb-color-gray-900);
             color: white;
             padding: 4px 8px;
             border-radius: 4px;
@@ -89,8 +89,8 @@
     flex: none;
     width: 1px;
     height: 20px;
-    background-color: var(--color-gray-200);
-    margin: 0 var(--space-1);
+    background-color: var(--wb-color-gray-200);
+    margin: 0 var(--wb-space-1);
   }
 }
 

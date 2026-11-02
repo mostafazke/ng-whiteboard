@@ -1,89 +1,88 @@
 @use 'breakpoints' as bp;
 
-:root {
+.editor {
   // Spacing
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
+  --wb-space-1: 0.25rem;
+  --wb-space-2: 0.5rem;
+  --wb-space-3: 0.75rem;
+  --wb-space-4: 1rem;
+  --wb-space-5: 1.25rem;
+  --wb-space-6: 1.5rem;
+  --wb-space-8: 2rem;
 
   // Border radius
-  --radius-sm: 0.375rem;
-  --radius: 0.5rem;
-  --radius-lg: 0.75rem;
+  --wb-radius-sm: 0.375rem;
+  --wb-radius: 0.5rem;
+  --wb-radius-lg: 0.75rem;
 
   // Typography
-  --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  --wb-font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
 }
 
 // Light theme (default)
-:root,
-.editor[data-theme='light'] {
+.editor {
   // Design tokens - Light theme
-  --color-primary: #3b82f6;
-  --color-primary-dark: #2563eb;
-  --color-primary-light: #60a5fa;
-  --color-white: #ffffff;
-  --color-gray-50: #f9fafb;
-  --color-gray-100: #f3f4f6;
-  --color-gray-200: #e5e7eb;
-  --color-gray-300: #d1d5db;
-  --color-gray-400: #9ca3af;
-  --color-gray-500: #6b7280;
-  --color-gray-600: #4b5563;
-  --color-gray-700: #374151;
-  --color-gray-800: #1f2937;
-  --color-gray-900: #111827;
+  --wb-color-primary: #3b82f6;
+  --wb-color-primary-dark: #2563eb;
+  --wb-color-primary-light: #60a5fa;
+  --wb-color-white: #ffffff;
+  --wb-color-gray-50: #f9fafb;
+  --wb-color-gray-100: #f3f4f6;
+  --wb-color-gray-200: #e5e7eb;
+  --wb-color-gray-300: #d1d5db;
+  --wb-color-gray-400: #9ca3af;
+  --wb-color-gray-500: #6b7280;
+  --wb-color-gray-600: #4b5563;
+  --wb-color-gray-700: #374151;
+  --wb-color-gray-800: #1f2937;
+  --wb-color-gray-900: #111827;
 
   // Theme-specific colors
-  --color-background: #ffffff;
-  --color-surface: #ffffff;
-  --color-border: #e5e7eb;
-  --color-text-primary: #111827;
-  --color-text-secondary: #6b7280;
-  --color-text-tertiary: #9ca3af;
+  --wb-color-background: #ffffff;
+  --wb-color-surface: #ffffff;
+  --wb-color-border: #e5e7eb;
+  --wb-color-text-primary: #111827;
+  --wb-color-text-secondary: #6b7280;
+  --wb-color-text-tertiary: #9ca3af;
 
   // Shadows - Light theme
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  --wb-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --wb-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --wb-shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --wb-shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
 // Dark theme
 .editor[data-theme='dark'] {
   // Design tokens - Dark theme
-  --color-primary: #60a5fa;
-  --color-primary-dark: #3b82f6;
-  --color-primary-light: #93c5fd;
-  --color-white: #ffffff;
-  --color-gray-50: #111827;
-  --color-gray-100: #1f2937;
-  --color-gray-200: #374151;
-  --color-gray-300: #4b5563;
-  --color-gray-400: #6b7280;
-  --color-gray-500: #9ca3af;
-  --color-gray-600: #d1d5db;
-  --color-gray-700: #e5e7eb;
-  --color-gray-800: #f3f4f6;
-  --color-gray-900: #f9fafb;
+  --wb-color-primary: #60a5fa;
+  --wb-color-primary-dark: #3b82f6;
+  --wb-color-primary-light: #93c5fd;
+  --wb-color-white: #ffffff;
+  --wb-color-gray-50: #111827;
+  --wb-color-gray-100: #1f2937;
+  --wb-color-gray-200: #374151;
+  --wb-color-gray-300: #4b5563;
+  --wb-color-gray-400: #6b7280;
+  --wb-color-gray-500: #9ca3af;
+  --wb-color-gray-600: #d1d5db;
+  --wb-color-gray-700: #e5e7eb;
+  --wb-color-gray-800: #f3f4f6;
+  --wb-color-gray-900: #f9fafb;
 
   // Theme-specific colors
-  --color-background: #111827;
-  --color-surface: #1f2937;
-  --color-border: #374151;
-  --color-text-primary: #f9fafb;
-  --color-text-secondary: #d1d5db;
-  --color-text-tertiary: #9ca3af;
+  --wb-color-background: #111827;
+  --wb-color-surface: #1f2937;
+  --wb-color-border: #374151;
+  --wb-color-text-primary: #f9fafb;
+  --wb-color-text-secondary: #d1d5db;
+  --wb-color-text-tertiary: #9ca3af;
 
   // Shadows - Dark theme
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+  --wb-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --wb-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --wb-shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --wb-shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
 }
 
 // Main editor container. It is the `wb-editor` size container for every layout query.
@@ -91,13 +90,13 @@
   position: absolute;
   inset: 0;
   container: wb-editor / size;
-  --wb-gap: var(--space-4);
+  --wb-gap: var(--wb-space-4);
   --wb-bar: 38px;
   font-family:
     system-ui,
     -apple-system,
     sans-serif;
-  color: var(--color-text-primary);
+  color: var(--wb-color-text-primary);
   pointer-events: none;
   user-select: none;
   -webkit-font-smoothing: antialiased;
@@ -118,7 +117,7 @@
   }
 }
 
-.editor-container {
+:where(.editor) .editor-container {
   position: absolute;
   inset: 0;
   pointer-events: none; // Allow pointer events to pass through to canvas
@@ -181,7 +180,7 @@
   }
 
   @include bp.compact {
-    --wb-gap: var(--space-2);
+    --wb-gap: var(--wb-space-2);
 
     > .wb-header {
       right: var(--wb-gap);
@@ -200,29 +199,29 @@
 }
 
 // Bottom sheet content (compact layout)
-.wb-sheet-menu {
+:where(.editor) .wb-sheet-menu {
   display: flex;
   flex-direction: column;
-  padding: 0 var(--space-2) var(--space-3);
+  padding: 0 var(--wb-space-2) var(--wb-space-3);
 }
 
-.wb-sheet-item {
+:where(.editor) .wb-sheet-item {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--wb-space-3);
   min-height: 48px;
-  padding: 0 var(--space-3);
+  padding: 0 var(--wb-space-3);
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--wb-radius-sm);
   background: transparent;
-  color: var(--color-text-primary);
+  color: var(--wb-color-text-primary);
   font: inherit;
   font-size: 0.9375rem;
   text-align: left;
   cursor: pointer;
 
   &:hover:not(:disabled) {
-    background: var(--color-gray-100);
+    background: var(--wb-color-gray-100);
   }
 
   &:disabled {
@@ -232,17 +231,17 @@
 
   ng-icon {
     display: flex;
-    color: var(--color-text-secondary);
+    color: var(--wb-color-text-secondary);
   }
 }
 
 // Layer panel hosted in the header popover or a sheet: drop its own card chrome.
-.layers-dropdown ng-ng-layer-panel .layer-panel-header h3 {
+:where(.editor) .layers-dropdown ng-ng-layer-panel .layer-panel-header h3 {
   display: none;
 }
 
-.layers-dropdown ng-ng-layer-panel,
-ng-bottom-sheet .wb-sheet-layers {
+:where(.editor) .layers-dropdown ng-ng-layer-panel,
+:where(.editor) ng-bottom-sheet .wb-sheet-layers {
   display: block;
 
   .layer-panel {
@@ -258,16 +257,8 @@ ng-bottom-sheet .wb-sheet-layers {
   }
 }
 
-.panel {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-md);
-  backdrop-filter: blur(8px);
-}
-
-// Icon button base styles
-.icon-btn {
+// Icon button base styles; :where() keeps the specificity of a bare class
+:where(.editor) .icon-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -275,12 +266,12 @@ ng-bottom-sheet .wb-sheet-layers {
   background: transparent;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: var(--radius-sm);
-  color: var(--color-text-secondary);
+  border-radius: var(--wb-radius-sm);
+  color: var(--wb-color-text-secondary);
 
   &:hover {
-    background-color: var(--color-gray-100);
-    color: var(--color-text-primary);
+    background-color: var(--wb-color-gray-100);
+    color: var(--wb-color-text-primary);
   }
 
   &:active {
@@ -288,8 +279,8 @@ ng-bottom-sheet .wb-sheet-layers {
   }
 
   &.active {
-    background-color: var(--color-primary);
-    color: var(--color-white);
+    background-color: var(--wb-color-primary);
+    color: var(--wb-color-white);
   }
 
   &:disabled {
@@ -299,23 +290,12 @@ ng-bottom-sheet .wb-sheet-layers {
 }
 
 // Utility classes
-.flex-spacer {
+:where(.editor) .flex-spacer {
   flex: 1;
 }
 
 // Animation keyframes
-@keyframes fadeInScale {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes slideUp {
+@keyframes wb-slide-up {
   from {
     opacity: 0;
     transform: translateY(8px);
@@ -327,6 +307,6 @@ ng-bottom-sheet .wb-sheet-layers {
 }
 
 .editor :focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--wb-color-primary);
   outline-offset: 2px;
 }

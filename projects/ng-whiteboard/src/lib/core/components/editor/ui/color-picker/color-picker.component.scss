@@ -8,11 +8,11 @@
 .color-swatches {
   display: flex;
   align-items: center;
-  gap: var(--space-1-5, 6px);
-  padding: var(--space-2);
-  background: var(--color-gray-50);
-  border: 1px solid var(--color-gray-200);
-  border-radius: var(--radius-sm);
+  gap: var(--wb-space-1-5, 6px);
+  padding: var(--wb-space-2);
+  background: var(--wb-color-gray-50);
+  border: 1px solid var(--wb-color-gray-200);
+  border-radius: var(--wb-radius-sm);
   width: 100%;
 
   .color-swatch {
@@ -20,10 +20,10 @@
     width: 26px;
     height: 26px;
     border: 2px solid white;
-    border-radius: var(--radius-sm);
+    border-radius: var(--wb-radius-sm);
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 0 0 1px var(--color-gray-300);
+    box-shadow: 0 0 0 1px var(--wb-color-gray-300);
     position: relative;
     padding: 0;
 
@@ -31,7 +31,7 @@
       transform: scale(1.15);
       box-shadow:
         0 2px 8px rgba(0, 0, 0, 0.2),
-        0 0 0 1px var(--color-gray-400);
+        0 0 0 1px var(--wb-color-gray-400);
       z-index: 1;
     }
 
@@ -41,7 +41,7 @@
 
     &.active {
       box-shadow:
-        0 0 0 2px var(--color-primary),
+        0 0 0 2px var(--wb-color-primary),
         0 2px 8px rgba(59, 130, 246, 0.3);
       transform: scale(1.15);
       z-index: 2;
@@ -51,8 +51,8 @@
   .color-separator {
     width: 1px;
     height: 26px;
-    background: var(--color-gray-300);
-    margin: 0 var(--space-1);
+    background: var(--wb-color-gray-300);
+    margin: 0 var(--wb-space-1);
     flex-shrink: 0;
   }
 
@@ -60,13 +60,13 @@
     width: 30px;
     min-width: 30px;
     height: 26px;
-    border: 2px dashed var(--color-gray-400);
-    border-radius: var(--radius-sm);
+    border: 2px dashed var(--wb-color-gray-400);
+    border-radius: var(--wb-radius-sm);
     cursor: pointer;
     transition: all 0.2s ease;
     position: relative;
     padding: 0;
-    background: var(--color-surface);
+    background: var(--wb-color-surface);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -74,7 +74,7 @@
 
     &:hover {
       transform: scale(1.15);
-      border-color: var(--color-primary);
+      border-color: var(--wb-color-primary);
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
       z-index: 1;
     }
@@ -113,11 +113,11 @@
 :host(.mixed) .custom-color-swatch {
   background: linear-gradient(
     135deg,
-    var(--color-surface) 0%,
-    var(--color-surface) 46%,
-    var(--color-gray-500, #6b7280) 46%,
-    var(--color-gray-500, #6b7280) 54%,
-    var(--color-gray-300, #d1d5db) 54%,
-    var(--color-gray-300, #d1d5db) 100%
+    var(--wb-color-surface) 0%,
+    var(--wb-color-surface) 46%,
+    var(--wb-color-gray-500, #6b7280) 46%,
+    var(--wb-color-gray-500, #6b7280) 54%,
+    var(--wb-color-gray-300, #d1d5db) 54%,
+    var(--wb-color-gray-300, #d1d5db) 100%
   );
 }

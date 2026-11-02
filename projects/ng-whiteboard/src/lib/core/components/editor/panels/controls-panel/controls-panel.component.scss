@@ -4,12 +4,12 @@
 .controls-panel {
   display: flex;
   align-items: center;
-  gap: var(--space-1); // Reduced gap
-  padding: var(--space-1) var(--space-2); // Reduced padding
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  gap: var(--wb-space-1); // Reduced gap
+  padding: var(--wb-space-1) var(--wb-space-2); // Reduced padding
+  background: var(--wb-color-surface);
+  border: 1px solid var(--wb-color-border);
+  border-radius: var(--wb-radius);
+  box-shadow: var(--wb-shadow);
 
   // Control groups (zoom, view)
   .zoom-controls,
@@ -19,9 +19,9 @@
     gap: 2px; // Tighter gap between buttons
 
     &:not(:last-child) {
-      border-right: 1px solid var(--color-gray-200);
-      padding-right: var(--space-1); // Reduced padding
-      margin-right: var(--space-1);
+      border-right: 1px solid var(--wb-color-gray-200);
+      padding-right: var(--wb-space-1); // Reduced padding
+      margin-right: var(--wb-space-1);
     }
   }
 
@@ -34,18 +34,18 @@
     height: 28px;
     border: none;
     background: transparent;
-    color: var(--color-gray-600);
-    border-radius: var(--radius-sm);
+    color: var(--wb-color-gray-600);
+    border-radius: var(--wb-radius-sm);
     cursor: pointer;
     transition: all 0.2s ease;
 
     &:hover {
-      background: var(--color-gray-100);
-      color: var(--color-gray-900);
+      background: var(--wb-color-gray-100);
+      color: var(--wb-color-gray-900);
     }
 
     &:active {
-      background: var(--color-gray-200);
+      background: var(--wb-color-gray-200);
     }
 
     &:disabled {
@@ -54,16 +54,16 @@
 
       &:hover {
         background: transparent;
-        color: var(--color-gray-600);
+        color: var(--wb-color-gray-600);
       }
     }
 
     &.active {
-      background: var(--color-primary);
+      background: var(--wb-color-primary);
       color: white;
 
       &:hover {
-        background: var(--color-primary-dark);
+        background: var(--wb-color-primary-dark);
       }
     }
   }
@@ -72,8 +72,8 @@
   .divider {
     width: 1px;
     height: 20px;
-    background: var(--color-gray-200);
-    margin: 0 var(--space-1);
+    background: var(--wb-color-gray-200);
+    margin: 0 var(--wb-space-1);
   }
 
   // Zoom specific styles
@@ -85,27 +85,27 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--space-1);
+    padding: var(--wb-space-1);
     min-width: 45px; // Smaller width
     height: 28px; // Match icon button height
     font-size: 0.7rem; // Smaller font
     font-weight: 500;
-    color: var(--color-gray-700);
-    background: var(--color-gray-50);
-    border: 1px solid var(--color-gray-200);
-    border-radius: var(--radius-sm);
+    color: var(--wb-color-gray-700);
+    background: var(--wb-color-gray-50);
+    border: 1px solid var(--wb-color-gray-200);
+    border-radius: var(--wb-radius-sm);
     cursor: pointer;
     transition: all 0.2s ease;
 
     &:hover {
-      background: var(--color-gray-100);
-      border-color: var(--color-gray-300);
+      background: var(--wb-color-gray-100);
+      border-color: var(--wb-color-gray-300);
     }
 
     &.active {
-      background: var(--color-primary);
+      background: var(--wb-color-primary);
       color: white;
-      border-color: var(--color-primary);
+      border-color: var(--wb-color-primary);
     }
   }
 
@@ -113,36 +113,36 @@
     position: absolute;
     bottom: calc(100% + 8px); // Position above instead of below
     right: 0; // Align to right edge
-    background: var(--color-white);
-    border: 1px solid var(--color-gray-200);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-lg); // Stronger shadow for better visibility
+    background: var(--wb-color-white);
+    border: 1px solid var(--wb-color-gray-200);
+    border-radius: var(--wb-radius);
+    box-shadow: var(--wb-shadow-lg); // Stronger shadow for better visibility
     z-index: 1000;
     min-width: 120px; // Smaller width
     overflow: hidden;
 
     .zoom-presets {
-      padding: var(--space-1);
+      padding: var(--wb-space-1);
 
       .zoom-option {
         display: block;
         width: 100%;
-        padding: var(--space-1); // Reduced padding
+        padding: var(--wb-space-1); // Reduced padding
         border: none;
         background: none;
-        color: var(--color-gray-700);
+        color: var(--wb-color-gray-700);
         text-align: left;
         cursor: pointer;
-        border-radius: var(--radius-sm);
+        border-radius: var(--wb-radius-sm);
         font-size: 0.7rem; // Smaller font
         transition: background 0.2s ease;
 
         &:hover {
-          background: var(--color-gray-100);
+          background: var(--wb-color-gray-100);
         }
 
         &.active {
-          background: var(--color-primary);
+          background: var(--wb-color-primary);
           color: white;
         }
       }
@@ -150,30 +150,30 @@
 
     .zoom-divider {
       height: 1px;
-      background: var(--color-gray-200);
-      margin: var(--space-1) 0;
+      background: var(--wb-color-gray-200);
+      margin: var(--wb-space-1) 0;
     }
 
     .zoom-actions {
-      padding: var(--space-1);
+      padding: var(--wb-space-1);
 
       .zoom-action {
         display: flex;
         align-items: center;
-        gap: var(--space-1); // Reduced gap
+        gap: var(--wb-space-1); // Reduced gap
         width: 100%;
-        padding: var(--space-1); // Reduced padding
+        padding: var(--wb-space-1); // Reduced padding
         border: none;
         background: none;
-        color: var(--color-gray-700);
+        color: var(--wb-color-gray-700);
         text-align: left;
         cursor: pointer;
-        border-radius: var(--radius-sm);
+        border-radius: var(--wb-radius-sm);
         font-size: 0.7rem; // Smaller font
         transition: background 0.2s ease;
 
         &:hover {
-          background: var(--color-gray-100);
+          background: var(--wb-color-gray-100);
         }
 
         &:disabled {

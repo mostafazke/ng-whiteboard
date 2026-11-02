@@ -23,12 +23,12 @@
   display: flex;
   flex-direction: column;
   padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-  background: var(--color-surface);
-  color: var(--color-text-primary);
-  border: 1px solid var(--color-border);
+  background: var(--wb-color-surface);
+  color: var(--wb-color-text-primary);
+  border: 1px solid var(--wb-color-border);
   border-bottom: none;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  box-shadow: var(--shadow-lg);
+  border-radius: var(--wb-radius-lg) var(--wb-radius-lg) 0 0;
+  box-shadow: var(--wb-shadow-lg);
   pointer-events: auto;
   outline: none;
   transition: transform 0.2s ease;
@@ -52,7 +52,7 @@
     width: 36px;
     height: 4px;
     border-radius: 2px;
-    background: var(--color-gray-300);
+    background: var(--wb-color-gray-300);
   }
 }
 

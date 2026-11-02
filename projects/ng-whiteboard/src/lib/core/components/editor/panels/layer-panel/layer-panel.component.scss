@@ -3,8 +3,8 @@
 .layer-panel {
   width: 300px;
   max-width: 100%;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--wb-color-surface);
+  border: 1px solid var(--wb-color-border);
   border-radius: 8px;
   padding: 16px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -164,7 +164,7 @@
 
 .layer-name:focus {
   outline: none;
-  background: var(--color-surface);
+  background: var(--wb-color-surface);
   border: 1px solid #0366d6;
   box-shadow: 0 0 0 2px rgba(3, 102, 214, 0.2);
 }
@@ -304,14 +304,14 @@
 .move-down-btn {
   width: 32px;
   height: 32px;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
+  border: 1px solid var(--wb-color-border);
+  background: var(--wb-color-surface);
   border-radius: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-text-secondary);
+  color: var(--wb-color-text-secondary);
   transition: all 0.2s;
 }
 
@@ -335,10 +335,10 @@
 .blend-mode-select {
   width: 100%;
   padding: 6px 8px;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--wb-color-border);
   border-radius: 6px;
-  background: var(--color-surface);
-  color: var(--color-text-primary);
+  background: var(--wb-color-surface);
+  color: var(--wb-color-text-primary);
   font-size: 12px;
 }
 
@@ -370,48 +370,48 @@
 // Layer Panel Toggle Button
 .layer-panel-toggle {
   position: absolute;
-  top: calc(60px + var(--space-2));
-  right: calc(320px + var(--space-4)); // Position to the left of layer panel
+  top: calc(60px + var(--wb-space-2));
+  right: calc(320px + var(--wb-space-4)); // Position to the left of layer panel
   width: 48px;
   height: 48px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  background: var(--wb-color-surface);
+  border: 1px solid var(--wb-color-border);
+  border-radius: var(--wb-radius-lg);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   pointer-events: auto;
-  box-shadow: var(--shadow);
-  color: var(--color-text-secondary);
+  box-shadow: var(--wb-shadow);
+  color: var(--wb-color-text-secondary);
   transition: all 0.2s ease;
   z-index: 999;
 
   &:hover {
-    background: var(--color-gray-100);
-    border-color: var(--color-primary);
-    color: var(--color-primary);
-    box-shadow: var(--shadow-md);
+    background: var(--wb-color-gray-100);
+    border-color: var(--wb-color-primary);
+    color: var(--wb-color-primary);
+    box-shadow: var(--wb-shadow-md);
     transform: scale(1.05);
   }
 
   &.active {
-    background: var(--color-primary);
-    border-color: var(--color-primary);
-    color: var(--color-white);
-    box-shadow: var(--shadow-md);
+    background: var(--wb-color-primary);
+    border-color: var(--wb-color-primary);
+    color: var(--wb-color-white);
+    box-shadow: var(--wb-shadow-md);
   }
 
   // Tooltip
   .tooltip {
     position: absolute;
-    right: calc(100% + var(--space-2));
+    right: calc(100% + var(--wb-space-2));
     top: 50%;
     transform: translateY(-50%);
-    background: var(--color-gray-800);
-    color: var(--color-white);
-    padding: var(--space-1) var(--space-2);
-    border-radius: var(--radius-sm);
+    background: var(--wb-color-gray-800);
+    color: var(--wb-color-white);
+    padding: var(--wb-space-1) var(--wb-space-2);
+    border-radius: var(--wb-radius-sm);
     font-size: 0.75rem;
     white-space: nowrap;
     opacity: 0;
@@ -425,8 +425,8 @@
 
   // Mobile responsive
   @media (max-width: 768px) {
-    top: calc(50px + var(--space-2));
-    right: calc(var(--space-2) + 60px); // Position next to controls
+    top: calc(50px + var(--wb-space-2));
+    right: calc(var(--wb-space-2) + 60px); // Position next to controls
     width: 40px;
     height: 40px;
 
@@ -439,8 +439,8 @@
 // Layer Panel Container
 .layer-panel-container {
   position: absolute;
-  top: calc(60px + var(--space-2)); // Below header
-  right: var(--space-2);
+  top: calc(60px + var(--wb-space-2)); // Below header
+  right: var(--wb-space-2);
   z-index: 1000;
   pointer-events: auto;
 
@@ -460,9 +460,9 @@
 
   // Mobile responsive
   @media (max-width: 768px) {
-    top: calc(50px + var(--space-2));
-    right: var(--space-1);
-    left: var(--space-1);
+    top: calc(50px + var(--wb-space-2));
+    right: var(--wb-space-1);
+    left: var(--wb-space-1);
     width: auto;
   }
 }
