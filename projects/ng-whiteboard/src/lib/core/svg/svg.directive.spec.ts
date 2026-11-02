@@ -483,6 +483,23 @@ describe('SvgDirective (integration)', () => {
     expect(api.getElements().length).toBe(1);
   });
 
+  it('emits one DrawEnd for one DrawStart when a pinch resumes with a finger still down', () => {
+    let drawStarts = 0;
+    let drawEnds = 0;
+    component.drawStart.subscribe(() => drawStarts++);
+    component.drawEnd.subscribe(() => drawEnds++);
+
+    directive.onPointerDown(touch('pointerdown', 1, 10, 10));
+    directive.onPointerDown(touch('pointerdown', 2, 200, 200));
+    directive.onPointerUp(touch('pointerup', 2, 200, 200));
+    directive.onPointerDown(touch('pointerdown', 3, 150, 150));
+    directive.onPointerUp(touch('pointerup', 3, 150, 150));
+    directive.onPointerUp(touch('pointerup', 1, 10, 10));
+
+    expect(drawStarts).toBe(1);
+    expect(drawEnds).toBe(1);
+  });
+
   it('draws normally with a single finger after a gesture', () => {
     directive.onPointerDown(touch('pointerdown', 1, 10, 10));
     directive.onPointerDown(touch('pointerdown', 2, 200, 200));

@@ -461,6 +461,42 @@ describe('SvgService', () => {
       toolsService.getActiveToolType.mockReturnValue(ToolType.Pen);
       toolsService.getActiveToolInstance.mockReturnValue(currentTool);
     });
+
+    const drawEndCount = () =>
+      eventBusService.emit.mock.calls.filter(([type]) => type === WhiteboardEvent.DrawEnd).length;
+
+    it('emits no DrawEnd without a DrawStart for the current interaction', () => {
+      service.cancelInteraction();
+
+      expect(drawEndCount()).toBe(0);
+    });
+
+    it('emits no DrawEnd when the first down was blocked (drawing disabled)', () => {
+      configService.getConfig.mockReturnValue({ drawingEnabled: false } as WhiteboardConfig);
+      service.onPointerDown(createMockPointerInfo());
+
+      service.cancelInteraction();
+
+      expect(eventBusService.emit).not.toHaveBeenCalledWith(WhiteboardEvent.DrawStart, expect.anything());
+      expect(drawEndCount()).toBe(0);
+      configService.getConfig.mockReturnValue({ drawingEnabled: true, keyboardShortcutsEnabled: true } as WhiteboardConfig);
+    });
+
+    it('pairs DrawEnd with DrawStart when a gesture resumes', () => {
+      service.onPointerDown(createMockPointerInfo());
+      service.cancelInteraction();
+      service.cancelInteraction();
+
+      expect(drawEndCount()).toBe(1);
+    });
+
+    it('emits no second DrawEnd when cancelling after the pointer was already released', () => {
+      service.onPointerDown(createMockPointerInfo());
+      service.onPointerUp(createMockPointerInfo({ eventType: 'pointerup' }));
+      service.cancelInteraction();
+
+      expect(drawEndCount()).toBe(1);
+    });
   });
 
   describe('Context Menu', () => {

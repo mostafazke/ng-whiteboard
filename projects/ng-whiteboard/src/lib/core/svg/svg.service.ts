@@ -37,6 +37,8 @@ export class SvgService {
   /** True while a pointer gesture is manipulating the selection (move/resize/rotate) even though
    *  a non-Select tool is active — see {@link tryBeginSelectionGesture}. */
   private selectionGesture = false;
+  /** True between a DrawStart and its DrawEnd, so a cancelled interaction never emits an unpaired DrawEnd. */
+  private drawStarted = false;
   private readonly elementsService = inject(ElementsService);
 
   constructor(
@@ -71,7 +73,7 @@ export class SvgService {
     // from the drawing tool. Lets a just-drawn element stay fully editable while you keep drawing.
     if (this.tryBeginSelectionGesture(info)) return;
 
-    this.EventBusService.emit(WhiteboardEvent.DrawStart, info);
+    this.emitDrawStart(info);
 
     const currentTool = this.toolsService.getActiveToolInstance();
     currentTool?.handlePointerDown?.(info);
@@ -122,7 +124,7 @@ export class SvgService {
 
     if (!this.canDraw()) return;
 
-    this.EventBusService.emit(WhiteboardEvent.DrawEnd);
+    this.emitDrawEnd();
     const currentTool = this.toolsService.getActiveToolInstance();
     currentTool?.handlePointerUp?.(info);
     this.pointerUpSig.set(info);
@@ -153,8 +155,8 @@ export class SvgService {
       } else {
         this.selectionGesture = false;
       }
-    } else {
-      this.EventBusService.emit(WhiteboardEvent.DrawEnd);
+    } else if (this.drawStarted) {
+      this.emitDrawEnd();
     }
 
     this.elementsService.clearDraftElements();
@@ -170,10 +172,20 @@ export class SvgService {
 
   /** Hand the up/cancel to the Select tool and clear the capture flag. */
   private endSelectionGesture(info: PointerInfo): void {
-    this.EventBusService.emit(WhiteboardEvent.DrawEnd);
+    this.emitDrawEnd();
     this.safeGetToolInstance(ToolType.Select)?.handlePointerUp?.(info);
     this.pointerUpSig.set(info);
     this.selectionGesture = false;
+  }
+
+  private emitDrawStart(info: PointerInfo): void {
+    this.drawStarted = true;
+    this.EventBusService.emit(WhiteboardEvent.DrawStart, info);
+  }
+
+  private emitDrawEnd(): void {
+    this.drawStarted = false;
+    this.EventBusService.emit(WhiteboardEvent.DrawEnd);
   }
 
   onKeyDown(event: KeyboardEvent) {
@@ -346,7 +358,7 @@ export class SvgService {
     if (!selectTool) return false;
 
     this.selectionGesture = true;
-    this.EventBusService.emit(WhiteboardEvent.DrawStart, info);
+    this.emitDrawStart(info);
     selectTool.handlePointerDown?.(info);
     this.pointerDownSig.set(info);
     return true;
