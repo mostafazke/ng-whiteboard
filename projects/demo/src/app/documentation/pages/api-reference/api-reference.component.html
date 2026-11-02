@@ -56,6 +56,15 @@
                     <td>Initial whiteboard data/elements to load</td>
                   </tr>
                   <tr>
+                    <td><code>showEditor</code></td>
+                    <td><code>boolean</code></td>
+                    <td><code>false</code></td>
+                    <td>
+                      Show the built-in editor (toolbar, properties, layers). When false only the canvas renders.
+                      <code>Alt+P</code> toggles the properties panel.
+                    </td>
+                  </tr>
+                  <tr>
                     <td><code>selectedTool</code></td>
                     <td><code>ToolType</code></td>
                     <td><code>-</code></td>
@@ -343,6 +352,12 @@
                     <td><code>PenType</code></td>
                     <td><code>PenType.Pen</code></td>
                     <td>Type of pen tool (Pen, Highlighter, etc.)</td>
+                  </tr>
+                  <tr>
+                    <td><code>theme</code></td>
+                    <td><code>'light' | 'dark'</code></td>
+                    <td><code>unset (light)</code></td>
+                    <td>Color theme for the canvas and the built-in editor</td>
                   </tr>
                   <tr>
                     <td><code>arrowConfig</code></td>

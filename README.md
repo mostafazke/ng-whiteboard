@@ -139,6 +139,20 @@ export class WhiteboardContainerComponent implements OnInit {
 <ng-whiteboard (dataChange)="onDataChange($event)" [options]="whiteboardOptions"></ng-whiteboard>
 ```
 
+## 🧰 Built-in Editor
+
+```html
+<ng-whiteboard [showEditor]="true" [config]="{ theme: 'dark' }"></ng-whiteboard>
+```
+
+- `[showEditor]` (default `false`) adds the editor UI (toolbar, properties, layers). When `false`, only the canvas renders, unchanged.
+- `config.theme` is `'light' | 'dark'`. Unset renders as before (light).
+- The layout adapts to the editor's own container. Phones and small containers get a bottom toolbar and bottom sheets.
+- Touch: pinch to zoom and two-finger pan work with or without the editor.
+- `Alt + P` toggles the properties panel.
+- **Save** downloads an SVG file and **Export** downloads a PNG file.
+- `EditorConfig` flags other than `title` are deprecated and ignored. They will be removed in the next major version.
+
 ## ⚙️ Configuration
 
 | Input               | Type                  | Default          | Description                                                                                        |

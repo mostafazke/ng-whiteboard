@@ -1,3 +1,4 @@
+import { ChangeDetectorRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NgWhiteboardComponent } from './ng-whiteboard.component';
 import { ConfigService } from './core/config/config.service';
@@ -304,6 +305,34 @@ describe('NgWhiteboardComponent', () => {
           expect(spy).toHaveBeenCalledWith(tool);
         });
       });
+    });
+  });
+
+  describe('showEditor', () => {
+    const editorEl = () => fixture.nativeElement.querySelector('ng-whiteboard-editor');
+
+    it('does not render editor by default', () => {
+      expect(component.showEditor).toBe(false);
+      expect(editorEl()).toBeNull();
+    });
+
+    it('renders editor when showEditor is true', () => {
+      component.showEditor = true;
+      fixture.debugElement.injector.get(ChangeDetectorRef).markForCheck();
+      fixture.detectChanges();
+      expect(editorEl()).not.toBeNull();
+    });
+
+    it('toggling showEditor at runtime adds/removes editor', () => {
+      component.showEditor = true;
+      fixture.debugElement.injector.get(ChangeDetectorRef).markForCheck();
+      fixture.detectChanges();
+      expect(editorEl()).not.toBeNull();
+
+      component.showEditor = false;
+      fixture.debugElement.injector.get(ChangeDetectorRef).markForCheck();
+      fixture.detectChanges();
+      expect(editorEl()).toBeNull();
     });
   });
 
