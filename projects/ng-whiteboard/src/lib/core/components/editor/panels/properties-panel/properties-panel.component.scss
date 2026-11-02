@@ -400,6 +400,39 @@
     .button-group .style-btn {
       min-height: 44px;
     }
+
+    .control-row select {
+      min-height: 44px;
+    }
+
+    // The input box is the hit area: grow it to 44px and draw the 4px track inside it.
+    .control-slider .slider-container input[type='range'] {
+      height: 44px;
+      background: transparent;
+
+      &::-webkit-slider-runnable-track {
+        height: 4px;
+        border-radius: 2px;
+        background: var(--wb-color-gray-200);
+      }
+
+      &::-moz-range-track {
+        height: 4px;
+        border-radius: 2px;
+        background: var(--wb-color-gray-200);
+      }
+
+      &::-webkit-slider-thumb {
+        width: 24px;
+        height: 24px;
+        margin-top: -10px;
+      }
+
+      &::-moz-range-thumb {
+        width: 24px;
+        height: 24px;
+      }
+    }
   }
 }
 

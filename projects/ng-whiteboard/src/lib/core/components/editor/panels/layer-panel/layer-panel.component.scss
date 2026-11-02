@@ -487,4 +487,31 @@
     gap: 0;
     margin-right: 4px;
   }
+
+  .blend-mode-select {
+    min-height: 44px;
+  }
+
+  .opacity-slider {
+    height: 44px;
+    background: transparent;
+
+    &::-webkit-slider-runnable-track {
+      height: 4px;
+      border-radius: 2px;
+      background: #e1e4e8;
+    }
+
+    &::-moz-range-track {
+      height: 4px;
+      border-radius: 2px;
+      background: #e1e4e8;
+    }
+
+    &::-webkit-slider-thumb {
+      width: 20px;
+      height: 20px;
+      margin-top: -8px;
+    }
+  }
 }
