@@ -8,6 +8,8 @@ import { EventBusService } from './core/event-bus/event-bus.service';
 import { InstanceService } from './core/canvas/instance.service';
 import { ToolType, WhiteboardElement, ElementType } from './core/types';
 import { WhiteboardEvent } from './core/types/events';
+import { createElement } from './core/elements/element.utils';
+import { SvgService } from './core/svg/svg.service';
 
 describe('NgWhiteboardComponent', () => {
   let component: NgWhiteboardComponent;
@@ -686,6 +688,68 @@ describe('NgWhiteboardComponent', () => {
       TestBed.flushEffects();
 
       fixture.detectChanges();
+    });
+  });
+
+  describe('keyboard on the focused canvas svg', () => {
+    let svg: SVGSVGElement;
+
+    const press = (key: string, init: KeyboardEventInit = {}) => {
+      svg.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...init }));
+      svg.dispatchEvent(new KeyboardEvent('keyup', { key, bubbles: true, cancelable: true, ...init }));
+    };
+
+    const rect = (id: string) => createElement(ElementType.Rectangle, { id, x: 0, y: 0, width: 10, height: 10 });
+
+    beforeEach(() => {
+      svg = fixture.nativeElement.querySelector('svg[globalKeyboard]');
+      expect(svg.isConnected).toBe(true);
+      svg.dispatchEvent(new MouseEvent('mouseenter'));
+      svg.focus();
+      expect(document.activeElement).toBe(svg);
+    });
+
+    it('Ctrl+Z undoes exactly one step', () => {
+      apiService.addElements([rect('a')]);
+      apiService.addElements([rect('b')]);
+      let undos = 0;
+      component.undo.subscribe(() => undos++);
+
+      press('z', { ctrlKey: true });
+
+      expect(undos).toBe(1);
+      expect(apiService.getElements().map((el) => el.id)).toEqual(['a']);
+    });
+
+    it('Delete removes the selection once', () => {
+      apiService.addElements([rect('a'), rect('b')]);
+      apiService.selectElements('a');
+      let removals = 0;
+      component.elementsRemoved.subscribe(() => removals++);
+
+      press('Delete');
+
+      expect(removals).toBe(1);
+      expect(apiService.getElements().map((el) => el.id)).toEqual(['b']);
+    });
+
+    it('a tool letter switches the tool once', () => {
+      const setActiveTool = jest.spyOn(toolsService, 'setActiveTool');
+
+      press('r');
+
+      expect(setActiveTool).toHaveBeenCalledTimes(1);
+      expect(toolsService.getActiveToolType()).toBe(ToolType.Rectangle);
+    });
+
+    it('keyDown$ emits a non-shortcut key once although it reaches both the svg and window listeners', () => {
+      const svgService = fixture.debugElement.injector.get(SvgService);
+      const keyDowns: KeyboardEvent[] = [];
+      svgService.keyDown$.subscribe((event) => keyDowns.push(event));
+
+      press('q');
+
+      expect(keyDowns.length).toBe(1);
     });
   });
 });
