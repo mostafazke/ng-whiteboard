@@ -404,6 +404,78 @@ describe('WhiteboardEditorComponent', () => {
         move.execute();
         expect((history.undo() as WhiteboardElement[])[0].x).toBe(0);
       });
+
+      it('a pending color edit closes when its picker is destroyed', () => {
+        jest.useFakeTimers();
+        select();
+        const fill = panel().querySelectorAll('input[type="color"]')[0] as HTMLInputElement;
+        slide(fill, ['#111111']);
+        TestBed.inject(SelectionService).clearSelection();
+        fixture.detectChanges();
+        drawStroke();
+
+        const api = TestBed.inject(ApiService);
+        api.undo();
+        expect(ids()).toEqual(['r1']);
+        expect(r1().style.fill).toBe('#111111');
+      });
+
+      it('keys and pointerdown on the slider that owns the batch keep it open; elsewhere they close it', () => {
+        select();
+        const history = TestBed.inject(HistoryService);
+        const key = (target: EventTarget, init: KeyboardEventInit) =>
+          target.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, ...init }));
+        slide(opacity(), ['90']);
+        key(opacity(), { key: 'ArrowLeft' });
+        opacity().dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }));
+        slide(opacity(), ['80']);
+        expect(history.getCanUndoSignal()()).toBe(false);
+
+        key(document.body, { key: 'r' });
+        expect(history.getCanUndoSignal()()).toBe(true);
+        expect((history.undo() as WhiteboardElement[])[0].opacity).toBe(100);
+        expect(history.undo()).toBeNull();
+      });
+
+      it('a modified key on the owning slider still closes the batch', () => {
+        select();
+        slide(opacity(), ['90']);
+        opacity().dispatchEvent(new KeyboardEvent('keydown', { key: 'z', ctrlKey: true, bubbles: true }));
+        expect(TestBed.inject(HistoryService).getCanUndoSignal()()).toBe(true);
+      });
+
+      it('a pointerdown elsewhere closes the batch', () => {
+        select();
+        slide(opacity(), ['90']);
+        document.body.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }));
+        expect(TestBed.inject(HistoryService).getCanUndoSignal()()).toBe(true);
+      });
+
+      describe('window listeners', () => {
+        const types = ['pointerdown', 'pointerup', 'pointercancel', 'keydown'];
+        const ours = (spy: jest.SpyInstance) => spy.mock.calls.filter(([type]) => types.includes(type as string));
+
+        it('are all removed on endEdit and on destroy', () => {
+          const add = jest.spyOn(window, 'addEventListener');
+          const remove = jest.spyOn(window, 'removeEventListener');
+          const state = component.editorStateService;
+
+          state.beginEdit();
+          state.beginEdit();
+          expect(ours(add).length).toBe(types.length);
+          state.endEdit();
+          expect(ours(remove)).toEqual(ours(add));
+
+          add.mockClear();
+          remove.mockClear();
+          state.beginEdit();
+          fixture.destroy();
+          expect(ours(remove)).toEqual(ours(add));
+          expect(ours(add).length).toBe(types.length);
+          add.mockRestore();
+          remove.mockRestore();
+        });
+      });
     });
   });
 

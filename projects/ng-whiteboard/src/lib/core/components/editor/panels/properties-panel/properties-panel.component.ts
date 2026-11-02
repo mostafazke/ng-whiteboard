@@ -53,7 +53,7 @@ interface PropertyChangeEvent {
                 <ng-color-picker
                   [value]="config().backgroundColor"
                   (colorChange)="onColorChange('backgroundColor', $event)"
-                  (editStart)="editStart.emit()" (editEnd)="editEnd.emit()"
+                  (editStart)="editStart.emit($event)" (editEnd)="editEnd.emit()"
                 >
                 </ng-color-picker>
               </div>
@@ -64,7 +64,7 @@ interface PropertyChangeEvent {
                 <ng-color-picker
                   [value]="fillColorValue()"
                   (colorChange)="onColorChange('fillColor', $event)"
-                  (editStart)="editStart.emit()" (editEnd)="editEnd.emit()"
+                  (editStart)="editStart.emit($event)" (editEnd)="editEnd.emit()"
                 >
                 </ng-color-picker>
               </div>
@@ -81,7 +81,7 @@ interface PropertyChangeEvent {
                   <ng-color-picker
                     [value]="strokeColorValue()"
                     (colorChange)="onColorChange('strokeColor', $event)"
-                    (editStart)="editStart.emit()" (editEnd)="editEnd.emit()"
+                    (editStart)="editStart.emit($event)" (editEnd)="editEnd.emit()"
                   >
                   </ng-color-picker>
                 </div>
@@ -292,7 +292,7 @@ export class PropertiesPanelComponent {
   @Output() togglePanel = new EventEmitter<void>();
   @Output() alignmentChange = new EventEmitter<AlignmentType>();
   /** A continuous edit (slider drag, native color picker) started; closed by `editEnd`. */
-  @Output() editStart = new EventEmitter<void>();
+  @Output() editStart = new EventEmitter<EventTarget | null>();
   @Output() editEnd = new EventEmitter<void>();
 
   // Computed properties for better performance
@@ -409,7 +409,7 @@ export class PropertiesPanelComponent {
   }
 
   onSliderInput(property: 'strokeWidth' | 'opacity' | 'fontSize', event: Event) {
-    this.editStart.emit();
+    this.editStart.emit(event.target);
     this.propertyChange.emit({ property, value: Number((event.target as HTMLInputElement).value) });
   }
 

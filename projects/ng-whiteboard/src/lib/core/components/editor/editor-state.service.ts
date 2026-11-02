@@ -38,9 +38,15 @@ export class EditorStateService implements OnDestroy {
   private panService = inject(PanService);
   private layerManagementService = inject(LayerManagementService);
   private apiService = inject(ApiService);
-  private window = inject(DOCUMENT).defaultView;
+  private win = inject(DOCUMENT).defaultView;
   private editBatch: BatchHandle | null = null;
+  private editOwner: EventTarget | null = null;
   private readonly endEditOnRelease = () => this.endEdit();
+  /** A new gesture or key elsewhere ends the edit before the canvas or a shortcut records its own history. */
+  private readonly endEditOnInteraction = (event: Event) => {
+    if (event.target === this.editOwner && !isModifiedKey(event)) return;
+    this.endEdit();
+  };
 
   // Theme handling - use WhiteboardConfig as the source of truth
   themeSignal = computed(() => this.getConfigSignal()().theme ?? 'light');
@@ -426,22 +432,33 @@ export class EditorStateService implements OnDestroy {
 
   /**
    * Group the updates of a continuous edit (slider drag, native color picker) into one undo step.
-   * The batch closes on `endEdit` or the next pointer release, whichever comes first.
+   * The batch closes on `endEdit`, the next pointer release, or a pointerdown/keydown outside `owner`
+   * (the control driving the edit). Listeners run in the capture phase so they precede the canvas.
    */
-  beginEdit() {
+  beginEdit(owner: EventTarget | null = null) {
     if (this.editBatch) return;
     this.editBatch = this.historyService.startBatch('Update properties', this.elementsService.getElements());
-    this.window?.addEventListener('pointerup', this.endEditOnRelease);
-    this.window?.addEventListener('pointercancel', this.endEditOnRelease);
+    this.editOwner = owner;
+    this.toggleEditListeners(true);
   }
 
   endEdit() {
     if (!this.editBatch) return;
     const batch = this.editBatch;
     this.editBatch = null;
-    this.window?.removeEventListener('pointerup', this.endEditOnRelease);
-    this.window?.removeEventListener('pointercancel', this.endEditOnRelease);
+    this.editOwner = null;
+    this.toggleEditListeners(false);
     batch.execute(this.elementsService.getElements());
+  }
+
+  private toggleEditListeners(on: boolean) {
+    const win = this.win;
+    if (!win) return;
+    const toggle = on ? win.addEventListener.bind(win) : win.removeEventListener.bind(win);
+    toggle('pointerup', this.endEditOnRelease, true);
+    toggle('pointercancel', this.endEditOnRelease, true);
+    toggle('pointerdown', this.endEditOnInteraction, true);
+    toggle('keydown', this.endEditOnInteraction, true);
   }
 
   ngOnDestroy() {
@@ -602,6 +619,10 @@ export class EditorStateService implements OnDestroy {
   setLayerBlendMode(layerId: string, blendMode: BlendMode): boolean {
     return this.layerManagementService.setLayerBlendMode(layerId, blendMode);
   }
+}
+
+function isModifiedKey(event: Event): boolean {
+  return event instanceof KeyboardEvent && (event.ctrlKey || event.metaKey || event.altKey);
 }
 
 function changes(element: WhiteboardElement, update: Partial<WhiteboardElement>): boolean {

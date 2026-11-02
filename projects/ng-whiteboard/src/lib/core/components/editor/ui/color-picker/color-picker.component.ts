@@ -2,11 +2,10 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  DestroyRef,
   ElementRef,
   EventEmitter,
-  inject,
   Input,
+  OnDestroy,
   Output,
   ViewChild,
 } from '@angular/core';
@@ -65,17 +64,17 @@ const COLOR_EDIT_SETTLE_MS = 400;
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '[class.mixed]': 'isMixed' },
 })
-export class ColorPickerComponent {
+export class ColorPickerComponent implements OnDestroy {
   @Input() value: Mixed<string> = '#000000';
   @Output() colorChange = new EventEmitter<string>();
   /** The native picker started a continuous edit; `editEnd` fires on commit, blur or once input settles. */
-  @Output() editStart = new EventEmitter<void>();
+  @Output() editStart = new EventEmitter<EventTarget>();
   @Output() editEnd = new EventEmitter<void>();
   @ViewChild('colorInput') colorInput!: ElementRef<HTMLInputElement>;
   private settleTimer: ReturnType<typeof setTimeout> | null = null;
 
-  constructor() {
-    inject(DestroyRef).onDestroy(() => this.clearSettleTimer());
+  ngOnDestroy() {
+    if (this.settleTimer !== null) this.finishEdit();
   }
 
   get isMixed(): boolean {
@@ -98,7 +97,7 @@ export class ColorPickerComponent {
 
   onColorChange(event: Event) {
     const target = event.target as HTMLInputElement;
-    this.editStart.emit();
+    this.editStart.emit(target);
     this.colorChange.emit(target.value);
     this.clearSettleTimer();
     this.settleTimer = setTimeout(() => this.finishEdit(), COLOR_EDIT_SETTLE_MS);

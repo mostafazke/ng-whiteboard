@@ -237,8 +237,8 @@ export class WhiteboardEditorComponent {
     this.editorStateService.updateElementProperty(event.property, event.value);
   }
 
-  onEditStart() {
-    this.editorStateService.beginEdit();
+  onEditStart(owner: EventTarget | null) {
+    this.editorStateService.beginEdit(owner);
   }
 
   onEditEnd() {
