@@ -103,22 +103,27 @@ describe('ColorPickerComponent', () => {
       expect(preview().style.backgroundColor).toBe('rgb(255, 0, 0)');
       expect(button().getAttribute('title')).toBe('Custom color: #f00');
 
-      fixture.componentInstance.value = 'red';
-      fixture.componentInstance.finishEdit();
+      fixture.componentRef.setInput('value', 'red');
       fixture.detectChanges();
-      expect(preview().style.backgroundColor).toBe('rgb(255, 0, 0)');
+      expect(preview().style.backgroundColor).toBe('red');
+      expect(button().getAttribute('title')).toBe('Custom color: red');
     });
   });
 
-  it('re-renders the native seed after an edit ends while still mixed', () => {
+  it('re-renders the native seed when an edit settles without a change event while still mixed', () => {
+    jest.useFakeTimers();
     fixture.componentInstance.value = MIXED;
     fixture.detectChanges();
     const first = nativeInput().value;
-    pickInBrowser('#123456');
-
-    fixture.componentInstance.finishEdit();
+    nativeInput().value = '#123456';
+    nativeInput().dispatchEvent(new Event('input'));
     fixture.detectChanges();
 
+    jest.advanceTimersByTime(400);
+    fixture.detectChanges();
+    jest.useRealTimers();
+
+    expect(nativeInput().value).toMatch(/^#(7f7f80|808081)$/);
     expect(nativeInput().value).not.toBe(first);
   });
 });

@@ -15,4 +15,21 @@ describe('HeaderPanelComponent', () => {
     const [layer] = fixture.componentInstance.convertLayersToWhiteboardLayers();
     expect(layer.opacity).toBe(1);
   });
+
+  it('Escape in compact leaves the layers sheet to handle it', () => {
+    const fixture = TestBed.createComponent(HeaderPanelComponent);
+    fixture.componentRef.setInput('compact', true);
+    fixture.componentRef.setInput('showLayers', true);
+    fixture.detectChanges();
+    const toggled = jest.fn();
+    fixture.componentInstance.layersToggle.subscribe(toggled);
+    const reachedParent = jest.fn();
+    fixture.nativeElement.addEventListener('keydown', reachedParent);
+
+    const trigger = fixture.nativeElement.querySelector('.layers-button') as HTMLButtonElement;
+    trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+
+    expect(toggled).not.toHaveBeenCalled();
+    expect(reachedParent).toHaveBeenCalled();
+  });
 });

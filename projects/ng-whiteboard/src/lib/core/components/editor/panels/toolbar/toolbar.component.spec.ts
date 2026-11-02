@@ -38,6 +38,14 @@ describe('ToolbarComponent', () => {
     expect(buttons().filter((b) => b.tabIndex === -1).length).toBe(buttons().length - 1);
   });
 
+  it('makes the first tool the tab stop when the selected tool is not in the toolbar', () => {
+    fixture.componentRef.setInput('selectedTool', ToolType.ZoomArea);
+    fixture.detectChanges();
+
+    expect(buttons().filter((b) => b.tabIndex === 0)).toEqual([buttons()[0]]);
+    expect(buttons().some((b) => b.getAttribute('aria-pressed') === 'true')).toBe(false);
+  });
+
   it('ArrowRight moves focus to next tool and stops propagation', () => {
     const all = buttons();
     const pen = all.find((b) => b.dataset['tool'] === ToolType.Pen) as HTMLButtonElement;
