@@ -7,6 +7,7 @@ import {
   DestroyRef,
   ElementRef,
   inject,
+  Injector,
   Signal,
   signal,
   viewChild,
@@ -61,9 +62,11 @@ export class WhiteboardEditorComponent {
   public editorStateService = inject(EditorStateService);
   private svgService = inject(SvgService);
   private destroyRef = inject(DestroyRef);
+  private injector = inject(Injector);
   private root = viewChild.required<ElementRef<HTMLElement>>('root');
 
-  private lastShortcutEvent: KeyboardEvent | null = null;
+  /** Alt+P can reach both the root keydown binding and the board's keyDown$; act on each event once. */
+  private readonly handledPanelShortcuts = new WeakSet<KeyboardEvent>();
   /** `null` until the container is first measured, so neither the floating panel nor a sheet flashes in. */
   private layoutState = signal<EditorLayout | null>(null);
   readonly layout: Signal<EditorLayout | null> = this.layoutState.asReadonly();
@@ -99,7 +102,7 @@ export class WhiteboardEditorComponent {
   themeToggleLabelSignal = computed(() => themeToggleLabel(this.themeSignal()));
 
   constructor() {
-    this.svgService.keyDown$.pipe(takeUntilDestroyed()).subscribe((event) => this.handleKeyboardShortcut(event));
+    this.svgService.keyDown$.pipe(takeUntilDestroyed()).subscribe((event) => this.togglePanelOnShortcut(event));
     afterNextRender(() => this.observeSize());
   }
 
@@ -121,6 +124,19 @@ export class WhiteboardEditorComponent {
     if (next === this.layoutState()) return;
     this.layoutState.set(next);
     this.closeSheets();
+    this.keepFocusInEditor();
+  }
+
+  /** A layout switch removes the focused control (a sheet, its opener, the floating panel); keep focus in the editor. */
+  private keepFocusInEditor() {
+    const root = this.root().nativeElement;
+    if (!root.contains(root.ownerDocument.activeElement)) return;
+    afterNextRender(
+      () => {
+        if (!root.contains(root.ownerDocument.activeElement)) root.focus();
+      },
+      { injector: this.injector }
+    );
   }
 
   private rememberOpener(opener?: HTMLElement | null) {
@@ -137,10 +153,11 @@ export class WhiteboardEditorComponent {
   /**
    * Keys typed into editor controls must not reach the board's window-level shortcuts: text fields
    * keep every key, other controls keep the keys the canvas would act on (Space, Delete/Backspace,
-   * unmodified printable keys). Modified chords such as Alt+P still pass through.
+   * arrows, unmodified printable keys). Modified chords such as Alt+P still pass through, and so does
+   * every key on the root itself, which only holds focus as a fallback.
    */
   containKey(event: KeyboardEvent) {
-    if (event.type === 'keydown') this.handleKeyboardShortcut(event);
+    if (event.target === event.currentTarget) return;
     if (isEditableTarget(event.target) || isCanvasKey(event)) event.stopPropagation();
   }
 
@@ -151,9 +168,10 @@ export class WhiteboardEditorComponent {
     return board !== null && board !== this.root().nativeElement.closest('ng-whiteboard');
   }
 
-  private handleKeyboardShortcut(event: KeyboardEvent) {
-    if (event === this.lastShortcutEvent) return;
-    this.lastShortcutEvent = event;
+  /** Alt+P toggles the properties panel (or sheet), from the editor's own controls or from the board. */
+  togglePanelOnShortcut(event: KeyboardEvent) {
+    if (this.handledPanelShortcuts.has(event)) return;
+    this.handledPanelShortcuts.add(event);
     if (this.isEditingTitleSignal() || isEditableTarget(event.target) || this.targetsAnotherBoard(event)) return;
 
     if (event.altKey && !event.ctrlKey && !event.metaKey && event.code === 'KeyP') {

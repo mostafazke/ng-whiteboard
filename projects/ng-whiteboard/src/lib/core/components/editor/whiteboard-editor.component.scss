@@ -342,3 +342,8 @@
   outline: 2px solid var(--wb-color-primary);
   outline-offset: 2px;
 }
+
+// Focusable only as a focus fallback (e.g. a sheet whose opener is gone); never draws a ring.
+.editor:focus {
+  outline: none;
+}

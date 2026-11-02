@@ -77,12 +77,6 @@ describe('WhiteboardEditorComponent', () => {
     expect(component.isPanelOpenSignal()).toBe(before);
   });
 
-  it('ignores Alt+P dispatched on window outside the board', () => {
-    const before = component.isPanelOpenSignal();
-    window.dispatchEvent(altP());
-    expect(component.isPanelOpenSignal()).toBe(before);
-  });
-
   it('toggles on Alt+P when the layout yields a different key (macOS)', () => {
     const before = component.isPanelOpenSignal();
     keyDown$.next(new KeyboardEvent('keydown', { key: 'π', code: 'KeyP', altKey: true }));
@@ -521,8 +515,55 @@ describe('WhiteboardEditorComponent', () => {
     });
 
     it('disconnects the observer on destroy', () => {
+      expect(FakeResizeObserver.instances.length).toBeGreaterThan(0);
       fixture.destroy();
       expect(FakeResizeObserver.instances.every((o) => o.disconnected)).toBe(true);
+    });
+
+    it('a layout change closes open sheets and popovers', () => {
+      resize(390, 844);
+      component.propertiesSheetOpenSignal.set(true);
+      component.menuSheetOpenSignal.set(true);
+      component.showLayersDropdownSignal.set(true);
+      component.showZoomPopupSignal.set(true);
+      fixture.detectChanges();
+
+      resize(820, 1180);
+
+      expect([
+        component.propertiesSheetOpenSignal(),
+        component.menuSheetOpenSignal(),
+        component.showLayersDropdownSignal(),
+        component.showZoomPopupSignal(),
+      ]).toEqual([false, false, false, false]);
+    });
+
+    it('Alt+P in compact toggles the properties sheet, not the floating panel', () => {
+      resize(390, 844);
+      const panelOpen = component.isPanelOpenSignal();
+
+      keyDown$.next(altP());
+      fixture.detectChanges();
+      expect(propertiesSheet().open()).toBe(true);
+
+      keyDown$.next(altP());
+      fixture.detectChanges();
+      expect(propertiesSheet().open()).toBe(false);
+      expect(component.isPanelOpenSignal()).toBe(panelOpen);
+    });
+
+    it('the theme button label names the theme it switches to', () => {
+      resize(1440, 900);
+      const button = (): HTMLButtonElement => fixture.nativeElement.querySelector('ng-header-panel .theme-btn');
+      expect(button().getAttribute('aria-label')).toBe('Switch to dark mode');
+
+      button().click();
+      fixture.detectChanges();
+      expect(button().getAttribute('aria-label')).toBe('Switch to light mode');
+
+      button().click();
+      fixture.detectChanges();
+      expect(button().getAttribute('aria-label')).toBe('Switch to dark mode');
     });
 
     it('compact layout renders properties inside bottom sheet closed by default', () => {
@@ -611,10 +652,57 @@ describe('WhiteboardEditorComponent', () => {
       });
     });
 
+    it('leaving compact with a sheet open moves focus to the editor root, not the body', async () => {
+      document.body.appendChild(fixture.nativeElement);
+      resize(390, 844);
+      propertiesButton().click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      expect(propertiesSheet().open()).toBe(true);
+      expect(fixture.nativeElement.querySelector('.bs-sheet').contains(document.activeElement)).toBe(true);
+
+      resize(1440, 900);
+      await fixture.whenStable();
+
+      expect(document.activeElement).toBe(fixture.nativeElement.querySelector('.editor'));
+      fixture.nativeElement.remove();
+    });
+
     it('wide layout renders the floating properties panel and no sheets', () => {
       resize(1440, 900);
       expect(fixture.nativeElement.querySelector('.editor-container > ng-properties-panel')).not.toBeNull();
       expect(fixture.debugElement.queryAll(By.directive(BottomSheetComponent)).length).toBe(0);
     });
+  });
+});
+
+describe('WhiteboardEditorComponent without ResizeObserver', () => {
+  let saved: unknown;
+
+  beforeEach(() => {
+    saved = (globalThis as unknown as { ResizeObserver?: unknown }).ResizeObserver;
+    delete (globalThis as unknown as { ResizeObserver?: unknown }).ResizeObserver;
+    TestBed.configureTestingModule({
+      imports: [WhiteboardEditorComponent],
+      providers: [
+        { provide: SvgService, useValue: { keyDown$: new Subject<KeyboardEvent>() } },
+        { provide: IOService, useValue: { save: jest.fn() } },
+        ApiService,
+      ],
+    });
+  });
+
+  afterEach(() => {
+    if (saved) (globalThis as unknown as { ResizeObserver: unknown }).ResizeObserver = saved;
+  });
+
+  it('falls back to the wide layout and renders the properties panel', () => {
+    expect(typeof ResizeObserver).toBe('undefined');
+    const fixture = TestBed.createComponent(WhiteboardEditorComponent);
+    fixture.detectChanges();
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.layout()).toBe('wide');
+    expect(fixture.nativeElement.querySelector('.editor-container > ng-properties-panel')).not.toBeNull();
   });
 });

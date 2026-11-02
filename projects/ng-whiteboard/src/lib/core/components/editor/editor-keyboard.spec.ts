@@ -7,12 +7,12 @@ import { WhiteboardEditorComponent } from './whiteboard-editor.component';
 import { wideEditorResizeObserver } from './testing/wide-editor-resize-observer';
 import { renderDeferredEditor } from './testing/render-deferred-editor';
 
-const rect = (id: string): WhiteboardElement =>
+const rect = (id: string, x = 0, y = 0): WhiteboardElement =>
   ({
     id,
     type: ElementType.Rectangle,
-    x: 0,
-    y: 0,
+    x,
+    y,
     width: 10,
     height: 10,
     rx: 0,
@@ -104,18 +104,55 @@ describe('Editor keyboard containment (integration)', () => {
     expect(api.getActiveTool()).toBe(ToolType.Rectangle);
   });
 
-  it('arrow keys on a focused editor button do not nudge the selection', () => {
-    api.addElements([rect('r1')]);
+  it('arrow keys on a focused editor button do not nudge the selection; on the canvas they do', () => {
+    api.addElements([rect('r1', 30, 40)]);
     api.selectElements(['r1']);
     fixture.detectChanges();
+    const position = () => [api.getElements()[0].x, api.getElements()[0].y];
     const button = host().querySelector('ng-properties-panel .icon-btn') as HTMLButtonElement;
     button.focus();
 
     key(button, 'keydown', { key: 'ArrowRight', code: 'ArrowRight' });
     key(button, 'keydown', { key: 'ArrowDown', code: 'ArrowDown', shiftKey: true });
+    expect(position()).toEqual([30, 40]);
 
-    const [moved] = api.getElements();
-    expect([moved.x, moved.y]).toEqual([0, 0]);
+    const svg = host().querySelector('svg[svg]') as SVGSVGElement;
+    svg.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', code: 'ArrowRight', bubbles: true }));
+    expect(position()[0]).toBeGreaterThan(30);
+    expect(position()[1]).toBe(40);
+  });
+
+  it('arrow keys on a range slider are left to the slider: one value change, one undo step, no nudge', () => {
+    api.addElements([rect('r1', 30, 40)]);
+    api.selectElements(['r1']);
+    api.clearHistory();
+    fixture.detectChanges();
+    const slider = host().querySelector('ng-properties-panel input[aria-label="Opacity"]') as HTMLInputElement;
+    slider.focus();
+
+    const down = key(slider, 'keydown', { key: 'ArrowLeft', code: 'ArrowLeft' });
+    expect(down.defaultPrevented).toBe(false);
+    // jsdom does not step a range input; replay what the browser does after an unprevented arrow key.
+    slider.value = '99';
+    slider.dispatchEvent(new Event('input'));
+    slider.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    const [r1] = api.getElements();
+    expect([r1.opacity, r1.x, r1.y]).toEqual([99, 30, 40]);
+    expect(api.undo()).toBe(true);
+    expect(api.getElements()[0].opacity).toBe(100);
+    expect(api.undo()).toBe(false);
+  });
+
+  it('keys pressed while the editor root itself holds focus still reach the canvas shortcuts', () => {
+    const root = host().querySelector('ng-whiteboard-editor .editor') as HTMLElement;
+    root.focus();
+    expect(document.activeElement).toBe(root);
+
+    key(root, 'keydown', { key: 'r', code: 'KeyR' });
+
+    expect(api.getActiveTool()).toBe(ToolType.Rectangle);
   });
 
   it('arrow keys outside the editor still nudge the selection', () => {
@@ -210,6 +247,13 @@ describe('Alt+P with several boards (integration)', () => {
 
     expect(editors[0].isPanelOpenSignal()).toBe(false);
     expect(editors[1].isPanelOpenSignal()).toBe(true);
+  });
+
+  it('Alt+P dispatched on window outside any board leaves the inactive board alone', () => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'p', code: 'KeyP', altKey: true, cancelable: true }));
+
+    expect(editors[0].isPanelOpenSignal()).toBe(true);
+    expect(editors[1].isPanelOpenSignal()).toBe(false);
   });
 
   it('toggles once when the event also reaches the hovered board', () => {

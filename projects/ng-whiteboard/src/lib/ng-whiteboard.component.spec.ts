@@ -1,5 +1,12 @@
 import { ChangeDetectorRef } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {
+  ComponentFixture,
+  DeferBlockBehavior,
+  discardPeriodicTasks,
+  fakeAsync,
+  flushMicrotasks,
+  TestBed,
+} from '@angular/core/testing';
 import { NgWhiteboardComponent } from './ng-whiteboard.component';
 import { ConfigService } from './core/config/config.service';
 import { ApiService } from './core/api';
@@ -336,6 +343,24 @@ describe('NgWhiteboardComponent', () => {
       fixture.debugElement.injector.get(ChangeDetectorRef).markForCheck();
       fixture.detectChanges();
       expect(editorEl()).toBeNull();
+    });
+
+    it('showEditor true -> false -> true renders a fresh editor again', async () => {
+      const toggle = async (show: boolean) => {
+        component.showEditor = show;
+        fixture.debugElement.injector.get(ChangeDetectorRef).markForCheck();
+        await renderDeferredEditor(fixture);
+      };
+      await toggle(true);
+      const first = editorEl();
+      await toggle(false);
+      expect(editorEl()).toBeNull();
+
+      await toggle(true);
+
+      expect(editorEl()).not.toBeNull();
+      expect(editorEl()).not.toBe(first);
+      expect(editorEl().querySelector('ng-toolbar')).not.toBeNull();
     });
   });
 
@@ -753,4 +778,29 @@ describe('NgWhiteboardComponent', () => {
       expect(keyDowns.length).toBe(1);
     });
   });
+});
+
+describe('NgWhiteboardComponent deferred editor trigger', () => {
+  beforeEach(async () => {
+    global.ResizeObserver = jest.fn().mockImplementation(() => ({
+      observe: jest.fn(),
+      unobserve: jest.fn(),
+      disconnect: jest.fn(),
+    }));
+    await TestBed.configureTestingModule({
+      imports: [NgWhiteboardComponent],
+      deferBlockBehavior: DeferBlockBehavior.Playthrough,
+    }).compileComponents();
+  });
+
+  it('loads the editor immediately on its own trigger, without forcing a defer block state', fakeAsync(() => {
+    const fixture = TestBed.createComponent(NgWhiteboardComponent);
+    fixture.componentInstance.showEditor = true;
+    fixture.detectChanges();
+    flushMicrotasks();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('ng-whiteboard-editor ng-toolbar')).not.toBeNull();
+    discardPeriodicTasks();
+  }));
 });

@@ -26,10 +26,18 @@ class HostComponent {
   standalone: true,
   imports: [BottomSheetComponent],
   template: `
-    <button class="opener" #opener (click)="open.set(true)">Open</button>
+    <div class="fallback" tabindex="-1" #fallback>
+      <button class="opener" #opener (click)="open.set(true)">Open</button>
+    </div>
     <button class="other">Other</button>
     @if (show()) {
-      <ng-bottom-sheet [open]="open()" [opener]="explicit() ? opener : null" label="Dyn" (closed)="open.set(false)">
+      <ng-bottom-sheet
+        [open]="open()"
+        [opener]="explicit() ? opener : null"
+        [focusFallback]="fallback"
+        label="Dyn"
+        (closed)="open.set(false)"
+      >
         <button class="first">First</button>
       </ng-bottom-sheet>
     }
@@ -76,6 +84,25 @@ describe('BottomSheetComponent focus restoration', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     expect(document.activeElement).toBe(q('.opener'));
+  });
+
+  it('focuses the fallback when the opener is gone by the time the sheet is destroyed', async () => {
+    await setup(true, true);
+    expect(document.activeElement).toBe(q('.first'));
+    q('.opener').remove();
+    fixture.componentInstance.show.set(false);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(document.activeElement).toBe(q('.fallback'));
+  });
+
+  it('focuses the fallback when the opener is gone by the time the sheet closes', async () => {
+    await setup(true, true);
+    q('.opener').remove();
+    fixture.componentInstance.open.set(false);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(document.activeElement).toBe(q('.fallback'));
   });
 
   it('does not steal focus on destroy when focus already moved outside the sheet', async () => {

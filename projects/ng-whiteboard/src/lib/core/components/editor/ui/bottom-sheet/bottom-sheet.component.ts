@@ -54,6 +54,8 @@ export class BottomSheetComponent {
   open = input(false);
   label = input('');
   opener = input<HTMLElement | null>(null);
+  /** Receives focus on close when the opener is gone, e.g. the layout left compact and removed it. */
+  focusFallback = input<HTMLElement | null>(null);
   closed = output<void>();
 
   protected dragOffset = signal(0);
@@ -125,6 +127,7 @@ export class BottomSheetComponent {
     const target = this.restoreTarget;
     this.restoreTarget = null;
     if (target?.isConnected) target.focus();
+    else if (target) this.focusFallback()?.focus();
   }
 
   private restoreFocusOnDestroy() {

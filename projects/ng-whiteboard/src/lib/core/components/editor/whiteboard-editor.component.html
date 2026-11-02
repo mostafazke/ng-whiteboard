@@ -1,9 +1,10 @@
 <div
   #root
   class="editor"
+  tabindex="-1"
   [attr.data-theme]="themeSignal()"
   [attr.data-layout]="layout()"
-  (keydown)="containKey($event)"
+  (keydown)="togglePanelOnShortcut($event); containKey($event)"
   (keyup)="containKey($event)"
 >
   <div class="editor-container">
@@ -93,6 +94,7 @@
     <ng-bottom-sheet
       label="Properties"
       [opener]="sheetOpenerSignal()"
+      [focusFallback]="root"
       [open]="propertiesSheetOpenSignal()"
       (closed)="propertiesSheetOpenSignal.set(false)"
     >
@@ -115,7 +117,13 @@
       </ng-properties-panel>
     </ng-bottom-sheet>
 
-    <ng-bottom-sheet label="Menu" [opener]="sheetOpenerSignal()" [open]="menuSheetOpenSignal()" (closed)="menuSheetOpenSignal.set(false)">
+    <ng-bottom-sheet
+      label="Menu"
+      [opener]="sheetOpenerSignal()"
+      [focusFallback]="root"
+      [open]="menuSheetOpenSignal()"
+      (closed)="menuSheetOpenSignal.set(false)"
+    >
       <div class="wb-sheet-menu">
         @for (action of documentActions; track action.id) {
           <button class="wb-sheet-item" (click)="menuSheetOpenSignal.set(false); runDocumentAction(action.id)">
@@ -129,7 +137,13 @@
       </div>
     </ng-bottom-sheet>
 
-    <ng-bottom-sheet label="Layers" [opener]="sheetOpenerSignal()" [open]="showLayersDropdownSignal()" (closed)="showLayersDropdownSignal.set(false)">
+    <ng-bottom-sheet
+      label="Layers"
+      [opener]="sheetOpenerSignal()"
+      [focusFallback]="root"
+      [open]="showLayersDropdownSignal()"
+      (closed)="showLayersDropdownSignal.set(false)"
+    >
       <ng-ng-layer-panel
         class="wb-sheet-layers"
         [layers]="whiteboardLayersSignal()"
@@ -147,7 +161,13 @@
       </ng-ng-layer-panel>
     </ng-bottom-sheet>
 
-    <ng-bottom-sheet label="Zoom" [opener]="sheetOpenerSignal()" [open]="showZoomPopupSignal()" (closed)="showZoomPopupSignal.set(false)">
+    <ng-bottom-sheet
+      label="Zoom"
+      [opener]="sheetOpenerSignal()"
+      [focusFallback]="root"
+      [open]="showZoomPopupSignal()"
+      (closed)="showZoomPopupSignal.set(false)"
+    >
       <div class="wb-sheet-menu">
         @for (action of zoomActions; track action.id) {
           <button
