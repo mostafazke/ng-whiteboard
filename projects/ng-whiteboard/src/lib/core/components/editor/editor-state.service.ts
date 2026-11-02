@@ -1,10 +1,10 @@
-import { computed, inject, Injectable, Signal, signal } from '@angular/core';
+import { computed, inject, Injectable, OnDestroy, Signal, signal } from '@angular/core';
 import { ConfigService } from '../../config/config.service';
 import { ElementsService } from '../../elements/elements.service';
 import { LayerManagementService } from '../../elements/layer-management.service';
 import { SelectionService } from '../../elements/selection.service';
 import { IOService } from '../../input/io.service';
-import { HistoryService } from '../../history/history.service';
+import { BatchHandle, HistoryService } from '../../history/history.service';
 import { ToolsService } from '../../tools/tools.service';
 import { BlendMode, EditorConfig, FormatType, ToolType, WhiteboardConfig, WhiteboardElement } from '../../types';
 import { ZoomService } from '../../viewport/zoom.service';
@@ -25,7 +25,7 @@ export interface Layer {
 }
 
 @Injectable()
-export class EditorStateService {
+export class EditorStateService implements OnDestroy {
   private ioService = inject(IOService);
   private elementsService = inject(ElementsService);
   private selectionService = inject(SelectionService);
@@ -35,6 +35,7 @@ export class EditorStateService {
   private zoomService = inject(ZoomService);
   private panService = inject(PanService);
   private layerManagementService = inject(LayerManagementService);
+  private editBatch: BatchHandle | null = null;
 
   // Theme handling - use WhiteboardConfig as the source of truth
   themeSignal = computed(() => this.getConfigSignal()().theme ?? 'light');
@@ -408,6 +409,23 @@ export class EditorStateService {
         this.elementsService.updateElements(updates);
       }
     }
+  }
+
+  /** Group the updates of a continuous edit (slider drag, native color picker) into one undo step. */
+  beginEdit() {
+    if (this.editBatch) return;
+    this.editBatch = this.historyService.startBatch('Update properties', this.elementsService.getElements());
+  }
+
+  endEdit() {
+    if (!this.editBatch) return;
+    this.historyService.completeBatch(this.elementsService.getElements());
+    this.editBatch.execute();
+    this.editBatch = null;
+  }
+
+  ngOnDestroy() {
+    this.endEdit();
   }
 
   // Remove currently selected elements

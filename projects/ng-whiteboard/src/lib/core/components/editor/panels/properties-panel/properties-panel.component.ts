@@ -54,6 +54,7 @@ interface PropertyChangeEvent {
                 <ng-color-picker
                   [value]="config().backgroundColor"
                   (colorChange)="onColorChange('backgroundColor', $event)"
+                  (editStart)="editStart.emit()" (editEnd)="editEnd.emit()"
                 >
                 </ng-color-picker>
               </div>
@@ -61,7 +62,11 @@ interface PropertyChangeEvent {
               <!-- Fill Controls -->
               <div class="control-row" *ngIf="hasSelection()">
                 <label>Fill</label>
-                <ng-color-picker [value]="fillColorValue()" (colorChange)="onColorChange('fillColor', $event)">
+                <ng-color-picker
+                  [value]="fillColorValue()"
+                  (colorChange)="onColorChange('fillColor', $event)"
+                  (editStart)="editStart.emit()" (editEnd)="editEnd.emit()"
+                >
                 </ng-color-picker>
               </div>
             </div>
@@ -74,7 +79,11 @@ interface PropertyChangeEvent {
               <div class="control-group">
                 <div class="control-row">
                   <label>Stroke</label>
-                  <ng-color-picker [value]="strokeColorValue()" (colorChange)="onColorChange('strokeColor', $event)">
+                  <ng-color-picker
+                    [value]="strokeColorValue()"
+                    (colorChange)="onColorChange('strokeColor', $event)"
+                    (editStart)="editStart.emit()" (editEnd)="editEnd.emit()"
+                  >
                   </ng-color-picker>
                 </div>
 
@@ -87,7 +96,9 @@ interface PropertyChangeEvent {
                       max="20"
                       aria-label="Stroke width"
                       [value]="strokeWidthNumber()"
-                      (input)="onPropertyChange('strokeWidth', $event)"
+                      (input)="onSliderInput('strokeWidth', $event)"
+                      (change)="editEnd.emit()"
+                      (blur)="editEnd.emit()"
                     />
                     <span class="value-display">{{
                       isMixed(strokeWidthValue()) ? '—' : strokeWidthNumber() + 'px'
@@ -171,7 +182,16 @@ interface PropertyChangeEvent {
                 <div class="control-slider">
                   <label class="slider-label">Opacity</label>
                   <div class="slider-container">
-                    <input type="range" min="0" max="100" aria-label="Opacity" [value]="opacityNumber()" (input)="onOpacityChange($event)" />
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      aria-label="Opacity"
+                      [value]="opacityNumber()"
+                      (input)="onSliderInput('opacity', $event)"
+                      (change)="editEnd.emit()"
+                      (blur)="editEnd.emit()"
+                    />
                     <span class="value-display">{{ isMixed(opacityValue()) ? '—' : opacityNumber() + '%' }}</span>
                   </div>
                 </div>
@@ -219,7 +239,9 @@ interface PropertyChangeEvent {
                     max="72"
                     aria-label="Font size"
                     [value]="fontSizeNumber()"
-                    (input)="onPropertyChange('fontSize', $event)"
+                    (input)="onSliderInput('fontSize', $event)"
+                    (change)="editEnd.emit()"
+                    (blur)="editEnd.emit()"
                   />
                   <span class="value-display">{{ isMixed(fontSizeValue()) ? '—' : fontSizeNumber() + 'px' }}</span>
                 </div>
@@ -270,6 +292,9 @@ export class PropertiesPanelComponent {
   @Output() deleteSelected = new EventEmitter<void>();
   @Output() togglePanel = new EventEmitter<void>();
   @Output() alignmentChange = new EventEmitter<AlignmentType>();
+  /** A continuous edit (slider drag, native color picker) started; closed by `editEnd`. */
+  @Output() editStart = new EventEmitter<void>();
+  @Output() editEnd = new EventEmitter<void>();
 
   // Computed properties for better performance
   selectedElement = computed(() => this.selectedElements()[0] || null);
@@ -381,17 +406,12 @@ export class PropertiesPanelComponent {
 
   onPropertyChange(property: string, event: Event) {
     const target = event.target as HTMLInputElement | HTMLSelectElement;
-    const value = property === 'fontSize' || property === 'strokeWidth' ? Number(target.value) : target.value;
-
-    this.propertyChange.emit({ property, value });
+    this.propertyChange.emit({ property, value: target.value });
   }
 
-  onOpacityChange(event: Event) {
-    const target = event.target as HTMLInputElement;
-    this.propertyChange.emit({
-      property: 'opacity',
-      value: Number(target.value),
-    });
+  onSliderInput(property: 'strokeWidth' | 'opacity' | 'fontSize', event: Event) {
+    this.editStart.emit();
+    this.propertyChange.emit({ property, value: Number((event.target as HTMLInputElement).value) });
   }
 
   onGridToggle() {

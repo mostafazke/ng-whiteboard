@@ -23,6 +23,8 @@ import { MIXED, Mixed } from '../../utils/selected-properties';
             aria-hidden="true"
             [value]="currentColor"
             (input)="onColorChange($event)"
+            (change)="editEnd.emit()"
+            (blur)="editEnd.emit()"
             style="opacity: 0; position: absolute; width: 1px; height: 1px; cursor: pointer;"
           />
         </button>
@@ -47,6 +49,9 @@ import { MIXED, Mixed } from '../../utils/selected-properties';
 export class ColorPickerComponent {
   @Input() value: Mixed<string> = '#000000';
   @Output() colorChange = new EventEmitter<string>();
+  /** The native picker started a continuous edit; `editEnd` fires when it commits or loses focus. */
+  @Output() editStart = new EventEmitter<void>();
+  @Output() editEnd = new EventEmitter<void>();
   @ViewChild('colorInput') colorInput!: ElementRef<HTMLInputElement>;
 
   get isMixed(): boolean {
@@ -69,6 +74,7 @@ export class ColorPickerComponent {
 
   onColorChange(event: Event) {
     const target = event.target as HTMLInputElement;
+    this.editStart.emit();
     this.colorChange.emit(target.value);
   }
 

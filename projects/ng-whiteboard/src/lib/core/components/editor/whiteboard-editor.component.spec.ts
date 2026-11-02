@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { Subject } from 'rxjs';
 import { ElementsService } from '../../elements/elements.service';
+import { HistoryService } from '../../history/history.service';
 import { SelectionService } from '../../elements/selection.service';
 import { IOService } from '../../input/io.service';
 import { LayerManagementService } from '../../elements/layer-management.service';
@@ -205,6 +206,84 @@ describe('WhiteboardEditorComponent', () => {
       fixture.detectChanges();
       expect(component.showLayersDropdownSignal()).toBe(false);
       expect(document.activeElement).toBe(trigger);
+    });
+  });
+
+  describe('continuous property edits', () => {
+    const rectEl = (id: string, extra: Partial<WhiteboardElement> = {}) =>
+      ({
+        id,
+        type: ElementType.Rectangle,
+        x: 0,
+        y: 0,
+        width: 10,
+        height: 10,
+        rx: 0,
+        rotation: 0,
+        opacity: 100,
+        zIndex: 1,
+        selectAfterDraw: false,
+        style: { strokeWidth: 2, strokeColor: '#000000' },
+        ...extra,
+      }) as WhiteboardElement;
+    const panel = (): HTMLElement => fixture.nativeElement.querySelector('ng-properties-panel');
+    const select = () => {
+      TestBed.inject(ElementsService).setElements([rectEl('r1')]);
+      TestBed.inject(SelectionService).selectElements(['r1']);
+      TestBed.inject(HistoryService).clearHistory();
+      fixture.detectChanges();
+    };
+    const drag = (input: HTMLInputElement, values: string[]) => {
+      input.dispatchEvent(new Event('focus'));
+      for (const value of values) {
+        input.value = value;
+        input.dispatchEvent(new Event('input'));
+        fixture.detectChanges();
+      }
+      input.dispatchEvent(new Event('change'));
+    };
+    const r1 = () => TestBed.inject(ElementsService).getElements()[0];
+
+    it('an opacity slider drag is one undo step', () => {
+      select();
+      drag(panel().querySelector('input[aria-label="Opacity"]') as HTMLInputElement, ['90', '80', '70', '60', '50']);
+
+      const history = TestBed.inject(HistoryService);
+      expect(r1().opacity).toBe(50);
+      const before = history.undo() as WhiteboardElement[];
+      expect(before[0].opacity).toBe(100);
+      expect(history.undo()).toBeNull();
+    });
+
+    it('a stroke width slider drag is one undo step', () => {
+      select();
+      drag(panel().querySelector('input[aria-label="Stroke width"]') as HTMLInputElement, ['3', '4', '5', '6', '7']);
+
+      const history = TestBed.inject(HistoryService);
+      expect(r1().style.strokeWidth).toBe(7);
+      expect((history.undo() as WhiteboardElement[])[0].style.strokeWidth).toBe(2);
+      expect(history.undo()).toBeNull();
+    });
+
+    it('dragging in the native color input is one undo step', () => {
+      select();
+      const color = panel().querySelectorAll('input[type="color"]');
+      drag(color[color.length - 1] as HTMLInputElement, ['#111111', '#222222', '#333333', '#444444', '#555555']);
+
+      const history = TestBed.inject(HistoryService);
+      expect(r1().style.strokeColor).toBe('#555555');
+      expect((history.undo() as WhiteboardElement[])[0].style.strokeColor).toBe('#000000');
+      expect(history.undo()).toBeNull();
+    });
+
+    it('a later discrete edit is its own undo step', () => {
+      select();
+      drag(panel().querySelector('input[aria-label="Opacity"]') as HTMLInputElement, ['90', '80']);
+      component.onPropertyChange({ property: 'strokeWidth', value: 9 });
+
+      const history = TestBed.inject(HistoryService);
+      expect((history.undo() as WhiteboardElement[])[0].style.strokeWidth).toBe(2);
+      expect((history.undo() as WhiteboardElement[])[0].opacity).toBe(100);
     });
   });
 

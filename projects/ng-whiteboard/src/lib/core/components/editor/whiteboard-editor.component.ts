@@ -242,6 +242,14 @@ export class WhiteboardEditorComponent {
     this.editorStateService.updateElementProperty(event.property, event.value);
   }
 
+  onEditStart() {
+    this.editorStateService.beginEdit();
+  }
+
+  onEditEnd() {
+    this.editorStateService.endEdit();
+  }
+
   toggleGrid() {
     this.editorStateService.toggleGrid();
   }
