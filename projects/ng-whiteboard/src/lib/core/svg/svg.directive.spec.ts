@@ -451,6 +451,29 @@ describe('SvgDirective (integration)', () => {
       expect(configChanges).toBe(1);
     });
 
+    it('a slow pinch below the per-event dead zone still zooms by the cumulative factor about a fixed point', () => {
+      config.updateConfig({ fullScreen: false, center: true, canvasX: 0, canvasY: 0 }, false);
+      const x = [100, 300];
+      directive.onPointerDown(touch('pointerdown', 1, x[0], 100));
+      directive.onPointerDown(touch('pointerdown', 2, x[1], 100));
+      const before = canvasPointAt(200, 100);
+
+      // 0.1px per event at a 200px distance is a 5e-4 change, below the 1e-3 dead zone.
+      for (let i = 0; i < 200; i++) {
+        const finger = i % 2;
+        x[finger] += finger === 0 ? -0.1 : 0.1;
+        directive.onPointerMove(touch('pointermove', finger + 1, x[finger], 100));
+      }
+      const during = canvasPointAt(200, 100);
+      directive.onPointerUp(touch('pointerup', 1, x[0], 100));
+      directive.onPointerUp(touch('pointerup', 2, x[1], 100));
+
+      expect(config.getConfig().zoom).toBeCloseTo(220 / 200, 2);
+      expect(during.x).toBeCloseTo(before.x);
+      expect(during.y).toBeCloseTo(before.y);
+      expect(zoomChanges).toBe(1);
+    });
+
     describe('the hold is released', () => {
       const startPinch = () => {
         directive.onPointerDown(touch('pointerdown', 1, 100, 100));

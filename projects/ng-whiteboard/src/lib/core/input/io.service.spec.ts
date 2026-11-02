@@ -758,11 +758,14 @@ describe('IOService', () => {
       // JSON.stringify drops undefined values, so inspect the object before it is stringified.
       mockCanvasService.getConfig.mockReturnValue({ ...mockConfig, theme: undefined });
       const stringify = jest.spyOn(JSON, 'stringify');
+      let exported: { settings: object };
+      try {
+        service.exportData();
+        exported = stringify.mock.calls[0][0] as { settings: object };
+      } finally {
+        stringify.mockRestore();
+      }
 
-      service.exportData();
-
-      const exported = stringify.mock.calls[0][0] as { settings: object };
-      stringify.mockRestore();
       expect(Object.keys(exported.settings)).not.toContain('theme');
     });
 

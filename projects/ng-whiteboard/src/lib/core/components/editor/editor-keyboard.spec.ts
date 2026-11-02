@@ -249,7 +249,7 @@ describe('Alt+P with several boards (integration)', () => {
     expect(editors[1].isPanelOpenSignal()).toBe(true);
   });
 
-  it('Alt+P dispatched on window outside any board leaves the inactive board alone', () => {
+  it('a window-level Alt+P toggles the hovered board and not the other one', () => {
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'p', code: 'KeyP', altKey: true, cancelable: true }));
 
     expect(editors[0].isPanelOpenSignal()).toBe(true);

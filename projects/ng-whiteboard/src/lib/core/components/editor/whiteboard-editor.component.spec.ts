@@ -660,12 +660,33 @@ describe('WhiteboardEditorComponent', () => {
       await fixture.whenStable();
       expect(propertiesSheet().open()).toBe(true);
       expect(fixture.nativeElement.querySelector('.bs-sheet').contains(document.activeElement)).toBe(true);
+      const root = fixture.nativeElement.querySelector('.editor') as HTMLElement;
+      const focus = jest.spyOn(root, 'focus');
 
       resize(1440, 900);
       await fixture.whenStable();
 
-      expect(document.activeElement).toBe(fixture.nativeElement.querySelector('.editor'));
+      expect(document.activeElement).toBe(root);
+      expect(focus).toHaveBeenCalledWith({ preventScroll: true });
       fixture.nativeElement.remove();
+    });
+
+    it('leaving compact does not take back focus the host page moved elsewhere', async () => {
+      const outside = document.createElement('input');
+      document.body.append(fixture.nativeElement, outside);
+      resize(390, 844);
+      propertiesButton().click();
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      FakeResizeObserver.instances.forEach((o) => o.resize(1440, 900));
+      outside.focus();
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(document.activeElement).toBe(outside);
+      fixture.nativeElement.remove();
+      outside.remove();
     });
 
     it('wide layout renders the floating properties panel and no sheets', () => {

@@ -127,13 +127,17 @@ export class WhiteboardEditorComponent {
     this.keepFocusInEditor();
   }
 
-  /** A layout switch removes the focused control (a sheet, its opener, the floating panel); keep focus in the editor. */
+  /**
+   * A layout switch removes the focused control (a sheet, its opener, the floating panel); keep focus in the
+   * editor when it fell to the body, but never take it back from wherever the host page moved it.
+   */
   private keepFocusInEditor() {
     const root = this.root().nativeElement;
-    if (!root.contains(root.ownerDocument.activeElement)) return;
+    const doc = root.ownerDocument;
+    if (!root.contains(doc.activeElement)) return;
     afterNextRender(
       () => {
-        if (!root.contains(root.ownerDocument.activeElement)) root.focus();
+        if (!doc.activeElement || doc.activeElement === doc.body) root.focus({ preventScroll: true });
       },
       { injector: this.injector }
     );

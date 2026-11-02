@@ -17,6 +17,8 @@ describe('ColorPickerComponent', () => {
     input.dispatchEvent(new Event('change'));
   };
 
+  afterEach(() => jest.useRealTimers());
+
   beforeEach(() => {
     TestBed.configureTestingModule({ imports: [ColorPickerComponent] });
     fixture = TestBed.createComponent(ColorPickerComponent);
@@ -121,7 +123,6 @@ describe('ColorPickerComponent', () => {
 
     jest.advanceTimersByTime(400);
     fixture.detectChanges();
-    jest.useRealTimers();
 
     expect(nativeInput().value).toMatch(/^#(7f7f80|808081)$/);
     expect(nativeInput().value).not.toBe(first);

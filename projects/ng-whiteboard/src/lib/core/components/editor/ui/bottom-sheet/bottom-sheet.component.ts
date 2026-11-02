@@ -127,7 +127,7 @@ export class BottomSheetComponent {
     const target = this.restoreTarget;
     this.restoreTarget = null;
     if (target?.isConnected) target.focus();
-    else if (target) this.focusFallback()?.focus();
+    else if (target) this.focusFallback()?.focus({ preventScroll: true });
   }
 
   private restoreFocusOnDestroy() {

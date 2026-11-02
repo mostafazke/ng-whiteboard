@@ -8,7 +8,7 @@ import { ConfigService } from '../config/config.service';
 import { GestureFrame, GestureTracker } from './gesture-tracker';
 
 const TOUCH = 'touch';
-/** Finger-distance jitter below this per-frame scale change is a pure pan, so it never emits a ZoomChange. */
+/** Pinch scale changes accumulate until they pass this, so finger-distance jitter during a pan never zooms. */
 const PINCH_DEAD_ZONE = 1e-3;
 
 @Directive({
@@ -24,6 +24,8 @@ export class SvgDirective implements OnDestroy {
   /** The touch pointer currently forwarded to the svg service as a normal single-pointer interaction. */
   private singleTouchId: number | null = null;
   private holdingConfigEvents = false;
+  /** Scale of the current gesture not yet applied because it is still inside {@link PINCH_DEAD_ZONE}. */
+  private pendingScale = 1;
   lastX!: number;
   lastY!: number;
 
@@ -56,6 +58,7 @@ export class SvgDirective implements OnDestroy {
       const result = this.gestureTracker.down(event.pointerId, x, y);
       if (result === 'start-gesture') {
         this.singleTouchId = null;
+        this.pendingScale = 1;
         this.svgService.cancelInteraction();
         return;
       }
@@ -150,8 +153,10 @@ export class SvgDirective implements OnDestroy {
       this.holdingConfigEvents = true;
       this.configService.holdEvents();
     }
-    if (Math.abs(scale - 1) >= PINCH_DEAD_ZONE) {
-      this.zoomService.zoomAtPoint(this.zoomService.getZoomLevel() * scale, centerX - dx, centerY - dy);
+    this.pendingScale *= scale;
+    if (Math.abs(this.pendingScale - 1) >= PINCH_DEAD_ZONE) {
+      this.zoomService.zoomAtPoint(this.zoomService.getZoomLevel() * this.pendingScale, centerX - dx, centerY - dy);
+      this.pendingScale = 1;
     }
     const zoom = this.zoomService.getZoomLevel();
     this.panService.pan(dx / zoom, dy / zoom);
