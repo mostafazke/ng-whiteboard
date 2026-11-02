@@ -1,6 +1,5 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { WhiteboardElement } from '../../../../types';
 
 export interface WhiteboardLayer {
@@ -39,7 +38,7 @@ export interface LayerBlendModeEvent {
 @Component({
   selector: 'ng-ng-layer-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule],
   templateUrl: './layer-panel.component.html',
   styleUrls: ['./layer-panel.component.scss'],
 })

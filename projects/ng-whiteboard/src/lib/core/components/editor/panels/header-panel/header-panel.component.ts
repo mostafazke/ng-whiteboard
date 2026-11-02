@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, input, Output, viewChild } from '@angular/core';
 import { EditorStateService } from '../../editor-state.service';
-import { FormsModule } from '@angular/forms';
 import { EditorConfig } from '../../../../types';
 import { Layer } from '../../editor-state.service';
 import { IconComponent } from '../../icon/icon.component';
@@ -44,7 +43,7 @@ interface HeaderAction {
 @Component({
   selector: 'ng-header-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, IconComponent, LayerPanelComponent],
+  imports: [CommonModule, IconComponent, LayerPanelComponent],
   template: `
     <div class="header-panel">
       <!-- Left Section: Layers & Title -->

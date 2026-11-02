@@ -13,7 +13,6 @@ import {
   ViewEncapsulation,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormsModule } from '@angular/forms';
 import { SvgService } from '../../svg/svg.service';
 import { BlendMode, FormatType, ToolType } from '../../types';
 import { isEditableTarget } from '../../utils/dom/is-editable-target';
@@ -44,7 +43,6 @@ function isCanvasKey(event: KeyboardEvent): boolean {
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
     IconComponent,
     HeaderPanelComponent,
     HistoryPanelComponent,

@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, EventEmitter, input, Output } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { ElementType, WhiteboardConfig, WhiteboardElement } from '../../../../types';
 import { AlignmentType } from '../../ui/alignment-controls/alignment-controls.component';
 import { IconComponent } from '../../icon/icon.component';
@@ -21,7 +20,7 @@ interface PropertyChangeEvent {
 @Component({
   selector: 'ng-properties-panel',
   standalone: true,
-  imports: [CommonModule, FormsModule, IconComponent, ColorPickerComponent, AlignmentControlsComponent],
+  imports: [CommonModule, IconComponent, ColorPickerComponent, AlignmentControlsComponent],
   template: `
     <!-- Properties Panel -->
     <div class="properties-panel">
