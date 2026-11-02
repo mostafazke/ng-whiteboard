@@ -68,7 +68,7 @@ export class WhiteboardEditorComponent {
   private handleKeyboardShortcut(event: KeyboardEvent) {
     if (this.isEditingTitleSignal() || isEditableTarget(event.target)) return;
 
-    if (event.altKey && !event.ctrlKey && !event.metaKey && event.key.toLowerCase() === 'p') {
+    if (event.altKey && !event.ctrlKey && !event.metaKey && event.code === 'KeyP') {
       event.preventDefault();
       this.togglePanel();
     }
@@ -138,11 +138,11 @@ export class WhiteboardEditorComponent {
   }
 
   save() {
-    this.editorStateService.save(FormatType.Svg, this.editorConfigSignal().title);
+    return this.editorStateService.save(FormatType.Svg, this.editorConfigSignal().title);
   }
 
   export() {
-    this.editorStateService.save(FormatType.Png, this.editorConfigSignal().title);
+    return this.editorStateService.save(FormatType.Png, this.editorConfigSignal().title);
   }
 
   // Properties Panel Events

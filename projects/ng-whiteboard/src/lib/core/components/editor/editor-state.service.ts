@@ -3,6 +3,7 @@ import { ConfigService } from '../../config/config.service';
 import { ElementsService } from '../../elements/elements.service';
 import { LayerManagementService } from '../../elements/layer-management.service';
 import { SelectionService } from '../../elements/selection.service';
+import { IOService } from '../../input/io.service';
 import { HistoryService } from '../../history/history.service';
 import { ToolsService } from '../../tools/tools.service';
 import { BlendMode, EditorConfig, FormatType, ToolType, WhiteboardConfig, WhiteboardElement } from '../../types';
@@ -23,6 +24,7 @@ export interface Layer {
 
 @Injectable()
 export class EditorStateService {
+  private ioService = inject(IOService);
   private elementsService = inject(ElementsService);
   private selectionService = inject(SelectionService);
   private configService = inject(ConfigService);
@@ -661,8 +663,12 @@ export class EditorStateService {
   }
 
   // Save/export current board
-  save(format: FormatType, title?: string) {
-    // Persistence is not implemented yet; kept for the public editor API
+  async save(format: FormatType, title?: string): Promise<void> {
+    try {
+      await this.ioService.save(format, title || 'Whiteboard');
+    } catch {
+      // IOService already logs the failure
+    }
   }
 
   undo() {

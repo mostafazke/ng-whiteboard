@@ -31,6 +31,7 @@ export class SvgService {
   private readonly keyDownSubject = new Subject<KeyboardEvent>();
   readonly keyDown$: Observable<KeyboardEvent> = this.keyDownSubject.asObservable();
 
+  private lastKeyDownEvent: KeyboardEvent | null = null;
   private isSpaceHeld = false;
   /** True while a pointer gesture is manipulating the selection (move/resize/rotate) even though
    *  a non-Select tool is active — see {@link tryBeginSelectionGesture}. */
@@ -145,7 +146,10 @@ export class SvgService {
   }
 
   onKeyDown(event: KeyboardEvent) {
-    this.keyDownSubject.next(event);
+    if (event !== this.lastKeyDownEvent) {
+      this.lastKeyDownEvent = event;
+      this.keyDownSubject.next(event);
+    }
 
     if (event.code === KEY.SPACE && !this.isSpaceHeld && !this.isTextToolEditing()) {
       this.isSpaceHeld = true;

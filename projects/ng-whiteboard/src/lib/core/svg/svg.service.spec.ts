@@ -634,6 +634,19 @@ describe('SvgService', () => {
       expect(toolsService.pushTemporaryTool).not.toHaveBeenCalled();
     });
 
+    it('emits keyDown$ once when the same event reaches onKeyDown twice', () => {
+      const emitted: KeyboardEvent[] = [];
+      service.keyDown$.subscribe((e) => emitted.push(e));
+      const event = new KeyboardEvent('keydown', { key: 'p', code: 'KeyP', altKey: true });
+
+      service.onKeyDown(event);
+      service.onKeyDown(event);
+      service.onKeyDown(new KeyboardEvent('keydown', { key: 'p', code: 'KeyP', altKey: true }));
+
+      expect(emitted.length).toBe(2);
+      expect(emitted[0]).toBe(event);
+    });
+
     it('should deactivate hand tool on spacebar up', () => {
       const downEvent = new KeyboardEvent('keydown', { code: 'Space' });
       const upEvent = new KeyboardEvent('keyup', { code: 'Space' });
