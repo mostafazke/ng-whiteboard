@@ -1,5 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  ElementRef,
+  EventEmitter,
+  inject,
+  Input,
+  Output,
+  ViewChild,
+} from '@angular/core';
 import { MIXED, Mixed } from '../../utils/selected-properties';
 
 /**
@@ -7,6 +17,9 @@ import { MIXED, Mixed } from '../../utils/selected-properties';
  * differs from its current value, so the seed must not be a likely choice such as black.
  */
 const MIXED_SEED = '#808080';
+
+/** A cancelled native picker may fire neither `change` nor `blur`, so an edit also ends this long after its last `input`. */
+const COLOR_EDIT_SETTLE_MS = 400;
 
 @Component({
   selector: 'ng-color-picker',
@@ -29,8 +42,8 @@ const MIXED_SEED = '#808080';
             aria-hidden="true"
             [value]="currentColor"
             (input)="onColorChange($event)"
-            (change)="editEnd.emit()"
-            (blur)="editEnd.emit()"
+            (change)="finishEdit()"
+            (blur)="finishEdit()"
             style="opacity: 0; position: absolute; width: 1px; height: 1px; cursor: pointer;"
           />
         </button>
@@ -55,10 +68,15 @@ const MIXED_SEED = '#808080';
 export class ColorPickerComponent {
   @Input() value: Mixed<string> = '#000000';
   @Output() colorChange = new EventEmitter<string>();
-  /** The native picker started a continuous edit; `editEnd` fires when it commits or loses focus. */
+  /** The native picker started a continuous edit; `editEnd` fires on commit, blur or once input settles. */
   @Output() editStart = new EventEmitter<void>();
   @Output() editEnd = new EventEmitter<void>();
   @ViewChild('colorInput') colorInput!: ElementRef<HTMLInputElement>;
+  private settleTimer: ReturnType<typeof setTimeout> | null = null;
+
+  constructor() {
+    inject(DestroyRef).onDestroy(() => this.clearSettleTimer());
+  }
 
   get isMixed(): boolean {
     return this.value === MIXED;
@@ -82,6 +100,19 @@ export class ColorPickerComponent {
     const target = event.target as HTMLInputElement;
     this.editStart.emit();
     this.colorChange.emit(target.value);
+    this.clearSettleTimer();
+    this.settleTimer = setTimeout(() => this.finishEdit(), COLOR_EDIT_SETTLE_MS);
+  }
+
+  finishEdit() {
+    this.clearSettleTimer();
+    this.editEnd.emit();
+  }
+
+  private clearSettleTimer() {
+    if (this.settleTimer === null) return;
+    clearTimeout(this.settleTimer);
+    this.settleTimer = null;
   }
 
   selectPresetColor(color: string) {

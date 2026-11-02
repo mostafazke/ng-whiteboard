@@ -9,7 +9,8 @@ interface HistoryEntry {
 }
 
 export interface BatchHandle {
-  execute: () => void;
+  /** Commit the batch; `after`, when given, is recorded as its final state first. */
+  execute: (after?: WhiteboardElement[]) => void;
   clear: () => void;
 }
 
@@ -30,6 +31,7 @@ export class HistoryService {
   private batchBeforeSnapshot: WhiteboardElement[] | null = null;
   private batchDescription = 'Batch operation';
   private pendingBatchAfter: WhiteboardElement[] | null = null;
+  private batchGeneration = 0;
 
   getCanUndoSignal() {
     return this.canUndoSignal.asReadonly();
@@ -79,9 +81,22 @@ export class HistoryService {
       this.batching = true;
     }
     this.batchDepth++;
+    const generation = this.batchGeneration;
+    let settled = false;
+    // A handle settles once, and only while its batch is still the open one: after a cancel it no longer
+    // touches the depth, so a stale owner cannot close a batch opened by someone else.
+    const settle = (action: () => void) => {
+      if (settled) return;
+      settled = true;
+      if (generation === this.batchGeneration) action();
+    };
     return {
-      execute: () => this.finishBatchCommit(),
-      clear: () => this.cancelBatch(),
+      execute: (after?: WhiteboardElement[]) =>
+        settle(() => {
+          if (after) this.completeBatch(after);
+          this.finishBatchCommit();
+        }),
+      clear: () => settle(() => this.cancelBatch()),
     };
   }
 
@@ -110,6 +125,7 @@ export class HistoryService {
   }
 
   private cancelBatch() {
+    this.batchGeneration++;
     this.batchDepth = 0;
     this.resetBatchState();
   }

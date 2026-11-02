@@ -330,6 +330,34 @@ describe('HistoryService', () => {
 
       expect(service.getCanUndoSignal()()).toBe(false);
     });
+
+    it('records the snapshot passed to execute', () => {
+      service.startBatch('Batch', []).execute([createMockElement('1')]);
+      expect(service.undo()).toEqual([]);
+    });
+
+    it('ignores a second execute of the same handle', () => {
+      const outer = service.startBatch('Outer', []);
+      const inner = service.startBatch('Inner', []);
+      inner.execute();
+      inner.execute();
+      expect(service.getCanUndoSignal()()).toBe(false);
+      outer.execute([createMockElement('1')]);
+      expect(service.getUndoDescriptionSignal()()).toBe('Outer');
+    });
+
+    it('a handle cancelled from under it does not close a later batch', () => {
+      const stale = service.startBatch('Stale', []);
+      service.startBatch('Canceller', []).clear();
+      const fresh = service.startBatch('Fresh', []);
+
+      stale.execute([createMockElement('1')]);
+      service.recordChange([], [createMockElement('2')], 'Suppressed');
+      expect(service.getCanUndoSignal()()).toBe(false);
+
+      fresh.execute([createMockElement('3')]);
+      expect(service.getUndoDescriptionSignal()()).toBe('Fresh');
+    });
   });
 
   describe('undo', () => {

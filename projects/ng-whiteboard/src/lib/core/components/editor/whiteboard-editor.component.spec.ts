@@ -287,6 +287,124 @@ describe('WhiteboardEditorComponent', () => {
       expect((history.undo() as WhiteboardElement[])[0].style.strokeWidth).toBe(2);
       expect((history.undo() as WhiteboardElement[])[0].opacity).toBe(100);
     });
+
+    describe('an edit that ends without change or blur', () => {
+      const slide = (input: HTMLInputElement, values: string[]) => {
+        for (const value of values) {
+          input.value = value;
+          input.dispatchEvent(new Event('input'));
+          fixture.detectChanges();
+        }
+      };
+      const opacity = () => panel().querySelector('input[aria-label="Opacity"]') as HTMLInputElement;
+      const ids = () =>
+        TestBed.inject(ElementsService)
+          .getElements()
+          .map((e) => e.id);
+      const drawStroke = () => TestBed.inject(ElementsService).addElements([rectEl('stroke')]);
+
+      afterEach(() => jest.useRealTimers());
+
+      it('stroke drawn after slider input without change gets its own undo entry', () => {
+        select();
+        slide(opacity(), ['90', '80']);
+        window.dispatchEvent(new Event('pointerup'));
+        drawStroke();
+
+        const api = TestBed.inject(ApiService);
+        expect(api.undo()).toBe(true);
+        expect(ids()).toEqual(['r1']);
+        expect(r1().opacity).toBe(80);
+        expect(api.undo()).toBe(true);
+        expect(r1().opacity).toBe(100);
+        expect(api.redo()).toBe(true);
+        expect(api.redo()).toBe(true);
+        expect(ids()).toEqual(['r1', 'stroke']);
+      });
+
+      it('pointercancel closes the batch too', () => {
+        select();
+        slide(opacity(), ['90']);
+        window.dispatchEvent(new Event('pointercancel'));
+        drawStroke();
+
+        TestBed.inject(ApiService).undo();
+        expect(ids()).toEqual(['r1']);
+        expect(r1().opacity).toBe(90);
+      });
+
+      it('editor undo closes an open edit batch first', () => {
+        select();
+        slide(opacity(), ['90', '80']);
+        component.undo();
+
+        expect(r1().opacity).toBe(100);
+        expect(TestBed.inject(HistoryService).undo()).toBeNull();
+        component.redo();
+        expect(r1().opacity).toBe(80);
+      });
+
+      it('delete closes an open edit batch first', () => {
+        select();
+        slide(opacity(), ['90']);
+        component.deleteElement();
+
+        const api = TestBed.inject(ApiService);
+        api.undo();
+        expect(ids()).toEqual(['r1']);
+        expect(r1().opacity).toBe(90);
+        api.undo();
+        expect(r1().opacity).toBe(100);
+      });
+
+      it('color input batch closes after debounce', () => {
+        jest.useFakeTimers();
+        select();
+        const colors = panel().querySelectorAll('input[type="color"]');
+        slide(colors[colors.length - 1] as HTMLInputElement, ['#111111', '#222222']);
+        jest.advanceTimersByTime(399);
+        expect(TestBed.inject(HistoryService).getCanUndoSignal()()).toBe(false);
+        jest.advanceTimersByTime(1);
+        drawStroke();
+
+        const api = TestBed.inject(ApiService);
+        api.undo();
+        expect(ids()).toEqual(['r1']);
+        expect(r1().style.strokeColor).toBe('#222222');
+      });
+
+      it('endEdit is idempotent', () => {
+        select();
+        const state = component.editorStateService;
+        state.beginEdit();
+        state.updateOpacity(50);
+        state.endEdit();
+        state.endEdit();
+        drawStroke();
+
+        const history = TestBed.inject(HistoryService);
+        expect((history.undo() as WhiteboardElement[]).map((e) => e.id)).toEqual(['r1']);
+        expect((history.undo() as WhiteboardElement[])[0].opacity).toBe(100);
+        expect(history.undo()).toBeNull();
+      });
+
+      it('endEdit never closes a batch it did not open', () => {
+        select();
+        const history = TestBed.inject(HistoryService);
+        const state = component.editorStateService;
+        const elements = TestBed.inject(ElementsService);
+        state.beginEdit();
+        history.startBatch('Cancelled elsewhere', elements.getElements()).clear();
+        const move = history.startBatch('Move element', elements.getElements());
+        state.endEdit();
+        elements.updateElements([{ id: 'r1', x: 5 } as Partial<WhiteboardElement> & { id: string }]);
+        expect(history.getCanUndoSignal()()).toBe(false);
+
+        history.completeBatch(elements.getElements());
+        move.execute();
+        expect((history.undo() as WhiteboardElement[])[0].x).toBe(0);
+      });
+    });
   });
 
   describe('layout', () => {

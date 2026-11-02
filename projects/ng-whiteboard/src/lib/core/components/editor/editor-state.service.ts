@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import { computed, inject, Injectable, OnDestroy, Signal } from '@angular/core';
 import { ApiService } from '../../api/api.service';
 import { ConfigService } from '../../config/config.service';
@@ -37,7 +38,9 @@ export class EditorStateService implements OnDestroy {
   private panService = inject(PanService);
   private layerManagementService = inject(LayerManagementService);
   private apiService = inject(ApiService);
+  private window = inject(DOCUMENT).defaultView;
   private editBatch: BatchHandle | null = null;
+  private readonly endEditOnRelease = () => this.endEdit();
 
   // Theme handling - use WhiteboardConfig as the source of truth
   themeSignal = computed(() => this.getConfigSignal()().theme ?? 'light');
@@ -92,10 +95,12 @@ export class EditorStateService implements OnDestroy {
   }
 
   selectTool(tool: ToolType) {
+    this.endEdit();
     this.toolsService.setActiveTool(tool);
   }
 
   alignElements(alignment: AlignmentType) {
+    this.endEdit();
     const updates = computeAlignmentUpdates(this.selectedElementsSignal(), alignment);
     this.applyUpdates(updates);
   }
@@ -156,6 +161,7 @@ export class EditorStateService implements OnDestroy {
 
   // Clear all elements
   clear() {
+    this.endEdit();
     this.elementsService.clear();
   }
 
@@ -418,17 +424,24 @@ export class EditorStateService implements OnDestroy {
     }
   }
 
-  /** Group the updates of a continuous edit (slider drag, native color picker) into one undo step. */
+  /**
+   * Group the updates of a continuous edit (slider drag, native color picker) into one undo step.
+   * The batch closes on `endEdit` or the next pointer release, whichever comes first.
+   */
   beginEdit() {
     if (this.editBatch) return;
     this.editBatch = this.historyService.startBatch('Update properties', this.elementsService.getElements());
+    this.window?.addEventListener('pointerup', this.endEditOnRelease);
+    this.window?.addEventListener('pointercancel', this.endEditOnRelease);
   }
 
   endEdit() {
     if (!this.editBatch) return;
-    this.historyService.completeBatch(this.elementsService.getElements());
-    this.editBatch.execute();
+    const batch = this.editBatch;
     this.editBatch = null;
+    this.window?.removeEventListener('pointerup', this.endEditOnRelease);
+    this.window?.removeEventListener('pointercancel', this.endEditOnRelease);
+    batch.execute(this.elementsService.getElements());
   }
 
   ngOnDestroy() {
@@ -437,6 +450,7 @@ export class EditorStateService implements OnDestroy {
 
   // Remove currently selected elements
   removeSelectedElements() {
+    this.endEdit();
     this.selectionService.removeSelectedElements();
   }
 
@@ -450,10 +464,12 @@ export class EditorStateService implements OnDestroy {
   }
 
   undo() {
+    this.endEdit();
     this.apiService.undo();
   }
 
   redo() {
+    this.endEdit();
     this.apiService.redo();
   }
 
