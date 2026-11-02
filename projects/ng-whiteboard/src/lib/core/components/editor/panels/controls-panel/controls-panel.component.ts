@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, input, Ou
 import { WhiteboardConfig } from '../../../../types';
 import { IconComponent } from '../../icon/icon.component';
 import { MIN_ZOOM, MAX_ZOOM } from '../../../../constants';
+import { ZOOM_ACTIONS, ZoomActionId } from '../../utils/editor-actions';
 
 let nextMenuId = 0;
 
@@ -40,18 +41,16 @@ interface ZoomLevel {
 
           <div class="zoom-dropdown" [id]="zoomMenuId" *ngIf="showZoomMenu() && !compact()">
             <div class="zoom-actions">
-              <button class="zoom-action" (click)="onZoomToFit()">
-                <ng-icon name="fit"></ng-icon>
-                Zoom to Fit
-              </button>
-              <button class="zoom-action" (click)="onZoomToSelection()" [disabled]="!hasSelection()">
-                <ng-icon name="selection"></ng-icon>
-                Zoom to Selection
-              </button>
-              <button class="zoom-action" (click)="onResetZoom()">
-                <ng-icon name="reset"></ng-icon>
-                Reset Zoom
-              </button>
+              @for (action of zoomActions; track action.id) {
+                <button
+                  class="zoom-action"
+                  [disabled]="action.requiresSelection && !hasSelection()"
+                  (click)="runZoomAction(action.id)"
+                >
+                  <ng-icon [name]="action.icon"></ng-icon>
+                  {{ action.label }}
+                </button>
+              }
             </div>
           </div>
         </div>
@@ -83,6 +82,7 @@ export class ControlsPanelComponent {
   private zoomTrigger = viewChild<ElementRef<HTMLButtonElement>>('zoomTrigger');
 
   readonly zoomMenuId = `wb-zoom-menu-${nextMenuId++}`;
+  readonly zoomActions = ZOOM_ACTIONS;
   readonly minZoom = MIN_ZOOM;
   readonly maxZoom = MAX_ZOOM;
 
@@ -137,6 +137,11 @@ export class ControlsPanelComponent {
 
   onResetZoom() {
     this.resetZoom.emit();
+  }
+
+  runZoomAction(id: ZoomActionId) {
+    const outputs = { fit: this.zoomToFit, selection: this.zoomToSelection, reset: this.resetZoom };
+    outputs[id].emit();
   }
 
   onEscape(event: Event) {

@@ -4,7 +4,7 @@ import { EditorStateService } from '../../editor-state.service';
 import { EditorConfig } from '../../../../types';
 import { Layer } from '../../editor-state.service';
 import { IconComponent } from '../../icon/icon.component';
-import { IconName } from '../../icon/icons';
+import { DOCUMENT_ACTIONS, DocumentActionId, EditorAction } from '../../utils/editor-actions';
 import {
   LayerPanelComponent,
   WhiteboardLayer,
@@ -33,14 +33,6 @@ export function toWhiteboardLayers(layers: Layer[]): WhiteboardLayer[] {
 }
 
 let nextMenuId = 0;
-
-interface HeaderAction {
-  id: string;
-  label: string;
-  icon: IconName;
-  action: () => void;
-  disabled?: boolean;
-}
 
 @Component({
   selector: 'ng-header-panel',
@@ -137,12 +129,11 @@ interface HeaderAction {
         <ng-template #fullActions>
           <div class="actions">
             <button
-              *ngFor="let action of headerActions; trackBy: trackByAction"
+              *ngFor="let action of documentActions; trackBy: trackByAction"
               class="action-btn"
-              [disabled]="action.disabled"
               [title]="action.label"
               [attr.aria-label]="action.label"
-              (click)="action.action()"
+              (click)="runDocumentAction(action.id)"
             >
               <ng-icon [name]="action.icon"></ng-icon>
               <span class="action-label">{{ action.label }}</span>
@@ -199,26 +190,12 @@ export class HeaderPanelComponent {
   @Output() layerMoved = new EventEmitter<LayerMoveEvent>();
   @Output() layerBlendModeChanged = new EventEmitter<LayerBlendModeEvent>();
 
-  headerActions: HeaderAction[] = [
-    {
-      id: 'new',
-      label: 'New',
-      icon: 'new',
-      action: () => this.newDocument.emit(),
-    },
-    {
-      id: 'save',
-      label: 'Save',
-      icon: 'save',
-      action: () => this.saveDocument.emit(),
-    },
-    {
-      id: 'export',
-      label: 'Export',
-      icon: 'download',
-      action: () => this.exportDocument.emit(),
-    },
-  ];
+  readonly documentActions = DOCUMENT_ACTIONS;
+
+  runDocumentAction(id: DocumentActionId) {
+    const outputs = { new: this.newDocument, save: this.saveDocument, export: this.exportDocument };
+    outputs[id].emit();
+  }
 
   themeToggleLabel(): string {
     return themeToggleLabel(this.editorState.themeSignal());
@@ -270,7 +247,7 @@ export class HeaderPanelComponent {
     return layer.id;
   }
 
-  trackByAction(index: number, action: HeaderAction): string {
+  trackByAction(index: number, action: EditorAction<DocumentActionId>): string {
     return action.id;
   }
 

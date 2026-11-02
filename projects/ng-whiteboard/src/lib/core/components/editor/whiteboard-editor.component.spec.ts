@@ -10,6 +10,7 @@ import { LayerManagementService } from '../../elements/layer-management.service'
 import { SvgService } from '../../svg/svg.service';
 import { ElementType, FormatType, WhiteboardElement } from '../../types';
 import { BottomSheetComponent } from './ui/bottom-sheet/bottom-sheet.component';
+import { DOCUMENT_ACTIONS, ZOOM_ACTIONS } from './utils/editor-actions';
 import { WhiteboardEditorComponent } from './whiteboard-editor.component';
 
 class FakeResizeObserver {
@@ -559,6 +560,55 @@ describe('WhiteboardEditorComponent', () => {
 
       expect(propertiesSheet().open()).toBe(false);
       expect(propertiesButton().classList).toContain('has-selection');
+    });
+
+    describe('shared action descriptors', () => {
+      const buttons = (selector: string): HTMLButtonElement[] =>
+        Array.from(fixture.nativeElement.querySelectorAll(selector));
+      const labels = (selector: string) => buttons(selector).map((b) => (b.textContent ?? '').trim());
+      const zoomSpies = () => ({
+        fit: jest.spyOn(component.editorStateService, 'zoomToFit').mockImplementation(),
+        selection: jest.spyOn(component.editorStateService, 'zoomToSelection').mockImplementation(),
+        reset: jest.spyOn(component.editorStateService, 'resetZoom').mockImplementation(),
+      });
+
+      it('header and menu sheet list DOCUMENT_ACTIONS and run the same handlers', () => {
+        const clear = jest.spyOn(component, 'clear').mockImplementation();
+        const save = jest.spyOn(component, 'save').mockImplementation();
+        const exp = jest.spyOn(component, 'export').mockImplementation();
+        resize(1440, 900);
+        expect(labels('ng-header-panel .action-btn:not(.theme-btn)')).toEqual(DOCUMENT_ACTIONS.map((a) => a.label));
+        buttons('ng-header-panel .action-btn:not(.theme-btn)').forEach((b) => b.click());
+        expect([clear, save, exp].map((s) => s.mock.calls.length)).toEqual([1, 1, 1]);
+
+        resize(390, 844);
+        component.menuSheetOpenSignal.set(true);
+        fixture.detectChanges();
+        const items = buttons('ng-bottom-sheet .wb-sheet-item').slice(0, DOCUMENT_ACTIONS.length);
+        expect(items.map((b) => (b.textContent ?? '').trim())).toEqual(DOCUMENT_ACTIONS.map((a) => a.label));
+        items.forEach((b) => b.click());
+        expect([clear, save, exp].map((s) => s.mock.calls.length)).toEqual([2, 2, 2]);
+      });
+
+      it('zoom popover and zoom sheet list ZOOM_ACTIONS and run the same handlers', () => {
+        const spies = zoomSpies();
+        resize(1440, 900);
+        component.showZoomPopupSignal.set(true);
+        fixture.detectChanges();
+        expect(labels('.zoom-action')).toEqual(ZOOM_ACTIONS.map((a) => a.label));
+        expect(buttons('.zoom-action').map((b) => b.disabled)).toEqual(ZOOM_ACTIONS.map((a) => !!a.requiresSelection));
+        buttons('.zoom-action')[0].click();
+        expect(spies.fit).toHaveBeenCalledTimes(1);
+
+        resize(390, 844);
+        component.showZoomPopupSignal.set(true);
+        fixture.detectChanges();
+        const items = buttons('ng-bottom-sheet .wb-sheet-item');
+        expect(items.map((b) => (b.textContent ?? '').trim())).toEqual(ZOOM_ACTIONS.map((a) => a.label));
+        items[2].click();
+        expect(spies.reset).toHaveBeenCalledTimes(1);
+        expect(spies.selection).not.toHaveBeenCalled();
+      });
     });
 
     it('wide layout renders the floating properties panel and no sheets', () => {

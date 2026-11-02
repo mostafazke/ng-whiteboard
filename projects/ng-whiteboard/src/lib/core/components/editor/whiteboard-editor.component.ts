@@ -31,6 +31,7 @@ import { PropertiesPanelComponent } from './panels/properties-panel/properties-p
 import { ToolbarComponent } from './panels/toolbar/toolbar.component';
 import { AlignmentType } from './ui/alignment-controls/alignment-controls.component';
 import { BottomSheetComponent } from './ui/bottom-sheet/bottom-sheet.component';
+import { DOCUMENT_ACTIONS, DocumentActionId, ZOOM_ACTIONS, ZoomActionId } from './utils/editor-actions';
 
 function isCanvasKey(event: KeyboardEvent): boolean {
   if (event.code === 'Space' || event.key === 'Delete' || event.key === 'Backspace') return true;
@@ -84,6 +85,8 @@ export class WhiteboardEditorComponent {
   propertiesSheetOpenSignal = signal(false);
   menuSheetOpenSignal = signal(false);
   sheetOpenerSignal = signal<HTMLElement | null>(null);
+  readonly documentActions = DOCUMENT_ACTIONS;
+  readonly zoomActions = ZOOM_ACTIONS;
 
   // Expose editor state signals
   selectedElementsSignal = this.editorStateService.selectedElementsSignal;
@@ -241,6 +244,12 @@ export class WhiteboardEditorComponent {
     return this.editorStateService.save(FormatType.Png, this.editorConfigSignal().title);
   }
 
+  runDocumentAction(id: DocumentActionId) {
+    if (id === 'new') this.clear();
+    else if (id === 'save') this.save();
+    else this.export();
+  }
+
   // Properties Panel Events
   onColorChange(event: { property: string; value: string }) {
     switch (event.property) {
@@ -335,6 +344,12 @@ export class WhiteboardEditorComponent {
   resetZoom() {
     this.editorStateService.resetZoom();
     this.toggleZoomPopup();
+  }
+
+  runZoomAction(id: ZoomActionId) {
+    if (id === 'fit') this.zoomToFit();
+    else if (id === 'selection') this.zoomToSelection();
+    else this.resetZoom();
   }
 
   toggleZoomPopup(opener?: HTMLElement | null) {

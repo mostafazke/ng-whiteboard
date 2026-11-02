@@ -117,15 +117,11 @@
 
     <ng-bottom-sheet label="Menu" [opener]="sheetOpenerSignal()" [open]="menuSheetOpenSignal()" (closed)="menuSheetOpenSignal.set(false)">
       <div class="wb-sheet-menu">
-        <button class="wb-sheet-item" (click)="menuSheetOpenSignal.set(false); clear()">
-          <ng-icon name="new"></ng-icon><span>New</span>
-        </button>
-        <button class="wb-sheet-item" (click)="menuSheetOpenSignal.set(false); save()">
-          <ng-icon name="save"></ng-icon><span>Save</span>
-        </button>
-        <button class="wb-sheet-item" (click)="menuSheetOpenSignal.set(false); export()">
-          <ng-icon name="download"></ng-icon><span>Export</span>
-        </button>
+        @for (action of documentActions; track action.id) {
+          <button class="wb-sheet-item" (click)="menuSheetOpenSignal.set(false); runDocumentAction(action.id)">
+            <ng-icon [name]="action.icon"></ng-icon><span>{{ action.label }}</span>
+          </button>
+        }
         <button class="wb-sheet-item" [attr.aria-label]="themeToggleLabelSignal()" (click)="toggleTheme()">
           <ng-icon [name]="themeSignal() === 'dark' ? 'sun' : 'moon'"></ng-icon>
           <span>{{ themeSignal() === 'dark' ? 'Light mode' : 'Dark mode' }}</span>
@@ -153,15 +149,15 @@
 
     <ng-bottom-sheet label="Zoom" [opener]="sheetOpenerSignal()" [open]="showZoomPopupSignal()" (closed)="showZoomPopupSignal.set(false)">
       <div class="wb-sheet-menu">
-        <button class="wb-sheet-item" (click)="zoomToFit()">
-          <ng-icon name="fit"></ng-icon><span>Zoom to Fit</span>
-        </button>
-        <button class="wb-sheet-item" [disabled]="!hasSelectionSignal()" (click)="zoomToSelection()">
-          <ng-icon name="selection"></ng-icon><span>Zoom to Selection</span>
-        </button>
-        <button class="wb-sheet-item" (click)="resetZoom()">
-          <ng-icon name="reset"></ng-icon><span>Reset Zoom</span>
-        </button>
+        @for (action of zoomActions; track action.id) {
+          <button
+            class="wb-sheet-item"
+            [disabled]="action.requiresSelection && !hasSelectionSignal()"
+            (click)="runZoomAction(action.id)"
+          >
+            <ng-icon [name]="action.icon"></ng-icon><span>{{ action.label }}</span>
+          </button>
+        }
       </div>
     </ng-bottom-sheet>
   }
