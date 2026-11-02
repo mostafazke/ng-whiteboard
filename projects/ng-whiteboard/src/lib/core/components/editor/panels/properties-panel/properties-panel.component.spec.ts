@@ -50,6 +50,36 @@ describe('PropertiesPanelComponent', () => {
     expect(displays).toContain('4px');
   });
 
+  it('shows the fill picker as mixed when fill is MIXED', () => {
+    fixture.componentRef.setInput('selectedElements', [rect('a'), rect('b')]);
+    fixture.componentRef.setInput('selectedProperties', props({ fillColor: MIXED }));
+    fixture.detectChanges();
+
+    const pickers = Array.from(fixture.nativeElement.querySelectorAll('ng-color-picker')) as HTMLElement[];
+    expect(pickers.map((p) => p.classList.contains('mixed'))).toEqual([true, false]);
+  });
+
+  it('marks no line style active when the dash pattern is MIXED', () => {
+    fixture.componentRef.setInput('selectedElements', [rect('a'), rect('b')]);
+    fixture.componentRef.setInput('selectedProperties', props({ dasharray: MIXED }));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('.line-style-btn').length).toBe(4);
+    expect(fixture.nativeElement.querySelector('.line-style-btn.active')).toBeNull();
+  });
+
+  it('shows Mixed in the font family select when text fonts differ', () => {
+    const text = (id: string, fontFamily: string) =>
+      ({ ...rect(id, { fontFamily }), type: ElementType.Text }) as WhiteboardElement;
+    fixture.componentRef.setInput('selectedElements', [text('a', 'Arial'), text('b', 'Georgia')]);
+    fixture.componentRef.setInput('selectedProperties', props({ fontFamily: MIXED, fontSize: 16 }));
+    fixture.detectChanges();
+
+    const select = fixture.nativeElement.querySelector('select[aria-label="Font family"]') as HTMLSelectElement;
+    expect(select.selectedOptions[0]?.textContent).toBe('Mixed');
+    expect(select.value).toBe('');
+  });
+
   it('does not emit changes on render when mixed', () => {
     const spy = jest.fn();
     fixture.componentInstance.propertyChange.subscribe(spy);

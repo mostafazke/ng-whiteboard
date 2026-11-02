@@ -219,7 +219,7 @@ interface PropertyChangeEvent {
                   [value]="isMixed(fontFamilyValue()) ? '' : fontFamilyValue()"
                   (change)="onPropertyChange('fontFamily', $event)"
                 >
-                  <option *ngIf="isMixed(fontFamilyValue())" value="" disabled>Mixed</option>
+                  <option *ngIf="isMixed(fontFamilyValue())" value="" disabled selected>Mixed</option>
                   <option value="Arial">Arial</option>
                   <option value="Helvetica">Helvetica</option>
                   <option value="Times New Roman">Times New Roman</option>
