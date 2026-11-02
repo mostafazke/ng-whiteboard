@@ -47,12 +47,45 @@ export class ZoomService implements OnDestroy {
   }
 
   private centerCanvas(zoom: number): { x: number; y: number } {
+    const { x, y } = this.centeredCanvasOffset(zoom);
+    this.configService.updateConfig({ canvasX: x, canvasY: y }, false);
+    return { x, y };
+  }
+
+  private centeredCanvasOffset(zoom: number): { x: number; y: number } {
     const { canvasWidth, canvasHeight } = this.getConfig();
     const containerDimensions = this.canvasService.getContainerDimensions();
-    const newCanvasX = (containerDimensions.width - canvasWidth * zoom) / 2;
-    const newCanvasY = (containerDimensions.height - canvasHeight * zoom) / 2;
-    this.configService.updateConfig({ canvasX: newCanvasX, canvasY: newCanvasY }, false);
-    return { x: newCanvasX, y: newCanvasY };
+    return {
+      x: (containerDimensions.width - canvasWidth * zoom) / 2,
+      y: (containerDimensions.height - canvasHeight * zoom) / 2,
+    };
+  }
+
+  /**
+   * Instantly zoom so the canvas point under (screenX, screenY) — SVG-relative, like
+   * `PointerInfo.x/y` — stays under it. Clamped but not rounded, so slow pinches stay smooth.
+   * When the page is centred (non-fullScreen + center), the new centred offset is applied in the
+   * same update, so the ZoomChange re-centre that follows is a no-op.
+   */
+  zoomAtPoint(zoom: number, screenX: number, screenY: number): void {
+    if (!(zoom > 0)) return;
+
+    const config = this.getConfig();
+    const newZoom = this.clampZoom(zoom);
+    const oldOffsetX = config.fullScreen ? 0 : config.canvasX;
+    const oldOffsetY = config.fullScreen ? 0 : config.canvasY;
+    const recenter = !config.fullScreen && config.center;
+    const newOffset = recenter ? this.centeredCanvasOffset(newZoom) : { x: oldOffsetX, y: oldOffsetY };
+
+    const canvasX = (screenX - oldOffsetX) / config.zoom - config.x;
+    const canvasY = (screenY - oldOffsetY) / config.zoom - config.y;
+
+    this.configService.updateConfig({
+      zoom: newZoom,
+      x: (screenX - newOffset.x) / newZoom - canvasX,
+      y: (screenY - newOffset.y) / newZoom - canvasY,
+      ...(recenter ? { canvasX: newOffset.x, canvasY: newOffset.y } : {}),
+    });
   }
 
   /**

@@ -14,6 +14,11 @@ export class LineTool extends BaseTool {
   private lastY = 0;
   private readonly MIN_LENGTH = 2;
 
+  override onDeactivate(): void {
+    this.element = null;
+    this.startPoint = null;
+  }
+
   override handlePointerDown(event: PointerInfo): void {
     if (!this.active) return;
 

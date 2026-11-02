@@ -11,6 +11,11 @@ export class EllipseTool extends BaseTool {
   element: EllipseElement | null = null;
   startPoint: Point | null = null;
 
+  override onDeactivate(): void {
+    this.element = null;
+    this.startPoint = null;
+  }
+
   override handlePointerDown(event: PointerInfo): void {
     if (!this.active) return;
 

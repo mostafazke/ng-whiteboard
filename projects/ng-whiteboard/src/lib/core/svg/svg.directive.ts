@@ -2,6 +2,11 @@ import { Directive, HostListener, ElementRef, inject } from '@angular/core';
 import { SvgService } from './svg.service';
 import { PointerInfo } from '../types';
 import { MOUSE_BUTTON } from '../constants';
+import { ZoomService } from '../viewport/zoom.service';
+import { PanService } from '../viewport/pan.service';
+import { GestureFrame, GestureTracker } from './gesture-tracker';
+
+const TOUCH = 'touch';
 
 @Directive({
   selector: '[svg]',
@@ -9,6 +14,11 @@ import { MOUSE_BUTTON } from '../constants';
 })
 export class SvgDirective {
   private elementRef = inject(ElementRef);
+  private zoomService = inject(ZoomService);
+  private panService = inject(PanService);
+  private gestureTracker = new GestureTracker();
+  /** The touch pointer currently forwarded to the svg service as a normal single-pointer interaction. */
+  private singleTouchId: number | null = null;
   lastX!: number;
   lastY!: number;
 
@@ -31,6 +41,18 @@ export class SvgDirective {
     }
 
     if (event.button === MOUSE_BUTTON.RIGHT) return;
+
+    if (event.pointerType === TOUCH) {
+      const { x, y } = this.getPointerPosition(event);
+      const result = this.gestureTracker.down(event.pointerId, x, y);
+      if (result === 'start-gesture') {
+        this.singleTouchId = null;
+        this.svgService.cancelInteraction();
+        return;
+      }
+      if (result === 'ignore') return;
+      this.singleTouchId = event.pointerId;
+    }
 
     const currentTime = Date.now();
     const currentX = event.clientX;
@@ -59,6 +81,13 @@ export class SvgDirective {
 
   @HostListener('pointermove', ['$event'])
   onPointerMove(event: PointerEvent): void {
+    if (event.pointerType === TOUCH) {
+      const { x, y } = this.getPointerPosition(event);
+      const frame = this.gestureTracker.move(event.pointerId, x, y);
+      if (frame) this.applyGesture(frame);
+      if (this.gestureTracker.isGesturing || event.pointerId !== this.singleTouchId) return;
+    }
+
     if (event.clientX === this.lastX && event.clientY === this.lastY) return;
     this.lastX = event.clientX;
     this.lastY = event.clientY;
@@ -77,6 +106,8 @@ export class SvgDirective {
       (event.currentTarget as Element).releasePointerCapture(event.pointerId);
     }
 
+    if (event.pointerType === TOUCH && !this.releaseTouch(event.pointerId)) return;
+
     if (event.button === MOUSE_BUTTON.RIGHT) return;
     const pointerInfo = this.createPointerInfo(event);
     this.svgService.onPointerUp(pointerInfo);
@@ -88,7 +119,22 @@ export class SvgDirective {
     if (event.currentTarget && (event.currentTarget as Element).hasPointerCapture(event.pointerId)) {
       (event.currentTarget as Element).releasePointerCapture(event.pointerId);
     }
+    if (event.pointerType === TOUCH && !this.releaseTouch(event.pointerId)) return;
     this.svgService.onPointerCancel(this.createPointerInfo(event));
+  }
+
+  /** Forget a touch pointer; true when it was the forwarded single pointer and should reach the svg service. */
+  private releaseTouch(pointerId: number): boolean {
+    const isSingle = this.gestureTracker.up(pointerId) === 'single' && pointerId === this.singleTouchId;
+    if (pointerId === this.singleTouchId) this.singleTouchId = null;
+    return isSingle;
+  }
+
+  /** Zoom about the previous midpoint, then pan by its movement, so the content under the fingers follows it. */
+  private applyGesture({ scale, dx, dy, centerX, centerY }: GestureFrame): void {
+    this.zoomService.zoomAtPoint(this.zoomService.getZoomLevel() * scale, centerX - dx, centerY - dy);
+    const zoom = this.zoomService.getZoomLevel();
+    this.panService.pan(dx / zoom, dy / zoom);
   }
 
   @HostListener('wheel', ['$event'])

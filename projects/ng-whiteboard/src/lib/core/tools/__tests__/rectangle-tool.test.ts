@@ -440,4 +440,18 @@ describe('RectangleTool', () => {
       );
     });
   });
+
+  it('drops the in-progress shape on deactivate/activate so a later pointer up commits nothing', () => {
+    (createElement as jest.Mock).mockReturnValue({ id: 'r1', type: ElementType.Rectangle });
+    rectangleTool.handlePointerDown(createMockPointerInfo({ x: 10, y: 10 }));
+
+    rectangleTool.deactivate();
+    rectangleTool.activate();
+    rectangleTool.handlePointerUp();
+
+    expect(rectangleTool.element).toBeNull();
+    expect(rectangleTool.startPoint).toBeNull();
+    expect(apiService.commitDraftElements).not.toHaveBeenCalled();
+    expect(apiService.finalizeDraw).not.toHaveBeenCalled();
+  });
 });

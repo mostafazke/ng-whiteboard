@@ -17,6 +17,7 @@ import { KeyboardShortcutService } from '../input/keyboard-shortcut.service';
 import { ContextMenuService } from '../components/context-menu/context-menu.service';
 import { DragDropService } from '../input/drag-drop.service';
 import { WheelHandlerService } from '../viewport/wheel-handler.service';
+import { ElementsService } from '../elements/elements.service';
 global.DOMRect = class DOMRect {
   constructor(
     public x = 0,
@@ -143,6 +144,7 @@ describe('SvgService', () => {
         { provide: KeyboardShortcutService, useValue: keyboardShortcutServiceMock },
         { provide: DragDropService, useValue: dragDropServiceMock },
         { provide: WheelHandlerService, useValue: wheelHandlerServiceMock },
+        { provide: ElementsService, useValue: { clearDraftElements: jest.fn() } },
       ],
     });
 
@@ -401,6 +403,60 @@ describe('SvgService', () => {
       service.onPointerDown(down);
       expect(currentTool.handlePointerDown).toHaveBeenCalledWith(down);
       expect(selectTool.handlePointerDown).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('cancelInteraction', () => {
+    let toolsService: jest.Mocked<ToolsService>;
+    let elementsService: jest.Mocked<ElementsService>;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      toolsService = TestBed.inject(ToolsService) as jest.Mocked<ToolsService>;
+      elementsService = TestBed.inject(ElementsService) as jest.Mocked<ElementsService>;
+      apiService.selectedElements.mockReturnValue([]);
+    });
+
+    it('clears drafts and resets the active drawing tool', () => {
+      service.onPointerDown(createMockPointerInfo());
+
+      service.cancelInteraction();
+
+      expect(elementsService.clearDraftElements).toHaveBeenCalled();
+      expect(currentTool.deactivate).toHaveBeenCalled();
+      expect(currentTool.activate).toHaveBeenCalled();
+      expect(currentTool.handlePointerUp).not.toHaveBeenCalled();
+      expect(eventBusService.emit).toHaveBeenCalledWith(WhiteboardEvent.DrawEnd);
+    });
+
+    it('ends a selection gesture captured from a drawing tool', () => {
+      apiService.selectedElements.mockReturnValue([{ id: 'sel-1' } as WhiteboardElement]);
+      (getMouseTarget as jest.Mock).mockReturnValue({ id: 'selectorBox', getAttribute: () => null });
+      service.onPointerDown(createMockPointerInfo());
+      expect(selectTool.handlePointerDown).toHaveBeenCalled();
+
+      service.cancelInteraction();
+
+      expect(selectTool.handlePointerUp).toHaveBeenCalledTimes(1);
+      (selectTool.handlePointerUp as jest.Mock).mockClear();
+      service.onPointerUp(createMockPointerInfo({ eventType: 'pointerup' }));
+      expect(selectTool.handlePointerUp).not.toHaveBeenCalled();
+      expect(currentTool.handlePointerUp).toHaveBeenCalled();
+    });
+
+    it('finishes a Select-tool drag/marquee without deactivating (keeps the selection)', () => {
+      toolsService.getActiveToolType.mockReturnValue(ToolType.Select);
+      toolsService.getActiveToolInstance.mockReturnValue(selectTool);
+      service.onPointerDown(createMockPointerInfo());
+
+      service.cancelInteraction();
+
+      expect(selectTool.handlePointerUp).toHaveBeenCalledTimes(1);
+      expect(selectTool.deactivate).not.toHaveBeenCalled();
+      expect(elementsService.clearDraftElements).toHaveBeenCalled();
+
+      toolsService.getActiveToolType.mockReturnValue(ToolType.Pen);
+      toolsService.getActiveToolInstance.mockReturnValue(currentTool);
     });
   });
 

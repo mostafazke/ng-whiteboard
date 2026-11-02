@@ -1,4 +1,4 @@
-import { Injectable, signal, WritableSignal } from '@angular/core';
+import { inject, Injectable, signal, WritableSignal } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { ApiService } from '../api/api.service';
 import { ContextMenuService } from '../components/context-menu';
@@ -15,6 +15,7 @@ import {
 } from '../constants';
 import { EventBusService } from '../event-bus/event-bus.service';
 import { DragDropService } from '../input/drag-drop.service';
+import { ElementsService } from '../elements/elements.service';
 import { KeyboardShortcutService } from '../input/keyboard-shortcut.service';
 import { ToolsService } from '../tools/tools.service';
 import { PointerInfo, WhiteboardEvent } from '../types';
@@ -36,6 +37,7 @@ export class SvgService {
   /** True while a pointer gesture is manipulating the selection (move/resize/rotate) even though
    *  a non-Select tool is active — see {@link tryBeginSelectionGesture}. */
   private selectionGesture = false;
+  private readonly elementsService = inject(ElementsService);
 
   constructor(
     private toolsService: ToolsService,
@@ -134,6 +136,36 @@ export class SvgService {
   onPointerCancel(info: PointerInfo): void {
     if (this.selectionGesture) {
       this.endSelectionGesture(info);
+    }
+  }
+
+  /**
+   * Abort the in-flight pointer interaction (e.g. a second finger turned it into a pinch):
+   * drop drafts and reset the active tool without committing anything. Select-tool drags are
+   * finished rather than reset, since deactivating Select would clear the selection.
+   */
+  cancelInteraction(): void {
+    const lastDown = this.pointerDownSig();
+
+    if (this.selectionGesture) {
+      if (lastDown) {
+        this.endSelectionGesture(lastDown);
+      } else {
+        this.selectionGesture = false;
+      }
+    } else {
+      this.EventBusService.emit(WhiteboardEvent.DrawEnd);
+    }
+
+    this.elementsService.clearDraftElements();
+
+    const tool = this.toolsService.getActiveToolInstance();
+    if (!tool) return;
+    if (tool.type === ToolType.Select) {
+      if (lastDown) tool.handlePointerUp?.(lastDown);
+    } else {
+      tool.deactivate();
+      tool.activate();
     }
   }
 

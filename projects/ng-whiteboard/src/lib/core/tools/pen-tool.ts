@@ -34,6 +34,10 @@ export class PenTool extends BaseTool {
     };
   }
 
+  override onDeactivate(): void {
+    this.element = null;
+  }
+
   override handlePointerDown(event: PointerInfo): void {
     if (!this.active) return;
 

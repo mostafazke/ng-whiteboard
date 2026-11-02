@@ -9,6 +9,10 @@ export class HandTool extends BaseTool {
   private startX = 0;
   private startY = 0;
 
+  override onDeactivate(): void {
+    this.isDragging = false;
+  }
+
   override handlePointerDown(event: PointerInfo): void {
     this.isDragging = true;
     this.startX = event.clientX;

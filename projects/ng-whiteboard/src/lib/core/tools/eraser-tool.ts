@@ -11,6 +11,17 @@ export class EraserTool extends BaseTool {
   private readonly hoveredElementIds: Set<string> = new Set();
   private lastPosition: Point | null = null;
 
+  override onDeactivate(): void {
+    if (this.hoveredElementIds.size > 0) {
+      const marked = this.apiService.getElements().filter((el) => this.hoveredElementIds.has(el.id));
+      marked.forEach((el) => (el.isDeleting = false));
+      this.apiService.updateElements(marked);
+    }
+    this.hoveredElementIds.clear();
+    this.isErasing = false;
+    this.lastPosition = null;
+  }
+
   override handlePointerDown(event: PointerInfo): void {
     if (!this.active) return;
 
