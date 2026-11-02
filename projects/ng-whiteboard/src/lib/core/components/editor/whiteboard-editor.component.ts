@@ -34,6 +34,7 @@ import { BottomSheetComponent } from './ui/bottom-sheet/bottom-sheet.component';
 
 function isCanvasKey(event: KeyboardEvent): boolean {
   if (event.code === 'Space' || event.key === 'Delete' || event.key === 'Backspace') return true;
+  if (event.key.startsWith('Arrow')) return true;
   return event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey;
 }
 
@@ -63,6 +64,7 @@ export class WhiteboardEditorComponent {
   private destroyRef = inject(DestroyRef);
   private root = viewChild.required<ElementRef<HTMLElement>>('root');
 
+  private lastShortcutEvent: KeyboardEvent | null = null;
   private layoutState = signal<EditorLayout>('wide');
   readonly layout: Signal<EditorLayout> = this.layoutState.asReadonly();
   readonly isCompact = computed(() => this.layout() === 'compact');
@@ -79,6 +81,7 @@ export class WhiteboardEditorComponent {
   showZoomPopupSignal = signal(false);
   propertiesSheetOpenSignal = signal(false);
   menuSheetOpenSignal = signal(false);
+  sheetOpenerSignal = signal<HTMLElement | null>(null);
 
   // Expose editor state signals
   selectedElementsSignal = this.editorStateService.selectedElementsSignal;
@@ -114,6 +117,10 @@ export class WhiteboardEditorComponent {
     this.closeSheets();
   }
 
+  private rememberOpener(opener?: HTMLElement | null) {
+    this.sheetOpenerSignal.set(opener ?? null);
+  }
+
   private closeSheets() {
     this.propertiesSheetOpenSignal.set(false);
     this.menuSheetOpenSignal.set(false);
@@ -127,11 +134,21 @@ export class WhiteboardEditorComponent {
    * unmodified printable keys). Modified chords such as Alt+P still pass through.
    */
   containKey(event: KeyboardEvent) {
+    if (event.type === 'keydown') this.handleKeyboardShortcut(event);
     if (isEditableTarget(event.target) || isCanvasKey(event)) event.stopPropagation();
   }
 
+  private targetsAnotherBoard(event: KeyboardEvent): boolean {
+    const target = event.target;
+    if (!(target instanceof Element)) return false;
+    const board = target.closest('ng-whiteboard');
+    return board !== null && board !== this.root().nativeElement.closest('ng-whiteboard');
+  }
+
   private handleKeyboardShortcut(event: KeyboardEvent) {
-    if (this.isEditingTitleSignal() || isEditableTarget(event.target)) return;
+    if (event === this.lastShortcutEvent) return;
+    this.lastShortcutEvent = event;
+    if (this.isEditingTitleSignal() || isEditableTarget(event.target) || this.targetsAnotherBoard(event)) return;
 
     if (event.altKey && !event.ctrlKey && !event.metaKey && event.code === 'KeyP') {
       event.preventDefault();
@@ -152,7 +169,8 @@ export class WhiteboardEditorComponent {
     this.isEditingTitleSignal.set(false);
   }
 
-  toggleLayersDropdown() {
+  toggleLayersDropdown(opener?: HTMLElement | null) {
+    this.rememberOpener(opener);
     this.showLayersDropdownSignal.update((value) => !value);
   }
 
@@ -262,11 +280,13 @@ export class WhiteboardEditorComponent {
     else this.isPanelOpenSignal.update((value) => !value);
   }
 
-  togglePropertiesSheet() {
+  togglePropertiesSheet(opener?: HTMLElement | null) {
+    this.rememberOpener(opener);
     this.propertiesSheetOpenSignal.update((value) => !value);
   }
 
-  toggleMenuSheet() {
+  toggleMenuSheet(opener?: HTMLElement | null) {
+    this.rememberOpener(opener);
     this.menuSheetOpenSignal.update((value) => !value);
   }
 
@@ -312,7 +332,8 @@ export class WhiteboardEditorComponent {
     this.toggleZoomPopup();
   }
 
-  toggleZoomPopup() {
+  toggleZoomPopup(opener?: HTMLElement | null) {
+    this.rememberOpener(opener);
     this.showZoomPopupSignal.update((value) => !value);
   }
 

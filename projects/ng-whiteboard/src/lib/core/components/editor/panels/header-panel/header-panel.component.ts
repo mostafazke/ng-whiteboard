@@ -32,6 +32,8 @@ export function toWhiteboardLayers(layers: Layer[]): WhiteboardLayer[] {
   }));
 }
 
+let nextMenuId = 0;
+
 interface HeaderAction {
   id: string;
   label: string;
@@ -51,17 +53,18 @@ interface HeaderAction {
         <div class="dropdown-wrapper" (keydown.escape)="onEscape($event)">
           <button
             #layersTrigger
-            (click)="toggleLayers()"
+            (click)="toggleLayers($event)"
             class="icon-btn layers-button"
             [class.active]="showLayers()"
             title="Layers"
             aria-label="Layers"
             [attr.aria-expanded]="showLayers()"
+            [attr.aria-controls]="showLayers() && !compact() ? layersMenuId : null"
           >
             <ng-icon name="layers"></ng-icon>
           </button>
 
-          <div class="layers-dropdown" *ngIf="showLayers() && !compact()">
+          <div class="layers-dropdown" [id]="layersMenuId" *ngIf="showLayers() && !compact()">
             <div class="dropdown-header">
               <h4>Layers</h4>
               <button class="close-btn" aria-label="Close layers" title="Close" (click)="closeLayers()">
@@ -116,7 +119,7 @@ interface HeaderAction {
             title="Properties"
             aria-label="Properties"
             [attr.aria-expanded]="propertiesOpen()"
-            (click)="propertiesToggle.emit()"
+            (click)="propertiesToggle.emit($any($event.currentTarget))"
           >
             <ng-icon name="properties"></ng-icon>
           </button>
@@ -126,7 +129,7 @@ interface HeaderAction {
             title="Menu"
             aria-label="Menu"
             [attr.aria-expanded]="menuOpen()"
-            (click)="menuToggle.emit()"
+            (click)="menuToggle.emit($any($event.currentTarget))"
           >
             <ng-icon name="menu"></ng-icon>
           </button>
@@ -162,6 +165,7 @@ interface HeaderAction {
 })
 export class HeaderPanelComponent {
   constructor(public editorState: EditorStateService) {}
+  readonly layersMenuId = `wb-layers-menu-${nextMenuId++}`;
   private layersTrigger = viewChild<ElementRef<HTMLButtonElement>>('layersTrigger');
   editorConfig = input<EditorConfig>({} as EditorConfig);
   layers = input<Layer[]>([]);
@@ -176,7 +180,7 @@ export class HeaderPanelComponent {
   @Output() titleChange = new EventEmitter<string>();
   @Output() titleEditStart = new EventEmitter<void>();
   @Output() titleEditEnd = new EventEmitter<void>();
-  @Output() layersToggle = new EventEmitter<void>();
+  @Output() layersToggle = new EventEmitter<HTMLElement | null>();
   @Output() layerVisibilityToggle = new EventEmitter<Layer>();
   @Output() layerLockToggle = new EventEmitter<Layer>();
   @Output() layerAdd = new EventEmitter<void>();
@@ -184,8 +188,8 @@ export class HeaderPanelComponent {
   @Output() newDocument = new EventEmitter<void>();
   @Output() saveDocument = new EventEmitter<void>();
   @Output() exportDocument = new EventEmitter<void>();
-  @Output() propertiesToggle = new EventEmitter<void>();
-  @Output() menuToggle = new EventEmitter<void>();
+  @Output() propertiesToggle = new EventEmitter<HTMLElement | null>();
+  @Output() menuToggle = new EventEmitter<HTMLElement | null>();
 
   // New layer panel events
   @Output() layerSelected = new EventEmitter<string>();
@@ -220,14 +224,14 @@ export class HeaderPanelComponent {
     return themeToggleLabel(this.editorState.themeSignal());
   }
 
-  toggleLayers() {
-    this.layersToggle.emit();
+  toggleLayers(event?: Event) {
+    this.layersToggle.emit((event?.currentTarget as HTMLElement | null) ?? null);
   }
 
   onEscape(event: Event) {
     if (!this.showLayers() || this.compact()) return;
     event.stopPropagation();
-    this.layersToggle.emit();
+    this.layersToggle.emit(this.layersTrigger()?.nativeElement ?? null);
     this.layersTrigger()?.nativeElement.focus();
   }
 

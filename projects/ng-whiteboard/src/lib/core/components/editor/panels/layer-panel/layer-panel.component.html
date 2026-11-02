@@ -71,6 +71,7 @@
           [value]="layer.name"
           (blur)="onRenameLayer(layer.id, $event)"
           (keydown.enter)="onRenameLayerEnter(layer.id, $event)"
+          (keydown.escape)="onRenameLayerCancel(layer.name, $event)"
           [readonly]="layer.locked"
           (click)="$event.stopPropagation()"
         />

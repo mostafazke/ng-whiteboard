@@ -163,10 +163,15 @@
 }
 
 .layer-name:focus {
-  outline: none;
   background: var(--wb-color-surface);
   border: 1px solid #0366d6;
   box-shadow: 0 0 0 2px rgba(3, 102, 214, 0.2);
+}
+
+.layer-name:focus-visible,
+.blend-mode-select:focus-visible {
+  outline: 2px solid var(--wb-color-primary, #0366d6);
+  outline-offset: 2px;
 }
 
 .layer-name[readonly] {
@@ -343,7 +348,6 @@
 }
 
 .blend-mode-select:focus {
-  outline: none;
   border-color: #0366d6;
   box-shadow: 0 0 0 2px rgba(3, 102, 214, 0.2);
 }

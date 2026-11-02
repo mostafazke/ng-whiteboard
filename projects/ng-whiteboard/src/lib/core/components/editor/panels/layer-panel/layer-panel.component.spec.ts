@@ -38,4 +38,22 @@ describe('LayerPanelComponent', () => {
     slider.dispatchEvent(new Event('input'));
     expect(emitted).toEqual([{ layerId: 'l1', opacity: 0.5 }]);
   });
+
+  it('Escape in the name input restores the name without bubbling or renaming', () => {
+    component.layers = [layer(1)];
+    fixture.detectChanges();
+    const renamed: unknown[] = [];
+    component.layerRenamed.subscribe((e) => renamed.push(e));
+    const bubbled = jest.fn();
+    fixture.nativeElement.addEventListener('keydown', bubbled);
+    const input: HTMLInputElement = fixture.nativeElement.querySelector('.layer-name');
+    input.value = 'Changed';
+
+    input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    input.dispatchEvent(new Event('blur'));
+
+    expect(input.value).toBe('Layer 1');
+    expect(bubbled).not.toHaveBeenCalled();
+    expect(renamed).toEqual([]);
+  });
 });

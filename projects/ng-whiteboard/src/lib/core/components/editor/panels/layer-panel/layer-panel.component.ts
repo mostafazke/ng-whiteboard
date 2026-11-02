@@ -120,9 +120,14 @@ export class LayerPanelComponent implements OnInit {
   onRenameLayer(layerId: string, event: Event): void {
     const target = event.target as HTMLInputElement;
     const newName = target.value.trim();
-    if (newName && newName !== '') {
+    if (newName && newName !== this.layers.find((l) => l.id === layerId)?.name) {
       this.layerRenamed.emit({ layerId: layerId, name: newName });
     }
+  }
+
+  onRenameLayerCancel(originalName: string, event: Event): void {
+    event.stopPropagation();
+    (event.target as HTMLInputElement).value = originalName;
   }
 
   onRenameLayerEnter(layerId: string, event: Event): void {

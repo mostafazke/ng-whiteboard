@@ -4,6 +4,8 @@ import { WhiteboardConfig } from '../../../../types';
 import { IconComponent } from '../../icon/icon.component';
 import { MIN_ZOOM, MAX_ZOOM } from '../../../../constants';
 
+let nextMenuId = 0;
+
 interface ZoomLevel {
   label: string;
   value: number;
@@ -27,16 +29,16 @@ interface ZoomLevel {
             #zoomTrigger
             title="Zoom options"
             [attr.aria-label]="'Zoom options, ' + formatZoom(config().zoom)"
-            aria-haspopup="true"
             [attr.aria-expanded]="showZoomMenu()"
-            (click)="toggleZoomMenu()"
+            [attr.aria-controls]="showZoomMenu() && !compact() ? zoomMenuId : null"
+            (click)="toggleZoomMenu($event)"
             (dblclick)="onCenterView()"
             [class.active]="showZoomMenu()"
           >
             {{ formatZoom(config().zoom) }}
           </button>
 
-          <div class="zoom-dropdown" *ngIf="showZoomMenu() && !compact()">
+          <div class="zoom-dropdown" [id]="zoomMenuId" *ngIf="showZoomMenu() && !compact()">
             <div class="zoom-actions">
               <button class="zoom-action" (click)="onZoomToFit()">
                 <ng-icon name="fit"></ng-icon>
@@ -75,11 +77,12 @@ export class ControlsPanelComponent {
   @Output() zoomToFit = new EventEmitter<void>();
   @Output() zoomToSelection = new EventEmitter<void>();
   @Output() resetZoom = new EventEmitter<void>();
-  @Output() zoomMenuToggle = new EventEmitter<void>();
+  @Output() zoomMenuToggle = new EventEmitter<HTMLElement | null>();
   @Output() centerView = new EventEmitter<void>();
 
   private zoomTrigger = viewChild<ElementRef<HTMLButtonElement>>('zoomTrigger');
 
+  readonly zoomMenuId = `wb-zoom-menu-${nextMenuId++}`;
   readonly minZoom = MIN_ZOOM;
   readonly maxZoom = MAX_ZOOM;
 
@@ -139,12 +142,12 @@ export class ControlsPanelComponent {
   onEscape(event: Event) {
     if (!this.showZoomMenu() || this.compact()) return;
     event.stopPropagation();
-    this.zoomMenuToggle.emit();
+    this.zoomMenuToggle.emit(this.zoomTrigger()?.nativeElement ?? null);
     this.zoomTrigger()?.nativeElement.focus();
   }
 
-  toggleZoomMenu() {
-    this.zoomMenuToggle.emit();
+  toggleZoomMenu(event?: Event) {
+    this.zoomMenuToggle.emit((event?.currentTarget as HTMLElement | null) ?? null);
   }
 
   onCenterView() {

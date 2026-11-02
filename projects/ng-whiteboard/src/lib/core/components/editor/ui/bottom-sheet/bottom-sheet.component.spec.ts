@@ -22,6 +22,72 @@ class HostComponent {
   }
 }
 
+@Component({
+  standalone: true,
+  imports: [BottomSheetComponent],
+  template: `
+    <button class="opener" #opener (click)="open.set(true)">Open</button>
+    <button class="other">Other</button>
+    @if (show()) {
+      <ng-bottom-sheet [open]="open()" [opener]="explicit() ? opener : null" label="Dyn" (closed)="open.set(false)">
+        <button class="first">First</button>
+      </ng-bottom-sheet>
+    }
+  `,
+})
+class DynamicHostComponent {
+  open = signal(true);
+  show = signal(true);
+  explicit = signal(false);
+}
+
+describe('BottomSheetComponent focus restoration', () => {
+  let fixture: ComponentFixture<DynamicHostComponent>;
+  const q = (sel: string) => fixture.nativeElement.querySelector(sel) as HTMLElement;
+
+  const setup = async (explicit: boolean, focusOpenerFirst: boolean) => {
+    fixture = TestBed.createComponent(DynamicHostComponent);
+    fixture.componentInstance.open.set(false);
+    fixture.componentInstance.explicit.set(explicit);
+    document.body.appendChild(fixture.nativeElement);
+    fixture.detectChanges();
+    if (focusOpenerFirst) q('.opener').focus();
+    else (document.activeElement as HTMLElement | null)?.blur();
+    fixture.componentInstance.open.set(true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+  };
+
+  afterEach(() => fixture.nativeElement.remove());
+
+  it('restores focus to an explicit opener when nothing was focused (iOS tap)', async () => {
+    await setup(true, false);
+    expect(document.activeElement).toBe(q('.first'));
+    fixture.componentInstance.open.set(false);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(document.activeElement).toBe(q('.opener'));
+  });
+
+  it('restores focus when the sheet is destroyed while open', async () => {
+    await setup(false, true);
+    expect(document.activeElement).toBe(q('.first'));
+    fixture.componentInstance.show.set(false);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(document.activeElement).toBe(q('.opener'));
+  });
+
+  it('does not steal focus on destroy when focus already moved outside the sheet', async () => {
+    await setup(false, true);
+    q('.other').focus();
+    fixture.componentInstance.show.set(false);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(document.activeElement).toBe(q('.other'));
+  });
+});
+
 describe('BottomSheetComponent', () => {
   let fixture: ComponentFixture<HostComponent>;
   let host: HostComponent;

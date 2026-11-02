@@ -21,7 +21,7 @@
       (titleChange)="onTitleChange($event)"
       (titleEditStart)="onTitleEditStart()"
       (titleEditEnd)="onTitleEditEnd()"
-      (layersToggle)="toggleLayersDropdown()"
+      (layersToggle)="toggleLayersDropdown($event)"
       (layerVisibilityToggle)="onLayerVisibilityToggle($event)"
       (layerLockToggle)="onLayerLockToggle($event)"
       (layerAdd)="onLayerAdd()"
@@ -34,8 +34,8 @@
       (newDocument)="clear()"
       (saveDocument)="save()"
       (exportDocument)="export()"
-      (propertiesToggle)="togglePropertiesSheet()"
-      (menuToggle)="toggleMenuSheet()"
+      (propertiesToggle)="togglePropertiesSheet($event)"
+      (menuToggle)="toggleMenuSheet($event)"
     >
     </ng-header-panel>
 
@@ -83,7 +83,7 @@
       (zoomToFit)="zoomToFit()"
       (zoomToSelection)="zoomToSelection()"
       (resetZoom)="resetZoom()"
-      (zoomMenuToggle)="toggleZoomPopup()"
+      (zoomMenuToggle)="toggleZoomPopup($event)"
       (centerView)="onCenterView()"
     >
     </ng-controls-panel>
@@ -92,6 +92,7 @@
   @if (isCompact()) {
     <ng-bottom-sheet
       label="Properties"
+      [opener]="sheetOpenerSignal()"
       [open]="propertiesSheetOpenSignal()"
       (closed)="propertiesSheetOpenSignal.set(false)"
     >
@@ -114,7 +115,7 @@
       </ng-properties-panel>
     </ng-bottom-sheet>
 
-    <ng-bottom-sheet label="Menu" [open]="menuSheetOpenSignal()" (closed)="menuSheetOpenSignal.set(false)">
+    <ng-bottom-sheet label="Menu" [opener]="sheetOpenerSignal()" [open]="menuSheetOpenSignal()" (closed)="menuSheetOpenSignal.set(false)">
       <div class="wb-sheet-menu">
         <button class="wb-sheet-item" (click)="menuSheetOpenSignal.set(false); clear()">
           <ng-icon name="new"></ng-icon><span>New</span>
@@ -132,7 +133,7 @@
       </div>
     </ng-bottom-sheet>
 
-    <ng-bottom-sheet label="Layers" [open]="showLayersDropdownSignal()" (closed)="showLayersDropdownSignal.set(false)">
+    <ng-bottom-sheet label="Layers" [opener]="sheetOpenerSignal()" [open]="showLayersDropdownSignal()" (closed)="showLayersDropdownSignal.set(false)">
       <ng-ng-layer-panel
         class="wb-sheet-layers"
         [layers]="whiteboardLayersSignal()"
@@ -150,7 +151,7 @@
       </ng-ng-layer-panel>
     </ng-bottom-sheet>
 
-    <ng-bottom-sheet label="Zoom" [open]="showZoomPopupSignal()" (closed)="showZoomPopupSignal.set(false)">
+    <ng-bottom-sheet label="Zoom" [opener]="sheetOpenerSignal()" [open]="showZoomPopupSignal()" (closed)="showZoomPopupSignal.set(false)">
       <div class="wb-sheet-menu">
         <button class="wb-sheet-item" (click)="zoomToFit()">
           <ng-icon name="fit"></ng-icon><span>Zoom to Fit</span>

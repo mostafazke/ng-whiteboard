@@ -1,8 +1,10 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   effect,
   ElementRef,
+  inject,
   input,
   output,
   signal,
@@ -51,19 +53,22 @@ const SWIPE_CLOSE_DISTANCE = 80;
 export class BottomSheetComponent {
   open = input(false);
   label = input('');
+  opener = input<HTMLElement | null>(null);
   closed = output<void>();
 
   protected dragOffset = signal(0);
   protected dragStartY: number | null = null;
 
   private sheet = viewChild<ElementRef<HTMLElement>>('sheet');
-  private opener: HTMLElement | null = null;
+  private restoreTarget: HTMLElement | null = null;
+  private destroyRef = inject(DestroyRef);
 
   constructor() {
     effect(() => {
       const el = this.sheet()?.nativeElement;
       untracked(() => (el ? this.focusInto(el) : this.restoreFocus()));
     });
+    this.destroyRef.onDestroy(() => this.restoreFocusOnDestroy());
   }
 
   close() {
@@ -109,14 +114,26 @@ export class BottomSheetComponent {
   }
 
   private focusInto(sheet: HTMLElement) {
+    const explicit = this.opener();
     const active = sheet.ownerDocument.activeElement;
-    this.opener = active instanceof HTMLElement && active !== sheet.ownerDocument.body ? active : null;
+    this.restoreTarget =
+      explicit ?? (active instanceof HTMLElement && active !== sheet.ownerDocument.body ? active : null);
     (getFocusableElements(sheet)[0] ?? sheet).focus();
   }
 
   private restoreFocus() {
-    const opener = this.opener;
-    this.opener = null;
-    if (opener?.isConnected) opener.focus();
+    const target = this.restoreTarget;
+    this.restoreTarget = null;
+    if (target?.isConnected) target.focus();
+  }
+
+  private restoreFocusOnDestroy() {
+    const sheet = this.sheet()?.nativeElement;
+    const active = sheet?.ownerDocument.activeElement;
+    if (sheet && active && active !== sheet.ownerDocument.body && !sheet.contains(active)) {
+      this.restoreTarget = null;
+      return;
+    }
+    this.restoreFocus();
   }
 }
