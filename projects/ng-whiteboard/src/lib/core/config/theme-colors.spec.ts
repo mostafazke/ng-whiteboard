@@ -57,4 +57,13 @@ describe('applyThemeColors', () => {
 
     expect(applyThemeColors(prev, next)).toBe(next);
   });
+
+  it('leaves colors alone for an unknown theme value', () => {
+    const prev = cfg({ theme: undefined, backgroundColor: '#F8F9FA', strokeColor: '#333333' });
+    const next = { ...prev, theme: 'Dark' as unknown as 'dark' };
+
+    expect(() => applyThemeColors(prev, next)).not.toThrow();
+    expect(applyThemeColors(prev, next)).toEqual(next);
+    expect(applyThemeColors(next, prev)).toEqual(prev);
+  });
 });

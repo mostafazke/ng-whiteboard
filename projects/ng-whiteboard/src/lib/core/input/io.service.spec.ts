@@ -817,6 +817,25 @@ describe('IOService', () => {
       expect(configService.getConfig().theme).toBeUndefined();
     });
 
+    it('ignores an unknown settings.theme instead of failing mid-import', () => {
+      const configService = TestBed.inject(ConfigService);
+      const jsonData = JSON.stringify({
+        version: '1.0',
+        elements: [mockElement],
+        settings: { theme: 'Dark', drawingEnabled: false },
+      });
+
+      expect(() => service.importData(jsonData)).not.toThrow();
+      expect(configService.getConfig().theme).toBeUndefined();
+      expect(configService.getConfig().drawingEnabled).toBe(false);
+    });
+
+    it('imports a valid settings.theme', () => {
+      const configService = TestBed.inject(ConfigService);
+      service.importData(JSON.stringify({ version: '1.0', elements: [mockElement], settings: { theme: 'dark' } }));
+      expect(configService.getConfig().theme).toBe('dark');
+    });
+
     it('should import data without config', () => {
       const jsonData = JSON.stringify({
         version: '1.0',

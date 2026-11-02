@@ -13,6 +13,7 @@ import { PanService } from '../viewport/pan.service';
 import { ZoomService } from '../viewport/zoom.service';
 import { LayerManagementService } from '../elements/layer-management.service';
 import { ConfigService } from '../config/config.service';
+import { isTheme } from '../config/theme-colors';
 
 /**
  * Handles import/export operations for the whiteboard including images, state serialization, and various export formats.
@@ -367,7 +368,7 @@ export class IOService {
         if (settings.keyboardShortcutsEnabled !== undefined) {
           settingsConfig.keyboardShortcutsEnabled = settings.keyboardShortcutsEnabled;
         }
-        if (settings.theme !== undefined) settingsConfig.theme = settings.theme;
+        if (isTheme(settings.theme)) settingsConfig.theme = settings.theme;
 
         this.configService.updateConfig(settingsConfig, false);
       }

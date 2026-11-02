@@ -5,10 +5,14 @@ export const THEME_DEFAULT_COLORS: Record<'light' | 'dark', { backgroundColor: s
   dark: { backgroundColor: '#1a1a1a', strokeColor: '#e5e7eb' },
 };
 
+export function isTheme(value: unknown): value is 'light' | 'dark' {
+  return value === 'light' || value === 'dark';
+}
+
 export function applyThemeColors(prev: WhiteboardConfig, next: WhiteboardConfig): WhiteboardConfig {
   const from = prev.theme ?? 'light';
   const to = next.theme ?? 'light';
-  if (from === to) {
+  if (from === to || !isTheme(from) || !isTheme(to)) {
     return next;
   }
 
