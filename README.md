@@ -146,6 +146,7 @@ export class WhiteboardContainerComponent implements OnInit {
 ```
 
 - `[showEditor]` (default `false`) adds the editor UI (toolbar, properties, layers). When `false`, only the canvas renders, unchanged.
+- The editor is lazy-loaded (`@defer`), so it appears just after the canvas. With SSR, no editor markup is rendered until the page hydrates.
 - `config.theme` is `'light' | 'dark'`. Unset renders as before (light).
 - The layout adapts to the editor's own container. Phones and small containers get a bottom toolbar and bottom sheets.
 - Touch: pinch to zoom and two-finger pan work with or without the editor.
