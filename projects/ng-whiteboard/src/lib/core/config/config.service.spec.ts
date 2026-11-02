@@ -27,9 +27,7 @@ describe('ConfigService', () => {
     });
 
     it('should have default editor config values', () => {
-      const editorConfig = service.getEditorConfig();
-      expect(editorConfig.title).toBe('Whiteboard');
-      expect(editorConfig).toEqual({ title: 'Whiteboard' });
+      expect(service.getEditorConfig()).toEqual({ title: 'Whiteboard' });
     });
   });
 
@@ -579,6 +577,23 @@ describe('ConfigService', () => {
 
       expect(service.getConfig().backgroundColor).toBe('#abcdef');
       expect(service.getConfig().strokeColor).toBe('#e5e7eb');
+    });
+
+    it('setting light on an unset theme leaves the colors alone', () => {
+      service.updateConfig({ backgroundColor: '#F8F9FA', strokeColor: '#333333' });
+      service.updateConfig({ theme: 'light' });
+
+      expect(service.getConfig().backgroundColor).toBe('#F8F9FA');
+      expect(service.getConfig().strokeColor).toBe('#333333');
+    });
+
+    it('unsetting a dark theme swaps the dark defaults back like light', () => {
+      service.updateConfig({ backgroundColor: '#F8F9FA', strokeColor: '#333333' });
+      service.updateConfig({ theme: 'dark' });
+      service.updateConfig({ theme: undefined });
+
+      expect(service.getConfig().backgroundColor).toBe('#F8F9FA');
+      expect(service.getConfig().strokeColor).toBe('#333333');
     });
 
     it('should not change colors when other options are updated', () => {

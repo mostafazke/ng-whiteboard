@@ -755,9 +755,15 @@ describe('IOService', () => {
     });
 
     it('should not export a theme by default', () => {
-      const parsed = JSON.parse(service.exportData());
+      // JSON.stringify drops undefined values, so inspect the object before it is stringified.
+      mockCanvasService.getConfig.mockReturnValue({ ...mockConfig, theme: undefined });
+      const stringify = jest.spyOn(JSON, 'stringify');
 
-      expect(parsed.settings).not.toHaveProperty('theme');
+      service.exportData();
+
+      const exported = stringify.mock.calls[0][0] as { settings: object };
+      stringify.mockRestore();
+      expect(Object.keys(exported.settings)).not.toContain('theme');
     });
 
     it('should export theme when set', () => {
@@ -805,6 +811,7 @@ describe('IOService', () => {
 
     it('imports legacy editor block', () => {
       const configService = TestBed.inject(ConfigService);
+      expect((service as unknown as { configService: ConfigService }).configService).toBe(configService);
       const jsonData = JSON.stringify({
         version: '1.0',
         elements: [mockElement],
