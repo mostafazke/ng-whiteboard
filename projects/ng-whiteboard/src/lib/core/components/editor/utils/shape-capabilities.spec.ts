@@ -58,7 +58,7 @@ describe('sectionsForTool', () => {
     for (const tool of [ToolType.Select, ToolType.Hand, ToolType.Eraser, ToolType.Image, ToolType.ZoomArea]) {
       const sections = sectionsForTool(tool);
       expect(sections.has('opacity')).toBe(false);
-      expect(new Set(sections)).toEqual(new Set(['stroke', 'fill', 'strokeWidth', 'strokeStyle']));
+      expect(new Set(sections)).toEqual(new Set(['stroke', 'strokeWidth', 'strokeStyle']));
     }
   });
 });

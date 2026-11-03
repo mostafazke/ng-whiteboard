@@ -32,7 +32,7 @@ const TOOL_SECTIONS: Partial<Record<ToolType, readonly PropertySection[]>> = {
   [ToolType.Text]: ['stroke', 'font'],
 };
 
-const DEFAULT_TOOL_SECTIONS: readonly PropertySection[] = ['stroke', 'fill', 'strokeWidth', 'strokeStyle'];
+const DEFAULT_TOOL_SECTIONS: readonly PropertySection[] = ['stroke', 'strokeWidth', 'strokeStyle'];
 
 export function sectionsForElements(types: ElementType[]): ReadonlySet<PropertySection> {
   if (types.length === 0) return new Set();

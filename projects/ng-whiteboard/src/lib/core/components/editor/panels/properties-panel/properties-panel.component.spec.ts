@@ -200,6 +200,14 @@ describe('PropertiesPanelComponent', () => {
       expect(query('[aria-label="Start"] [aria-label="None"]')?.getAttribute('aria-checked')).toBe('true');
     });
 
+    it('shows the general controls without fill for the select tool with nothing selected', () => {
+      render([], ToolType.Select);
+
+      expect(labels()).toEqual(expect.arrayContaining(['Background', 'Stroke', 'Width', 'Line Style']));
+      expect(labels()).not.toContain('Fill');
+      expect(el().querySelectorAll('.line-style-btn').length).toBe(4);
+    });
+
     it('labels the stroke as text color for the text tool with nothing selected', () => {
       render([], ToolType.Text);
 
