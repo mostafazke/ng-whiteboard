@@ -9,6 +9,7 @@ import {
   ViewEncapsulation,
 } from '@angular/core';
 import { ArrowheadType } from '../../../../elements';
+import { nextRadioIndex } from '../radio-group-keys';
 import { MIXED } from '../../utils/selected-properties';
 
 interface ArrowheadOption {
@@ -97,24 +98,8 @@ export class ArrowheadPickerComponent {
   }
 
   protected onKeydown(event: KeyboardEvent, index: number): void {
-    const count = OPTIONS.length;
-    let next: number;
-    switch (event.key) {
-      case 'ArrowRight':
-        next = (index + 1) % count;
-        break;
-      case 'ArrowLeft':
-        next = (index - 1 + count) % count;
-        break;
-      case 'Home':
-        next = 0;
-        break;
-      case 'End':
-        next = count - 1;
-        break;
-      default:
-        return;
-    }
+    const next = nextRadioIndex(event.key, index, OPTIONS.length);
+    if (next === null) return;
     event.preventDefault();
     event.stopPropagation();
     this.select(OPTIONS[next].value);

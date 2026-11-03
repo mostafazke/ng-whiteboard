@@ -8,12 +8,12 @@ import {
   output,
   ViewEncapsulation,
 } from '@angular/core';
+import { nextRadioIndex } from '../radio-group-keys';
 import { MIXED } from '../../utils/selected-properties';
 
 export interface SegmentedOption {
   value: string;
   label: string;
-  icon?: string;
 }
 
 @Component({
@@ -58,24 +58,8 @@ export class SegmentedControlComponent {
   }
 
   protected onKeydown(event: KeyboardEvent, index: number): void {
-    const count = this.options().length;
-    let next: number;
-    switch (event.key) {
-      case 'ArrowRight':
-        next = (index + 1) % count;
-        break;
-      case 'ArrowLeft':
-        next = (index - 1 + count) % count;
-        break;
-      case 'Home':
-        next = 0;
-        break;
-      case 'End':
-        next = count - 1;
-        break;
-      default:
-        return;
-    }
+    const next = nextRadioIndex(event.key, index, this.options().length);
+    if (next === null) return;
     event.preventDefault();
     event.stopPropagation();
     this.select(this.options()[next].value);
