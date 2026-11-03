@@ -1,4 +1,5 @@
-import { ElementType, WhiteboardElement } from '../../../types';
+import { ArrowheadType } from '../../../elements';
+import { ArrowPathType, ElementType, LineCap, WhiteboardElement } from '../../../types';
 import { MIXED, mergeSelectedProperties } from './selected-properties';
 
 const el = (id: string, type: ElementType, style = {}, extra = {}): WhiteboardElement =>
@@ -60,5 +61,49 @@ describe('mergeSelectedProperties', () => {
 
   it('null for empty', () => {
     expect(mergeSelectedProperties([])).toBeNull();
+  });
+});
+
+describe('mergeSelectedProperties shape-specific values', () => {
+  const arrow = (
+    id: string,
+    startHead: ArrowheadType,
+    endHead: ArrowheadType,
+    pathType: ArrowPathType = { type: 'straight' }
+  ) => el(id, ElementType.Arrow, {}, { startHead: { type: startHead }, endHead: { type: endHead }, pathType });
+
+  it('merges arrow heads and path', () => {
+    const result = mergeSelectedProperties([
+      arrow('a', ArrowheadType.None, ArrowheadType.Arrow, { type: 'elbow', midRatio: 0.5 }),
+      arrow('b', ArrowheadType.None, ArrowheadType.Circle, { type: 'elbow', midRatio: 0.3 }),
+    ]);
+    expect(result?.startHead).toBe(ArrowheadType.None);
+    expect(result?.endHead).toBe(MIXED);
+    expect(result?.arrowPath).toBe('elbow');
+    expect(result?.lineCap).toBe(LineCap.Round);
+  });
+
+  it('merges corner radius', () => {
+    const rect = (id: string, rx: number) => el(id, ElementType.Rectangle, {}, { rx });
+    expect(mergeSelectedProperties([rect('a', 0), rect('b', 12)])?.cornerRadius).toBe(MIXED);
+    expect(mergeSelectedProperties([rect('a', 12), rect('b', 12)])?.cornerRadius).toBe(12);
+  });
+
+  it('omits unsupported values for mixed types', () => {
+    const result = mergeSelectedProperties([
+      arrow('a', ArrowheadType.None, ArrowheadType.Arrow),
+      el('b', ElementType.Rectangle, {}, { rx: 5 }),
+    ]);
+    expect(result?.startHead).toBeUndefined();
+    expect(result?.cornerRadius).toBeUndefined();
+    expect(result?.lineCap).toBeUndefined();
+  });
+
+  it('merges line cap for lines and arrows', () => {
+    const result = mergeSelectedProperties([
+      el('a', ElementType.Line, { lineCap: LineCap.Square }),
+      arrow('b', ArrowheadType.None, ArrowheadType.Arrow),
+    ]);
+    expect(result?.lineCap).toBe(MIXED);
   });
 });
