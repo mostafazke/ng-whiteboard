@@ -74,6 +74,31 @@ describe('RectangleTool', () => {
       expect(apiService.addDraftElements).toHaveBeenCalledWith([expect.any(Object)]);
     });
 
+    it('should default the corner radius to 5 when cornerRadius is unset', () => {
+      (createElement as jest.Mock).mockReturnValue({ id: '1', type: ElementType.Rectangle });
+
+      rectangleTool.handlePointerDown(createMockPointerInfo({ x: 10, y: 10, eventType: 'pointerdown' }));
+
+      expect(createElement).toHaveBeenLastCalledWith(
+        ElementType.Rectangle,
+        expect.objectContaining({ rx: 5 }),
+        'layer-1'
+      );
+    });
+
+    it('should use the configured cornerRadius, including 0', () => {
+      (createElement as jest.Mock).mockReturnValue({ id: '1', type: ElementType.Rectangle });
+      rectangleTool.whiteboardConfig.cornerRadius = 0;
+
+      rectangleTool.handlePointerDown(createMockPointerInfo({ x: 10, y: 10, eventType: 'pointerdown' }));
+
+      expect(createElement).toHaveBeenLastCalledWith(
+        ElementType.Rectangle,
+        expect.objectContaining({ rx: 0 }),
+        'layer-1'
+      );
+    });
+
     it('should snap to grid if enabled', () => {
       rectangleTool.whiteboardConfig.snapToGrid = true;
       rectangleTool.whiteboardConfig.gridSize = 20;
@@ -239,6 +264,7 @@ describe('RectangleTool', () => {
         {
           x: 100,
           y: 200,
+          rx: 5,
           style: {
             strokeColor: '#000000',
             strokeWidth: 2,
@@ -311,6 +337,7 @@ describe('RectangleTool', () => {
         {
           x: 100,
           y: 200,
+          rx: 5,
           style: {
             strokeColor: '#000000',
             strokeWidth: 2,

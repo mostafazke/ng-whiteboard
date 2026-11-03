@@ -81,6 +81,8 @@ export interface WhiteboardConfig {
   selectAfterDraw?: SelectAfterDrawConfig;
   /** Color theme for the canvas and editor UI */
   theme?: 'light' | 'dark';
+  /** Default corner radius for new rectangles; 5 when unset */
+  cornerRadius?: number;
 }
 
 export interface EditorConfig {

@@ -35,6 +35,7 @@ export class RectangleTool extends BaseTool {
       {
         x,
         y,
+        rx: this.whiteboardConfig.cornerRadius ?? 5,
         style: this.getElementStyle(),
         zIndex: this.apiService.getNextZIndex(),
       },
