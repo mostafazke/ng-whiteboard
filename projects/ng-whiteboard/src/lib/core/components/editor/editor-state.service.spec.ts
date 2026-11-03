@@ -6,7 +6,9 @@ import { LayerManagementService } from '../../elements/layer-management.service'
 import { EventBusService } from '../../event-bus/event-bus.service';
 import { SelectionService } from '../../elements/selection.service';
 import { HistoryService } from '../../history/history.service';
-import { ElementType, WhiteboardElement, WhiteboardEvent } from '../../types';
+import { ArrowBindingService } from '../../elements/arrow-binding.service';
+import { ArrowElement, ArrowheadType } from '../../elements';
+import { ElementType, LineCap, PenType, WhiteboardElement, WhiteboardEvent } from '../../types';
 import { EditorStateService } from './editor-state.service';
 import { MIXED } from './utils/selected-properties';
 
@@ -23,6 +25,29 @@ const rect = (id: string, x: number, y: number, width: number, height: number, e
     opacity: 100,
     zIndex: 1,
     selectAfterDraw: false,
+    style: {},
+    ...extra,
+  }) as WhiteboardElement;
+
+const arrow = (id: string, extra = {}): WhiteboardElement =>
+  ({
+    id,
+    type: ElementType.Arrow,
+    x: 0,
+    y: 0,
+    x1: 0,
+    y1: 0,
+    x2: 100,
+    y2: 0,
+    rotation: 0,
+    opacity: 100,
+    zIndex: 1,
+    selectAfterDraw: false,
+    startBinding: null,
+    endBinding: null,
+    pathType: { type: 'straight' },
+    startHead: { type: ArrowheadType.OpenArrow },
+    endHead: { type: ArrowheadType.Arrow },
     style: {},
     ...extra,
   }) as WhiteboardElement;
@@ -359,6 +384,162 @@ describe('EditorStateService', () => {
 
       expect(emitted).toEqual(expect.arrayContaining([WhiteboardEvent.Undo, WhiteboardEvent.Redo]));
       expect(elements.getElements()[0].style.strokeWidth).toBe(4);
+    });
+  });
+
+  describe('arrow, line end, corner radius and brush properties', () => {
+    const get = (id: string) => elements.getElements().find((e) => e.id === id) as WhiteboardElement;
+    const arrowOf = (id: string) => get(id) as ArrowElement;
+    const rxOf = (id: string) => (get(id) as unknown as { rx: number }).rx;
+    const config = () => TestBed.inject(ConfigService).getConfig();
+
+    it('updateArrowHead changes every selected arrow in one undoable step', () => {
+      elements.setElements([arrow('a'), arrow('b')]);
+      selection.selectElements(['a', 'b']);
+      history.clearHistory();
+
+      service.updateArrowHead('end', ArrowheadType.Diamond);
+
+      expect(arrowOf('a').endHead.type).toBe('diamond');
+      expect(arrowOf('b').endHead.type).toBe('diamond');
+      const before = history.undo() as ArrowElement[];
+      expect(before.map((e) => e.endHead.type)).toEqual(['arrow', 'arrow']);
+      expect(history.undo()).toBeNull();
+    });
+
+    it('updateArrowHead skips a locked arrow and stays one step', () => {
+      elements.setElements([arrow('a'), arrow('b', { locked: true })]);
+      selection.selectElements(['a', 'b']);
+      history.clearHistory();
+
+      service.updateArrowHead('start', ArrowheadType.Circle);
+
+      expect(arrowOf('a').startHead.type).toBe('circle');
+      expect(arrowOf('b').startHead.type).toBe('open-arrow');
+      expect(history.undo()).not.toBeNull();
+      expect(history.undo()).toBeNull();
+    });
+
+    it('updateArrowHead leaves other element types untouched', () => {
+      elements.setElements([arrow('a'), rect('r', 0, 0, 10, 10)]);
+      selection.selectElements(['a', 'r']);
+      const rectBefore = get('r');
+
+      service.updateArrowHead('end', ArrowheadType.Bar);
+
+      expect(get('r')).toBe(rectBefore);
+      expect(arrowOf('a').endHead.type).toBe('bar');
+    });
+
+    it('swapArrowHeads swaps both heads and one undo restores', () => {
+      elements.setElements([arrow('a'), arrow('b', { startHead: { type: ArrowheadType.Bar } })]);
+      selection.selectElements(['a', 'b']);
+      history.clearHistory();
+
+      service.swapArrowHeads();
+
+      expect([arrowOf('a').startHead.type, arrowOf('a').endHead.type]).toEqual(['arrow', 'open-arrow']);
+      expect([arrowOf('b').startHead.type, arrowOf('b').endHead.type]).toEqual(['arrow', 'bar']);
+      const before = history.undo() as ArrowElement[];
+      expect([before[0].startHead.type, before[0].endHead.type]).toEqual(['open-arrow', 'arrow']);
+      expect(history.undo()).toBeNull();
+    });
+
+    it('updateArrowPath converts to curve then back to straight', () => {
+      elements.setElements([arrow('a')]);
+      selection.selectElements(['a']);
+
+      service.updateArrowPath('curve');
+      expect(arrowOf('a').pathType).toEqual({ type: 'quadratic', cx: 50, cy: 20 });
+
+      service.updateArrowPath('straight');
+      expect(arrowOf('a').pathType).toEqual({ type: 'straight' });
+    });
+
+    it('a curved arrow bound to a rectangle still follows the rectangle', () => {
+      const binding = TestBed.inject(ArrowBindingService);
+      const bound = arrow('a', { x1: 0, y1: 50, x2: 150, y2: 50 }) as ArrowElement;
+      elements.setElements([rect('r', 200, 0, 100, 100), bound]);
+      elements.updateElements([binding.attachEnd(bound, 'r', 'left', 0)] as never);
+      selection.selectElements(['a']);
+
+      service.updateArrowPath('curve');
+      expect(arrowOf('a').pathType.type).toBe('quadratic');
+      const endBefore = { x: arrowOf('a').x2, y: arrowOf('a').y2 };
+
+      elements.updateElements([{ id: 'r', x: 400, y: 300 }] as never);
+      expect(() =>
+        elements.updateElements(binding.recomputeBindingsForElements(new Set(['r'])) as never)
+      ).not.toThrow();
+
+      const moved = arrowOf('a');
+      expect(moved.x2).not.toBe(endBefore.x);
+      expect(moved.y2).not.toBe(endBefore.y);
+      expect(moved.endBinding?.elementId).toBe('r');
+    });
+
+    it('updateCornerRadius clamps to 0-50 on rectangles only', () => {
+      elements.setElements([rect('r', 0, 0, 100, 100), arrow('a')]);
+      selection.selectElements(['r', 'a']);
+
+      service.updateCornerRadius(80);
+      expect(rxOf('r')).toBe(50);
+
+      service.updateCornerRadius(-4);
+      expect(rxOf('r')).toBe(0);
+
+      service.updateCornerRadius(12.6);
+      expect(rxOf('r')).toBe(13);
+    });
+
+    it('writes config when nothing is selected', () => {
+      service.updateCornerRadius(0);
+      expect(config().cornerRadius).toBe(0);
+
+      const before = config().arrowConfig;
+      service.updateArrowHead('start', ArrowheadType.Circle);
+      expect(config().arrowConfig).not.toBe(before);
+      expect(config().arrowConfig).toEqual({ ...before, startHeadStyle: 'circle' });
+
+      service.updateArrowPath('elbow');
+      expect(config().arrowConfig.lineStyle).toBe('elbow');
+
+      service.swapArrowHeads();
+      expect(config().arrowConfig.startHeadStyle).toBe(before.endHeadStyle);
+      expect(config().arrowConfig.endHeadStyle).toBe('circle');
+
+      service.updateLineCap(LineCap.Square);
+      expect(config().lineCap).toBe('square');
+
+      service.updatePenType(PenType.Marker);
+      expect(config().penType).toBe('marker');
+    });
+
+    it('updateLineCap sets style.lineCap on lines and arrows only', () => {
+      elements.setElements([arrow('a'), rect('r', 0, 0, 10, 10)]);
+      selection.selectElements(['a', 'r']);
+
+      service.updateLineCap(LineCap.Round);
+
+      expect(get('a').style?.lineCap).toBe('round');
+      expect(get('r').style?.lineCap).toBeUndefined();
+    });
+
+    it('updateElementProperty routes the new properties', () => {
+      elements.setElements([arrow('a')]);
+      selection.selectElements(['a']);
+
+      service.updateElementProperty('endHead', 'bar');
+      expect(arrowOf('a').endHead.type).toBe('bar');
+
+      service.updateElementProperty('swapArrowHeads', true);
+      expect(arrowOf('a').startHead.type).toBe('bar');
+
+      service.updateElementProperty('arrowPath', 'elbow');
+      expect(arrowOf('a').pathType.type).toBe('elbow');
+
+      service.updateElementProperty('startHead', 'circle');
+      expect(arrowOf('a').startHead.type).toBe('circle');
     });
   });
 });

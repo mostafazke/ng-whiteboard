@@ -2,18 +2,33 @@ import { DOCUMENT } from '@angular/common';
 import { computed, inject, Injectable, OnDestroy, Signal } from '@angular/core';
 import { ApiService } from '../../api/api.service';
 import { ConfigService } from '../../config/config.service';
+import { ArrowElement, ArrowheadType } from '../../elements/arrow-element';
 import { ElementsService } from '../../elements/elements.service';
 import { LayerManagementService } from '../../elements/layer-management.service';
 import { SelectionService } from '../../elements/selection.service';
 import { IOService } from '../../input/io.service';
 import { BatchHandle, HistoryService } from '../../history/history.service';
 import { ToolsService } from '../../tools/tools.service';
-import { BlendMode, EditorConfig, FormatType, ToolType, WhiteboardConfig, WhiteboardElement } from '../../types';
+import {
+  ArrowHeadStyle,
+  ArrowLineStyle,
+  BlendMode,
+  EditorConfig,
+  ElementType,
+  FormatType,
+  LineCap,
+  PenType,
+  ToolType,
+  WhiteboardConfig,
+  WhiteboardElement,
+} from '../../types';
 import { ZoomService } from '../../viewport/zoom.service';
 import { PanService } from '../../viewport';
 import { AlignmentType, computeAlignmentUpdates } from './utils/alignment';
+import { toArrowPath } from './utils/arrow-path';
 import { buildDasharray } from './utils/dasharray';
 import { mergeSelectedProperties } from './utils/selected-properties';
+import { arrowPathKind } from './utils/shape-capabilities';
 
 export interface Layer {
   id: string;
@@ -386,7 +401,10 @@ export class EditorStateService implements OnDestroy {
     const selectedElements = this.selectedElementsSignal();
 
     if (selectedElements.length === 0) {
-      this.configService.updateConfigValue('dasharray', buildDasharray(lineStyle, this.configService.getConfig().strokeWidth));
+      this.configService.updateConfigValue(
+        'dasharray',
+        buildDasharray(lineStyle, this.configService.getConfig().strokeWidth)
+      );
       return;
     }
 
@@ -399,6 +417,106 @@ export class EditorStateService implements OnDestroy {
     }));
 
     this.applyUpdates(updates);
+  }
+
+  updateLineCap(cap: LineCap) {
+    const selectedElements = this.selectedElementsSignal();
+
+    if (selectedElements.length === 0) {
+      this.configService.updateConfigValue('lineCap', cap);
+      return;
+    }
+
+    const updates = selectedElements
+      .filter((element) => element.type === ElementType.Line || element.type === ElementType.Arrow)
+      .map((element) => ({ id: element.id, style: { ...element.style, lineCap: cap } }));
+
+    this.applyUpdates(updates);
+  }
+
+  updateCornerRadius(radius: number) {
+    const rx = Math.round(Math.min(50, Math.max(0, radius)));
+    const selectedElements = this.selectedElementsSignal();
+
+    if (selectedElements.length === 0) {
+      this.configService.updateConfigValue('cornerRadius', rx);
+      return;
+    }
+
+    const updates = selectedElements
+      .filter((element) => element.type === ElementType.Rectangle)
+      .map((element) => ({ id: element.id, rx }));
+
+    this.applyUpdates(updates);
+  }
+
+  updateArrowHead(end: 'start' | 'end', type: ArrowheadType) {
+    const selectedElements = this.selectedElementsSignal();
+
+    if (selectedElements.length === 0) {
+      this.updateArrowConfig(end === 'start' ? 'startHeadStyle' : 'endHeadStyle', type as ArrowHeadStyle);
+      return;
+    }
+
+    const key = end === 'start' ? 'startHead' : 'endHead';
+    const updates = this.selectedArrows()
+      .filter((arrow) => arrow[key].type !== type)
+      .map((arrow) => ({ id: arrow.id, [key]: { ...arrow[key], type } }));
+
+    this.applyUpdates(updates);
+  }
+
+  swapArrowHeads() {
+    if (this.selectedElementsSignal().length === 0) {
+      const arrowConfig = this.configService.getConfig().arrowConfig;
+      this.configService.updateConfigValue('arrowConfig', {
+        ...arrowConfig,
+        startHeadStyle: arrowConfig.endHeadStyle,
+        endHeadStyle: arrowConfig.startHeadStyle,
+      });
+      return;
+    }
+
+    const updates = this.selectedArrows().map((arrow) => ({
+      id: arrow.id,
+      startHead: arrow.endHead,
+      endHead: arrow.startHead,
+    }));
+
+    this.applyUpdates(updates);
+  }
+
+  updateArrowPath(kind: ArrowLineStyle) {
+    if (this.selectedElementsSignal().length === 0) {
+      this.updateArrowConfig('lineStyle', kind);
+      return;
+    }
+
+    const updates = this.selectedArrows()
+      .filter((arrow) => arrowPathKind(arrow.pathType) !== kind)
+      .map((arrow) => ({ id: arrow.id, pathType: toArrowPath(kind, arrow) }));
+
+    this.applyUpdates(updates);
+  }
+
+  updatePenType(type: PenType) {
+    this.configService.updateConfigValue('penType', type);
+  }
+
+  private selectedArrows(): ArrowElement[] {
+    return this.selectedElementsSignal().filter(
+      (element): element is ArrowElement => element.type === ElementType.Arrow
+    );
+  }
+
+  private updateArrowConfig<K extends keyof WhiteboardConfig['arrowConfig']>(
+    key: K,
+    value: WhiteboardConfig['arrowConfig'][K]
+  ) {
+    this.configService.updateConfigValue('arrowConfig', {
+      ...this.configService.getConfig().arrowConfig,
+      [key]: value,
+    });
   }
 
   /**
@@ -439,6 +557,27 @@ export class EditorStateService implements OnDestroy {
         break;
       case 'lineStyle':
         this.updateLineStyle(value as string);
+        break;
+      case 'lineCap':
+        this.updateLineCap(value as LineCap);
+        break;
+      case 'cornerRadius':
+        this.updateCornerRadius(value as number);
+        break;
+      case 'startHead':
+        this.updateArrowHead('start', value as ArrowheadType);
+        break;
+      case 'endHead':
+        this.updateArrowHead('end', value as ArrowheadType);
+        break;
+      case 'swapArrowHeads':
+        this.swapArrowHeads();
+        break;
+      case 'arrowPath':
+        this.updateArrowPath(value as ArrowLineStyle);
+        break;
+      case 'penType':
+        this.updatePenType(value as PenType);
         break;
       default: {
         // Generic property update for style properties (element-only)
