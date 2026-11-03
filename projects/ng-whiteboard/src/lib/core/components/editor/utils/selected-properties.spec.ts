@@ -26,6 +26,21 @@ describe('mergeSelectedProperties', () => {
     expect(result?.opacity).toBe(MIXED);
   });
 
+  it('reads the text color from style.color for text elements', () => {
+    const result = mergeSelectedProperties([
+      el('a', ElementType.Text, { color: '#333333', strokeColor: 'transparent' }),
+    ]);
+    expect(result?.strokeColor).toBe('#333333');
+  });
+
+  it('does not mark text and a shape MIXED when their colors match', () => {
+    const result = mergeSelectedProperties([
+      el('a', ElementType.Text, { color: '#333333', strokeColor: 'transparent' }),
+      el('b', ElementType.Rectangle, { strokeColor: '#333333' }),
+    ]);
+    expect(result?.strokeColor).toBe('#333333');
+  });
+
   it('reports a real opacity of 0 instead of defaulting it', () => {
     const result = mergeSelectedProperties([el('a', ElementType.Rectangle, {}, { opacity: 0 })]);
     expect(result?.opacity).toBe(0);

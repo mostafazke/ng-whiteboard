@@ -215,6 +215,15 @@ describe('PropertiesPanelComponent', () => {
       expect(query('select[aria-label="Font family"]')).not.toBeNull();
     });
 
+    it('hides bold and italic for the text tool with nothing selected', () => {
+      render([], ToolType.Text);
+
+      expect(query('button[aria-label="Bold"]')).toBeNull();
+      expect(query('button[aria-label="Italic"]')).toBeNull();
+      expect(query('select[aria-label="Font family"]')).not.toBeNull();
+      expect(query('input[aria-label="Font size"]')).not.toBeNull();
+    });
+
     it('emits the arrow path and end head choices', () => {
       const spy = jest.fn();
       fixture.componentInstance.propertyChange.subscribe(spy);

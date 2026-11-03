@@ -1,7 +1,15 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, EventEmitter, input, Output } from '@angular/core';
 import { ArrowheadType } from '../../../../elements';
-import { ElementType, LineCap, PenType, ToolType, WhiteboardConfig, WhiteboardElement } from '../../../../types';
+import {
+  DEFAULT_CORNER_RADIUS,
+  ElementType,
+  LineCap,
+  PenType,
+  ToolType,
+  WhiteboardConfig,
+  WhiteboardElement,
+} from '../../../../types';
 import { AlignmentType } from '../../utils/alignment';
 import { IconComponent } from '../../icon/icon.component';
 import { buildDasharray } from '../../utils/dasharray';
@@ -21,8 +29,6 @@ interface PropertyChangeEvent {
   property: string;
   value: string | number | boolean;
 }
-
-const DEFAULT_CORNER_RADIUS = 5;
 
 const LINE_END_OPTIONS: readonly SegmentedOption[] = [
   { value: LineCap.Round, label: 'Round' },
@@ -62,17 +68,40 @@ const BRUSH_OPTIONS: readonly SegmentedOption[] = [
         <div class="panel-header">
           <h3 class="panel-title">Actions</h3>
           <div class="actions-bar">
-            <button title="Toggle Grid" aria-label="Toggle Grid" class="icon-btn" (click)="onGridToggle()" [class.active]="config().enableGrid">
+            <button
+              title="Toggle Grid"
+              aria-label="Toggle Grid"
+              class="icon-btn"
+              (click)="onGridToggle()"
+              [class.active]="config().enableGrid"
+            >
               <ng-icon name="grid"></ng-icon>
             </button>
-            <button title="Snap to Grid" aria-label="Snap to Grid" class="icon-btn" (click)="onSnapToggle()" [class.active]="config().snapToGrid">
+            <button
+              title="Snap to Grid"
+              aria-label="Snap to Grid"
+              class="icon-btn"
+              (click)="onSnapToggle()"
+              [class.active]="config().snapToGrid"
+            >
               <ng-icon name="snap"></ng-icon>
             </button>
-            <button title="Delete" aria-label="Delete" class="icon-btn danger" (click)="onDelete()" [disabled]="!hasSelection()">
+            <button
+              title="Delete"
+              aria-label="Delete"
+              class="icon-btn danger"
+              (click)="onDelete()"
+              [disabled]="!hasSelection()"
+            >
               <ng-icon name="clear"></ng-icon>
             </button>
             <div class="flex-spacer"></div>
-            <button title="Close Panel" aria-label="Close Panel" class="icon-btn toggle-panel" (click)="togglePanel.emit()">
+            <button
+              title="Close Panel"
+              aria-label="Close Panel"
+              class="icon-btn toggle-panel"
+              (click)="togglePanel.emit()"
+            >
               <ng-icon [name]="embedded() ? 'close' : 'panelRightClose'"></ng-icon>
             </button>
           </div>
@@ -89,7 +118,8 @@ const BRUSH_OPTIONS: readonly SegmentedOption[] = [
                     <ng-color-picker
                       [value]="config().backgroundColor"
                       (colorChange)="onColorChange('backgroundColor', $event)"
-                      (editStart)="editStart.emit($event)" (editEnd)="editEnd.emit($event)"
+                      (editStart)="editStart.emit($event)"
+                      (editEnd)="editEnd.emit($event)"
                     >
                     </ng-color-picker>
                   </div>
@@ -101,7 +131,8 @@ const BRUSH_OPTIONS: readonly SegmentedOption[] = [
                     <ng-color-picker
                       [value]="fillColorValue()"
                       (colorChange)="onColorChange('fillColor', $event)"
-                      (editStart)="editStart.emit($event)" (editEnd)="editEnd.emit($event)"
+                      (editStart)="editStart.emit($event)"
+                      (editEnd)="editEnd.emit($event)"
                     >
                     </ng-color-picker>
                   </div>
@@ -121,7 +152,8 @@ const BRUSH_OPTIONS: readonly SegmentedOption[] = [
                       <ng-color-picker
                         [value]="strokeColorValue()"
                         (colorChange)="onColorChange('strokeColor', $event)"
-                        (editStart)="editStart.emit($event)" (editEnd)="editEnd.emit($event)"
+                        (editStart)="editStart.emit($event)"
+                        (editEnd)="editEnd.emit($event)"
                       >
                       </ng-color-picker>
                     </div>
@@ -156,7 +188,8 @@ const BRUSH_OPTIONS: readonly SegmentedOption[] = [
                           class="line-style-btn"
                           [class.active]="dashArrayValue() === ''"
                           (click)="onLineStyleChange('')"
-                          title="Solid" aria-label="Solid"
+                          title="Solid"
+                          aria-label="Solid"
                         >
                           <svg width="32" height="4" viewBox="0 0 32 4">
                             <line x1="0" y1="2" x2="32" y2="2" stroke="currentColor" stroke-width="2" />
@@ -166,30 +199,57 @@ const BRUSH_OPTIONS: readonly SegmentedOption[] = [
                           class="line-style-btn"
                           [class.active]="isDashedActive()"
                           (click)="onLineStyleChange('dashed')"
-                          title="Dashed" aria-label="Dashed"
+                          title="Dashed"
+                          aria-label="Dashed"
                         >
                           <svg width="32" height="4" viewBox="0 0 32 4">
-                            <line x1="0" y1="2" x2="32" y2="2" stroke="currentColor" stroke-width="2" stroke-dasharray="5,5" />
+                            <line
+                              x1="0"
+                              y1="2"
+                              x2="32"
+                              y2="2"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-dasharray="5,5"
+                            />
                           </svg>
                         </button>
                         <button
                           class="line-style-btn"
                           [class.active]="isDottedActive()"
                           (click)="onLineStyleChange('dotted')"
-                          title="Dotted" aria-label="Dotted"
+                          title="Dotted"
+                          aria-label="Dotted"
                         >
                           <svg width="32" height="4" viewBox="0 0 32 4">
-                            <line x1="0" y1="2" x2="32" y2="2" stroke="currentColor" stroke-width="2" stroke-dasharray="2,2" />
+                            <line
+                              x1="0"
+                              y1="2"
+                              x2="32"
+                              y2="2"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-dasharray="2,2"
+                            />
                           </svg>
                         </button>
                         <button
                           class="line-style-btn"
                           [class.active]="isDashDotActive()"
                           (click)="onLineStyleChange('dashdot')"
-                          title="Dash-Dot" aria-label="Dash-Dot"
+                          title="Dash-Dot"
+                          aria-label="Dash-Dot"
                         >
                           <svg width="32" height="4" viewBox="0 0 32 4">
-                            <line x1="0" y1="2" x2="32" y2="2" stroke="currentColor" stroke-width="2" stroke-dasharray="10,5,2,5" />
+                            <line
+                              x1="0"
+                              y1="2"
+                              x2="32"
+                              y2="2"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-dasharray="10,5,2,5"
+                            />
                           </svg>
                         </button>
                       </div>
@@ -245,9 +305,22 @@ const BRUSH_OPTIONS: readonly SegmentedOption[] = [
                       aria-label="Swap arrow heads"
                       (click)="emitChange('swapArrowHeads', true)"
                     >
-                      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M8 3 4 7l4 4" /><path d="M4 7h16" /><path d="m16 21 4-4-4-4" /><path d="M20 17H4" />
+                      <svg
+                        viewBox="0 0 24 24"
+                        width="18"
+                        height="18"
+                        aria-hidden="true"
+                        focusable="false"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="M8 3 4 7l4 4" />
+                        <path d="M4 7h16" />
+                        <path d="m16 21 4-4-4-4" />
+                        <path d="M20 17H4" />
                       </svg>
                     </button>
                   </div>
@@ -371,17 +444,31 @@ const BRUSH_OPTIONS: readonly SegmentedOption[] = [
                   </div>
                 </div>
 
-                <div class="control-group">
-                  <label class="group-label">Text Style</label>
-                  <div class="button-group">
-                    <button class="style-btn" [class.active]="isBold()" (click)="toggleBold()" title="Bold" aria-label="Bold">
-                      <strong>B</strong>
-                    </button>
-                    <button class="style-btn" [class.active]="isItalic()" (click)="toggleItalic()" title="Italic" aria-label="Italic">
-                      <em>I</em>
-                    </button>
+                @if (hasSelection()) {
+                  <div class="control-group">
+                    <label class="group-label">Text Style</label>
+                    <div class="button-group">
+                      <button
+                        class="style-btn"
+                        [class.active]="isBold()"
+                        (click)="toggleBold()"
+                        title="Bold"
+                        aria-label="Bold"
+                      >
+                        <strong>B</strong>
+                      </button>
+                      <button
+                        class="style-btn"
+                        [class.active]="isItalic()"
+                        (click)="toggleItalic()"
+                        title="Italic"
+                        aria-label="Italic"
+                      >
+                        <em>I</em>
+                      </button>
+                    </div>
                   </div>
-                </div>
+                }
               </div>
             </div>
           }
@@ -392,7 +479,8 @@ const BRUSH_OPTIONS: readonly SegmentedOption[] = [
       <button
         *ngIf="!isOpen() && !embedded()"
         class="panel-toggle-btn"
-        title="Open Properties Panel" aria-label="Open Properties Panel"
+        title="Open Properties Panel"
+        aria-label="Open Properties Panel"
         (click)="togglePanel.emit()"
       >
         <ng-icon name="panelRightOpen"></ng-icon>

@@ -445,6 +445,39 @@ describe('EditorStateService', () => {
       expect(history.undo()).toBeNull();
     });
 
+    it('swapArrowHeads records no history step when every head pair is equal', () => {
+      elements.setElements([arrow('a', { startHead: { type: ArrowheadType.Arrow } })]);
+      selection.selectElements(['a']);
+      history.clearHistory();
+
+      service.swapArrowHeads();
+
+      expect(history.undo()).toBeNull();
+    });
+
+    it('updateArrowPath bows a flat default curve in one step', () => {
+      elements.setElements([arrow('a', { pathType: { type: 'quadratic', cx: 50, cy: 0 } })]);
+      selection.selectElements(['a']);
+      history.clearHistory();
+
+      service.updateArrowPath('curve');
+
+      expect(arrowOf('a').pathType).toEqual({ type: 'quadratic', cx: 50, cy: 20 });
+      expect(history.undo()).not.toBeNull();
+      expect(history.undo()).toBeNull();
+    });
+
+    it('updateArrowPath leaves an already bowed curve alone', () => {
+      elements.setElements([arrow('a', { pathType: { type: 'quadratic', cx: 50, cy: 30 } })]);
+      selection.selectElements(['a']);
+      history.clearHistory();
+
+      service.updateArrowPath('curve');
+
+      expect(arrowOf('a').pathType).toEqual({ type: 'quadratic', cx: 50, cy: 30 });
+      expect(history.undo()).toBeNull();
+    });
+
     it('updateArrowPath converts to curve then back to straight', () => {
       elements.setElements([arrow('a')]);
       selection.selectElements(['a']);

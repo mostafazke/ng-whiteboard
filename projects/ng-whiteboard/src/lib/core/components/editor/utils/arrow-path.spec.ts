@@ -1,4 +1,4 @@
-import { toArrowPath } from './arrow-path';
+import { isFlatCurve, toArrowPath } from './arrow-path';
 
 describe('toArrowPath', () => {
   it('returns a straight path', () => {
@@ -21,5 +21,19 @@ describe('toArrowPath', () => {
   it('puts the control point on the endpoint for a zero-length arrow', () => {
     const path = toArrowPath('curve', { x1: 30, y1: 40, x2: 30, y2: 40 });
     expect(path).toEqual({ type: 'quadratic', cx: 30, cy: 40 });
+  });
+});
+
+describe('isFlatCurve', () => {
+  const base = { x1: 0, y1: 0, x2: 100, y2: 0 };
+
+  it('is true for a control point on the chord midpoint', () => {
+    expect(isFlatCurve({ ...base, pathType: { type: 'quadratic', cx: 50, cy: 0 } })).toBe(true);
+  });
+
+  it('is false for a bowed curve, a straight path and an elbow', () => {
+    expect(isFlatCurve({ ...base, pathType: { type: 'quadratic', cx: 50, cy: 30 } })).toBe(false);
+    expect(isFlatCurve({ ...base, pathType: { type: 'straight' } })).toBe(false);
+    expect(isFlatCurve({ ...base, pathType: { type: 'elbow', midRatio: 0.5 } })).toBe(false);
   });
 });

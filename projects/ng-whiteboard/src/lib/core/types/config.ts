@@ -14,14 +14,7 @@ export type SelectAfterDrawConfig = boolean | Partial<Record<ElementType, boolea
  * Mirrors ArrowheadType for config usage.
  */
 export type ArrowHeadStyle =
-  | 'none'
-  | 'arrow'
-  | 'open-arrow'
-  | 'diamond'
-  | 'open-diamond'
-  | 'circle'
-  | 'open-circle'
-  | 'bar';
+  'none' | 'arrow' | 'open-arrow' | 'diamond' | 'open-diamond' | 'circle' | 'open-circle' | 'bar';
 
 /**
  * Describes the default path style for new arrows.
@@ -84,6 +77,8 @@ export interface WhiteboardConfig {
   /** Default corner radius for new rectangles; 5 when unset */
   cornerRadius?: number;
 }
+
+export const DEFAULT_CORNER_RADIUS = 5;
 
 export interface EditorConfig {
   title: string;

@@ -1,5 +1,5 @@
 import { ArrowElement, ArrowheadType, RectangleElement } from '../../../elements';
-import { ArrowLineStyle, ElementType, LineCap, WhiteboardElement } from '../../../types';
+import { ArrowLineStyle, DEFAULT_CORNER_RADIUS, ElementType, LineCap, WhiteboardElement } from '../../../types';
 import { arrowPathKind } from './shape-capabilities';
 
 export const MIXED = Symbol('mixed');
@@ -21,7 +21,11 @@ export interface SelectedProperties {
 }
 
 const DEFAULT_OPACITY = 100;
-const DEFAULT_CORNER_RADIUS = 5;
+
+function textAwareColor(el: WhiteboardElement): string {
+  if (el.type === ElementType.Text) return el.style?.color ?? el.style?.strokeColor ?? '#000000';
+  return el.style?.strokeColor || '#000000';
+}
 
 function normalizeFill(fill: string | undefined): string {
   return !fill || fill === 'none' ? 'transparent' : fill;
@@ -41,7 +45,7 @@ export function mergeSelectedProperties(elements: WhiteboardElement[]): Selected
   if (elements.length === 0) return null;
 
   const result: SelectedProperties = {
-    strokeColor: merge(elements.map((el) => el.style?.strokeColor || '#000000')),
+    strokeColor: merge(elements.map((el) => textAwareColor(el))),
     fillColor: merge(elements.map((el) => normalizeFill(el.style?.fill))),
     strokeWidth: merge(elements.map((el) => el.style?.strokeWidth || 1)),
     dasharray: merge(elements.map((el) => el.style?.dasharray || '')),

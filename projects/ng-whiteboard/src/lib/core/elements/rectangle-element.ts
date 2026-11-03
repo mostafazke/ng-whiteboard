@@ -1,3 +1,4 @@
+import { DEFAULT_CORNER_RADIUS } from '../types/config';
 import { BaseElement, Bounds, Direction, ElementType, ElementUtil, Point, defaultElementStyle } from '../types';
 import { generateId } from '../utils/common';
 import { hitTestBoundingBox } from '../utils/drawing';
@@ -18,7 +19,7 @@ export class RectangleElementUtil implements ElementUtil<RectangleElement> {
       y: 0,
       width: 1,
       height: 1,
-      rx: 5,
+      rx: DEFAULT_CORNER_RADIUS,
       rotation: 0,
       opacity: 100,
       zIndex: 1, // Default zIndex, will be overridden by tools

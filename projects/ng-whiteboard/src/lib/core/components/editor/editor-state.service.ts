@@ -25,7 +25,7 @@ import {
 import { ZoomService } from '../../viewport/zoom.service';
 import { PanService } from '../../viewport';
 import { AlignmentType, computeAlignmentUpdates } from './utils/alignment';
-import { toArrowPath } from './utils/arrow-path';
+import { isFlatCurve, toArrowPath } from './utils/arrow-path';
 import { buildDasharray } from './utils/dasharray';
 import { mergeSelectedProperties } from './utils/selected-properties';
 import { arrowPathKind } from './utils/shape-capabilities';
@@ -477,11 +477,13 @@ export class EditorStateService implements OnDestroy {
       return;
     }
 
-    const updates = this.selectedArrows().map((arrow) => ({
-      id: arrow.id,
-      startHead: arrow.endHead,
-      endHead: arrow.startHead,
-    }));
+    const updates = this.selectedArrows()
+      .filter((arrow) => arrow.startHead.type !== arrow.endHead.type)
+      .map((arrow) => ({
+        id: arrow.id,
+        startHead: arrow.endHead,
+        endHead: arrow.startHead,
+      }));
 
     this.applyUpdates(updates);
   }
@@ -493,7 +495,7 @@ export class EditorStateService implements OnDestroy {
     }
 
     const updates = this.selectedArrows()
-      .filter((arrow) => arrowPathKind(arrow.pathType) !== kind)
+      .filter((arrow) => arrowPathKind(arrow.pathType) !== kind || (kind === 'curve' && isFlatCurve(arrow)))
       .map((arrow) => ({ id: arrow.id, pathType: toArrowPath(kind, arrow) }));
 
     this.applyUpdates(updates);

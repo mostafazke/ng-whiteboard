@@ -1,6 +1,6 @@
 import { RectangleElement } from '../elements';
 import { createElement } from '../elements/element.utils';
-import { ElementType, Point, PointerInfo, ToolType, WhiteboardElementStyle } from '../types';
+import { DEFAULT_CORNER_RADIUS, ElementType, Point, PointerInfo, ToolType, WhiteboardElementStyle } from '../types';
 import { snapToGrid } from '../utils/geometry';
 import { BaseTool } from './base-tool';
 import { CursorType } from '../types/cursors';
@@ -35,7 +35,7 @@ export class RectangleTool extends BaseTool {
       {
         x,
         y,
-        rx: this.whiteboardConfig.cornerRadius ?? 5,
+        rx: this.whiteboardConfig.cornerRadius ?? DEFAULT_CORNER_RADIUS,
         style: this.getElementStyle(),
         zIndex: this.apiService.getNextZIndex(),
       },
