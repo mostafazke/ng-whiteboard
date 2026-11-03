@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { NgWhiteboardComponent } from '../../../ng-whiteboard.component';
 import { ApiService } from '../../api/api.service';
+import { createElement } from '../../elements/element.utils';
 import { ElementType, ToolType, WhiteboardElement } from '../../types';
 import { WhiteboardEditorComponent } from './whiteboard-editor.component';
 import { wideEditorResizeObserver } from './testing/wide-editor-resize-observer';
@@ -148,5 +149,66 @@ describe('Editor edit batch vs canvas history (integration)', () => {
     api.undo();
     expect(r1().opacity).toBe(100);
     expect(r1().style.strokeColor).toBe('#123456');
+  });
+
+  describe('contextual sections', () => {
+    const canUndo = () => api.getCanUndoSignal()();
+    const panel = () => host().querySelector('ng-properties-panel') as HTMLElement;
+    const checked = (group: string) =>
+      panel().querySelector(`[aria-label="${group}"] [aria-checked="true"]`) as HTMLElement;
+    const selectArrowAndRect = () => {
+      api.addElements([createElement(ElementType.Arrow, { id: 'a1', x2: 100, y2: 0 }), rect('r1')]);
+      api.selectElements(['a1', 'r1']);
+      api.clearHistory();
+      fixture.detectChanges();
+    };
+
+    it('a width change on an arrow plus a rectangle updates both in one undo step', () => {
+      selectArrowAndRect();
+      const slider = panel().querySelector('input[aria-label="Stroke width"]') as HTMLInputElement;
+      for (const value of ['6', '8']) {
+        slider.value = value;
+        slider.dispatchEvent(new Event('input'));
+        fixture.detectChanges();
+      }
+      slider.dispatchEvent(new Event('change'));
+
+      expect(api.getElements().map((e) => e.style.strokeWidth)).toEqual([8, 8]);
+      api.undo();
+      expect(api.getElements().map((e) => e.style.strokeWidth)).toEqual([2, 2]);
+      expect(canUndo()).toBe(false);
+    });
+
+    it('re-choosing the current arrow head, path or line end adds no history step', () => {
+      api.addElements([createElement(ElementType.Arrow, { id: 'a1', x2: 100, y2: 0 })]);
+      api.selectElements(['a1']);
+      api.clearHistory();
+      fixture.detectChanges();
+
+      for (const group of ['Start', 'End', 'Arrow path', 'Line ends']) {
+        checked(group).click();
+        fixture.detectChanges();
+      }
+
+      expect(canUndo()).toBe(false);
+    });
+
+    it('choosing a brush with nothing selected changes the default without a history step', () => {
+      api.setActiveTool(ToolType.Pen);
+      api.clearHistory();
+      fixture.detectChanges();
+
+      checked('Brush').click();
+      fixture.detectChanges();
+      (
+        Array.from(panel().querySelectorAll('[aria-label="Brush"] [role="radio"]')).find(
+          (option) => option.textContent?.trim() === 'Marker'
+        ) as HTMLElement
+      ).click();
+      fixture.detectChanges();
+
+      expect(api.getConfig().penType).toBe('marker');
+      expect(canUndo()).toBe(false);
+    });
   });
 });

@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ElementType, WhiteboardElement } from '../../../../types';
-import { MIXED, SelectedProperties } from '../../utils/selected-properties';
+import { ConfigService } from '../../../../config/config.service';
+import { createElement } from '../../../../elements/element.utils';
+import { ElementType, ToolType, WhiteboardElement } from '../../../../types';
+import { MIXED, mergeSelectedProperties, SelectedProperties } from '../../utils/selected-properties';
 import { PropertiesPanelComponent } from './properties-panel.component';
 
 const rect = (id: string, style = {}): WhiteboardElement =>
@@ -88,5 +90,167 @@ describe('PropertiesPanelComponent', () => {
     fixture.componentRef.setInput('selectedProperties', props({ strokeColor: MIXED, opacity: MIXED }));
     fixture.detectChanges();
     expect(spy).not.toHaveBeenCalled();
+  });
+
+  describe('contextual sections', () => {
+    const el = (): HTMLElement => fixture.nativeElement;
+    const query = (selector: string) => el().querySelector(selector);
+    const labels = () => Array.from(el().querySelectorAll('label')).map((label) => label.textContent?.trim());
+    const radio = (group: string, label: string) =>
+      Array.from(el().querySelectorAll(`[aria-label="${group}"] [role="radio"]`)).find(
+        (button) => button.textContent?.trim() === label
+      ) as HTMLElement;
+
+    const render = (elements: WhiteboardElement[], activeTool = ToolType.Select) => {
+      fixture.componentRef.setInput('config', TestBed.inject(ConfigService).getConfig());
+      fixture.componentRef.setInput('selectedElements', elements);
+      fixture.componentRef.setInput('selectedProperties', mergeSelectedProperties(elements));
+      fixture.componentRef.setInput('activeTool', activeTool);
+      fixture.detectChanges();
+    };
+
+    const arrow = () => createElement(ElementType.Arrow, { id: 'arrow', x2: 100, y2: 0 });
+    const image = () => createElement(ElementType.Image, { id: 'image', width: 10, height: 10 });
+    const text = () => createElement(ElementType.Text, { id: 'text', text: 'Hi' });
+    const rectangle = () => createElement(ElementType.Rectangle, { id: 'rect', width: 10, height: 10 });
+
+    it('shows arrow heads, arrow path and line ends for an arrow, without fill or corner radius', () => {
+      render([arrow()]);
+
+      expect(query('wb-arrowhead-picker [aria-label="Start"]')).not.toBeNull();
+      expect(query('wb-arrowhead-picker [aria-label="End"]')).not.toBeNull();
+      expect(query('button[aria-label="Swap arrow heads"]')).not.toBeNull();
+      expect(query('[role="radiogroup"][aria-label="Arrow path"]')).not.toBeNull();
+      expect(query('[role="radiogroup"][aria-label="Line ends"]')).not.toBeNull();
+      expect(labels()).not.toContain('Fill');
+      expect(query('input[aria-label="Corner radius"]')).toBeNull();
+    });
+
+    it('shows only opacity among property sections for an image', () => {
+      render([image()]);
+
+      expect(el().querySelectorAll('ng-color-picker').length).toBe(0);
+      expect(query('input[aria-label="Stroke width"]')).toBeNull();
+      expect(el().querySelectorAll('.line-style-btn').length).toBe(0);
+      expect(el().querySelectorAll('wb-segmented-control, wb-arrowhead-picker').length).toBe(0);
+      expect(query('select[aria-label="Font family"]')).toBeNull();
+      expect(query('input[aria-label="Opacity"]')).not.toBeNull();
+    });
+
+    it('labels the stroke as text color and shows font controls, no width or dash, for text', () => {
+      render([text()]);
+
+      expect(labels()).toContain('Text color');
+      expect(labels()).not.toContain('Stroke');
+      expect(query('select[aria-label="Font family"]')).not.toBeNull();
+      expect(query('input[aria-label="Stroke width"]')).toBeNull();
+      expect(el().querySelectorAll('.line-style-btn').length).toBe(0);
+    });
+
+    it('shows only stroke, width, dash and opacity for an arrow plus a rectangle', () => {
+      render([arrow(), rectangle()]);
+
+      expect(labels()).toContain('Stroke');
+      expect(labels()).not.toContain('Fill');
+      expect(query('input[aria-label="Stroke width"]')).not.toBeNull();
+      expect(el().querySelectorAll('.line-style-btn').length).toBe(4);
+      expect(query('input[aria-label="Opacity"]')).not.toBeNull();
+      expect(query('input[aria-label="Corner radius"]')).toBeNull();
+      expect(el().querySelectorAll('wb-segmented-control, wb-arrowhead-picker').length).toBe(0);
+    });
+
+    it('drops the arrow sections when the selection changes from an arrow to an image', () => {
+      render([arrow()]);
+      expect(query('wb-arrowhead-picker')).not.toBeNull();
+
+      render([image()]);
+      expect(query('wb-arrowhead-picker')).toBeNull();
+      expect(query('wb-segmented-control')).toBeNull();
+      expect(query('button[aria-label="Swap arrow heads"]')).toBeNull();
+    });
+
+    it('shows the brush and hides opacity for the pen tool with nothing selected', () => {
+      render([], ToolType.Pen);
+
+      const options = Array.from(el().querySelectorAll('[aria-label="Brush"] [role="radio"]'));
+      expect(options.map((option) => option.textContent?.trim())).toEqual([
+        'Pen',
+        'Marker',
+        'Highlighter',
+        'Brush',
+        'Pencil',
+      ]);
+      expect(radio('Brush', 'Pen').getAttribute('aria-checked')).toBe('true');
+      expect(query('input[aria-label="Opacity"]')).toBeNull();
+    });
+
+    it('shows the default corner radius for the rectangle tool with nothing selected', () => {
+      render([], ToolType.Rectangle);
+
+      const slider = query('input[aria-label="Corner radius"]') as HTMLInputElement;
+      expect([slider.min, slider.max, slider.value]).toEqual(['0', '50', '5']);
+    });
+
+    it('shows the config arrow defaults for the arrow tool with nothing selected', () => {
+      render([], ToolType.Arrow);
+
+      expect(radio('Arrow path', 'Curved').getAttribute('aria-checked')).toBe('true');
+      expect(radio('Line ends', 'Round').getAttribute('aria-checked')).toBe('true');
+      expect(query('[aria-label="End"] [aria-label="Open arrow"]')?.getAttribute('aria-checked')).toBe('true');
+      expect(query('[aria-label="Start"] [aria-label="None"]')?.getAttribute('aria-checked')).toBe('true');
+    });
+
+    it('labels the stroke as text color for the text tool with nothing selected', () => {
+      render([], ToolType.Text);
+
+      expect(labels()).toContain('Text color');
+      expect(query('select[aria-label="Font family"]')).not.toBeNull();
+    });
+
+    it('emits the arrow path and end head choices', () => {
+      const spy = jest.fn();
+      fixture.componentInstance.propertyChange.subscribe(spy);
+      render([arrow()]);
+
+      radio('Arrow path', 'Curved').click();
+      (query('[aria-label="End"] [aria-label="Bar"]') as HTMLElement).click();
+
+      expect(spy.mock.calls.map(([event]) => event)).toEqual([
+        { property: 'arrowPath', value: 'curve' },
+        { property: 'endHead', value: 'bar' },
+      ]);
+    });
+
+    it('emits line ends, swap and brush changes', () => {
+      const spy = jest.fn();
+      fixture.componentInstance.propertyChange.subscribe(spy);
+      render([arrow()]);
+
+      radio('Line ends', 'Flat').click();
+      (query('button[aria-label="Swap arrow heads"]') as HTMLElement).click();
+      render([], ToolType.Pen);
+      radio('Brush', 'Marker').click();
+
+      expect(spy.mock.calls.map(([event]) => event)).toEqual([
+        { property: 'lineCap', value: 'butt' },
+        { property: 'swapArrowHeads', value: true },
+        { property: 'penType', value: 'marker' },
+      ]);
+    });
+
+    it('opens an edit batch while dragging the corner radius', () => {
+      const changes = jest.fn();
+      const starts = jest.fn();
+      fixture.componentInstance.propertyChange.subscribe(changes);
+      fixture.componentInstance.editStart.subscribe(starts);
+      render([rectangle()]);
+
+      const slider = query('input[aria-label="Corner radius"]') as HTMLInputElement;
+      slider.value = '12';
+      slider.dispatchEvent(new Event('input'));
+
+      expect(starts).toHaveBeenCalledWith(slider);
+      expect(changes).toHaveBeenCalledWith({ property: 'cornerRadius', value: 12 });
+    });
   });
 });

@@ -1,12 +1,16 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, EventEmitter, input, Output } from '@angular/core';
-import { ElementType, WhiteboardConfig, WhiteboardElement } from '../../../../types';
+import { ArrowheadType } from '../../../../elements';
+import { ElementType, LineCap, PenType, ToolType, WhiteboardConfig, WhiteboardElement } from '../../../../types';
 import { AlignmentType } from '../../utils/alignment';
 import { IconComponent } from '../../icon/icon.component';
 import { buildDasharray } from '../../utils/dasharray';
 import { MIXED, SelectedProperties } from '../../utils/selected-properties';
+import { PropertySection, sectionsForElements, sectionsForTool } from '../../utils/shape-capabilities';
 import { ColorPickerComponent } from '../../ui/color-picker/color-picker.component';
 import { AlignmentControlsComponent } from '../../ui/alignment-controls/alignment-controls.component';
+import { SegmentedControlComponent, SegmentedOption } from '../../ui/segmented-control/segmented-control.component';
+import { ArrowheadPickerComponent } from '../../ui/arrowhead-picker/arrowhead-picker.component';
 
 interface ColorPickerEvent {
   property: 'strokeColor' | 'fillColor' | 'backgroundColor';
@@ -18,10 +22,39 @@ interface PropertyChangeEvent {
   value: string | number | boolean;
 }
 
+const DEFAULT_CORNER_RADIUS = 5;
+
+const LINE_END_OPTIONS: readonly SegmentedOption[] = [
+  { value: LineCap.Round, label: 'Round' },
+  { value: LineCap.Square, label: 'Square' },
+  { value: LineCap.Butt, label: 'Flat' },
+];
+
+const ARROW_PATH_OPTIONS: readonly SegmentedOption[] = [
+  { value: 'straight', label: 'Straight' },
+  { value: 'curve', label: 'Curved' },
+  { value: 'elbow', label: 'Elbow' },
+];
+
+const BRUSH_OPTIONS: readonly SegmentedOption[] = [
+  { value: PenType.Pen, label: 'Pen' },
+  { value: PenType.Marker, label: 'Marker' },
+  { value: PenType.Highlighter, label: 'Highlighter' },
+  { value: PenType.Brush, label: 'Brush' },
+  { value: PenType.Pencil, label: 'Pencil' },
+];
+
 @Component({
   selector: 'ng-properties-panel',
   standalone: true,
-  imports: [CommonModule, IconComponent, ColorPickerComponent, AlignmentControlsComponent],
+  imports: [
+    CommonModule,
+    IconComponent,
+    ColorPickerComponent,
+    AlignmentControlsComponent,
+    SegmentedControlComponent,
+    ArrowheadPickerComponent,
+  ],
   template: `
     <!-- Properties Panel -->
     <div class="properties-panel">
@@ -46,156 +79,247 @@ interface PropertyChangeEvent {
         </div>
 
         <div class="panel-sections">
-          <!-- Canvas Properties -->
-          <div class="section">
-            <div class="controls">
-              <div class="control-row" *ngIf="!hasSelection()">
-                <label>Background</label>
-                <ng-color-picker
-                  [value]="config().backgroundColor"
-                  (colorChange)="onColorChange('backgroundColor', $event)"
-                  (editStart)="editStart.emit($event)" (editEnd)="editEnd.emit($event)"
-                >
-                </ng-color-picker>
-              </div>
+          <!-- Canvas and fill -->
+          @if (!hasSelection() || show('fill')) {
+            <div class="section">
+              <div class="controls">
+                @if (!hasSelection()) {
+                  <div class="control-row">
+                    <label>Background</label>
+                    <ng-color-picker
+                      [value]="config().backgroundColor"
+                      (colorChange)="onColorChange('backgroundColor', $event)"
+                      (editStart)="editStart.emit($event)" (editEnd)="editEnd.emit($event)"
+                    >
+                    </ng-color-picker>
+                  </div>
+                }
 
-              <!-- Fill Controls -->
-              <div class="control-row" *ngIf="hasSelection()">
-                <label>Fill</label>
-                <ng-color-picker
-                  [value]="fillColorValue()"
-                  (colorChange)="onColorChange('fillColor', $event)"
-                  (editStart)="editStart.emit($event)" (editEnd)="editEnd.emit($event)"
-                >
-                </ng-color-picker>
+                @if (show('fill')) {
+                  <div class="control-row">
+                    <label>Fill</label>
+                    <ng-color-picker
+                      [value]="fillColorValue()"
+                      (colorChange)="onColorChange('fillColor', $event)"
+                      (editStart)="editStart.emit($event)" (editEnd)="editEnd.emit($event)"
+                    >
+                    </ng-color-picker>
+                  </div>
+                }
               </div>
             </div>
-          </div>
+          }
 
           <!-- Shape Properties -->
           <div class="section">
             <div class="controls">
-              <!-- Stroke Controls -->
-              <div class="control-group">
-                <div class="control-row">
-                  <label>Stroke</label>
-                  <ng-color-picker
-                    [value]="strokeColorValue()"
-                    (colorChange)="onColorChange('strokeColor', $event)"
-                    (editStart)="editStart.emit($event)" (editEnd)="editEnd.emit($event)"
-                  >
-                  </ng-color-picker>
-                </div>
+              @if (show('stroke') || show('strokeWidth') || show('strokeStyle') || show('lineEnds')) {
+                <div class="control-group">
+                  @if (show('stroke')) {
+                    <div class="control-row">
+                      <label>{{ textOnly() ? 'Text color' : 'Stroke' }}</label>
+                      <ng-color-picker
+                        [value]="strokeColorValue()"
+                        (colorChange)="onColorChange('strokeColor', $event)"
+                        (editStart)="editStart.emit($event)" (editEnd)="editEnd.emit($event)"
+                      >
+                      </ng-color-picker>
+                    </div>
+                  }
 
-                <div class="control-slider">
-                  <label class="slider-label">Width</label>
-                  <div class="slider-container">
-                    <input
-                      type="range"
-                      min="1"
-                      max="20"
-                      aria-label="Stroke width"
-                      [value]="strokeWidthNumber()"
-                      (input)="onSliderInput('strokeWidth', $event)"
-                      (change)="editEnd.emit($any($event.target))"
-                      (blur)="editEnd.emit($any($event.target))"
-                    />
-                    <span class="value-display">{{
-                      isMixed(strokeWidthValue()) ? '—' : strokeWidthNumber() + 'px'
-                    }}</span>
+                  @if (show('strokeWidth')) {
+                    <div class="control-slider">
+                      <label class="slider-label">Width</label>
+                      <div class="slider-container">
+                        <input
+                          type="range"
+                          min="1"
+                          max="20"
+                          aria-label="Stroke width"
+                          [value]="strokeWidthNumber()"
+                          (input)="onSliderInput('strokeWidth', $event)"
+                          (change)="editEnd.emit($any($event.target))"
+                          (blur)="editEnd.emit($any($event.target))"
+                        />
+                        <span class="value-display">{{
+                          isMixed(strokeWidthValue()) ? '—' : strokeWidthNumber() + 'px'
+                        }}</span>
+                      </div>
+                    </div>
+                  }
+
+                  @if (show('strokeStyle')) {
+                    <div class="control-row">
+                      <label>Line Style</label>
+                      <div class="line-style-buttons">
+                        <button
+                          class="line-style-btn"
+                          [class.active]="dashArrayValue() === ''"
+                          (click)="onLineStyleChange('')"
+                          title="Solid" aria-label="Solid"
+                        >
+                          <svg width="32" height="4" viewBox="0 0 32 4">
+                            <line x1="0" y1="2" x2="32" y2="2" stroke="currentColor" stroke-width="2" />
+                          </svg>
+                        </button>
+                        <button
+                          class="line-style-btn"
+                          [class.active]="isDashedActive()"
+                          (click)="onLineStyleChange('dashed')"
+                          title="Dashed" aria-label="Dashed"
+                        >
+                          <svg width="32" height="4" viewBox="0 0 32 4">
+                            <line x1="0" y1="2" x2="32" y2="2" stroke="currentColor" stroke-width="2" stroke-dasharray="5,5" />
+                          </svg>
+                        </button>
+                        <button
+                          class="line-style-btn"
+                          [class.active]="isDottedActive()"
+                          (click)="onLineStyleChange('dotted')"
+                          title="Dotted" aria-label="Dotted"
+                        >
+                          <svg width="32" height="4" viewBox="0 0 32 4">
+                            <line x1="0" y1="2" x2="32" y2="2" stroke="currentColor" stroke-width="2" stroke-dasharray="2,2" />
+                          </svg>
+                        </button>
+                        <button
+                          class="line-style-btn"
+                          [class.active]="isDashDotActive()"
+                          (click)="onLineStyleChange('dashdot')"
+                          title="Dash-Dot" aria-label="Dash-Dot"
+                        >
+                          <svg width="32" height="4" viewBox="0 0 32 4">
+                            <line x1="0" y1="2" x2="32" y2="2" stroke="currentColor" stroke-width="2" stroke-dasharray="10,5,2,5" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  }
+
+                  @if (show('lineEnds')) {
+                    <div class="control-row">
+                      <label>Line ends</label>
+                      <wb-segmented-control
+                        label="Line ends"
+                        [options]="lineEndOptions"
+                        [value]="lineCapValue()"
+                        (valueChange)="emitChange('lineCap', $event)"
+                      ></wb-segmented-control>
+                    </div>
+                  }
+                </div>
+              }
+
+              @if (show('cornerRadius')) {
+                <div class="control-group">
+                  <div class="control-slider">
+                    <label class="slider-label">Corner radius</label>
+                    <div class="slider-container">
+                      <input
+                        type="range"
+                        min="0"
+                        max="50"
+                        step="1"
+                        aria-label="Corner radius"
+                        [value]="cornerRadiusNumber()"
+                        (input)="onSliderInput('cornerRadius', $event)"
+                        (change)="editEnd.emit($any($event.target))"
+                        (blur)="editEnd.emit($any($event.target))"
+                      />
+                      <span class="value-display">{{
+                        isMixed(cornerRadiusValue()) ? '—' : cornerRadiusNumber() + 'px'
+                      }}</span>
+                    </div>
                   </div>
                 </div>
+              }
 
-                <div class="control-row" *ngIf="!hasTextSelection()">
-                  <label>Line Style</label>
-                  <div class="line-style-buttons">
+              @if (show('arrowHeads')) {
+                <div class="control-group">
+                  <div class="group-header">
+                    <label class="group-label">Arrow heads</label>
                     <button
-                      class="line-style-btn"
-                      [class.active]="dashArrayValue() === ''"
-                      (click)="onLineStyleChange('')"
-                      title="Solid" aria-label="Solid"
+                      type="button"
+                      class="swap-btn"
+                      title="Swap arrow heads"
+                      aria-label="Swap arrow heads"
+                      (click)="emitChange('swapArrowHeads', true)"
                     >
-                      <svg width="32" height="4" viewBox="0 0 32 4">
-                        <line x1="0" y1="2" x2="32" y2="2" stroke="currentColor" stroke-width="2" />
-                      </svg>
-                    </button>
-                    <button
-                      class="line-style-btn"
-                      [class.active]="isDashedActive()"
-                      (click)="onLineStyleChange('dashed')"
-                      title="Dashed" aria-label="Dashed"
-                    >
-                      <svg width="32" height="4" viewBox="0 0 32 4">
-                        <line
-                          x1="0"
-                          y1="2"
-                          x2="32"
-                          y2="2"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-dasharray="5,5"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      class="line-style-btn"
-                      [class.active]="isDottedActive()"
-                      (click)="onLineStyleChange('dotted')"
-                      title="Dotted" aria-label="Dotted"
-                    >
-                      <svg width="32" height="4" viewBox="0 0 32 4">
-                        <line
-                          x1="0"
-                          y1="2"
-                          x2="32"
-                          y2="2"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-dasharray="2,2"
-                        />
-                      </svg>
-                    </button>
-                    <button
-                      class="line-style-btn"
-                      [class.active]="isDashDotActive()"
-                      (click)="onLineStyleChange('dashdot')"
-                      title="Dash-Dot" aria-label="Dash-Dot"
-                    >
-                      <svg width="32" height="4" viewBox="0 0 32 4">
-                        <line
-                          x1="0"
-                          y1="2"
-                          x2="32"
-                          y2="2"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-dasharray="10,5,2,5"
-                        />
+                      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M8 3 4 7l4 4" /><path d="M4 7h16" /><path d="m16 21 4-4-4-4" /><path d="M20 17H4" />
                       </svg>
                     </button>
                   </div>
-                </div>
-              </div>
-
-              <!-- Opacity Control (only available when elements are selected) -->
-              <div class="control-group" *ngIf="hasSelection()">
-                <div class="control-slider">
-                  <label class="slider-label">Opacity</label>
-                  <div class="slider-container">
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      aria-label="Opacity"
-                      [value]="opacityNumber()"
-                      (input)="onSliderInput('opacity', $event)"
-                      (change)="editEnd.emit($any($event.target))"
-                      (blur)="editEnd.emit($any($event.target))"
-                    />
-                    <span class="value-display">{{ isMixed(opacityValue()) ? '—' : opacityNumber() + '%' }}</span>
+                  <div class="control-row">
+                    <label>Start</label>
+                    <wb-arrowhead-picker
+                      label="Start"
+                      end="start"
+                      [value]="startHeadValue()"
+                      (valueChange)="emitChange('startHead', $event)"
+                    ></wb-arrowhead-picker>
+                  </div>
+                  <div class="control-row">
+                    <label>End</label>
+                    <wb-arrowhead-picker
+                      label="End"
+                      end="end"
+                      [value]="endHeadValue()"
+                      (valueChange)="emitChange('endHead', $event)"
+                    ></wb-arrowhead-picker>
                   </div>
                 </div>
-              </div>
+              }
+
+              @if (show('arrowPath')) {
+                <div class="control-group">
+                  <div class="control-row">
+                    <label>Arrow path</label>
+                    <wb-segmented-control
+                      label="Arrow path"
+                      [options]="arrowPathOptions"
+                      [value]="arrowPathValue()"
+                      (valueChange)="emitChange('arrowPath', $event)"
+                    ></wb-segmented-control>
+                  </div>
+                </div>
+              }
+
+              @if (show('brush')) {
+                <div class="control-group brush">
+                  <div class="control-row">
+                    <label>Brush</label>
+                    <wb-segmented-control
+                      label="Brush"
+                      [options]="brushOptions"
+                      [value]="config().penType"
+                      (valueChange)="emitChange('penType', $event)"
+                    ></wb-segmented-control>
+                  </div>
+                </div>
+              }
+
+              @if (show('opacity')) {
+                <div class="control-group">
+                  <div class="control-slider">
+                    <label class="slider-label">Opacity</label>
+                    <div class="slider-container">
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        aria-label="Opacity"
+                        [value]="opacityNumber()"
+                        (input)="onSliderInput('opacity', $event)"
+                        (change)="editEnd.emit($any($event.target))"
+                        (blur)="editEnd.emit($any($event.target))"
+                      />
+                      <span class="value-display">{{ isMixed(opacityValue()) ? '—' : opacityNumber() + '%' }}</span>
+                    </div>
+                  </div>
+                </div>
+              }
 
               <!-- Alignment Controls -->
               <div class="control-group" *ngIf="hasSelection() && selectedElements().length > 1">
@@ -209,57 +333,58 @@ interface PropertyChangeEvent {
             </div>
           </div>
 
-          <!-- Text Properties (when text is selected) -->
-          <div class="section" *ngIf="hasTextSelection()">
-            <div class="controls">
-              <div class="control-row">
-                <label>Font Family</label>
-                <select
-                  aria-label="Font family"
-                  [value]="isMixed(fontFamilyValue()) ? '' : fontFamilyValue()"
-                  (change)="onPropertyChange('fontFamily', $event)"
-                >
-                  <option *ngIf="isMixed(fontFamilyValue())" value="" disabled selected>Mixed</option>
-                  <option value="Arial">Arial</option>
-                  <option value="Helvetica">Helvetica</option>
-                  <option value="Times New Roman">Times New Roman</option>
-                  <option value="Georgia">Georgia</option>
-                  <option value="Verdana">Verdana</option>
-                  <option value="monospace">Monospace</option>
-                  <option value="Courier New">Courier New</option>
-                </select>
-              </div>
-
-              <div class="control-slider">
-                <label class="slider-label">Font Size</label>
-                <div class="slider-container">
-                  <input
-                    type="range"
-                    min="8"
-                    max="72"
-                    aria-label="Font size"
-                    [value]="fontSizeNumber()"
-                    (input)="onSliderInput('fontSize', $event)"
-                    (change)="editEnd.emit($any($event.target))"
-                    (blur)="editEnd.emit($any($event.target))"
-                  />
-                  <span class="value-display">{{ isMixed(fontSizeValue()) ? '—' : fontSizeNumber() + 'px' }}</span>
+          @if (show('font')) {
+            <div class="section">
+              <div class="controls">
+                <div class="control-row">
+                  <label>Font Family</label>
+                  <select
+                    aria-label="Font family"
+                    [value]="isMixed(fontFamilyValue()) ? '' : fontFamilyValue()"
+                    (change)="onPropertyChange('fontFamily', $event)"
+                  >
+                    <option *ngIf="isMixed(fontFamilyValue())" value="" disabled selected>Mixed</option>
+                    <option value="Arial">Arial</option>
+                    <option value="Helvetica">Helvetica</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Verdana">Verdana</option>
+                    <option value="monospace">Monospace</option>
+                    <option value="Courier New">Courier New</option>
+                  </select>
                 </div>
-              </div>
 
-              <div class="control-group">
-                <label class="group-label">Text Style</label>
-                <div class="button-group">
-                  <button class="style-btn" [class.active]="isBold()" (click)="toggleBold()" title="Bold" aria-label="Bold">
-                    <strong>B</strong>
-                  </button>
-                  <button class="style-btn" [class.active]="isItalic()" (click)="toggleItalic()" title="Italic" aria-label="Italic">
-                    <em>I</em>
-                  </button>
+                <div class="control-slider">
+                  <label class="slider-label">Font Size</label>
+                  <div class="slider-container">
+                    <input
+                      type="range"
+                      min="8"
+                      max="72"
+                      aria-label="Font size"
+                      [value]="fontSizeNumber()"
+                      (input)="onSliderInput('fontSize', $event)"
+                      (change)="editEnd.emit($any($event.target))"
+                      (blur)="editEnd.emit($any($event.target))"
+                    />
+                    <span class="value-display">{{ isMixed(fontSizeValue()) ? '—' : fontSizeNumber() + 'px' }}</span>
+                  </div>
+                </div>
+
+                <div class="control-group">
+                  <label class="group-label">Text Style</label>
+                  <div class="button-group">
+                    <button class="style-btn" [class.active]="isBold()" (click)="toggleBold()" title="Bold" aria-label="Bold">
+                      <strong>B</strong>
+                    </button>
+                    <button class="style-btn" [class.active]="isItalic()" (click)="toggleItalic()" title="Italic" aria-label="Italic">
+                      <em>I</em>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          }
         </div>
       </div>
 
@@ -284,6 +409,8 @@ export class PropertiesPanelComponent {
   selectedProperties = input<SelectedProperties | null>(null);
   isOpen = input<boolean>(true);
   embedded = input<boolean>(false);
+  /** Drives the sections shown when nothing is selected. */
+  activeTool = input<ToolType>(ToolType.Select);
 
   @Output() colorChange = new EventEmitter<ColorPickerEvent>();
   @Output() propertyChange = new EventEmitter<PropertyChangeEvent>();
@@ -296,10 +423,25 @@ export class PropertiesPanelComponent {
   @Output() editStart = new EventEmitter<EventTarget | null>();
   @Output() editEnd = new EventEmitter<EventTarget | null>();
 
+  protected readonly lineEndOptions = LINE_END_OPTIONS;
+  protected readonly arrowPathOptions = ARROW_PATH_OPTIONS;
+  protected readonly brushOptions = BRUSH_OPTIONS;
+
   // Computed properties for better performance
   selectedElement = computed(() => this.selectedElements()[0] || null);
   hasSelection = computed(() => this.selectedElements().length > 0);
-  hasTextSelection = computed(() => this.selectedElements().some((el) => el.type === ElementType.Text));
+
+  sections = computed(() =>
+    this.hasSelection()
+      ? sectionsForElements(this.selectedElements().map((el) => el.type))
+      : sectionsForTool(this.activeTool())
+  );
+
+  textOnly = computed(() =>
+    this.hasSelection()
+      ? this.selectedElements().every((el) => el.type === ElementType.Text)
+      : this.activeTool() === ToolType.Text
+  );
 
   strokeColorValue = computed(() => {
     const props = this.selectedProperties();
@@ -357,9 +499,22 @@ export class PropertiesPanelComponent {
     return element.style.dasharray || '';
   });
 
+  lineCapValue = computed(() => this.selectedProperties()?.lineCap ?? this.config().lineCap);
+  cornerRadiusValue = computed(
+    () => this.selectedProperties()?.cornerRadius ?? this.config().cornerRadius ?? DEFAULT_CORNER_RADIUS
+  );
+  startHeadValue = computed(
+    () => this.selectedProperties()?.startHead ?? (this.config().arrowConfig?.startHeadStyle as ArrowheadType)
+  );
+  endHeadValue = computed(
+    () => this.selectedProperties()?.endHead ?? (this.config().arrowConfig?.endHeadStyle as ArrowheadType)
+  );
+  arrowPathValue = computed(() => this.selectedProperties()?.arrowPath ?? this.config().arrowConfig?.lineStyle);
+
   strokeWidthNumber = computed(() => this.numberOr(this.strokeWidthValue(), this.config().strokeWidth));
   opacityNumber = computed(() => this.numberOr(this.opacityValue(), 100));
   fontSizeNumber = computed(() => this.numberOr(this.fontSizeValue(), this.config().fontSize));
+  cornerRadiusNumber = computed(() => this.numberOr(this.cornerRadiusValue(), DEFAULT_CORNER_RADIUS));
 
   isBold = computed(() => {
     const texts = this.selectedElements().filter((el) => el.type === ElementType.Text);
@@ -392,6 +547,10 @@ export class PropertiesPanelComponent {
     return dasharray === buildDasharray('dashdot', width);
   });
 
+  show(section: PropertySection): boolean {
+    return this.sections().has(section);
+  }
+
   isMixed(value: unknown): boolean {
     return value === MIXED;
   }
@@ -409,7 +568,11 @@ export class PropertiesPanelComponent {
     this.propertyChange.emit({ property, value: target.value });
   }
 
-  onSliderInput(property: 'strokeWidth' | 'opacity' | 'fontSize', event: Event) {
+  emitChange(property: string, value: string | boolean) {
+    this.propertyChange.emit({ property, value });
+  }
+
+  onSliderInput(property: 'strokeWidth' | 'opacity' | 'fontSize' | 'cornerRadius', event: Event) {
     this.editStart.emit(event.target);
     this.propertyChange.emit({ property, value: Number((event.target as HTMLInputElement).value) });
   }
