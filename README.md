@@ -151,6 +151,7 @@ export class WhiteboardContainerComponent implements OnInit {
 - The layout adapts to the editor's own container. Phones and small containers get a bottom toolbar and bottom sheets.
 - Touch: pinch to zoom and two-finger pan work with or without the editor.
 - `Alt + P` toggles the properties panel.
+- The properties panel adapts to the selected shape: arrow heads, arrow path and line ends for arrows, corner radius for rectangles, brush for the pen, and so on. The optional `config.cornerRadius` sets the corner radius of new rectangles (default `5`).
 - **Save** downloads an SVG file and **Export** downloads a PNG file.
 - `EditorConfig` flags other than `title` are deprecated and ignored. They will be removed in the next major version.
 
