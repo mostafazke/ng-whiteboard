@@ -689,7 +689,7 @@ export class EditorStateService implements OnDestroy {
    * Add a new layer
    */
   addLayer(name?: string): Layer {
-    const whiteboardLayer = this.layerManagementService.addLayer(name);
+    const whiteboardLayer = this.apiService.addLayer(name);
     // Convert WhiteboardLayer to legacy Layer interface
     return {
       id: whiteboardLayer.id,
@@ -704,8 +704,24 @@ export class EditorStateService implements OnDestroy {
   /**
    * Remove a layer
    */
-  removeLayer(layerId: string): boolean {
-    return this.layerManagementService.removeLayer(layerId);
+  removeLayer(layerId: string, mode: 'delete-elements' | 'move-elements' = 'delete-elements'): boolean {
+    return this.apiService.removeLayer(layerId, mode);
+  }
+
+  mergeLayerDown(layerId: string): boolean {
+    return this.apiService.mergeLayerDown(layerId);
+  }
+
+  duplicateLayer(layerId: string): void {
+    this.apiService.duplicateLayer(layerId);
+  }
+
+  beginLayerOpacityEdit(layerId: string): void {
+    this.apiService.beginLayerOpacityEdit(layerId);
+  }
+
+  endLayerOpacityEdit(): void {
+    this.apiService.endLayerOpacityEdit();
   }
 
   /**
@@ -715,20 +731,20 @@ export class EditorStateService implements OnDestroy {
     let success = true;
 
     if (updates.name !== undefined) {
-      success = this.layerManagementService.renameLayer(layerId, updates.name) && success;
+      success = this.apiService.renameLayer(layerId, updates.name) && success;
     }
 
     if (updates.visible !== undefined) {
       const layer = this.layerManagementService.layers().find((l) => l.id === layerId);
       if (layer && layer.visible !== updates.visible) {
-        success = this.layerManagementService.toggleLayerVisibility(layerId) && success;
+        success = this.apiService.toggleLayerVisibility(layerId) && success;
       }
     }
 
     if (updates.locked !== undefined) {
       const layer = this.layerManagementService.layers().find((l) => l.id === layerId);
       if (layer && layer.locked !== updates.locked) {
-        success = this.layerManagementService.toggleLayerLock(layerId) && success;
+        success = this.apiService.toggleLayerLock(layerId) && success;
       }
     }
 
@@ -750,42 +766,42 @@ export class EditorStateService implements OnDestroy {
    * Move layer up in z-order
    */
   moveLayerUp(layerId: string): boolean {
-    return this.layerManagementService.moveLayerUp(layerId);
+    return this.apiService.moveLayerUp(layerId);
   }
 
   /**
    * Move layer down in z-order
    */
   moveLayerDown(layerId: string): boolean {
-    return this.layerManagementService.moveLayerDown(layerId);
+    return this.apiService.moveLayerDown(layerId);
   }
 
   /**
    * Toggle layer visibility
    */
   toggleLayerVisibility(layerId: string): boolean {
-    return this.layerManagementService.toggleLayerVisibility(layerId);
+    return this.apiService.toggleLayerVisibility(layerId);
   }
 
   /**
    * Toggle layer lock
    */
   toggleLayerLock(layerId: string): boolean {
-    return this.layerManagementService.toggleLayerLock(layerId);
+    return this.apiService.toggleLayerLock(layerId);
   }
 
   /**
    * Set layer opacity
    */
   setLayerOpacity(layerId: string, opacity: number): boolean {
-    return this.layerManagementService.setLayerOpacity(layerId, opacity);
+    return this.apiService.setLayerOpacity(layerId, opacity);
   }
 
   /**
    * Set layer blend mode
    */
   setLayerBlendMode(layerId: string, blendMode: BlendMode): boolean {
-    return this.layerManagementService.setLayerBlendMode(layerId, blendMode);
+    return this.apiService.setLayerBlendMode(layerId, blendMode);
   }
 }
 

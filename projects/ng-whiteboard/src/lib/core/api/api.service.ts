@@ -23,6 +23,7 @@ import {
 import { WhiteboardEvent } from '../types/events';
 import { CursorType } from '../types/cursors';
 import { ClipboardService, IOService } from '../input';
+import { elementIdsByLayer } from '../utils';
 
 @Injectable()
 export class ApiService {
@@ -38,6 +39,7 @@ export class ApiService {
   private configService = inject(ConfigService);
   private clipboardService = inject(ClipboardService);
   private eventBusService = inject(EventBusService);
+  private opacityBatch: BatchHandle | null = null;
 
   readonly elements: Signal<WhiteboardElement[]> = this.elementsService.elements;
 
@@ -502,45 +504,44 @@ export class ApiService {
   }
 
   addLayer(name?: string) {
-    return this.layerService.addLayer(name);
+    return this.withLayerHistory('Add layer', () => this.layerService.addLayer(name));
   }
 
-  removeLayer(id: string): boolean {
-    return this.layerService.removeLayer(id);
+  removeLayer(id: string, mode: 'delete-elements' | 'move-elements' = 'delete-elements'): boolean {
+    const sorted = this.layerService.sortedLayers();
+    const index = sorted.findIndex((l) => l.id === id);
+    if (sorted.length <= 1 || index === -1) return false;
+    const target = sorted[index - 1] ?? sorted[index + 1];
+    return this.withLayerHistory('Delete layer', () => {
+      this.releaseMembers(id, mode === 'move-elements' ? target.id : null);
+      return this.layerService.removeLayer(id);
+    });
+  }
+
+  mergeLayerDown(id: string): boolean {
+    const sorted = this.layerService.sortedLayers();
+    const index = sorted.findIndex((l) => l.id === id);
+    if (index <= 0) return false;
+    return this.withLayerHistory('Merge layer down', () => {
+      this.releaseMembers(id, sorted[index - 1].id);
+      return this.layerService.removeLayer(id);
+    });
   }
 
   duplicateLayer(id: string): void {
-    const currentElements = this.elementsService.elements();
-    const result = this.layerService.duplicateLayer(id, currentElements);
+    this.withLayerHistory('Duplicate layer', () => {
+      const currentElements = this.elementsService.elements();
+      const result = this.layerService.duplicateLayer(id, currentElements);
+      const layer = result.layer;
+      if (!layer || result.elementMap.size === 0) return;
 
-    if (result.layer && result.elementMap.size > 0) {
-      const beforeElements = [...currentElements];
-
-      // Duplicate all elements from the original layer
-      const newElements: WhiteboardElement[] = [];
-
+      const copies: WhiteboardElement[] = [];
       result.elementMap.forEach((newElementId, oldElementId) => {
-        const originalElement = currentElements.find((el: WhiteboardElement) => el.id === oldElementId);
-        if (originalElement) {
-          const layer = result.layer;
-          if (!layer) {
-            return;
-          }
-          const duplicatedElement: WhiteboardElement = {
-            ...originalElement,
-            id: newElementId,
-            layerId: layer.id,
-          };
-          newElements.push(duplicatedElement);
-        }
+        const original = currentElements.find((el: WhiteboardElement) => el.id === oldElementId);
+        if (original) copies.push({ ...original, id: newElementId, layerId: layer.id });
       });
-
-      // Add all duplicated elements as new elements
-      this.elementsService.addElements(newElements);
-
-      const afterElements = this.elementsService.elements();
-      this.historyService.recordChange(beforeElements, afterElements, `Duplicate layer: ${result.layer.name}`);
-    }
+      this.elementsService.addElements(copies);
+    });
   }
 
   setActiveLayer(id: string): boolean {
@@ -552,35 +553,74 @@ export class ApiService {
   }
 
   toggleLayerVisibility(id: string): boolean {
-    return this.layerService.toggleLayerVisibility(id);
+    return this.withLayerHistory('Toggle layer visibility', () => this.layerService.toggleLayerVisibility(id));
   }
 
   toggleLayerLock(id: string): boolean {
-    return this.layerService.toggleLayerLock(id);
+    return this.withLayerHistory('Toggle layer lock', () => this.layerService.toggleLayerLock(id));
   }
 
   renameLayer(id: string, name: string): boolean {
-    return this.layerService.renameLayer(id, name);
+    return this.withLayerHistory('Rename layer', () => this.layerService.renameLayer(id, name));
   }
 
   setLayerOpacity(id: string, opacity: number): boolean {
-    return this.layerService.setLayerOpacity(id, opacity);
+    return this.withLayerHistory('Change layer opacity', () => this.layerService.setLayerOpacity(id, opacity));
   }
 
   setLayerBlendMode(id: string, blendMode: BlendMode): boolean {
-    return this.layerService.setLayerBlendMode(id, blendMode);
+    return this.withLayerHistory('Change layer blend mode', () => this.layerService.setLayerBlendMode(id, blendMode));
   }
 
   moveLayerUp(id: string): boolean {
-    return this.layerService.moveLayerUp(id);
+    return this.withLayerHistory('Move layer up', () => this.layerService.moveLayerUp(id));
   }
 
   moveLayerDown(id: string): boolean {
-    return this.layerService.moveLayerDown(id);
+    return this.withLayerHistory('Move layer down', () => this.layerService.moveLayerDown(id));
   }
 
   reorderLayersByIndex(previousIndex: number, currentIndex: number): boolean {
-    return this.layerService.reorderLayersByIndex(previousIndex, currentIndex);
+    return this.withLayerHistory('Reorder layers', () =>
+      this.layerService.reorderLayersByIndex(previousIndex, currentIndex)
+    );
+  }
+
+  /** Groups the opacity changes of a slider drag into one undo step; close with `endLayerOpacityEdit`. */
+  beginLayerOpacityEdit(id: string): void {
+    if (this.opacityBatch || !this.layerService.layers().some((l) => l.id === id)) return;
+    const elements = this.elementsService.getElements();
+    this.opacityBatch = this.historyService.startBatch(
+      'Change layer opacity',
+      elements,
+      this.layerService.exportLayerState(elements)
+    );
+  }
+
+  endLayerOpacityEdit(): void {
+    const batch = this.opacityBatch;
+    if (!batch) return;
+    this.opacityBatch = null;
+    const elements = this.elementsService.getElements();
+    batch.execute(elements, this.layerService.exportLayerState(elements));
+  }
+
+  private withLayerHistory<T>(description: string, mutate: () => T): T {
+    const before = this.elementsService.getElements();
+    const batch = this.historyService.startBatch(description, before, this.layerService.exportLayerState(before));
+    try {
+      return mutate();
+    } finally {
+      const after = this.elementsService.getElements();
+      batch.execute(after, this.layerService.exportLayerState(after));
+    }
+  }
+
+  private releaseMembers(layerId: string, moveTo: string | null): void {
+    const ids = elementIdsByLayer(this.elementsService.getElements(), this.layerService.layers()).get(layerId) ?? [];
+    if (!ids.length) return;
+    if (moveTo) this.elementsService.moveToLayer(ids, moveTo, true);
+    else this.elementsService.removeElementsByIds(ids, true);
   }
 
   toggleGrid(): void {

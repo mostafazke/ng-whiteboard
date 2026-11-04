@@ -75,6 +75,8 @@ describe('ApiService', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockEventBusService: any;
 
+  const batchHandle = { execute: jest.fn(), clear: jest.fn() };
+
   const mockElement: WhiteboardElement = {
     id: 'test-1',
     type: 'rectangle' as ElementType.Rectangle,
@@ -108,6 +110,10 @@ describe('ApiService', () => {
     mockZoomService = createMockService(ZoomService);
     mockPanService = createMockService(PanService);
     mockLayerService = createMockService(LayerManagementService);
+    mockHistoryService.startBatch = jest.fn().mockReturnValue(batchHandle);
+    mockElementsService.getElements.mockReturnValue([]);
+    mockLayerService.exportLayerState.mockReturnValue({ layers: [], activeLayerId: '' });
+    mockLayerService.layers = jest.fn().mockReturnValue([]);
     mockConfigService = {
       ...createMockService(ConfigService),
       getConfig: jest.fn().mockReturnValue({}),
@@ -868,6 +874,7 @@ describe('ApiService', () => {
     });
 
     it('should remove layer', () => {
+      mockLayerService.sortedLayers = jest.fn().mockReturnValue([{ id: 'layer-0' }, { id: 'layer-1' }]);
       mockLayerService.removeLayer.mockReturnValue(true);
       const result = service.removeLayer('layer-1');
       expect(mockLayerService.removeLayer).toHaveBeenCalledWith('layer-1');
@@ -958,7 +965,7 @@ describe('ApiService', () => {
 
       expect(mockLayerService.duplicateLayer).toHaveBeenCalledWith('layer-1', [el1]);
       expect(mockElementsService.addElements).toHaveBeenCalled();
-      expect(mockHistoryService.recordChange).toHaveBeenCalled();
+      expect(batchHandle.execute).toHaveBeenCalled();
     });
 
     it('should not duplicate when result has no layer', () => {
@@ -995,31 +1002,6 @@ describe('ApiService', () => {
 
       service.duplicateLayer('layer-1');
 
-      expect(mockElementsService.addElements).toHaveBeenCalledWith([]);
-    });
-
-    it('should handle layer becoming null inside forEach iteration', () => {
-      const el1 = { ...mockElement, id: 'el-1', layerId: 'layer-1' };
-      mockElementsService.elements = signal([el1]);
-
-      const elementMap = new Map([['el-1', 'el-dup-1']]);
-      let callCount = 0;
-      const layerObj = { id: 'layer-dup', name: 'Layer Copy' };
-      mockLayerService.duplicateLayer.mockReturnValue({
-        get layer() {
-          callCount++;
-          // access 1: outer if check (result.layer && ...)
-          // access 2: inside forEach `const layer = result.layer`  -> return null
-          // access 3: after forEach `result.layer.name` -> return layer
-          if (callCount === 2) return null;
-          return layerObj;
-        },
-        elementMap,
-      });
-
-      service.duplicateLayer('layer-1');
-
-      // The inner !layer guard prevents the element from being added
       expect(mockElementsService.addElements).toHaveBeenCalledWith([]);
     });
   });

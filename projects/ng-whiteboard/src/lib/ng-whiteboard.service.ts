@@ -763,11 +763,35 @@ export class NgWhiteboardService {
   }
 
   /**
-   * Remove a layer by ID.
+   * Remove a layer by ID. With `'move-elements'` its elements move to the adjacent layer instead of being deleted.
    */
-  public removeLayer(id: string): boolean {
+  public removeLayer(id: string, mode: 'delete-elements' | 'move-elements' = 'delete-elements'): boolean {
     const instance = this.getApi();
-    return instance.removeLayer(id);
+    return instance.removeLayer(id, mode);
+  }
+
+  /**
+   * Merge a layer into the layer directly below it. Returns false when there is no layer below.
+   */
+  public mergeLayerDown(id: string): boolean {
+    const instance = this.getApi();
+    return instance.mergeLayerDown(id);
+  }
+
+  /**
+   * Start grouping layer opacity changes (e.g. a slider drag) into one undo step.
+   */
+  public beginLayerOpacityEdit(id: string): void {
+    const instance = this.getApi();
+    instance.beginLayerOpacityEdit(id);
+  }
+
+  /**
+   * Finish the layer opacity edit started with `beginLayerOpacityEdit`.
+   */
+  public endLayerOpacityEdit(): void {
+    const instance = this.getApi();
+    instance.endLayerOpacityEdit();
   }
 
   /**
