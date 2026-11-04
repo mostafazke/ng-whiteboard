@@ -88,3 +88,10 @@ export interface BoundingBox {
   };
   rotation: number;
 }
+
+export interface ExportOptions {
+  scale?: number;
+  background?: boolean;
+  padding?: number;
+  onlySelected?: boolean;
+}

@@ -4,6 +4,7 @@ import {
   AddImage,
   AlignmentType,
   BoundingBox,
+  ExportOptions,
   FormatType,
   SelectionBox,
   ToolType,
@@ -669,9 +670,21 @@ export class NgWhiteboardService {
   /**
    * Save the whiteboard in the specified format.
    */
-  public async save(format: FormatType = FormatType.Base64, name = 'whiteboard'): Promise<string> {
+  public async save(
+    format: FormatType = FormatType.Base64,
+    name = 'whiteboard',
+    options?: ExportOptions
+  ): Promise<string> {
     const instance = this.getApi();
-    return instance.save(format, name);
+    return instance.save(format, name, options);
+  }
+
+  /**
+   * Copy the whiteboard to the clipboard as a PNG image or SVG text.
+   */
+  public async copyToClipboard(format: FormatType.Png | FormatType.Svg, options?: ExportOptions): Promise<void> {
+    const instance = this.getApi();
+    return instance.copyToClipboard(format, options);
   }
 
   /**

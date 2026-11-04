@@ -141,6 +141,7 @@ describe('SVG Utils', () => {
       // Mock canvas and context
       const mockContext = {
         drawImage: jest.fn(),
+        fillRect: jest.fn(),
       };
 
       HTMLCanvasElement.prototype.getContext = jest.fn().mockReturnValue(mockContext);

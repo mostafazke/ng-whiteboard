@@ -629,14 +629,14 @@ describe('ApiService', () => {
     it('should save with default format', async () => {
       mockIOService.save.mockResolvedValue('saved-data');
       const result = await service.save();
-      expect(mockIOService.save).toHaveBeenCalledWith(FormatType.Base64, 'whiteboard');
+      expect(mockIOService.save).toHaveBeenCalledWith(FormatType.Base64, 'whiteboard', undefined);
       expect(result).toBe('saved-data');
     });
 
     it('should save with custom format and name', async () => {
       mockIOService.save.mockResolvedValue('saved-data');
       const result = await service.save(FormatType.Png, 'my-board');
-      expect(mockIOService.save).toHaveBeenCalledWith(FormatType.Png, 'my-board');
+      expect(mockIOService.save).toHaveBeenCalledWith(FormatType.Png, 'my-board', undefined);
       expect(result).toBe('saved-data');
     });
 

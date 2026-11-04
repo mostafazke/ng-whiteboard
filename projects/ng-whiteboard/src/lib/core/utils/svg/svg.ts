@@ -36,6 +36,10 @@ export function svgToBase64(
     img.src = `data:image/svg+xml;charset=utf-8,${encodedSvg}`;
 
     img.onload = () => {
+      if (format === FormatType.Jpeg) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, width, height);
+      }
       ctx.drawImage(img, 0, 0, width, height);
       const base64 = canvas.toDataURL(`image/${format}`);
       resolve(base64);

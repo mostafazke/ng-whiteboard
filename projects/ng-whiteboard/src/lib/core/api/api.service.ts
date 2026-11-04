@@ -14,6 +14,7 @@ import {
   AlignmentType,
   BoundingBox,
   FormatType,
+  ExportOptions,
   SelectionBox,
   ToolType,
   WhiteboardConfig,
@@ -390,8 +391,12 @@ export class ApiService {
     this.panService.resetPan();
   }
 
-  async save(format: FormatType = FormatType.Base64, name = 'whiteboard'): Promise<string> {
-    return this.ioService.save(format, name);
+  async save(format: FormatType = FormatType.Base64, name = 'whiteboard', options?: ExportOptions): Promise<string> {
+    return this.ioService.save(format, name, options);
+  }
+
+  async copyToClipboard(format: FormatType.Png | FormatType.Svg, options?: ExportOptions): Promise<void> {
+    return this.ioService.copyToClipboard(format, options);
   }
 
   addImage(imageInfo: AddImage): void {

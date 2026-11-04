@@ -1,10 +1,14 @@
 import { Injectable } from '@angular/core';
 import { createElement } from '../elements/element.utils';
 import { EventBusService } from '../event-bus/event-bus.service';
-import { AddImage, ElementType, FormatType, WhiteboardConfig } from '../types';
+import { AddImage, ElementType, ExportOptions, FormatType, WhiteboardConfig, WhiteboardElement } from '../types';
 import { WhiteboardEvent } from '../types/events';
 import { downloadFile } from '../utils/common';
 import { svgToBase64 } from '../utils/svg';
+import { exportBounds, ExportBox } from '../utils/svg/export-bounds';
+import { buildExportSvg } from '../utils/svg/export-svg';
+import { canCopyImage, dataUrlToBlob } from '../utils/dom/clipboard';
+import { effectiveLayerId } from '../utils/layers/layer-membership';
 import { CanvasService } from '../canvas/canvas.service';
 import { ElementsService } from '../elements/elements.service';
 import { SelectionService } from '../elements/selection.service';
@@ -142,21 +146,11 @@ export class IOService {
     }
   }
 
-  async save(format: FormatType = FormatType.Base64, name = 'New board'): Promise<string> {
-    const canvas = this.canvasService.getCanvas();
-    const svgElement = canvas.getElementById('svgcontent') as SVGSVGElement;
-
-    if (!svgElement) {
-      throw new Error('SVG content not found');
-    }
-
-    const svgClone = this.prepareSvgForExport(svgElement);
-    const svgString = new XMLSerializer().serializeToString(svgClone);
-
-    const { canvasWidth, canvasHeight } = this.canvasService.getConfig();
+  async save(format: FormatType = FormatType.Base64, name = 'New board', options: ExportOptions = {}): Promise<string> {
+    const { svgString, width, height } = this.buildExport(options);
 
     try {
-      const imageString = await svgToBase64(svgString, canvasWidth, canvasHeight, format);
+      const imageString = await svgToBase64(svgString, width, height, format);
 
       switch (format) {
         case FormatType.Base64:
@@ -164,7 +158,7 @@ export class IOService {
           break;
 
         case FormatType.Svg: {
-          const imgSrc = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
+          const imgSrc = this.svgDataUrl(svgString);
           this.downloadFile(imgSrc, name, 'svg');
           this.eventBusService.emit(WhiteboardEvent.Save, imgSrc);
           break;
@@ -181,6 +175,77 @@ export class IOService {
       console.error('Failed to save whiteboard:', error);
       throw error;
     }
+  }
+
+  async renderExport(
+    format: FormatType.Png | FormatType.Svg,
+    options: ExportOptions = {}
+  ): Promise<{ dataUrl: string; width: number; height: number }> {
+    const { svgString, width, height } = this.buildExport(options);
+    const dataUrl =
+      format === FormatType.Svg ? this.svgDataUrl(svgString) : await svgToBase64(svgString, width, height, format);
+    return { dataUrl, width, height };
+  }
+
+  async copyToClipboard(format: FormatType.Png | FormatType.Svg, options: ExportOptions = {}): Promise<void> {
+    if (format === FormatType.Svg) {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error('Clipboard is not supported in this browser');
+      }
+      await navigator.clipboard.writeText(this.buildExport(options).svgString);
+      return;
+    }
+
+    if (!canCopyImage()) {
+      throw new Error('Copying images to the clipboard is not supported in this browser');
+    }
+    const { dataUrl } = await this.renderExport(FormatType.Png, options);
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': dataUrlToBlob(dataUrl) })]);
+  }
+
+  private svgDataUrl(svgString: string): string {
+    return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
+  }
+
+  private getExportableElements(onlySelected: boolean): WhiteboardElement[] {
+    const layers = this.layerManagementService.layers();
+    const selected = onlySelected ? new Set(this.selectionService.getSelectedIds()) : null;
+
+    return this.elementsService.getElements().filter((element) => {
+      if (element.isDeleting) return false;
+      if (selected && !selected.has(element.id)) return false;
+      const layerId = effectiveLayerId(element, layers);
+      return !layerId || !!layers.find((l) => l.id === layerId)?.visible;
+    });
+  }
+
+  private buildExport(options: ExportOptions): { svgString: string; width: number; height: number } {
+    const svgElement = this.canvasService.getCanvas().getElementById('svgcontent') as SVGSVGElement;
+    if (!svgElement) {
+      throw new Error('SVG content not found');
+    }
+
+    const { scale = 1, padding = 16, background = true, onlySelected = false } = options;
+    const exportable = this.getExportableElements(onlySelected);
+    const { canvasWidth, canvasHeight } = this.canvasService.getConfig();
+    const box: ExportBox = exportBounds(exportable, padding) ?? {
+      x: 0,
+      y: 0,
+      width: canvasWidth,
+      height: canvasHeight,
+    };
+    const width = Math.max(1, Math.round(box.width * scale));
+    const height = Math.max(1, Math.round(box.height * scale));
+
+    const clone = buildExportSvg(svgElement, {
+      box,
+      width,
+      height,
+      keepElementIds: new Set(exportable.map((e) => e.id)),
+      background,
+    });
+
+    return { svgString: new XMLSerializer().serializeToString(clone), width, height };
   }
 
   async exportAsPng(name = 'whiteboard'): Promise<string> {
@@ -445,34 +510,6 @@ export class IOService {
       default:
         return 'png';
     }
-  }
-
-  private prepareSvgForExport(svgElement: SVGSVGElement): SVGSVGElement {
-    const svgClone = svgElement.cloneNode(true) as SVGSVGElement;
-
-    // Elements render with `transform-box: fill-box; transform-origin: center`
-    // via the component stylesheet, so rotation and scale pivot around each
-    // element's geometry center. That stylesheet is not part of the serialized
-    // SVG, so without these rules the export pivots around the local origin and
-    // rotated/scaled elements drift. Inline the rules to match the live render.
-    const style = document.createElementNS('http://www.w3.org/2000/svg', 'style');
-    style.textContent = '.wb_element { transform-box: fill-box; transform-origin: center; }';
-    svgClone.insertBefore(style, svgClone.firstChild);
-
-    const selectorParentGroup = svgClone.querySelector('#selectorParentGroup');
-    if (selectorParentGroup) {
-      selectorParentGroup.remove();
-    }
-
-    const contentBackground = svgClone.querySelector('#contentBackground');
-    if (contentBackground) {
-      contentBackground.removeAttribute('opacity');
-    }
-
-    svgClone.setAttribute('x', '0');
-    svgClone.setAttribute('y', '0');
-
-    return svgClone;
   }
 
   async importMultipleImages(files: FileList, spacing = 50): Promise<void> {

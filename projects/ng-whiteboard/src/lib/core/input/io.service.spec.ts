@@ -12,9 +12,14 @@ import { createElement } from '../elements/element.utils';
 import { downloadFile } from '../utils/common';
 import { svgToBase64 } from '../utils/svg';
 import { ConfigService } from '../config/config.service';
+import { LayerManagementService } from '../elements/layer-management.service';
+import { getElementUtil } from '../elements/element.utils';
 
 // Mock the modules
-jest.mock('../elements/element.utils');
+jest.mock('../elements/element.utils', () => ({
+  ...jest.requireActual('../elements/element.utils'),
+  createElement: jest.fn(),
+}));
 jest.mock('../utils/common');
 jest.mock('../utils/svg');
 
@@ -1054,6 +1059,185 @@ describe('IOService', () => {
 
       expect(result).toBe('data:image/png;base64,exported');
       expect(mockElementsService.addElements).toHaveBeenCalled();
+    });
+  });
+
+  describe('export engine', () => {
+    const NS = 'http://www.w3.org/2000/svg';
+    let layerService: LayerManagementService;
+
+    const makeRect = (id: string, x: number, y: number, w: number, h: number, extra: object = {}) =>
+      getElementUtil(ElementType.Rectangle).create({
+        id,
+        x,
+        y,
+        width: w,
+        height: h,
+        style: { strokeWidth: 2 },
+        ...extra,
+      } as never) as WhiteboardElement;
+
+    const buildSvg = (ids: string[]) => {
+      const svg = document.createElementNS(NS, 'svg');
+      svg.setAttribute('id', 'svgcontent');
+      svg.setAttribute('width', '100%');
+      svg.setAttribute('height', '100%');
+      svg.setAttribute('_ngcontent-abc-c1', '');
+      const bg = document.createElementNS(NS, 'rect');
+      bg.setAttribute('id', 'contentBackground');
+      bg.setAttribute('width', '100%');
+      bg.setAttribute('height', '100%');
+      bg.setAttribute('fill', '#fff');
+      bg.setAttribute('_ngcontent-abc-c1', '');
+      svg.appendChild(bg);
+      const grid = document.createElementNS(NS, 'g');
+      const gridRect = document.createElementNS(NS, 'rect');
+      gridRect.setAttribute('fill', 'url(#grid)');
+      grid.appendChild(gridRect);
+      svg.appendChild(grid);
+      const content = document.createElementNS(NS, 'g');
+      content.setAttribute('id', 'contentGroup');
+      content.setAttribute('transform', 'translate(40, 30)');
+      for (const id of ids) {
+        const g = document.createElementNS(NS, 'g');
+        g.setAttribute('class', 'wb_element');
+        g.setAttribute('data-wb-id', id);
+        g.setAttribute('_ngcontent-abc-c1', '');
+        content.appendChild(g);
+      }
+      const selector = document.createElementNS(NS, 'g');
+      selector.setAttribute('id', 'selectorParentGroup');
+      content.appendChild(selector);
+      svg.appendChild(content);
+      return svg;
+    };
+
+    const capturedSvg = () => mockSvgToBase64.mock.calls[0][0] as string;
+
+    beforeEach(() => {
+      layerService = TestBed.inject(LayerManagementService);
+      layerService.importLayerState({
+        layers: [
+          { id: 'L1', name: 'one', visible: true, locked: false, zIndex: 0, elements: [] },
+          { id: 'L2', name: 'two', visible: false, locked: false, zIndex: 1, elements: [] },
+        ],
+        activeLayerId: 'L1',
+      });
+      mockElementsService.getElements.mockReturnValue([
+        makeRect('a', 10, 10, 100, 50, { layerId: 'L1' }),
+        makeRect('hidden', 1000, 1000, 50, 50, { layerId: 'L2' }),
+        makeRect('gone', -500, -500, 50, 50, { layerId: 'L1', isDeleting: true }),
+      ]);
+      mockCanvasService.getCanvas.mockReturnValue(buildSvg(['a', 'hidden', 'gone']));
+      mockSvgToBase64.mockResolvedValue('data:image/png;base64,AAAA');
+    });
+
+    it('crops svg output to content plus padding with explicit size and no angular attributes', async () => {
+      await service.save(FormatType.Svg, 'b');
+      const svg = capturedSvg();
+      expect(svg).toContain('viewBox="-7 -7 134 84"');
+      expect(svg).toContain('width="134"');
+      expect(svg).toContain('height="84"');
+      expect(svg).not.toContain('_ngcontent');
+      expect(svg).not.toContain('selectorParentGroup');
+      expect(svg).not.toContain('url(#grid)');
+      expect(svg).not.toContain('translate(40, 30)');
+    });
+
+    it('excludes hidden-layer and deleting elements', async () => {
+      await service.save(FormatType.Svg, 'b');
+      const svg = capturedSvg();
+      expect(svg).toContain('data-wb-id="a"');
+      expect(svg).not.toContain('data-wb-id="hidden"');
+      expect(svg).not.toContain('data-wb-id="gone"');
+    });
+
+    it('requests output size scaled from the crop', async () => {
+      await service.save(FormatType.Png, 'b', { scale: 2 });
+      expect(mockSvgToBase64).toHaveBeenCalledWith(expect.any(String), 268, 168, FormatType.Png);
+    });
+
+    it('honours custom padding', async () => {
+      await service.save(FormatType.Png, 'b', { padding: 0 });
+      expect(mockSvgToBase64).toHaveBeenCalledWith(expect.any(String), 102, 52, FormatType.Png);
+    });
+
+    it('excludes a hidden-layer element even when it is selected', async () => {
+      mockSelectionService.getSelectedIds = jest.fn().mockReturnValue(['hidden']);
+      await service.save(FormatType.Png, 'b', { onlySelected: true });
+      expect(mockSvgToBase64).toHaveBeenCalledWith(expect.any(String), 800, 600, FormatType.Png);
+      expect(capturedSvg()).not.toContain('data-wb-id="hidden"');
+      expect(capturedSvg()).not.toContain('data-wb-id="a"');
+    });
+
+    it('keeps only selected visible elements when onlySelected', async () => {
+      mockSelectionService.getSelectedIds = jest.fn().mockReturnValue(['a', 'hidden']);
+      await service.save(FormatType.Svg, 'b', { onlySelected: true });
+      expect(capturedSvg()).toContain('viewBox="-7 -7 134 84"');
+    });
+
+    it('removes the background when transparent', async () => {
+      await service.save(FormatType.Svg, 'b', { background: false });
+      expect(capturedSvg()).not.toContain('contentBackground');
+    });
+
+    it('fits the background rect to the crop', async () => {
+      await service.save(FormatType.Svg, 'b');
+      expect(capturedSvg()).toMatch(/<rect[^>]*id="contentBackground"[^>]*>/);
+      expect(capturedSvg()).toContain('x="-7"');
+    });
+
+    it('exports the canvas box when the board is empty', async () => {
+      mockElementsService.getElements.mockReturnValue([]);
+      await service.save(FormatType.Png, 'b');
+      expect(mockSvgToBase64).toHaveBeenCalledWith(expect.any(String), 800, 600, FormatType.Png);
+      expect(capturedSvg()).toContain('viewBox="0 0 800 600"');
+    });
+
+    it('renderExport returns the data url and size without downloading or emitting', async () => {
+      const result = await service.renderExport(FormatType.Png, { scale: 2 });
+      expect(result).toEqual({ dataUrl: 'data:image/png;base64,AAAA', width: 268, height: 168 });
+      expect(mockDownloadFile).not.toHaveBeenCalled();
+      expect(mockEventBusService.emit).not.toHaveBeenCalled();
+    });
+
+    describe('copyToClipboard', () => {
+      const original = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
+      class FakeClipboardItem {
+        constructor(public items: Record<string, Blob>) {}
+      }
+
+      afterEach(() => {
+        if (original) Object.defineProperty(navigator, 'clipboard', original);
+        else delete (navigator as unknown as Record<string, unknown>)['clipboard'];
+        delete (globalThis as Record<string, unknown>)['ClipboardItem'];
+      });
+
+      it('writes a png item', async () => {
+        const write = jest.fn().mockResolvedValue(undefined);
+        Object.defineProperty(navigator, 'clipboard', { value: { write }, configurable: true });
+        (globalThis as Record<string, unknown>)['ClipboardItem'] = FakeClipboardItem;
+
+        await service.copyToClipboard(FormatType.Png);
+
+        expect(write).toHaveBeenCalledTimes(1);
+        const item = write.mock.calls[0][0][0] as FakeClipboardItem;
+        expect(item.items['image/png'].type).toBe('image/png');
+      });
+
+      it('writes svg as text', async () => {
+        const writeText = jest.fn().mockResolvedValue(undefined);
+        Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+
+        await service.copyToClipboard(FormatType.Svg);
+
+        expect(writeText).toHaveBeenCalledWith(expect.stringContaining('viewBox="-7 -7 134 84"'));
+      });
+
+      it('rejects when image copy is unsupported', async () => {
+        Object.defineProperty(navigator, 'clipboard', { value: {}, configurable: true });
+        await expect(service.copyToClipboard(FormatType.Png)).rejects.toThrow(/not supported/i);
+      });
     });
   });
 });
