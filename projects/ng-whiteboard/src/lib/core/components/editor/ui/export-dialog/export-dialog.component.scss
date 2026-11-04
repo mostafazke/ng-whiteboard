@@ -202,6 +202,17 @@
   gap: var(--wb-space-2);
   margin-top: var(--wb-space-4);
 
+  .wb-export-status {
+    flex: 1 1 auto;
+    align-self: center;
+    min-width: 0;
+  }
+
+  .wb-export-error {
+    color: var(--wb-color-danger);
+    font-size: 0.8125rem;
+  }
+
   .wb-export-btn {
     min-height: 36px;
     padding: 0 var(--wb-space-4);

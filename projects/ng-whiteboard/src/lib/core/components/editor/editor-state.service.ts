@@ -50,7 +50,7 @@ export interface ExportSettings {
   background: boolean;
 }
 
-const COPY_PADDING = 16;
+export const EXPORT_PADDING = 16;
 
 @Injectable()
 export class EditorStateService implements OnDestroy {
@@ -673,7 +673,8 @@ export class EditorStateService implements OnDestroy {
     try {
       await this.ioService.save(format, name, options);
       return true;
-    } catch {
+    } catch (error) {
+      console.error('Failed to export image:', error);
       return false;
     }
   }
@@ -711,7 +712,7 @@ export class EditorStateService implements OnDestroy {
       await this.ioService.copyToClipboard(FormatType.Png, {
         scale,
         background,
-        padding: COPY_PADDING,
+        padding: EXPORT_PADDING,
         onlySelected: this.hasSelectionSignal(),
       });
     } catch (error) {

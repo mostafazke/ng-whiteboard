@@ -73,7 +73,7 @@ describe('ExportDialogComponent', () => {
   it('shows the rendered export as the preview image', async () => {
     await create();
     expect(q<HTMLImageElement>('img.wb-export-preview-img')?.src).toBe('data:image/png;base64,AAA');
-    expect(state.renderExport).toHaveBeenCalledWith(FormatType.Png, defaultOptions);
+    expect(state.renderExport).toHaveBeenCalledWith(FormatType.Png, { ...defaultOptions, scale: 1 });
   });
 
   it('shows a checkerboard when the background is off', async () => {
@@ -84,12 +84,14 @@ describe('ExportDialogComponent', () => {
     expect(q('.wb-export-preview')?.classList).toContain('is-transparent');
   });
 
-  it('debounces re-rendering when options change', async () => {
+  it('debounces re-rendering when options change, and renders the preview at scale 1', async () => {
     await create();
     state.renderExport.mockClear();
+    q<HTMLElement>('[role="switch"][aria-label="Background"]')?.click();
+    fixture.detectChanges();
     radio('Scale', '3×').click();
     fixture.detectChanges();
-    radio('Scale', '1×').click();
+    q<HTMLElement>('[role="switch"][aria-label="Background"]')?.click();
     fixture.detectChanges();
     jest.advanceTimersByTime(100);
     expect(state.renderExport).not.toHaveBeenCalled();
@@ -154,6 +156,66 @@ describe('ExportDialogComponent', () => {
     q<HTMLButtonElement>('.wb-export-download')?.click();
     await flush(0);
     expect(state.exportImage).toHaveBeenCalledWith(FormatType.Png, 'plan', defaultOptions);
+  });
+
+  it('sanitises the filename', async () => {
+    await create();
+    const input = q<HTMLInputElement>('input.wb-export-filename') as HTMLInputElement;
+    const download = async (value: string) => {
+      input.value = value;
+      input.dispatchEvent(new Event('input'));
+      q<HTMLButtonElement>('.wb-export-download')?.click();
+      await flush(0);
+      return state.exportImage.mock.lastCall[1];
+    };
+    expect(await download('plan.PNG')).toBe('plan');
+    expect(await download('a/b\\c:d')).toBe('a-b-c-d');
+    expect(await download('  .png ')).toBe('Sprint');
+  });
+
+  describe('failures', () => {
+    it('announces a failed download, keeps the dialog open and clears on the next option change', async () => {
+      state.exportImage.mockResolvedValue(false);
+      await create();
+      q<HTMLButtonElement>('.wb-export-download')?.click();
+      await flush(0);
+      expect(q('.wb-export-error')?.textContent).toContain('Export failed');
+      expect(q('.wb-export-status')?.getAttribute('aria-live')).toBe('polite');
+      expect(host.closedCount).toBe(0);
+      radio('Scale', '3×').click();
+      await flush(0);
+      expect(q('.wb-export-error')).toBeNull();
+    });
+
+    it('announces a failed copy and clears on the next attempt', async () => {
+      setClipboard({ write: jest.fn(), writeText: jest.fn() });
+      (globalThis as { ClipboardItem?: unknown }).ClipboardItem = class {};
+      state.copyImage.mockResolvedValue(false);
+      await create();
+      q<HTMLButtonElement>('.wb-export-copy')?.click();
+      await flush(0);
+      expect(q('.wb-export-error')?.textContent).toContain("Couldn't copy");
+      expect(q('.wb-export-copy')?.textContent).not.toContain('Copied');
+      state.copyImage.mockResolvedValue(true);
+      q<HTMLButtonElement>('.wb-export-copy')?.click();
+      await flush(0);
+      expect(q('.wb-export-error')).toBeNull();
+    });
+  });
+
+  it('does not set the Copied state after destroy', async () => {
+    setClipboard({ write: jest.fn(), writeText: jest.fn() });
+    (globalThis as { ClipboardItem?: unknown }).ClipboardItem = class {};
+    let resolveCopy: (ok: boolean) => void = () => undefined;
+    state.copyImage.mockReturnValue(new Promise<boolean>((r) => (resolveCopy = r)));
+    await create();
+    q<HTMLButtonElement>('.wb-export-copy')?.click();
+    fixture.destroy();
+    const timersAfterDestroy = jest.getTimerCount();
+    resolveCopy(true);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(jest.getTimerCount()).toBe(timersAfterDestroy);
   });
 
   it('persists format, scale and background in the export settings', async () => {
