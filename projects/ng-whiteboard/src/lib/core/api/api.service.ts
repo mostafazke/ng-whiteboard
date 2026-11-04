@@ -90,6 +90,18 @@ export class ApiService {
     this.elementsService.clear();
   }
 
+  resetBoard(): void {
+    this.withLayerHistory('Reset canvas', () => {
+      this.elementsService.clear();
+      this.selectionService.clearSelection();
+      this.layerService.reset();
+    });
+  }
+
+  hasContent(): boolean {
+    return this.elementsService.getElements().length > 0;
+  }
+
   clearAll(): void {
     this.elementsService.clear();
     this.selectionService.clearSelection();

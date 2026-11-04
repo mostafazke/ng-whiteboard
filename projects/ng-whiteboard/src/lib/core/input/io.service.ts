@@ -14,6 +14,7 @@ import { ZoomService } from '../viewport/zoom.service';
 import { LayerManagementService } from '../elements/layer-management.service';
 import { ConfigService } from '../config/config.service';
 import { isTheme } from '../config/theme-colors';
+import { HistoryService } from '../history/history.service';
 
 /**
  * Handles import/export operations for the whiteboard including images, state serialization, and various export formats.
@@ -28,7 +29,8 @@ export class IOService {
     private eventBusService: EventBusService,
     private selectionService: SelectionService,
     private layerManagementService: LayerManagementService,
-    private configService: ConfigService
+    private configService: ConfigService,
+    private historyService: HistoryService
   ) {}
 
   addImage(imageInfo: AddImage): void {
@@ -267,13 +269,26 @@ export class IOService {
         throw new Error('Invalid data format: elements array not found');
       }
 
-      this.elementsService.clear();
+      const before = this.elementsService.getElements();
+      const batch = this.historyService.startBatch(
+        'Open board',
+        before,
+        this.layerManagementService.exportLayerState(before)
+      );
+      try {
+        this.elementsService.clear();
 
-      if (data.layers) {
-        this.layerManagementService.importLayerState(data.layers);
+        if (data.layers) {
+          this.layerManagementService.importLayerState(data.layers);
+        } else {
+          this.layerManagementService.reset();
+        }
+
+        this.elementsService.setElements(data.elements);
+      } finally {
+        const after = this.elementsService.getElements();
+        batch.execute(after, this.layerManagementService.exportLayerState(after));
       }
-
-      this.elementsService.setElements(data.elements);
 
       if (data.canvas) {
         const { canvas } = data;

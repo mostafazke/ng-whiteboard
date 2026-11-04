@@ -3,6 +3,7 @@ import { ElementsService } from '../elements/elements.service';
 import { LayerManagementService } from '../elements/layer-management.service';
 import { HistoryService } from '../history/history.service';
 import { ElementType, WhiteboardElement } from '../types';
+import { IOService } from '../input/io.service';
 import { ApiService } from './api.service';
 
 describe('ApiService undoable layer operations', () => {
@@ -193,5 +194,106 @@ describe('ApiService undoable layer operations', () => {
     expect(stackSize()).toBe(1);
     api.undo();
     expect(layerOf(top)?.opacity).toBe(1);
+  });
+});
+
+describe('Whole-board operations', () => {
+  let api: ApiService;
+  let io: IOService;
+  let history: HistoryService;
+  let layers: LayerManagementService;
+  let elements: ElementsService;
+
+  const el = (id: string, layerId?: string) =>
+    ({ id, type: ElementType.Rectangle, x: 0, y: 0, zIndex: 1, layerId }) as unknown as WhiteboardElement;
+
+  const stackSize = () => {
+    let n = 0;
+    while (api.undo()) n++;
+    for (let i = 0; i < n; i++) api.redo();
+    return n;
+  };
+
+  const ids = () =>
+    elements
+      .getElements()
+      .map((e) => e.id)
+      .sort();
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({ providers: [ApiService] });
+    api = TestBed.inject(ApiService);
+    io = TestBed.inject(IOService);
+    history = TestBed.inject(HistoryService);
+    layers = TestBed.inject(LayerManagementService);
+    elements = TestBed.inject(ElementsService);
+    const second = layers.addLayer('Second').id;
+    elements.setElements([el('a', layers.layers()[0].id), el('b', second), el('c', second)]);
+    history.clearHistory();
+  });
+
+  const opened = () => {
+    const layerList = [
+      { id: 'L1', name: 'One', visible: true, locked: false, zIndex: 0, elements: [], opacity: 1, blendMode: 'normal' },
+      { id: 'L2', name: 'Two', visible: true, locked: false, zIndex: 1, elements: [], opacity: 1, blendMode: 'normal' },
+      { id: 'L3', name: 'Three', visible: true, locked: false, zIndex: 2, elements: [], opacity: 1, blendMode: 'normal' },
+    ];
+    return JSON.stringify({
+      elements: [el('x', 'L1'), el('y', 'L3')],
+      layers: { layers: layerList, activeLayerId: 'L3' },
+    });
+  };
+
+  it('importData is exactly one undo step restoring elements and layers', () => {
+    const layerIdsBefore = layers.layers().map((l) => l.id);
+    io.importData(opened());
+    expect(ids()).toEqual(['x', 'y']);
+    const layerIdsAfter = layers.layers().map((l) => l.id);
+    expect(layerIdsAfter).toEqual(['L1', 'L2', 'L3']);
+    expect(stackSize()).toBe(1);
+
+    api.undo();
+    expect(ids()).toEqual(['a', 'b', 'c']);
+    expect(layers.layers().map((l) => l.id)).toEqual(layerIdsBefore);
+
+    api.redo();
+    expect(ids()).toEqual(['x', 'y']);
+    expect(layers.layers().map((l) => l.id)).toEqual(layerIdsAfter);
+    expect(layers.getActiveLayerId()).toBe('L3');
+  });
+
+  it('importData records the step as Open board', () => {
+    io.importData(opened());
+    expect(history.getUndoDescriptionSignal()()).toBe('Open board');
+  });
+
+  it('importData without layers yields one default layer with visible elements', () => {
+    io.importData(JSON.stringify({ elements: [el('p'), el('q')] }));
+    expect(layers.layers().length).toBe(1);
+    expect(ids()).toEqual(['p', 'q']);
+    const layerId = layers.layers()[0].id;
+    expect(elements.getElements().every((e) => !e.layerId || e.layerId === layerId)).toBe(true);
+    expect(stackSize()).toBe(1);
+  });
+
+  it('resetBoard clears elements, keeps one layer, and is one undoable step', () => {
+    api.resetBoard();
+    expect(elements.getElements().length).toBe(0);
+    expect(layers.layers().length).toBe(1);
+    expect(stackSize()).toBe(1);
+
+    api.undo();
+    expect(ids()).toEqual(['a', 'b', 'c']);
+    expect(layers.layers().length).toBe(2);
+
+    api.redo();
+    expect(elements.getElements().length).toBe(0);
+    expect(layers.layers().length).toBe(1);
+  });
+
+  it('hasContent reflects persistent elements', () => {
+    expect(api.hasContent()).toBe(true);
+    api.resetBoard();
+    expect(api.hasContent()).toBe(false);
   });
 });

@@ -240,6 +240,22 @@ export class NgWhiteboardService {
   }
 
   /**
+   * Clear all elements and reset layers to a single default layer as one undoable step.
+   */
+  public resetBoard(): void {
+    const instance = this.getApi();
+    instance.resetBoard();
+  }
+
+  /**
+   * Whether the board has any elements.
+   */
+  public hasContent(): boolean {
+    const instance = this.getApi();
+    return instance.hasContent();
+  }
+
+  /**
    * Clear all elements and selection.
    */
   public clearAll(): void {
