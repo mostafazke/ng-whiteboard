@@ -178,7 +178,15 @@
     [opener]="sheetOpenerSignal()"
     [focusFallback]="root"
     (closed)="exportDialogOpen.set(false)"
-  ></ng-dialog>
+  >
+    @if (exportDialogOpen()) {
+      <wb-export-dialog
+        [hasSelection]="hasSelectionSignal()"
+        [title]="editorConfigSignal().title"
+        (closed)="exportDialogOpen.set(false)"
+      />
+    }
+  </ng-dialog>
 
   @if (confirmKind(); as kind) {
     <ng-confirm-dialog

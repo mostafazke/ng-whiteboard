@@ -39,6 +39,7 @@ describe('WhiteboardEditorComponent', () => {
     exportDataAsFile: jest.fn(),
     importDataFromFile: jest.fn().mockResolvedValue(undefined),
     copyToClipboard: jest.fn().mockResolvedValue(undefined),
+    renderExport: jest.fn().mockResolvedValue({ dataUrl: 'data:image/png;base64,AAA', width: 1, height: 1 }),
   };
 
   const altP = (): KeyboardEvent =>
@@ -607,6 +608,46 @@ describe('WhiteboardEditorComponent', () => {
       choose('Export image…');
       expect(component.exportDialogOpen()).toBe(true);
       expect(q('ng-dialog [role="dialog"] h2').textContent).toContain('Export image');
+    });
+
+    it('the export dialog previews the render and downloads the board under its title', async () => {
+      mount(false);
+      component.editorStateService.updateTitle('Sprint');
+      choose('Export image…');
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      fixture.detectChanges();
+      expect(q<HTMLImageElement>('wb-export-dialog img').src).toBe('data:image/png;base64,AAA');
+      q<HTMLButtonElement>('.wb-export-download').click();
+      expect(ioServiceMock.save).toHaveBeenCalledWith('png', 'Sprint', {
+        scale: 2,
+        background: true,
+        padding: 16,
+        onlySelected: false,
+      });
+    });
+
+    it('Escape closes the export dialog and returns focus to the menu trigger', () => {
+      mount(false);
+      const trigger = q<HTMLButtonElement>('ng-header-panel .menu-btn');
+      choose('Export image…');
+      press(q('ng-dialog [role="dialog"]'), { key: 'Escape' });
+      fixture.detectChanges();
+      expect(component.exportDialogOpen()).toBe(false);
+      expect(q('wb-export-dialog')).toBeNull();
+      expect(document.activeElement).toBe(trigger);
+    });
+
+    it('a scale chosen in the export dialog is remembered when it reopens', () => {
+      mount(false);
+      choose('Export image…');
+      Array.from(document.querySelectorAll<HTMLElement>('[aria-label="Scale"] [role="radio"]'))
+        .find((b) => b.textContent?.trim() === '3×')
+        ?.click();
+      component.exportDialogOpen.set(false);
+      fixture.detectChanges();
+      component.exportDialogOpen.set(true);
+      fixture.detectChanges();
+      expect(q('[aria-label="Scale"] [role="radio"][aria-checked="true"]').textContent?.trim()).toBe('3×');
     });
 
     it('Copy as PNG copies with the export settings', () => {

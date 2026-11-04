@@ -30,6 +30,7 @@ import { ToolbarComponent } from './panels/toolbar/toolbar.component';
 import { BottomSheetComponent } from './ui/bottom-sheet/bottom-sheet.component';
 import { ConfirmDialogComponent } from './ui/confirm-dialog/confirm-dialog.component';
 import { DialogComponent } from './ui/dialog/dialog.component';
+import { ExportDialogComponent } from './ui/export-dialog/export-dialog.component';
 import { MenuComponent } from './ui/menu/menu.component';
 import { AlignmentType } from './utils/alignment';
 import {
@@ -65,6 +66,7 @@ function isCanvasKey(event: KeyboardEvent): boolean {
     LayerPanelComponent,
     MenuComponent,
     DialogComponent,
+    ExportDialogComponent,
     ConfirmDialogComponent,
   ],
   templateUrl: './whiteboard-editor.component.html',

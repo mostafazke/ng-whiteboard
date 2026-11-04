@@ -16,6 +16,7 @@ import {
   BlendMode,
   EditorConfig,
   ElementType,
+  ExportOptions,
   FormatType,
   LineCap,
   PenType,
@@ -45,7 +46,7 @@ export interface Layer {
 
 export interface ExportSettings {
   format: 'png' | 'svg';
-  scale: number;
+  scale: 1 | 2 | 3;
   background: boolean;
 }
 
@@ -661,6 +662,29 @@ export class EditorStateService implements OnDestroy {
       await this.ioService.save(format, title || DEFAULT_BOARD_TITLE);
     } catch {
       // IOService already logs the failure
+    }
+  }
+
+  renderExport(format: FormatType.Png | FormatType.Svg, options: ExportOptions) {
+    return this.ioService.renderExport(format, options);
+  }
+
+  async exportImage(format: FormatType.Png | FormatType.Svg, name: string, options: ExportOptions): Promise<boolean> {
+    try {
+      await this.ioService.save(format, name, options);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async copyImage(format: FormatType.Png | FormatType.Svg, options: ExportOptions): Promise<boolean> {
+    try {
+      await this.ioService.copyToClipboard(format, options);
+      return true;
+    } catch (error) {
+      console.error('Failed to copy image:', error);
+      return false;
     }
   }
 
