@@ -2,7 +2,13 @@
   <header class="lp-header">
     <h3 class="lp-title">Layers</h3>
     <div class="lp-header-actions">
-      <button type="button" class="lp-btn lp-add" aria-label="Add layer" title="Add layer" (click)="emit({ type: 'add' })">
+      <button
+        type="button"
+        class="lp-btn lp-add"
+        aria-label="Add layer"
+        title="Add layer"
+        (click)="action.emit({ type: 'add' })"
+      >
         <ng-icon name="plus"></ng-icon>
       </button>
       @if (showClose()) {
@@ -29,10 +35,9 @@
           [attr.aria-current]="layer.id === activeLayerId() ? 'true' : null"
           [class.active]="layer.id === activeLayerId()"
           [class.is-hidden]="!layer.visible"
-          [class.is-locked]="layer.locked"
           [class.menu-open]="menuId() === layer.id"
           [class.dragging]="drag()?.from === i && drag()!.to !== i"
-          (click)="emit({ type: 'select', id: layer.id })"
+          (click)="action.emit({ type: 'select', id: layer.id })"
           (keydown)="onRowKeydown($event, layer, i)"
         >
           @if (rows().length > 1) {
@@ -162,7 +167,12 @@
         }
 
         @if (confirmId() === layer.id) {
-          <div class="lp-confirm" role="alertdialog" aria-label="Delete layer" (keydown.escape)="$event.stopPropagation(); cancelDelete(layer)">
+          <div
+            class="lp-confirm"
+            role="alertdialog"
+            aria-label="Delete layer"
+            (keydown.escape)="$event.stopPropagation(); cancelDelete(layer)"
+          >
             <p>{{ deleteMessage(layer) }}</p>
             <div class="lp-confirm-actions">
               <button type="button" class="lp-confirm-cancel" (click)="cancelDelete(layer)">Cancel</button>

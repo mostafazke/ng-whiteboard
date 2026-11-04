@@ -1,5 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { ArrowElement, ArrowheadConfig, ArrowheadType } from '../elements';
+import { arrowheadSize } from '../utils/drawing/arrowhead';
 // ArrowPathType is accessed via element.pathType
 
 export interface ArrowheadRenderItem {
@@ -245,9 +246,7 @@ export class ArrowheadPipe implements PipeTransform {
       return null;
     }
 
-    // Arrowhead size grows gently with stroke width (3× ratio keeps heads proportional
-    // without aggressively shortening the line body)
-    const size = Math.max(12, strokeWidth * 3);
+    const size = arrowheadSize(strokeWidth);
 
     let def: ArrowheadPathDef;
 

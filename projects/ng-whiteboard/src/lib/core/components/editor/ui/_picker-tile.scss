@@ -1,6 +1,6 @@
 @use '../breakpoints' as bp;
 
-/// Tile-style radio option whose content is a preview drawn in the user's stroke color.
+// Tile-style radio option whose content is a preview drawn in the user's stroke color.
 @mixin picker-tile($height: 40px) {
   display: flex;
   align-items: center;

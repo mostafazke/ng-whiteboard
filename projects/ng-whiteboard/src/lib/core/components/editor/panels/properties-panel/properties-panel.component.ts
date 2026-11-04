@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, EventEmitter, input, Output } from '@angular/core';
 import { ArrowheadType } from '../../../../elements';
 import {
@@ -11,7 +10,7 @@ import {
 } from '../../../../types';
 import { AlignmentType } from '../../utils/alignment';
 import { IconComponent } from '../../icon/icon.component';
-import { LineStyle, lineStyleOf } from '../../utils/dasharray';
+import { lineStyleOf } from '../../utils/dasharray';
 import { MIXED, SelectedProperties } from '../../utils/selected-properties';
 import { PropertySection, sectionsForElements, sectionsForTool } from '../../utils/shape-capabilities';
 import { ColorPickerComponent } from '../../ui/color-picker/color-picker.component';
@@ -47,7 +46,6 @@ const ARROW_PATH_OPTIONS: readonly SegmentedOption[] = [
   selector: 'ng-properties-panel',
   standalone: true,
   imports: [
-    CommonModule,
     IconComponent,
     ColorPickerComponent,
     AlignmentControlsComponent,
@@ -66,7 +64,7 @@ const ARROW_PATH_OPTIONS: readonly SegmentedOption[] = [
               title="Toggle Grid"
               aria-label="Toggle Grid"
               class="icon-btn"
-              (click)="onGridToggle()"
+              (click)="gridToggle.emit()"
               [class.active]="config().enableGrid"
             >
               <ng-icon name="grid"></ng-icon>
@@ -75,7 +73,7 @@ const ARROW_PATH_OPTIONS: readonly SegmentedOption[] = [
               title="Snap to Grid"
               aria-label="Snap to Grid"
               class="icon-btn"
-              (click)="onSnapToggle()"
+              (click)="snapToggle.emit()"
               [class.active]="config().snapToGrid"
             >
               <ng-icon name="snap"></ng-icon>
@@ -84,18 +82,13 @@ const ARROW_PATH_OPTIONS: readonly SegmentedOption[] = [
               title="Delete"
               aria-label="Delete"
               class="icon-btn danger"
-              (click)="onDelete()"
+              (click)="deleteSelected.emit()"
               [disabled]="!hasSelection()"
             >
               <ng-icon name="clear"></ng-icon>
             </button>
             <div class="flex-spacer"></div>
-            <button
-              title="Close Panel"
-              aria-label="Close Panel"
-              class="icon-btn toggle-panel"
-              (click)="togglePanel.emit()"
-            >
+            <button title="Close Panel" aria-label="Close Panel" class="icon-btn" (click)="togglePanel.emit()">
               <ng-icon [name]="embedded() ? 'close' : 'panelRightClose'"></ng-icon>
             </button>
           </div>
@@ -181,7 +174,7 @@ const ARROW_PATH_OPTIONS: readonly SegmentedOption[] = [
                         [color]="strokeColorValue()"
                         [width]="strokeWidthNumber()"
                         [lineCap]="lineCapValue()"
-                        (valueChange)="onLineStyleChange($event)"
+                        (valueChange)="emitChange('lineStyle', $event)"
                       ></wb-line-style-picker>
                     </div>
                   }
@@ -327,14 +320,16 @@ const ARROW_PATH_OPTIONS: readonly SegmentedOption[] = [
                 </div>
               }
 
-              <div class="control-group" *ngIf="hasSelection() && selectedElements().length > 1">
-                <label class="group-label">Alignment</label>
-                <ng-alignment-controls
-                  [selectedElements]="selectedElements()"
-                  (alignmentChange)="onAlignmentChange($event)"
-                >
-                </ng-alignment-controls>
-              </div>
+              @if (selectedElements().length > 1) {
+                <div class="control-group">
+                  <label class="group-label">Alignment</label>
+                  <ng-alignment-controls
+                    [selectedElements]="selectedElements()"
+                    (alignmentChange)="alignmentChange.emit($event)"
+                  >
+                  </ng-alignment-controls>
+                </div>
+              }
             </div>
           </div>
 
@@ -348,7 +343,9 @@ const ARROW_PATH_OPTIONS: readonly SegmentedOption[] = [
                     [value]="isMixed(fontFamilyValue()) ? '' : fontFamilyValue()"
                     (change)="onPropertyChange('fontFamily', $event)"
                   >
-                    <option *ngIf="isMixed(fontFamilyValue())" value="" disabled selected>Mixed</option>
+                    @if (isMixed(fontFamilyValue())) {
+                      <option value="" disabled selected>Mixed</option>
+                    }
                     <option value="Arial">Arial</option>
                     <option value="Helvetica">Helvetica</option>
                     <option value="Times New Roman">Times New Roman</option>
@@ -407,15 +404,16 @@ const ARROW_PATH_OPTIONS: readonly SegmentedOption[] = [
         </div>
       </div>
 
-      <button
-        *ngIf="!isOpen() && !embedded()"
-        class="panel-toggle-btn"
-        title="Open Properties Panel"
-        aria-label="Open Properties Panel"
-        (click)="togglePanel.emit()"
-      >
-        <ng-icon name="panelRightOpen"></ng-icon>
-      </button>
+      @if (!isOpen() && !embedded()) {
+        <button
+          class="panel-toggle-btn"
+          title="Open Properties Panel"
+          aria-label="Open Properties Panel"
+          (click)="togglePanel.emit()"
+        >
+          <ng-icon name="panelRightOpen"></ng-icon>
+        </button>
+      }
     </div>
   `,
   styleUrl: './properties-panel.component.scss',
@@ -446,7 +444,6 @@ export class PropertiesPanelComponent {
   protected readonly arrowPathOptions = ARROW_PATH_OPTIONS;
   protected brushName = computed(() => penTypeLabel(this.config().penType));
 
-  selectedElement = computed(() => this.selectedElements()[0] || null);
   hasSelection = computed(() => this.selectedElements().length > 0);
 
   sections = computed(() =>
@@ -461,61 +458,13 @@ export class PropertiesPanelComponent {
       : this.activeTool() === ToolType.Text
   );
 
-  strokeColorValue = computed(() => {
-    const props = this.selectedProperties();
-    if (props) return props.strokeColor;
-    const element = this.selectedElement();
-    if (!element) return this.config().strokeColor;
-    return element.style.strokeColor || this.config().strokeColor;
-  });
-
-  fillColorValue = computed(() => {
-    const props = this.selectedProperties();
-    if (props) return props.fillColor;
-    const element = this.selectedElement();
-    if (!element) return this.config().fill;
-    return element.style.fill || this.config().fill;
-  });
-
-  strokeWidthValue = computed(() => {
-    const props = this.selectedProperties();
-    if (props) return props.strokeWidth;
-    const element = this.selectedElement();
-    if (!element) return this.config().strokeWidth;
-    return element.style.strokeWidth || this.config().strokeWidth;
-  });
-
-  opacityValue = computed(() => {
-    const props = this.selectedProperties();
-    if (props) return props.opacity;
-    const element = this.selectedElement();
-    if (!element) return 100;
-    return element.opacity ?? 100;
-  });
-
-  fontSizeValue = computed(() => {
-    const props = this.selectedProperties();
-    if (props?.fontSize !== undefined) return props.fontSize;
-    const element = this.selectedElement();
-    if (!element || element.type !== ElementType.Text) return this.config().fontSize;
-    return element.style.fontSize || this.config().fontSize;
-  });
-
-  fontFamilyValue = computed(() => {
-    const props = this.selectedProperties();
-    if (props?.fontFamily !== undefined) return props.fontFamily;
-    const element = this.selectedElement();
-    if (!element || element.type !== ElementType.Text) return this.config().fontFamily;
-    return element.style.fontFamily || this.config().fontFamily;
-  });
-
-  dashArrayValue = computed(() => {
-    const props = this.selectedProperties();
-    if (props) return props.dasharray;
-    const element = this.selectedElement();
-    if (!element) return this.config().dasharray || '';
-    return element.style.dasharray || '';
-  });
+  strokeColorValue = computed(() => this.selectedProperties()?.strokeColor ?? this.config().strokeColor);
+  fillColorValue = computed(() => this.selectedProperties()?.fillColor ?? this.config().fill);
+  strokeWidthValue = computed(() => this.selectedProperties()?.strokeWidth ?? this.config().strokeWidth);
+  opacityValue = computed(() => this.selectedProperties()?.opacity ?? 100);
+  fontSizeValue = computed(() => this.selectedProperties()?.fontSize ?? this.config().fontSize);
+  fontFamilyValue = computed(() => this.selectedProperties()?.fontFamily ?? this.config().fontFamily);
+  dashArrayValue = computed(() => this.selectedProperties()?.dasharray ?? (this.config().dasharray || ''));
 
   lineCapValue = computed(() => this.selectedProperties()?.lineCap ?? this.config().lineCap);
   cornerRadiusValue = computed(
@@ -582,39 +531,11 @@ export class PropertiesPanelComponent {
     this.propertyChange.emit({ property, value: Number((event.target as HTMLInputElement).value) });
   }
 
-  onGridToggle() {
-    this.gridToggle.emit();
-  }
-
-  onSnapToggle() {
-    this.snapToggle.emit();
-  }
-
-  onDelete() {
-    this.deleteSelected.emit();
-  }
-
-  onAlignmentChange(alignment: AlignmentType) {
-    this.alignmentChange.emit(alignment);
-  }
-
   toggleBold() {
-    const currentValue = this.isBold();
-    this.propertyChange.emit({
-      property: 'fontWeight',
-      value: currentValue ? 'normal' : 'bold',
-    });
+    this.emitChange('fontWeight', this.isBold() ? 'normal' : 'bold');
   }
 
   toggleItalic() {
-    const currentValue = this.isItalic();
-    this.propertyChange.emit({
-      property: 'fontStyle',
-      value: currentValue ? 'normal' : 'italic',
-    });
-  }
-
-  onLineStyleChange(style: LineStyle) {
-    this.propertyChange.emit({ property: 'lineStyle', value: style });
+    this.emitChange('fontStyle', this.isItalic() ? 'normal' : 'italic');
   }
 }

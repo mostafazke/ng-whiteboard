@@ -1,8 +1,6 @@
-import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  computed,
   effect,
   ElementRef,
   EventEmitter,
@@ -12,13 +10,12 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { EditorConfig } from '../../../../types';
-import { Layer, SaveState } from '../../editor-state.service';
+import { EditorConfig, WhiteboardLayer } from '../../../../types';
+import { SaveState } from '../../editor-state.service';
 import { IconComponent } from '../../icon/icon.component';
 import { EditableTitleComponent } from '../../ui/editable-title/editable-title.component';
 import { MenuComponent } from '../../ui/menu/menu.component';
 import { MainMenuActionId, MainMenuItem } from '../../utils/editor-actions';
-import { toWhiteboardLayers } from '../../utils/whiteboard-layers';
 import { LayerPanelAction, LayerPanelComponent } from '../layer-panel/layer-panel.component';
 
 let nextMenuId = 0;
@@ -26,7 +23,7 @@ let nextMenuId = 0;
 @Component({
   selector: 'ng-header-panel',
   standalone: true,
-  imports: [CommonModule, IconComponent, LayerPanelComponent, MenuComponent, EditableTitleComponent],
+  imports: [IconComponent, LayerPanelComponent, MenuComponent, EditableTitleComponent],
   template: `
     <div class="header-panel">
       <div class="header-left">
@@ -76,16 +73,18 @@ let nextMenuId = 0;
             <ng-icon name="layers"></ng-icon>
           </button>
 
-          <div class="layers-dropdown" [id]="layersMenuId" *ngIf="showLayers() && !compact()">
-            <ng-layer-panel
-              [layers]="panelLayers()"
-              [activeLayerId]="activeLayerId()"
-              [showClose]="true"
-              (action)="layerAction.emit($event)"
-              (closed)="closeLayers()"
-            >
-            </ng-layer-panel>
-          </div>
+          @if (showLayers() && !compact()) {
+            <div class="layers-dropdown" [id]="layersMenuId">
+              <ng-layer-panel
+                [layers]="layers()"
+                [activeLayerId]="activeLayerId()"
+                [showClose]="true"
+                (action)="layerAction.emit($event)"
+                (closed)="closeLayers()"
+              >
+              </ng-layer-panel>
+            </div>
+          }
         </div>
       </div>
 
@@ -118,7 +117,7 @@ export class HeaderPanelComponent {
   private menuTrigger = viewChild<ElementRef<HTMLButtonElement>>('menuTrigger');
   private menuWrapper = viewChild<ElementRef<HTMLElement>>('menuWrapper');
   editorConfig = input<EditorConfig>({} as EditorConfig);
-  layers = input<Layer[]>([]);
+  layers = input<WhiteboardLayer[]>([]);
   activeLayerId = input<string>('');
   showLayers = input<boolean>(false);
   compact = input<boolean>(false);
@@ -131,7 +130,6 @@ export class HeaderPanelComponent {
   fileName = input<string | null>(null);
 
   protected menuPopoverOpen = signal(false);
-  protected panelLayers = computed(() => toWhiteboardLayers(this.layers()));
 
   @Output() titleChange = new EventEmitter<string>();
   @Output() layersToggle = new EventEmitter<HTMLElement | null>();
@@ -176,8 +174,8 @@ export class HeaderPanelComponent {
     this.closeMenu(false);
   }
 
-  toggleLayers(event?: Event) {
-    this.layersToggle.emit((event?.currentTarget as HTMLElement | null) ?? null);
+  toggleLayers(event: Event) {
+    this.layersToggle.emit(event.currentTarget as HTMLElement);
   }
 
   onEscape(event: Event) {

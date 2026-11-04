@@ -143,7 +143,7 @@
     >
       <ng-layer-panel
         class="wb-sheet-layers"
-        [layers]="whiteboardLayersSignal()"
+        [layers]="layersSignal()"
         [activeLayerId]="activeLayerIdSignal()"
         (action)="onLayerAction($event)"
       >
@@ -191,7 +191,6 @@
 
   @if (confirmKind(); as kind) {
     <ng-confirm-dialog
-      [open]="true"
       [message]="confirmCopy[kind].message"
       [confirmLabel]="confirmCopy[kind].confirmLabel"
       [compact]="isCompact()"

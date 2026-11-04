@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -28,17 +27,16 @@ const COLOR_EDIT_SETTLE_MS = 400;
 @Component({
   selector: 'ng-color-picker',
   standalone: true,
-  imports: [CommonModule],
   template: `
     <div class="color-picker-container">
       <div class="color-swatches">
         <button
           class="custom-color-swatch"
           (click)="openCustomPicker()"
-          [attr.title]="isMixed ? 'Mixed' : 'Custom color: ' + currentColor"
+          [attr.title]="isMixed ? 'Mixed' : 'Custom color: ' + color"
           [attr.aria-label]="isMixed ? 'Mixed' : 'Custom color'"
         >
-          <div class="color-preview" [style.backgroundColor]="isMixed ? null : currentColor"></div>
+          <div class="color-preview" [style.backgroundColor]="isMixed ? null : color"></div>
           <input
             #colorInput
             type="color"
@@ -52,16 +50,17 @@ const COLOR_EDIT_SETTLE_MS = 400;
           />
         </button>
         <div class="color-separator"></div>
-        <button
-          *ngFor="let color of presetColors; trackBy: trackByColor"
-          class="color-swatch"
-          [style.backgroundColor]="color"
-          [class.active]="!isMixed && color === value"
-          (click)="selectPresetColor(color)"
-          [attr.title]="color"
-          [attr.aria-label]="'Color ' + color"
-          [attr.aria-pressed]="!isMixed && color === value"
-        ></button>
+        @for (color of presetColors; track color) {
+          <button
+            class="color-swatch"
+            [style.backgroundColor]="color"
+            [class.active]="!isMixed && color === value"
+            (click)="colorChange.emit(color)"
+            [attr.title]="color"
+            [attr.aria-label]="'Color ' + color"
+            [attr.aria-pressed]="!isMixed && color === value"
+          ></button>
+        }
       </div>
     </div>
   `,
@@ -89,22 +88,16 @@ export class ColorPickerComponent implements OnDestroy {
     return this.value === MIXED;
   }
 
-  get currentColor(): string {
-    return this.value === MIXED ? NATIVE_SEEDS[this.seedIndex] : this.value;
+  /** The value when it is not mixed; the template reads it only then. */
+  get color(): string {
+    return this.value as string;
   }
 
   get nativeColor(): string {
     return this.value !== MIXED && HEX_COLOR.test(this.value) ? this.value : NATIVE_SEEDS[this.seedIndex];
   }
 
-  presetColors = [
-    '#000000', // Black
-    '#ef4444', // Red
-    '#eab308', // Yellow
-    '#3b82f6', // Blue
-    '#22c55e', // Green
-    '#ffffff', // White
-  ];
+  presetColors = ['#000000', '#ef4444', '#eab308', '#3b82f6', '#22c55e', '#ffffff'];
 
   onColorChange(event: Event) {
     const target = event.target as HTMLInputElement;
@@ -131,17 +124,7 @@ export class ColorPickerComponent implements OnDestroy {
     this.settleTimer = null;
   }
 
-  selectPresetColor(color: string) {
-    this.colorChange.emit(color);
-  }
-
   openCustomPicker() {
-    if (this.colorInput) {
-      this.colorInput.nativeElement.click();
-    }
-  }
-
-  trackByColor(index: number, color: string): string {
-    return color;
+    this.colorInput.nativeElement.click();
   }
 }

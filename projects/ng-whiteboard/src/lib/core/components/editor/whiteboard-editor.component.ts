@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import {
   afterNextRender,
   ChangeDetectionStrategy,
@@ -45,7 +44,6 @@ import {
   ZoomActionId,
 } from './utils/editor-actions';
 import { matchFileShortcut } from './utils/editor-shortcuts';
-import { toWhiteboardLayers } from './utils/whiteboard-layers';
 
 function isCanvasKey(event: KeyboardEvent): boolean {
   if (event.code === 'Space' || event.key === 'Delete' || event.key === 'Backspace') return true;
@@ -57,7 +55,6 @@ function isCanvasKey(event: KeyboardEvent): boolean {
   selector: 'ng-whiteboard-editor',
   standalone: true,
   imports: [
-    CommonModule,
     IconComponent,
     HeaderPanelComponent,
     HistoryPanelComponent,
@@ -83,7 +80,7 @@ export class WhiteboardEditorComponent {
   private destroyRef = inject(DestroyRef);
   private injector = inject(Injector);
   private root = viewChild.required<ElementRef<HTMLElement>>('root');
-  private fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
+  private fileInput = viewChild.required<ElementRef<HTMLInputElement>>('fileInput');
 
   /** A shortcut can reach both the root keydown binding and the board's keyDown$; act on each event once. */
   private readonly handledPanelShortcuts = new WeakSet<KeyboardEvent>();
@@ -122,7 +119,6 @@ export class WhiteboardEditorComponent {
   canUndoSignal = this.editorStateService.canUndoSignal;
   canRedoSignal = this.editorStateService.canRedoSignal;
   selectedPropertiesSignal = this.editorStateService.selectedPropertiesSignal;
-  whiteboardLayersSignal = computed(() => toWhiteboardLayers(this.layersSignal()));
   mainMenuItems = computed(() =>
     buildMainMenu({
       theme: this.themeSignal(),
@@ -258,7 +254,7 @@ export class WhiteboardEditorComponent {
         if (action.id) state.mergeLayerDown(action.id);
         break;
       case 'rename':
-        state.updateLayer(action.id, { name: action.name });
+        state.renameLayer(action.id, action.name);
         break;
       case 'reorder':
         state.reorderLayersByIndex(action.from, action.to);
@@ -327,7 +323,7 @@ export class WhiteboardEditorComponent {
 
   private openFilePicker() {
     if (this.editorStateService.canSaveInPlace) void this.editorStateService.pickAndOpenBoard();
-    else this.fileInput()?.nativeElement.click();
+    else this.fileInput().nativeElement.click();
   }
 
   onColorChange(event: { property: string; value: string }) {

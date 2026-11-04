@@ -58,13 +58,7 @@
     .icon-btn {
       width: 32px;
       height: 32px;
-      border: none;
       background: transparent;
-      border-radius: var(--wb-radius-sm);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
       color: var(--wb-color-gray-600);
       transition: all 0.2s ease;
 
@@ -73,17 +67,12 @@
         color: var(--wb-color-gray-900);
       }
 
-      &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-
       &.active {
         background-color: var(--wb-color-primary);
         color: white;
 
         &:hover {
-          background-color: var(--wb-color-primary-dark, #2563eb);
+          background-color: var(--wb-color-primary-dark);
         }
       }
 
@@ -108,20 +97,6 @@
 
     &:last-child {
       border-bottom: none;
-    }
-
-    &.disabled {
-      opacity: 0.5;
-      pointer-events: none;
-    }
-
-    h3 {
-      font-size: 0.8125rem;
-      font-weight: 600;
-      color: var(--wb-color-gray-900);
-      margin: 0;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
     }
 
     .controls {
@@ -313,17 +288,8 @@
             border-color: var(--wb-color-primary);
 
             &:hover {
-              background: var(--wb-color-primary-dark, #2563eb);
+              background: var(--wb-color-primary-dark);
             }
-          }
-
-          strong,
-          em {
-            font-style: normal;
-          }
-
-          em {
-            font-style: italic;
           }
         }
       }

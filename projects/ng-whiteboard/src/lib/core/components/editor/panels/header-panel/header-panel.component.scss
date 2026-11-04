@@ -1,5 +1,3 @@
-@use '../../breakpoints' as bp;
-
 .header-panel {
   display: flex;
   align-items: center;
@@ -93,25 +91,17 @@
       .action-btn {
         display: flex;
         align-items: center;
-        gap: var(--wb-space-2);
         padding: var(--wb-space-2) var(--wb-space-3);
         border: none;
         background: transparent;
         border-radius: var(--wb-radius-sm);
         cursor: pointer;
         color: var(--wb-color-gray-600);
-        font-size: 0.875rem;
-        font-weight: 500;
         transition: all 0.2s ease;
 
         &:hover {
           background-color: var(--wb-color-gray-100);
           color: var(--wb-color-gray-900);
-        }
-
-        &:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
         }
 
         ng-icon {
@@ -157,10 +147,5 @@
   .menu-btn {
     flex: none;
     justify-content: center;
-
-    @include bp.coarse {
-      min-width: 44px;
-      min-height: 44px;
-    }
   }
 }

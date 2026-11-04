@@ -41,17 +41,6 @@ import { buildDasharray, rescaleDasharray } from './utils/dasharray';
 import { mergeSelectedProperties } from './utils/selected-properties';
 import { arrowPathKind } from './utils/shape-capabilities';
 
-export interface Layer {
-  id: string;
-  name: string;
-  visible: boolean;
-  locked: boolean;
-  zIndex: number;
-  elements: string[]; // Element IDs in this layer
-  opacity?: number; // Layer opacity (0-100)
-  blendMode?: string; // Layer blend mode
-}
-
 export interface ExportSettings {
   format: 'png' | 'svg';
   scale: 1 | 2 | 3;
@@ -120,19 +109,8 @@ export class EditorStateService implements OnDestroy {
   selectedElementsSignal = this.selectionService.getSelectedElementsSignal();
   selectedToolSignal = this.toolsService.selectedTool;
 
-  layersSignal = computed(() => {
-    return this.layerManagementService.layersWithMembership(this.elementsService.elements()).map((layer) => ({
-      id: layer.id,
-      name: layer.name,
-      visible: layer.visible,
-      locked: layer.locked,
-      zIndex: layer.zIndex,
-      elements: layer.elements,
-      opacity: layer.opacity,
-      blendMode: layer.blendMode,
-    }));
-  });
-  activeLayerIdSignal = computed(() => this.layerManagementService.activeLayerId());
+  layersSignal = computed(() => this.layerManagementService.layersWithMembership(this.elementsService.elements()));
+  activeLayerIdSignal = this.layerManagementService.activeLayerId;
 
   canUndoSignal = this.historyService.getCanUndoSignal();
   canRedoSignal = this.historyService.getCanRedoSignal();
@@ -238,7 +216,6 @@ export class EditorStateService implements OnDestroy {
       style: {
         ...element.style,
         strokeColor: color,
-        // For text elements, update color instead of strokeColor
         ...(element.type === 'text' ? { color } : {}),
       },
     }));
@@ -346,9 +323,6 @@ export class EditorStateService implements OnDestroy {
     this.applyUpdates(updates);
   }
 
-  /**
-   * Update font weight (bold/normal) for selected text elements only
-   */
   updateFontWeight(fontWeight: 'normal' | 'bold') {
     const selectedElements = this.selectedElementsSignal();
     if (selectedElements.length === 0) return;
@@ -366,9 +340,6 @@ export class EditorStateService implements OnDestroy {
     this.applyUpdates(updates);
   }
 
-  /**
-   * Update font style (italic/normal) for selected text elements only
-   */
   updateFontStyle(fontStyle: 'normal' | 'italic') {
     const selectedElements = this.selectedElementsSignal();
     if (selectedElements.length === 0) return;
@@ -382,25 +353,6 @@ export class EditorStateService implements OnDestroy {
           fontStyle,
         },
       }));
-
-    this.applyUpdates(updates);
-  }
-
-  updateDashArray(dasharray: string) {
-    const selectedElements = this.selectedElementsSignal();
-
-    if (selectedElements.length === 0) {
-      this.configService.updateConfigValue('dasharray', dasharray);
-      return;
-    }
-
-    const updates = selectedElements.map((element) => ({
-      id: element.id,
-      style: {
-        ...element.style,
-        dasharray,
-      },
-    }));
 
     this.applyUpdates(updates);
   }
@@ -534,15 +486,6 @@ export class EditorStateService implements OnDestroy {
 
   updateElementProperty(property: string, value: string | number | boolean) {
     switch (property) {
-      case 'backgroundColor':
-        this.updateBackgroundColor(value as string);
-        break;
-      case 'strokeColor':
-        this.updateStrokeColor(value as string);
-        break;
-      case 'fillColor':
-        this.updateFillColor(value as string);
-        break;
       case 'strokeWidth':
         this.updateStrokeWidth(value as number);
         break;
@@ -560,9 +503,6 @@ export class EditorStateService implements OnDestroy {
         break;
       case 'fontStyle':
         this.updateFontStyle(value as 'normal' | 'italic');
-        break;
-      case 'dasharray':
-        this.updateDashArray(value as string);
         break;
       case 'lineStyle':
         this.updateLineStyle(value as string);
@@ -588,19 +528,6 @@ export class EditorStateService implements OnDestroy {
       case 'penType':
         this.updatePenType(value as PenType);
         break;
-      default: {
-        const selectedElements = this.selectedElementsSignal();
-        if (selectedElements.length === 0) return;
-
-        const updates = selectedElements.map((element) => ({
-          id: element.id,
-          style: {
-            ...element.style,
-            [property]: value,
-          },
-        }));
-        this.applyUpdates(updates);
-      }
     }
   }
 
@@ -806,19 +733,11 @@ export class EditorStateService implements OnDestroy {
     this.configService.updateConfig({ snapToGrid: !this.configService.getConfig().snapToGrid });
   }
 
-  addLayer(name?: string): Layer {
-    const whiteboardLayer = this.apiService.addLayer(name);
-    return {
-      id: whiteboardLayer.id,
-      name: whiteboardLayer.name,
-      visible: whiteboardLayer.visible,
-      locked: whiteboardLayer.locked,
-      zIndex: whiteboardLayer.zIndex,
-      elements: whiteboardLayer.elements,
-    };
+  addLayer(name?: string): void {
+    this.apiService.addLayer(name);
   }
 
-  removeLayer(layerId: string, mode: 'delete-elements' | 'move-elements' = 'delete-elements'): boolean {
+  removeLayer(layerId: string, mode: 'delete-elements' | 'move-elements'): boolean {
     return this.apiService.removeLayer(layerId, mode);
   }
 
@@ -843,32 +762,8 @@ export class EditorStateService implements OnDestroy {
     this.apiService.endLayerOpacityEdit();
   }
 
-  updateLayer(layerId: string, updates: Partial<Layer>): boolean {
-    let success = true;
-
-    if (updates.name !== undefined) {
-      success = this.apiService.renameLayer(layerId, updates.name) && success;
-    }
-
-    if (updates.visible !== undefined) {
-      const layer = this.layerManagementService.layers().find((l) => l.id === layerId);
-      if (layer && layer.visible !== updates.visible) {
-        success = this.apiService.toggleLayerVisibility(layerId) && success;
-      }
-    }
-
-    if (updates.locked !== undefined) {
-      const layer = this.layerManagementService.layers().find((l) => l.id === layerId);
-      if (layer && layer.locked !== updates.locked) {
-        success = this.apiService.toggleLayerLock(layerId) && success;
-      }
-    }
-
-    if (updates.zIndex !== undefined) {
-      success = this.layerManagementService.reorderLayer(layerId, updates.zIndex) && success;
-    }
-
-    return success;
+  renameLayer(layerId: string, name: string): boolean {
+    return this.apiService.renameLayer(layerId, name);
   }
 
   setActiveLayer(layerId: string): boolean {

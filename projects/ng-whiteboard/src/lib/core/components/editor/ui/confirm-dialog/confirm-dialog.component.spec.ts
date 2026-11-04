@@ -13,7 +13,6 @@ describe('ConfirmDialogComponent', () => {
     document.body.appendChild(fixture.nativeElement);
     fixture.componentRef.setInput('message', 'Reset the canvas? This clears the board.');
     fixture.componentRef.setInput('confirmLabel', 'Reset');
-    fixture.componentRef.setInput('open', true);
     fixture.detectChanges();
   });
   afterEach(() => fixture.nativeElement.remove());

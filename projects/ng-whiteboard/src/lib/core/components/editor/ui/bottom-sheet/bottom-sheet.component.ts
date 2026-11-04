@@ -11,7 +11,7 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
-import { getFocusableElements, wrapTabFocus } from '../../utils/focus-trap';
+import { enterFocus, handleModalKeydown, returnFocus } from '../../utils/focus-trap';
 
 const SWIPE_CLOSE_DISTANCE = 80;
 
@@ -63,14 +63,13 @@ export class BottomSheetComponent {
 
   private sheet = viewChild<ElementRef<HTMLElement>>('sheet');
   private restoreTarget: HTMLElement | null = null;
-  private destroyRef = inject(DestroyRef);
 
   constructor() {
     effect(() => {
       const el = this.sheet()?.nativeElement;
       untracked(() => (el ? this.focusInto(el) : this.restoreFocus()));
     });
-    this.destroyRef.onDestroy(() => this.restoreFocusOnDestroy());
+    inject(DestroyRef).onDestroy(() => this.restoreFocusOnDestroy());
   }
 
   close() {
@@ -79,14 +78,7 @@ export class BottomSheetComponent {
   }
 
   onKeydown(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      event.stopPropagation();
-      this.close();
-      return;
-    }
-    const el = this.sheet()?.nativeElement;
-    if (el) wrapTabFocus(event, el);
+    handleModalKeydown(event, this.sheet()?.nativeElement, () => this.close());
   }
 
   onHandleDown(event: PointerEvent) {
@@ -116,18 +108,13 @@ export class BottomSheetComponent {
   }
 
   private focusInto(sheet: HTMLElement) {
-    const explicit = this.opener();
-    const active = sheet.ownerDocument.activeElement;
-    this.restoreTarget =
-      explicit ?? (active instanceof HTMLElement && active !== sheet.ownerDocument.body ? active : null);
-    (getFocusableElements(sheet)[0] ?? sheet).focus();
+    this.restoreTarget = enterFocus(sheet, this.opener());
   }
 
   private restoreFocus() {
     const target = this.restoreTarget;
     this.restoreTarget = null;
-    if (target?.isConnected) target.focus();
-    else if (target) this.focusFallback()?.focus({ preventScroll: true });
+    returnFocus(target, this.focusFallback());
   }
 
   private restoreFocusOnDestroy() {

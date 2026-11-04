@@ -16,6 +16,7 @@ import {
 import { SHAPE_TOOLS, toolGroups, ToolShortcut } from '../../../../input/tool-shortcuts';
 import { ToolType } from '../../../../types';
 import { IconName } from '../../icon/icons';
+import { nextRadioIndex } from '../../ui/radio-group-keys';
 import { IconComponent } from '../../icon/icon.component';
 
 @Component({
@@ -48,13 +49,13 @@ import { IconComponent } from '../../icon/icon.component';
       </div>
       @for (group of groups(); track $index; let last = $last) {
         <div class="toolbar-group">
-          @if (collapseShapes() && isShapeGroup(group)) {
+          @if (compact() && isShapeGroup(group)) {
             @let shape = flyoutShape(group);
             <button
               class="icon-btn tool-btn flyout-trigger"
               [class.active]="isShape(selectedTool())"
               [attr.data-tool]="shape.tool"
-              [attr.data-tooltip]="'Shapes'"
+              data-tooltip="Shapes"
               [attr.aria-label]="'Shapes, ' + shape.label"
               aria-haspopup="true"
               [attr.aria-expanded]="flyoutOpen()"
@@ -68,7 +69,7 @@ import { IconComponent } from '../../icon/icon.component';
             @for (tool of group; track tool.tool) {
               <button
                 [class.active]="tool.tool === selectedTool()"
-                (click)="onToolSelect(tool.tool)"
+                (click)="toolSelect.emit(tool.tool)"
                 [attr.data-tooltip]="getTooltip(tool)"
                 [attr.aria-label]="tool.label"
                 [attr.aria-keyshortcuts]="getAriaShortcuts(tool)"
@@ -133,7 +134,6 @@ export class ToolbarComponent {
 
   readonly groups = computed(() => toolGroups(this.tools()));
   readonly vertical = computed(() => this.position() === 'left' && !this.compact());
-  readonly collapseShapes = computed(() => this.compact());
   readonly shapeGroup = computed(() => this.groups().find((g) => this.isShapeGroup(g)));
 
   readonly flyoutOpen = signal(false);
@@ -161,7 +161,7 @@ export class ToolbarComponent {
       this.flyoutOpen.set(false);
     });
     effect(() => {
-      if (!this.collapseShapes()) this.flyoutOpen.set(false);
+      if (!this.compact()) this.flyoutOpen.set(false);
     });
   }
 
@@ -182,9 +182,7 @@ export class ToolbarComponent {
   /** The tool whose button is tabbable; a collapsed shape counts through its trigger. */
   tabStop(): ToolType {
     const selected = this.selectedTool();
-    const visible = this.groups().flatMap((g) =>
-      this.collapseShapes() && this.isShapeGroup(g) ? [this.flyoutShape(g)] : g
-    );
+    const visible = this.groups().flatMap((g) => (this.compact() && this.isShapeGroup(g) ? [this.flyoutShape(g)] : g));
     return visible.some((t) => t.tool === selected) ? selected : visible[0]?.tool;
   }
 
@@ -241,32 +239,11 @@ export class ToolbarComponent {
     const buttons = Array.from(this.host.nativeElement.querySelectorAll<HTMLButtonElement>('button.tool-btn'));
     const current = buttons.indexOf(event.target as HTMLButtonElement);
     if (current < 0) return;
-    let next: number;
-    switch (event.key) {
-      case 'ArrowRight':
-      case 'ArrowDown':
-        next = (current + 1) % buttons.length;
-        break;
-      case 'ArrowLeft':
-      case 'ArrowUp':
-        next = (current - 1 + buttons.length) % buttons.length;
-        break;
-      case 'Home':
-        next = 0;
-        break;
-      case 'End':
-        next = buttons.length - 1;
-        break;
-      default:
-        return;
-    }
+    const next = nextRadioIndex(event.key, current, buttons.length);
+    if (next === null) return;
     event.preventDefault();
     event.stopPropagation();
     buttons[next].focus();
-  }
-
-  onToolSelect(toolId: ToolType) {
-    this.toolSelect.emit(toolId);
   }
 
   getTooltip(tool: ToolShortcut): string {

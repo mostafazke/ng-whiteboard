@@ -1,20 +1,19 @@
-import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, input, Output } from '@angular/core';
 import { IconComponent } from '../../icon/icon.component';
 
 @Component({
   selector: 'ng-history-panel',
   standalone: true,
-  imports: [CommonModule, IconComponent],
+  imports: [IconComponent],
   template: `
     <div class="history-panel">
-      <button title="Undo (Ctrl+Z)" aria-label="Undo" class="icon-btn" (click)="onUndo()" [disabled]="!canUndo()">
+      <button title="Undo (Ctrl+Z)" aria-label="Undo" class="icon-btn" (click)="undo.emit()" [disabled]="!canUndo()">
         <ng-icon name="undo"></ng-icon>
       </button>
 
       <div class="divider"></div>
 
-      <button title="Redo (Ctrl+Y)" aria-label="Redo" class="icon-btn" (click)="onRedo()" [disabled]="!canRedo()">
+      <button title="Redo (Ctrl+Y)" aria-label="Redo" class="icon-btn" (click)="redo.emit()" [disabled]="!canRedo()">
         <ng-icon name="redo"></ng-icon>
       </button>
     </div>
@@ -28,12 +27,4 @@ export class HistoryPanelComponent {
 
   @Output() undo = new EventEmitter<void>();
   @Output() redo = new EventEmitter<void>();
-
-  onUndo() {
-    this.undo.emit();
-  }
-
-  onRedo() {
-    this.redo.emit();
-  }
 }

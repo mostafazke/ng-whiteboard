@@ -620,6 +620,17 @@ describe('SvgDirective (integration)', () => {
     expect(api.getElements().length).toBe(1);
   });
 
+  it.each([
+    ['F5', false],
+    ['F12', false],
+    ['Tab', false],
+    ['a', true],
+  ])('keydown %s calls preventDefault: %s', (key, prevented) => {
+    const event = new KeyboardEvent('keydown', { key, cancelable: true });
+    directive.onKeyDown(event);
+    expect(event.defaultPrevented).toBe(prevented);
+  });
+
   it('emits one DrawEnd for one DrawStart when a pinch resumes with a finger still down', () => {
     let drawStarts = 0;
     let drawEnds = 0;

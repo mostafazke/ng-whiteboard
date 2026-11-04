@@ -4,7 +4,7 @@ import { MenuComponent, MenuItem } from './menu.component';
 const ITEMS: MenuItem[] = [
   { id: 'open', label: 'Open…', icon: 'folder-open', shortcut: 'Ctrl+O' },
   { id: 'save', label: 'Save to file', icon: 'file-json' },
-  { id: 'reset', label: 'Reset canvas…', icon: 'rotate-ccw', separatorBefore: true },
+  { id: 'reset', label: 'Reset canvas…', icon: 'reset', separatorBefore: true },
 ];
 
 describe('MenuComponent', () => {

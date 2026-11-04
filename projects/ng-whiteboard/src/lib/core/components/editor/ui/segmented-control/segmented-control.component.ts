@@ -8,7 +8,7 @@ import {
   output,
   ViewEncapsulation,
 } from '@angular/core';
-import { nextRadioIndex } from '../radio-group-keys';
+import { handleRadioKeydown, tabbableRadioIndex } from '../radio-group-keys';
 import { MIXED } from '../../utils/selected-properties';
 
 export interface SegmentedOption {
@@ -48,21 +48,15 @@ export class SegmentedControlComponent {
   value = input<string | typeof MIXED | undefined>(undefined);
   valueChange = output<string>();
 
-  protected tabbableIndex = computed(() => {
-    const index = this.options().findIndex((option) => option.value === this.value());
-    return index < 0 ? 0 : index;
-  });
+  protected tabbableIndex = computed(() => tabbableRadioIndex(this.options(), this.value()));
 
   protected select(value: string): void {
     this.valueChange.emit(value);
   }
 
   protected onKeydown(event: KeyboardEvent, index: number): void {
-    const next = nextRadioIndex(event.key, index, this.options().length);
-    if (next === null) return;
-    event.preventDefault();
-    event.stopPropagation();
-    this.select(this.options()[next].value);
-    this.host.nativeElement.querySelectorAll<HTMLElement>('[role="radio"]')[next]?.focus();
+    handleRadioKeydown(event, index, this.options().length, this.host.nativeElement, (next) =>
+      this.select(this.options()[next].value)
+    );
   }
 }

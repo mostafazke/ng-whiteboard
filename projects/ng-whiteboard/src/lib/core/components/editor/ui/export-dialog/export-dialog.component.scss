@@ -26,7 +26,6 @@
     transition: opacity 0.15s ease;
 
     &.is-transparent {
-      background-color: var(--wb-color-surface);
       background-image:
         linear-gradient(
           45deg,
@@ -110,7 +109,7 @@
 
   .wb-export-hint {
     font-size: 0.75rem;
-    color: var(--wb-color-text-tertiary, var(--wb-color-text-secondary));
+    color: var(--wb-color-text-tertiary);
     opacity: 0.85;
   }
 

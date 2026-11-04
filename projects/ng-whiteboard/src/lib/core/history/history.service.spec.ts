@@ -1,7 +1,11 @@
 import { TestBed } from '@angular/core/testing';
-import { HistoryService } from './history.service';
+import { BoardSnapshot, HistoryService } from './history.service';
 import { WhiteboardElement, ElementType } from '../types';
 import { LayerState } from '../types/layers';
+
+function recordBoardChange(history: HistoryService, before: BoardSnapshot, after: BoardSnapshot, description: string) {
+  history.startBatch(description, before.elements, before.layers).execute(after.elements, after.layers);
+}
 
 describe('HistoryService', () => {
   let service: HistoryService;
@@ -827,7 +831,8 @@ describe('HistoryService', () => {
 
     it('records a board change when only the layers differ', () => {
       const els = [createMockElement('1')];
-      service.recordBoardChange(
+      recordBoardChange(
+        service,
         { elements: els, layers: layerState('Old') },
         { elements: els, layers: layerState('New') },
         'Rename layer'
@@ -839,7 +844,8 @@ describe('HistoryService', () => {
 
     it('ignores a board change with equal elements and layers', () => {
       const els = [createMockElement('1')];
-      service.recordBoardChange(
+      recordBoardChange(
+        service,
         { elements: els, layers: layerState('Same') },
         { elements: els, layers: layerState('Same') },
         'No-op'
@@ -849,7 +855,7 @@ describe('HistoryService', () => {
 
     it('deep-clones recorded layer state', () => {
       const before = layerState('Old');
-      service.recordBoardChange({ elements: [], layers: before }, { elements: [], layers: layerState('New') }, 'x');
+      recordBoardChange(service, { elements: [], layers: before }, { elements: [], layers: layerState('New') }, 'x');
       before.layers[0].name = 'Mutated';
       expect(service.undoSnapshot()?.layers?.layers[0].name).toBe('Old');
     });
@@ -862,7 +868,8 @@ describe('HistoryService', () => {
     });
 
     it('keeps undo() and redo() returning element arrays', () => {
-      service.recordBoardChange(
+      recordBoardChange(
+        service,
         { elements: [], layers: layerState('Old') },
         { elements: [createMockElement('1')], layers: layerState('New') },
         'x'
@@ -873,11 +880,6 @@ describe('HistoryService', () => {
 
     it('records a batch with layer parts as a single entry', () => {
       const handle = service.startBatch('Layer opacity', [], layerState('Old'));
-      service.recordBoardChange(
-        { elements: [], layers: layerState('a') },
-        { elements: [], layers: layerState('b') },
-        'ignored'
-      );
       handle.execute(undefined, layerState('New'));
       expect(service.undoSnapshot()?.layers).toEqual(layerState('Old'));
       expect(service.getCanUndoSignal()()).toBe(false);
@@ -894,10 +896,11 @@ describe('HistoryService', () => {
     });
 
     it('keeps entries symmetric when only one side carries layers', () => {
-      service.recordBoardChange({ elements: [] }, { elements: [], layers: layerState('New') }, 'one-sided');
+      recordBoardChange(service, { elements: [] }, { elements: [], layers: layerState('New') }, 'one-sided');
       expect(service.getCanUndoSignal()()).toBe(false);
 
-      service.recordBoardChange(
+      recordBoardChange(
+        service,
         { elements: [] },
         { elements: [createMockElement('1')], layers: layerState('New') },
         'one-sided'

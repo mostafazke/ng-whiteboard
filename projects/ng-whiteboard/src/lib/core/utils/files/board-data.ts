@@ -19,18 +19,25 @@ export function crc32(bytes: Uint8Array): number {
   return (crc ^ 0xffffffff) >>> 0;
 }
 
-function toBase64Utf8(text: string): string {
-  const bytes = new TextEncoder().encode(text);
+function bytesToBase64(bytes: Uint8Array): string {
   let binary = '';
   for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
   return btoa(binary);
 }
 
-function fromBase64Utf8(base64: string): string {
+function base64ToBytes(base64: string): Uint8Array {
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return new TextDecoder().decode(bytes);
+  return bytes;
+}
+
+function toBase64Utf8(text: string): string {
+  return bytesToBase64(new TextEncoder().encode(text));
+}
+
+function fromBase64Utf8(base64: string): string {
+  return new TextDecoder().decode(base64ToBytes(base64));
 }
 
 function isPng(bytes: Uint8Array): boolean {
@@ -110,19 +117,14 @@ export function readBoardDataFromSvg(svg: string): string | null {
 }
 
 export function dataUrlToBytes(dataUrl: string): Uint8Array {
-  const binary = atob(dataUrl.slice(dataUrl.indexOf(',') + 1));
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return bytes;
+  return base64ToBytes(dataUrl.slice(dataUrl.indexOf(',') + 1));
 }
 
 export function bytesToDataUrl(bytes: Uint8Array, mime: string): string {
-  let binary = '';
-  for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
-  return `data:${mime};base64,${btoa(binary)}`;
+  return `data:${mime};base64,${bytesToBase64(bytes)}`;
 }
 
-export type BoardFileKind = 'json' | 'png' | 'svg';
+type BoardFileKind = 'json' | 'png' | 'svg';
 
 export function boardFileKind(file: Pick<File, 'name' | 'type'>): BoardFileKind | null {
   const name = file.name.toLowerCase();

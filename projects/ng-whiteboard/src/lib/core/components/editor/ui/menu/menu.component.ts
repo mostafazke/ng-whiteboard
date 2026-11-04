@@ -26,13 +26,7 @@ export interface MenuItem {
   standalone: true,
   imports: [IconComponent],
   template: `
-    <div
-      class="wb-menu"
-      role="menu"
-      [class.embedded]="embedded()"
-      [attr.aria-label]="label()"
-      (keydown)="onKeydown($event)"
-    >
+    <div class="wb-menu" role="menu" [class.embedded]="embedded()" aria-label="Menu" (keydown)="onKeydown($event)">
       @for (item of items(); track item.id; let i = $index) {
         @if (item.separatorBefore) {
           <div class="wb-menu-separator" role="separator"></div>
@@ -59,7 +53,6 @@ export interface MenuItem {
 })
 export class MenuComponent {
   items = input<readonly MenuItem[]>([]);
-  label = input('Menu');
   /** Inside a bottom sheet: the sheet owns Escape and initial focus. */
   embedded = input(false);
   itemSelected = output<string>();

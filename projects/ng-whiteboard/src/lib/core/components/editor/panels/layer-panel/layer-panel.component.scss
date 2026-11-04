@@ -61,11 +61,6 @@
   ng-icon {
     display: flex;
   }
-
-  @include bp.coarse {
-    width: 44px;
-    height: 44px;
-  }
 }
 
 .lp-list {

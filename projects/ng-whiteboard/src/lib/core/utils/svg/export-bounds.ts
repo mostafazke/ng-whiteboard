@@ -1,6 +1,7 @@
 import { ElementType, WhiteboardElement } from '../../types';
 import { ArrowElement } from '../../elements/arrow-element';
 import { getCombinedScreenBounds } from '../geometry/transform-utils';
+import { arrowheadSize } from '../drawing/arrowhead';
 
 export interface ExportBox {
   x: number;
@@ -19,7 +20,7 @@ function arrowExtent(arrow: ArrowElement): { minX: number; minY: number; maxX: n
   if (pathType?.type === 'cubic') points.push([pathType.cx1, pathType.cy1], [pathType.cx2, pathType.cy2]);
 
   const strokeWidth = arrow.style?.strokeWidth || 2;
-  const headReach = Math.max(12, strokeWidth * 3) * 1.4;
+  const headReach = arrowheadSize(strokeWidth) * 1.4;
   const reach = (head: ArrowElement['endHead'] | undefined) => (head && head.type !== 'none' ? headReach : 0);
   const pad = [reach(startHead), reach(endHead)];
 

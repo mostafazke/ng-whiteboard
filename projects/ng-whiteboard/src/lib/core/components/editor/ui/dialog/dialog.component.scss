@@ -66,11 +66,6 @@
     background: var(--wb-color-gray-100);
     color: var(--wb-color-text-primary);
   }
-
-  @media (pointer: coarse) {
-    width: 44px;
-    height: 44px;
-  }
 }
 
 .dlg-body {

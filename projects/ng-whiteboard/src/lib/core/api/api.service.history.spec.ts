@@ -27,7 +27,7 @@ describe('ApiService undo/redo with layers', () => {
     const before = { elements: elements.getElements(), layers: layers.exportLayerState(elements.getElements()) };
     layers.renameLayer(layerId, 'Renamed');
     const after = { elements: elements.getElements(), layers: layers.exportLayerState(elements.getElements()) };
-    history.recordBoardChange(before, after, 'Rename layer');
+    history.startBatch('Rename layer', before.elements, before.layers).execute(after.elements, after.layers);
 
     const oldName = before.layers.layers[0].name;
     expect(api.undo()).toBe(true);

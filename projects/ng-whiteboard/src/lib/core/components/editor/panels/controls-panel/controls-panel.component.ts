@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -19,11 +18,11 @@ let nextMenuId = 0;
 @Component({
   selector: 'ng-controls-panel',
   standalone: true,
-  imports: [CommonModule, IconComponent],
+  imports: [IconComponent],
   template: `
     <div class="controls-panel">
       <div class="zoom-controls">
-        <button title="Zoom In" aria-label="Zoom in" class="icon-btn" (click)="onZoomIn()" [disabled]="isMaxZoom()">
+        <button title="Zoom In" aria-label="Zoom in" class="icon-btn" (click)="zoomIn.emit()" [disabled]="isMaxZoom()">
           <ng-icon name="plus"></ng-icon>
         </button>
 
@@ -36,29 +35,37 @@ let nextMenuId = 0;
             [attr.aria-expanded]="showZoomMenu()"
             [attr.aria-controls]="showZoomMenu() && !compact() ? zoomMenuId : null"
             (click)="toggleZoomMenu($event)"
-            (dblclick)="onCenterView()"
+            (dblclick)="centerView.emit()"
             [class.active]="showZoomMenu()"
           >
             {{ formatZoom(config().zoom) }}
           </button>
 
-          <div class="zoom-dropdown" [id]="zoomMenuId" *ngIf="showZoomMenu() && !compact()">
-            <div class="zoom-actions">
-              @for (action of zoomActions; track action.id) {
-                <button
-                  class="zoom-action"
-                  [disabled]="action.requiresSelection && !hasSelection()"
-                  (click)="runZoomAction(action.id)"
-                >
-                  <ng-icon [name]="action.icon"></ng-icon>
-                  {{ action.label }}
-                </button>
-              }
+          @if (showZoomMenu() && !compact()) {
+            <div class="zoom-dropdown" [id]="zoomMenuId">
+              <div class="zoom-actions">
+                @for (action of zoomActions; track action.id) {
+                  <button
+                    class="zoom-action"
+                    [disabled]="action.requiresSelection && !hasSelection()"
+                    (click)="runZoomAction(action.id)"
+                  >
+                    <ng-icon [name]="action.icon"></ng-icon>
+                    {{ action.label }}
+                  </button>
+                }
+              </div>
             </div>
-          </div>
+          }
         </div>
 
-        <button title="Zoom Out" aria-label="Zoom out" class="icon-btn" (click)="onZoomOut()" [disabled]="isMinZoom()">
+        <button
+          title="Zoom Out"
+          aria-label="Zoom out"
+          class="icon-btn"
+          (click)="zoomOut.emit()"
+          [disabled]="isMinZoom()"
+        >
           <ng-icon name="minus"></ng-icon>
         </button>
       </div>
@@ -86,27 +93,17 @@ export class ControlsPanelComponent {
 
   readonly zoomMenuId = `wb-zoom-menu-${nextMenuId++}`;
   readonly zoomActions = ZOOM_ACTIONS;
-  readonly minZoom = MIN_ZOOM;
-  readonly maxZoom = MAX_ZOOM;
 
   formatZoom(zoom: number): string {
     return `${Math.round(zoom * 100)}%`;
   }
 
   isMinZoom(): boolean {
-    return this.config().zoom <= this.minZoom;
+    return this.config().zoom <= MIN_ZOOM;
   }
 
   isMaxZoom(): boolean {
-    return this.config().zoom >= this.maxZoom;
-  }
-
-  onZoomIn() {
-    this.zoomIn.emit();
-  }
-
-  onZoomOut() {
-    this.zoomOut.emit();
+    return this.config().zoom >= MAX_ZOOM;
   }
 
   runZoomAction(id: ZoomActionId) {
@@ -130,11 +127,7 @@ export class ControlsPanelComponent {
     this.zoomTrigger()?.nativeElement.focus();
   }
 
-  toggleZoomMenu(event?: Event) {
-    this.zoomMenuToggle.emit((event?.currentTarget as HTMLElement | null) ?? null);
-  }
-
-  onCenterView() {
-    this.centerView.emit();
+  toggleZoomMenu(event: Event) {
+    this.zoomMenuToggle.emit(event.currentTarget as HTMLElement);
   }
 }

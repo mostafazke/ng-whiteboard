@@ -12,7 +12,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { IconComponent } from '../../icon/icon.component';
-import { getFocusableElements, wrapTabFocus } from '../../utils/focus-trap';
+import { enterFocus, handleModalKeydown, returnFocus } from '../../utils/focus-trap';
 import { BottomSheetComponent } from '../bottom-sheet/bottom-sheet.component';
 
 @Component({
@@ -91,27 +91,16 @@ export class DialogComponent {
   }
 
   protected onKeydown(event: KeyboardEvent) {
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      event.stopPropagation();
-      this.close();
-      return;
-    }
-    const el = this.panel()?.nativeElement;
-    if (el) wrapTabFocus(event, el);
+    handleModalKeydown(event, this.panel()?.nativeElement, () => this.close());
   }
 
   private focusInto(panel: HTMLElement) {
-    const active = panel.ownerDocument.activeElement;
-    this.restoreTarget =
-      this.opener() ?? (active instanceof HTMLElement && active !== panel.ownerDocument.body ? active : null);
-    (getFocusableElements(panel)[0] ?? panel).focus();
+    this.restoreTarget = enterFocus(panel, this.opener());
   }
 
   private restoreFocus() {
     const target = this.restoreTarget;
     this.restoreTarget = null;
-    if (target?.isConnected) target.focus();
-    else if (target) this.focusFallback()?.focus({ preventScroll: true });
+    returnFocus(target, this.focusFallback());
   }
 }

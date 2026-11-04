@@ -80,22 +80,6 @@ export class HistoryService {
     }
   }
 
-  recordBoardChange(before: BoardSnapshot, after: BoardSnapshot, description: string) {
-    if (this.batching) {
-      return;
-    }
-
-    if (!this.snapshotsEqual(before.elements, after.elements) || !this.layersEqual(before.layers, after.layers)) {
-      this.pushHistory({
-        before: this.cloneElements(before.elements),
-        after: this.cloneElements(after.elements),
-        ...this.layerParts(before.layers, after.layers),
-        description,
-        timestamp: Date.now(),
-      });
-    }
-  }
-
   recordElementCreation(before: WhiteboardElement[], after: WhiteboardElement[]) {
     this.recordChange(before, after, 'Create element');
   }
@@ -182,11 +166,11 @@ export class HistoryService {
   }
 
   undo(): WhiteboardElement[] | null {
-    return this.performUndo();
+    return this.undoSnapshot()?.elements ?? null;
   }
 
   redo(): WhiteboardElement[] | null {
-    return this.performRedo();
+    return this.redoSnapshot()?.elements ?? null;
   }
 
   undoSnapshot(): BoardSnapshot | null {
@@ -206,14 +190,6 @@ export class HistoryService {
     this.undoStack = [];
     this.redoStack = [];
     this.updateSignals();
-  }
-
-  private performUndo(): WhiteboardElement[] | null {
-    return this.undoSnapshot()?.elements ?? null;
-  }
-
-  private performRedo(): WhiteboardElement[] | null {
-    return this.redoSnapshot()?.elements ?? null;
   }
 
   private takeUndo(): HistoryEntry | null {

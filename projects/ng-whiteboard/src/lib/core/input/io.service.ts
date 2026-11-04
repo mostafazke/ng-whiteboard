@@ -32,13 +32,13 @@ const MAX_EXPORT_SIDE = 16384;
 const MAX_EXPORT_AREA = 268435456;
 const DEFAULT_EXPORT_PADDING = 16;
 
-/**
- * Handles import/export operations for the whiteboard including images, state serialization, and various export formats.
- */
 function isPositiveNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value) && value > 0;
 }
 
+/**
+ * Handles import/export operations for the whiteboard including images, state serialization, and various export formats.
+ */
 @Injectable({ providedIn: 'root' })
 export class IOService {
   constructor(
@@ -283,8 +283,7 @@ export class IOService {
     }
 
     const { background = true, onlySelected = false } = options;
-    const scale =
-      typeof options.scale === 'number' && Number.isFinite(options.scale) && options.scale > 0 ? options.scale : 1;
+    const scale = isPositiveNumber(options.scale) ? options.scale : 1;
     const padding =
       typeof options.padding === 'number' && Number.isFinite(options.padding) && options.padding >= 0
         ? options.padding

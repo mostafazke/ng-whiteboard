@@ -22,8 +22,8 @@ const OPEN_TYPES: PickerType[] = [
   },
 ];
 
-function api(win: Window | null | undefined): FileSystemAccessWindow | null {
-  return (win as unknown as FileSystemAccessWindow | null) ?? null;
+function api(win: Window | null | undefined): FileSystemAccessWindow | null | undefined {
+  return win as unknown as FileSystemAccessWindow | null | undefined;
 }
 
 /** True where the browser can write back to a file the user picked (Chromium today). */

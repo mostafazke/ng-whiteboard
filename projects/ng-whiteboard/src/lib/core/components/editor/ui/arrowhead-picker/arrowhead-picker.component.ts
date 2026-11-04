@@ -9,7 +9,7 @@ import {
   ViewEncapsulation,
 } from '@angular/core';
 import { ArrowheadType } from '../../../../elements';
-import { nextRadioIndex } from '../radio-group-keys';
+import { handleRadioKeydown, tabbableRadioIndex } from '../radio-group-keys';
 import { MIXED } from '../../utils/selected-properties';
 
 interface ArrowheadOption {
@@ -88,21 +88,15 @@ export class ArrowheadPickerComponent {
   end = input<'start' | 'end'>('end');
   valueChange = output<ArrowheadType>();
 
-  protected tabbableIndex = computed(() => {
-    const index = OPTIONS.findIndex((option) => option.value === this.value());
-    return index < 0 ? 0 : index;
-  });
+  protected tabbableIndex = computed(() => tabbableRadioIndex(OPTIONS, this.value()));
 
   protected select(value: ArrowheadType): void {
     this.valueChange.emit(value);
   }
 
   protected onKeydown(event: KeyboardEvent, index: number): void {
-    const next = nextRadioIndex(event.key, index, OPTIONS.length);
-    if (next === null) return;
-    event.preventDefault();
-    event.stopPropagation();
-    this.select(OPTIONS[next].value);
-    this.host.nativeElement.querySelectorAll<HTMLElement>('[role="radio"]')[next]?.focus();
+    handleRadioKeydown(event, index, OPTIONS.length, this.host.nativeElement, (next) =>
+      this.select(OPTIONS[next].value)
+    );
   }
 }

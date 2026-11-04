@@ -30,3 +30,28 @@ export function wrapTabFocus(event: KeyboardEvent, root: HTMLElement): boolean {
   target.focus();
   return true;
 }
+
+/** Escape closes, Tab cycles inside `root`: the keyboard contract shared by dialogs and sheets. */
+export function handleModalKeydown(event: KeyboardEvent, root: HTMLElement | undefined, close: () => void): void {
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    event.stopPropagation();
+    close();
+    return;
+  }
+  if (root) wrapTabFocus(event, root);
+}
+
+/** Focuses the first control in `root` and returns the element focus should go back to on close. */
+export function enterFocus(root: HTMLElement, opener: HTMLElement | null): HTMLElement | null {
+  const active = root.ownerDocument.activeElement;
+  const back = opener ?? (active instanceof HTMLElement && active !== root.ownerDocument.body ? active : null);
+  (getFocusableElements(root)[0] ?? root).focus();
+  return back;
+}
+
+/** Returns focus to `target`, or to `fallback` when `target` has left the DOM. */
+export function returnFocus(target: HTMLElement | null, fallback: HTMLElement | null): void {
+  if (target?.isConnected) target.focus();
+  else if (target) fallback?.focus({ preventScroll: true });
+}

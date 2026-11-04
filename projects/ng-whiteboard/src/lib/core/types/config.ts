@@ -221,6 +221,4 @@ export interface EditorConfig {
   showInsights?: boolean;
   /** @deprecated unused; removed in next major */
   enableEditor?: boolean;
-  /** @deprecated use WhiteboardConfig.theme */
-  theme?: 'light' | 'dark';
 }

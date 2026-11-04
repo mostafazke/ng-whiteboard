@@ -69,8 +69,6 @@ export function computeAlignmentUpdates(elements: WhiteboardElement[], alignment
       return distribute(items, 'minX', 'maxX', 'x');
     case 'distribute-vertical':
       return distribute(items, 'minY', 'maxY', 'y');
-    default:
-      return [];
   }
 }
 

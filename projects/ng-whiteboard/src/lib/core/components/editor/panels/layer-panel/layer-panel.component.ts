@@ -12,22 +12,10 @@ import {
   output,
   signal,
 } from '@angular/core';
-import { BlendMode } from '../../../../types';
+import { BlendMode, WhiteboardLayer } from '../../../../types';
 import { IconComponent } from '../../icon/icon.component';
 
-export interface WhiteboardLayer {
-  id: string;
-  name: string;
-  visible: boolean;
-  locked: boolean;
-  opacity: number;
-  zIndex: number;
-  /** Ids of the elements in this layer. */
-  elements?: string[];
-  blendMode?: string;
-}
-
-export type LayerDeleteMode = 'delete-elements' | 'move-elements';
+type LayerDeleteMode = 'delete-elements' | 'move-elements';
 
 export type LayerPanelAction =
   | { type: 'select' | 'add' | 'toggle-visible' | 'toggle-lock' | 'duplicate' | 'merge-down'; id?: string }
@@ -37,7 +25,7 @@ export type LayerPanelAction =
   | { type: 'blend'; id: string; blendMode: BlendMode }
   | { type: 'delete'; id: string; mode: LayerDeleteMode };
 
-export const LAYER_BLEND_MODES: readonly { value: BlendMode; label: string }[] = [
+const LAYER_BLEND_MODES: readonly { value: BlendMode; label: string }[] = [
   { value: 'normal', label: 'Normal' },
   { value: 'multiply', label: 'Multiply' },
   { value: 'screen', label: 'Screen' },
@@ -77,7 +65,7 @@ export class LayerPanelComponent {
 
   private host = inject<ElementRef<HTMLElement>>(ElementRef);
   private injector = inject(Injector);
-  private opacityEditing: { id: string } | null = null;
+  private opacityEditingId: string | null = null;
   private lastOpacity = 1;
 
   @HostListener('document:pointerdown', ['$event'])
@@ -89,34 +77,27 @@ export class LayerPanelComponent {
   }
 
   protected countLabel(layer: WhiteboardLayer): string {
-    const count = layer.elements?.length ?? 0;
-    if (count === 0) return 'Empty';
-    return count === 1 ? '1 element' : `${count} elements`;
+    return layer.elements.length === 0 ? 'Empty' : elementCount(layer);
   }
 
   protected deleteMessage(layer: WhiteboardLayer): string {
-    const count = layer.elements?.length ?? 0;
-    return `Delete layer and its ${count === 1 ? '1 element' : `${count} elements`}?`;
+    return `Delete layer and its ${elementCount(layer)}?`;
   }
 
   protected opacityPercent(layer: WhiteboardLayer): number {
-    return Math.round(layer.opacity * 100);
-  }
-
-  protected emit(action: LayerPanelAction) {
-    this.action.emit(action);
+    return Math.round((layer.opacity ?? 1) * 100);
   }
 
   protected toggle(type: 'toggle-visible' | 'toggle-lock', id: string, event: Event) {
     event.stopPropagation();
-    this.emit({ type, id });
+    this.action.emit({ type, id });
   }
 
   protected onRowKeydown(event: KeyboardEvent, layer: WhiteboardLayer, index: number) {
     if (event.target !== event.currentTarget) return;
     if (event.key === ' ') {
       event.preventDefault();
-      this.emit({ type: 'select', id: layer.id });
+      this.action.emit({ type: 'select', id: layer.id });
     } else if (event.key === 'Enter' || event.key === 'F2') {
       event.preventDefault();
       this.startRename(layer);
@@ -124,7 +105,7 @@ export class LayerPanelComponent {
       event.preventDefault();
       const to = index + (event.key === 'ArrowUp' ? -1 : 1);
       if (to < 0 || to >= this.rows().length) return;
-      this.emit({ type: 'reorder', from: index, to });
+      this.action.emit({ type: 'reorder', from: index, to });
       this.focusAfterRender(`.lp-row[data-id="${layer.id}"]`);
     }
   }
@@ -147,7 +128,7 @@ export class LayerPanelComponent {
     if (this.renamingId() !== layer.id) return;
     this.renamingId.set(null);
     const name = input.value.trim();
-    if (name && name !== layer.name) this.emit({ type: 'rename', id: layer.id, name });
+    if (name && name !== layer.name) this.action.emit({ type: 'rename', id: layer.id, name });
     this.focusAfterRender(`.lp-row[data-id="${layer.id}"]`);
   }
 
@@ -178,7 +159,7 @@ export class LayerPanelComponent {
     if (!state) return;
     this.drag.set(null);
     const to = this.indexAt(event.clientY);
-    if (to !== state.from) this.emit({ type: 'reorder', from: state.from, to });
+    if (to !== state.from) this.action.emit({ type: 'reorder', from: state.from, to });
   }
 
   protected cancelDrag() {
@@ -230,35 +211,35 @@ export class LayerPanelComponent {
 
   protected onOpacityInput(layer: WhiteboardLayer, slider: HTMLInputElement) {
     const opacity = Number(slider.value) / 100;
-    if (!this.opacityEditing) {
-      this.opacityEditing = { id: layer.id };
-      this.emit({ type: 'opacity', id: layer.id, opacity, phase: 'start' });
+    if (!this.opacityEditingId) {
+      this.opacityEditingId = layer.id;
+      this.action.emit({ type: 'opacity', id: layer.id, opacity, phase: 'start' });
     }
-    this.emit({ type: 'opacity', id: layer.id, opacity, phase: 'change' });
+    this.action.emit({ type: 'opacity', id: layer.id, opacity, phase: 'change' });
     this.lastOpacity = opacity;
   }
 
   protected endOpacity() {
-    const editing = this.opacityEditing;
-    if (!editing) return;
-    this.opacityEditing = null;
-    this.emit({ type: 'opacity', id: editing.id, opacity: this.lastOpacity, phase: 'end' });
+    const id = this.opacityEditingId;
+    if (!id) return;
+    this.opacityEditingId = null;
+    this.action.emit({ type: 'opacity', id, opacity: this.lastOpacity, phase: 'end' });
   }
 
   protected onBlend(layer: WhiteboardLayer, select: HTMLSelectElement) {
-    this.emit({ type: 'blend', id: layer.id, blendMode: select.value as BlendMode });
+    this.action.emit({ type: 'blend', id: layer.id, blendMode: select.value as BlendMode });
   }
 
   protected runAction(type: 'duplicate' | 'merge-down', layer: WhiteboardLayer) {
     this.closeMenu(true);
-    this.emit({ type, id: layer.id });
+    this.action.emit({ type, id: layer.id });
   }
 
   protected requestDelete(layer: WhiteboardLayer) {
     this.closeMenu(false);
-    if ((layer.elements?.length ?? 0) === 0) {
+    if (layer.elements.length === 0) {
       this.focusAfterDelete(layer);
-      this.emit({ type: 'delete', id: layer.id, mode: 'delete-elements' });
+      this.action.emit({ type: 'delete', id: layer.id, mode: 'delete-elements' });
       return;
     }
     this.confirmId.set(layer.id);
@@ -268,7 +249,7 @@ export class LayerPanelComponent {
   protected confirmDelete(layer: WhiteboardLayer, mode: LayerDeleteMode) {
     this.confirmId.set(null);
     this.focusAfterDelete(layer);
-    this.emit({ type: 'delete', id: layer.id, mode });
+    this.action.emit({ type: 'delete', id: layer.id, mode });
   }
 
   private focusAfterDelete(layer: WhiteboardLayer) {
@@ -298,4 +279,9 @@ export class LayerPanelComponent {
       { injector: this.injector }
     );
   }
+}
+
+function elementCount(layer: WhiteboardLayer): string {
+  const count = layer.elements.length;
+  return count === 1 ? '1 element' : `${count} elements`;
 }

@@ -268,9 +268,11 @@ describe('EditorStateService', () => {
       selection.selectElements(['a', 'b']);
       history.clearHistory();
 
-      service.updateElementProperty('dasharray', '5,5');
+      service.updateElementProperty('lineStyle', 'dashed');
 
-      expect(elements.getElements().map((e) => e.style.dasharray)).toEqual(['5,5', '5,5']);
+      const [a, b] = elements.getElements().map((e) => e.style.dasharray);
+      expect(a).toBeTruthy();
+      expect(b).toBe(a);
       expect((history.undo() as WhiteboardElement[]).map((e) => e.style.dasharray)).toEqual(['', '2,2']);
       expect(history.undo()).toBeNull();
     });
@@ -341,7 +343,7 @@ describe('EditorStateService', () => {
       service.updateFillColor('#00ff00');
       service.updateStrokeWidth(5);
       service.updateOpacity(40);
-      service.updateDashArray('2,2');
+      service.updateLineStyle('dashed');
       service.updateElementProperty('lineCap', 'round');
       service.alignElements('align-left');
 

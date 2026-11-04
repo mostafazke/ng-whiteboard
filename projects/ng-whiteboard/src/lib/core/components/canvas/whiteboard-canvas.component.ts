@@ -45,7 +45,7 @@ export class WhiteboardCanvasComponent implements AfterViewInit {
 
   @HostBinding('attr.data-theme')
   get theme() {
-    return this.themeSignal() ?? null;
+    return this.config().theme ?? null;
   }
 
   apiService = inject(ApiService);
@@ -59,8 +59,6 @@ export class WhiteboardCanvasComponent implements AfterViewInit {
 
   config = this.configService.getConfigSignal();
   readonly pencilFilterId = PENCIL_FILTER_ID;
-
-  themeSignal = computed(() => this.config().theme);
 
   elements = this.apiService.allElements;
   layers = this.apiService.layers;

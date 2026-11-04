@@ -45,7 +45,7 @@ import { DEFAULT_BOARD_TITLE } from '../../utils/board-title';
           @if (unsaved()) {
             <span class="title-unsaved" aria-hidden="true"></span>
           }
-          <ng-icon class="title-pencil" name="pencil"></ng-icon>
+          <ng-icon class="title-pencil" name="Pen"></ng-icon>
         </span>
       </button>
     }
@@ -63,7 +63,8 @@ export class EditableTitleComponent {
 
   protected tooltip = computed(() => {
     const parts = [this.value()];
-    if (this.fileName()) parts.push(this.fileName() as string);
+    const file = this.fileName();
+    if (file) parts.push(file);
     if (this.unsaved()) parts.push('Unsaved changes');
     return parts.join(' · ');
   });

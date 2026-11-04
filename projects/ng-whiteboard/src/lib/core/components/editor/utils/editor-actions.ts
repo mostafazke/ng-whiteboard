@@ -23,7 +23,7 @@ export const MAIN_MENU_ACTIONS: readonly MainMenuAction[] = [
   { id: 'export', label: 'Export image…', icon: 'image-down', shortcut: 'Ctrl+Shift+E' },
   { id: 'copy-png', label: 'Copy as PNG', icon: 'clipboard-copy', shortcut: 'Ctrl+Shift+C' },
   { id: 'theme', label: 'Dark mode', icon: 'moon', separatorBefore: true },
-  { id: 'reset', label: 'Reset canvas…', icon: 'rotate-ccw', separatorBefore: true },
+  { id: 'reset', label: 'Reset canvas…', icon: 'reset', separatorBefore: true },
 ];
 
 export const ZOOM_ACTIONS: readonly EditorAction<ZoomActionId>[] = [

@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { LayerPanelAction, LayerPanelComponent, WhiteboardLayer } from './layer-panel.component';
+import { WhiteboardLayer } from '../../../../types';
+import { LayerPanelAction, LayerPanelComponent } from './layer-panel.component';
 
 const ids = (n: number) => Array.from({ length: n }, (_, i) => `e${i}`);
 

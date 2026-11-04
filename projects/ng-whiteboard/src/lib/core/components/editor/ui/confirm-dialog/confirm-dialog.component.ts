@@ -12,7 +12,7 @@ let nextConfirmId = 0;
       label="Confirm"
       size="sm"
       [describedBy]="messageId"
-      [open]="open()"
+      [open]="true"
       [compact]="compact()"
       [opener]="opener()"
       [focusFallback]="focusFallback()"
@@ -30,7 +30,6 @@ let nextConfirmId = 0;
 })
 export class ConfirmDialogComponent {
   protected readonly messageId = `wb-confirm-message-${nextConfirmId++}`;
-  open = input(false);
   message = input('');
   confirmLabel = input('Confirm');
   compact = input(false);

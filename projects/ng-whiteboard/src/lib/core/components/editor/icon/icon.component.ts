@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnChanges } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { icons, IconName } from './icons';
 
@@ -6,7 +6,6 @@ import { icons, IconName } from './icons';
   selector: 'ng-icon',
   standalone: true,
   template: `<span [innerHTML]="svg"></span>`,
-  encapsulation: ViewEncapsulation.Emulated,
 })
 export class IconComponent implements OnChanges {
   @Input() name!: IconName;
@@ -15,7 +14,6 @@ export class IconComponent implements OnChanges {
   constructor(private sanitizer: DomSanitizer) {}
 
   ngOnChanges() {
-    const rawSvg = icons[this.name] || '';
-    this.svg = this.sanitizer.bypassSecurityTrustHtml(rawSvg);
+    this.svg = this.sanitizer.bypassSecurityTrustHtml(icons[this.name]);
   }
 }
