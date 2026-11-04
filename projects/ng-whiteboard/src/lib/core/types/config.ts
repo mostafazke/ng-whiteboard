@@ -1,4 +1,4 @@
-import { ElementType, LineCap, LineJoin, PenType } from '.';
+import { ElementType, LineCap, LineJoin, PenType, ToolType } from '.';
 
 /**
  * Controls what happens after a tool finishes drawing an element:
@@ -76,6 +76,13 @@ export interface WhiteboardConfig {
   theme?: 'light' | 'dark';
   /** Default corner radius for new rectangles; 5 when unset */
   cornerRadius?: number;
+  /**
+   * Tools shown in the editor toolbar; the toolbar keeps its own order. Hidden tools also lose their
+   * keyboard shortcuts. All tools when unset.
+   */
+  toolbarTools?: ToolType[];
+  /** Where the editor toolbar sits; `left` falls back to `bottom` on compact screens. Defaults to `bottom`. */
+  toolbarPosition?: 'bottom' | 'left';
 }
 
 export const DEFAULT_CORNER_RADIUS = 5;

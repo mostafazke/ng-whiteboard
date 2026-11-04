@@ -61,8 +61,8 @@ export class IOService {
       const height = imageHeight > canvasHeight ? canvasHeight - 40 : imageHeight;
       const width = height === canvasHeight - 40 ? (canvasHeight - 40) * aspectRatio : imageWidth;
 
-      let x = imageInfo.x || 0;
-      let y = imageInfo.y || 0;
+      let x = (imageInfo.x || 0) - (imageInfo.center ? width / 2 : 0);
+      let y = (imageInfo.y || 0) - (imageInfo.center ? height / 2 : 0);
 
       if (x < 0) x = 0;
       if (y < 0) y = 0;
@@ -94,7 +94,28 @@ export class IOService {
     tempImg.src = imageInfo.image as string;
   }
 
-  importImageFile(file: File, x?: number, y?: number): Promise<void> {
+  /**
+   * Open the browser's file picker and add the chosen image. Without a position the image is
+   * centered in the visible viewport. Must run from a user gesture or the browser blocks the picker.
+   */
+  pickImage(at?: { x: number; y: number }): void {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = () => {
+      const file = input.files?.[0];
+      if (!file) return;
+      if (at) {
+        void this.importImageFile(file, at.x, at.y);
+        return;
+      }
+      const b = this.canvasService.getVisibleBounds();
+      void this.importImageFile(file, (b.left + b.right) / 2, (b.top + b.bottom) / 2, true);
+    };
+    input.click();
+  }
+
+  importImageFile(file: File, x?: number, y?: number, center = false): Promise<void> {
     return new Promise((resolve, reject) => {
       if (!file.type.startsWith(FILE_TYPE_PREFIX.IMAGE)) {
         reject(new Error('Invalid file type. Only images are supported.'));
@@ -110,6 +131,7 @@ export class IOService {
             image: result,
             x,
             y,
+            center,
           });
           resolve();
         } else {

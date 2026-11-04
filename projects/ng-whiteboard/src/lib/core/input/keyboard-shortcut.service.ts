@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { ApiService } from '../api';
 import { ConfigService } from '../config/config.service';
 import { KEY_LOWER, MOVEMENT } from '../constants';
-import { AlignmentType } from '../types';
+import { AlignmentType, ToolType } from '../types';
 import { toolForKey } from './tool-shortcuts';
 
 @Injectable({ providedIn: 'root' })
@@ -48,9 +48,14 @@ export class KeyboardShortcutService {
   private handleKeyDownShortcuts(key: string, ctrl: boolean, shift: boolean, alt: boolean): boolean {
     // Tool Shortcuts
     if (!ctrl && !shift && !alt) {
-      const tool = toolForKey(key);
+      const tool = toolForKey(key, this.configService.getConfig().toolbarTools);
       if (tool) {
         this.apiService.setActiveTool(tool);
+        if (tool === ToolType.Image) this.apiService.pickImage();
+        return true;
+      }
+      if (key === 'q') {
+        this.configService.toggleToolLock();
         return true;
       }
     }

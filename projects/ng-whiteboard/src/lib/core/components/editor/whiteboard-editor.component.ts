@@ -97,6 +97,10 @@ export class WhiteboardEditorComponent {
   configSignal = this.editorStateService.getConfigSignal();
   editorConfigSignal = this.editorStateService.getEditorConfigSignal();
   themeSignal = this.editorStateService.themeSignal;
+  toolLockedSignal = this.editorStateService.toolLockedSignal;
+  readonly toolbarPosition = computed(() =>
+    this.configSignal().toolbarPosition === 'left' && !this.isCompact() ? 'left' : 'bottom'
+  );
   // UI State signals
   isPanelOpenSignal = signal(true);
   showLayersDropdownSignal = signal(false);
@@ -390,6 +394,10 @@ export class WhiteboardEditorComponent {
   // Toolbar Events
   setSelectedTool(tool: ToolType) {
     this.editorStateService.selectTool(tool);
+  }
+
+  toggleToolLock() {
+    this.editorStateService.toggleToolLock();
   }
 
   // Controls Panel Events

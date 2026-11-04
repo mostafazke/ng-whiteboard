@@ -366,6 +366,18 @@
                     <td>Default corner radius for new rectangles</td>
                   </tr>
                   <tr>
+                    <td><code>toolbarTools</code></td>
+                    <td><code>ToolType[]</code></td>
+                    <td><code>unset (all)</code></td>
+                    <td>Tools shown in the editor toolbar. Hidden tools also lose their keyboard shortcuts.</td>
+                  </tr>
+                  <tr>
+                    <td><code>toolbarPosition</code></td>
+                    <td><code>'bottom' | 'left'</code></td>
+                    <td><code>'bottom'</code></td>
+                    <td>Where the editor toolbar sits. Phones always use the bottom.</td>
+                  </tr>
+                  <tr>
                     <td><code>arrowConfig</code></td>
                     <td><code>ArrowConfig</code></td>
                     <td><code>see defaults</code></td>
@@ -647,7 +659,11 @@
                   </tr>
                   <tr>
                     <td><code>save(format?, name?, options?)</code></td>
-                    <td>Save whiteboard in specified format (Base64, JSON, SVG, PNG). Output is cropped to the content with 16px padding. <code>options</code>: <code>&#123; scale?, background?, padding?, onlySelected? &#125;</code></td>
+                    <td>
+                      Save whiteboard in specified format (Base64, JSON, SVG, PNG). Output is cropped to the content
+                      with 16px padding. <code>options</code>:
+                      <code>&#123; scale?, background?, padding?, onlySelected? &#125;</code>
+                    </td>
                   </tr>
                   <tr>
                     <td><code>copyToClipboard(format, options?)</code></td>
@@ -775,7 +791,10 @@
                   </tr>
                   <tr>
                     <td><code>removeLayer(id, mode?)</code></td>
-                    <td>Remove a layer; mode is 'delete-elements' (default) or 'move-elements' (moves its elements to the layer below). Undoable</td>
+                    <td>
+                      Remove a layer; mode is 'delete-elements' (default) or 'move-elements' (moves its elements to the
+                      layer below). Undoable
+                    </td>
                   </tr>
                   <tr>
                     <td><code>mergeLayerDown(id)</code></td>
@@ -823,7 +842,10 @@
                   </tr>
                   <tr>
                     <td><code>reorderLayersByIndex(from, to)</code></td>
-                    <td>Reorder layers by moving from one index to another; indices count from the top layer (0 is the top-most, as listed in the layers panel)</td>
+                    <td>
+                      Reorder layers by moving from one index to another; indices count from the top layer (0 is the
+                      top-most, as listed in the layers panel)
+                    </td>
                   </tr>
                 </tbody>
               </table>

@@ -410,6 +410,11 @@ export class ApiService {
     this.ioService.addImage(imageInfo);
   }
 
+  /** Open the file picker and add the chosen image at `at`, or centered in the viewport. */
+  pickImage(at?: { x: number; y: number }): void {
+    this.ioService.pickImage(at);
+  }
+
   async importImageFile(file: File, x?: number, y?: number): Promise<void> {
     return this.ioService.importImageFile(file, x, y);
   }

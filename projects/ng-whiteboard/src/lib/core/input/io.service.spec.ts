@@ -129,6 +129,17 @@ describe('IOService', () => {
   });
 
   describe('addImage', () => {
+    it('treats x/y as the center when center is set', () => {
+      mockCreateElement.mockReturnValue({ ...mockElement, selectAfterDraw: false } as WhiteboardElement);
+      const mockImage = { width: 100, height: 80, onload: null as (() => void) | null, onerror: null, src: '' };
+      jest.spyOn(global, 'Image').mockImplementation(() => mockImage as unknown as HTMLImageElement);
+
+      service.addImage({ image: 'data:image/png;base64,test', x: 200, y: 140, center: true });
+      mockImage.onload?.();
+
+      expect(mockCreateElement).toHaveBeenCalledWith(ElementType.Image, expect.objectContaining({ x: 150, y: 100 }));
+    });
+
     it('should add image with provided dimensions and position', (done) => {
       const imageInfo = {
         image: 'data:image/png;base64,test',

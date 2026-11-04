@@ -220,13 +220,34 @@
       padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
     }
 
+    // Above the undo/zoom row so the shape flyout opens over it.
     > .wb-toolbar {
+      z-index: 101;
       left: var(--wb-gap);
       right: var(--wb-gap);
       transform: none;
       max-width: none;
       padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     }
+  }
+}
+
+// Vertical toolbar on the left edge; the bottom row only holds undo/redo and zoom then.
+:where(.editor)[data-toolbar='left'] .editor-container {
+  --wb-bottom-reserve: calc(var(--wb-gap) + var(--wb-bar));
+
+  > .wb-toolbar {
+    top: 50%;
+    bottom: auto;
+    left: var(--wb-gap);
+    transform: translateY(-50%);
+    max-width: none;
+    padding: 0 0 0 env(safe-area-inset-left);
+  }
+
+  > .wb-history,
+  > .wb-controls {
+    bottom: var(--wb-gap);
   }
 }
 

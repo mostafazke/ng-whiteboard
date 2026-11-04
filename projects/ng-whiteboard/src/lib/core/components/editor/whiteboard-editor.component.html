@@ -4,6 +4,7 @@
   tabindex="-1"
   [attr.data-theme]="themeSignal()"
   [attr.data-layout]="layout()"
+  [attr.data-toolbar]="toolbarPosition()"
   (keydown)="handleShortcut($event); containKey($event)"
   (keyup)="containKey($event)"
 >
@@ -60,7 +61,16 @@
       </ng-properties-panel>
     }
 
-    <ng-toolbar class="wb-toolbar" [selectedTool]="selectedToolSignal()" (toolSelect)="setSelectedTool($event)">
+    <ng-toolbar
+      class="wb-toolbar"
+      [selectedTool]="selectedToolSignal()"
+      [tools]="configSignal().toolbarTools"
+      [position]="toolbarPosition()"
+      [compact]="isCompact()"
+      [locked]="toolLockedSignal()"
+      (toolSelect)="setSelectedTool($event)"
+      (lockToggle)="toggleToolLock()"
+    >
     </ng-toolbar>
 
     <ng-controls-panel

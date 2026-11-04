@@ -165,7 +165,14 @@ export class EditorStateService implements OnDestroy {
   selectTool(tool: ToolType) {
     this.endEdit();
     this.toolsService.setActiveTool(tool);
+    if (tool === ToolType.Image) this.apiService.pickImage();
   }
+
+  toggleToolLock() {
+    this.configService.toggleToolLock();
+  }
+
+  readonly toolLockedSignal = this.configService.toolLocked;
 
   alignElements(alignment: AlignmentType) {
     this.endEdit();

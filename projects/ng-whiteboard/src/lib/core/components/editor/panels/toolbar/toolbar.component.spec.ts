@@ -43,10 +43,14 @@ describe('ToolbarComponent', () => {
   });
 
   it('makes the first tool the tab stop when the selected tool is not in the toolbar', () => {
-    fixture.componentRef.setInput('selectedTool', ToolType.ZoomArea);
+    fixture.componentRef.setInput('tools', [ToolType.Select, ToolType.Rectangle]);
     fixture.detectChanges();
 
-    expect(buttons().filter((b) => b.tabIndex === 0)).toEqual([buttons()[0]]);
+    expect(
+      buttons()
+        .filter((b) => b.tabIndex === 0)
+        .map((b) => b.dataset['tool'])
+    ).toEqual([ToolType.Select]);
     expect(buttons().some((b) => b.getAttribute('aria-pressed') === 'true')).toBe(false);
   });
 
@@ -100,18 +104,109 @@ describe('ToolbarComponent', () => {
     expect(buttons().some((b) => b.hasAttribute('title'))).toBe(false);
   });
 
-  it('numbers tools 1-9 then 0 in display order', () => {
-    expect(buttons().map((b) => b.querySelector('.tool-digit')?.textContent?.trim())).toEqual([
-      '1',
-      '2',
-      '3',
-      '4',
-      '5',
-      '6',
-      '7',
-      '8',
-      '9',
-      '0',
-    ]);
+  it('numbers tools 1-9 then 0 in display order, skipping the lock and zoom-area buttons', () => {
+    const digits = buttons()
+      .filter((b) => b.querySelector('.tool-digit'))
+      .map((b) => b.querySelector('.tool-digit')?.textContent?.trim());
+    expect(digits).toEqual(['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']);
+    expect(root.querySelector('[data-tool="zoomArea"] .tool-digit')).toBeNull();
+  });
+
+  it('shows the zoom-area tool with the Z shortcut', () => {
+    const zoom = root.querySelector<HTMLButtonElement>('[data-tool="zoomArea"]');
+    expect(zoom?.dataset['tooltip']).toBe('Zoom to area (Z)');
+    expect(zoom?.getAttribute('aria-keyshortcuts')).toBe('Z');
+  });
+
+  it('hides tools not listed in tools and renumbers the rest', () => {
+    fixture.componentRef.setInput('tools', [ToolType.Select, ToolType.Text]);
+    fixture.detectChanges();
+
+    expect(buttons().map((b) => b.dataset['tool'] ?? 'lock')).toEqual(['lock', ToolType.Select, ToolType.Text]);
+    expect(root.querySelector('[data-tool="text"] .tool-digit')?.textContent?.trim()).toBe('2');
+  });
+
+  it('reflects the tool lock and emits lockToggle on click', () => {
+    const lock = root.querySelector<HTMLButtonElement>('.lock-btn') as HTMLButtonElement;
+    fixture.componentRef.setInput('locked', true);
+    fixture.detectChanges();
+    const emitted = jest.fn();
+    fixture.componentInstance.lockToggle.subscribe(emitted);
+
+    expect(lock.getAttribute('aria-pressed')).toBe('true');
+    expect(lock.getAttribute('aria-keyshortcuts')).toBe('Q');
+    lock.click();
+    expect(emitted).toHaveBeenCalled();
+  });
+
+  it('lays out vertically on the left, but not in compact', () => {
+    const bar = () => root.querySelector('[role="toolbar"]') as HTMLElement;
+    fixture.componentRef.setInput('position', 'left');
+    fixture.detectChanges();
+    expect(bar().classList).toContain('vertical');
+    expect(bar().getAttribute('aria-orientation')).toBe('vertical');
+
+    fixture.componentRef.setInput('compact', true);
+    fixture.detectChanges();
+    expect(bar().classList).not.toContain('vertical');
+  });
+
+  describe('compact shape flyout', () => {
+    const trigger = () => root.querySelector<HTMLButtonElement>('.flyout-trigger') as HTMLButtonElement;
+    const items = () => Array.from(root.querySelectorAll<HTMLButtonElement>('.flyout-item'));
+
+    beforeEach(() => {
+      fixture.componentRef.setInput('compact', true);
+      fixture.detectChanges();
+    });
+
+    it('collapses the shapes into one button showing the last used shape', () => {
+      expect(root.querySelector('[data-tool="ellipse"]')).toBeNull();
+      expect(trigger().dataset['tool']).toBe(ToolType.Rectangle);
+
+      fixture.componentRef.setInput('selectedTool', ToolType.Arrow);
+      fixture.detectChanges();
+      fixture.componentRef.setInput('selectedTool', ToolType.Pen);
+      fixture.detectChanges();
+
+      expect(trigger().dataset['tool']).toBe(ToolType.Arrow);
+      expect(trigger().classList).not.toContain('active');
+    });
+
+    it('opens the menu, picks a shape and closes', () => {
+      const emitted = jest.fn();
+      fixture.componentInstance.toolSelect.subscribe(emitted);
+
+      trigger().click();
+      fixture.detectChanges();
+      expect(trigger().getAttribute('aria-expanded')).toBe('true');
+      expect(items().map((b) => b.dataset['tool'])).toEqual([
+        ToolType.Rectangle,
+        ToolType.Ellipse,
+        ToolType.Line,
+        ToolType.Arrow,
+      ]);
+
+      items()[1].click();
+      fixture.detectChanges();
+      expect(emitted).toHaveBeenCalledWith(ToolType.Ellipse);
+      expect(items()).toEqual([]);
+    });
+
+    it('closes on Escape and on an outside pointerdown', () => {
+      trigger().click();
+      fixture.detectChanges();
+      const escape = press(items()[0], 'Escape');
+      fixture.detectChanges();
+      expect(escape.defaultPrevented).toBe(true);
+      expect(items()).toEqual([]);
+      expect(document.activeElement).toBe(trigger());
+
+      trigger().click();
+      fixture.detectChanges();
+      document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+      fixture.detectChanges();
+      expect(items()).toEqual([]);
+    });
   });
 });

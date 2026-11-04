@@ -102,6 +102,76 @@
     background-color: var(--wb-color-gray-200);
     margin: 0 var(--wb-space-1);
   }
+
+  .flyout-caret {
+    position: absolute;
+    right: 2px;
+    bottom: 2px;
+    border-left: 4px solid transparent;
+    border-bottom: 4px solid currentColor;
+    opacity: 0.6;
+  }
+
+  &.vertical {
+    flex-direction: column;
+    padding: var(--wb-space-2) var(--wb-bar-padding);
+
+    .toolbar-group {
+      flex-direction: column;
+    }
+
+    .toolbar-separator {
+      width: 20px;
+      height: 1px;
+      margin: var(--wb-space-1) 0;
+    }
+
+    .toolbar-group .icon-btn.tool-btn[data-tooltip]:hover::after {
+      bottom: auto;
+      top: 50%;
+      left: calc(100% + 8px);
+      transform: translateY(-50%);
+      animation: none;
+    }
+  }
+}
+
+.flyout-menu {
+  position: absolute;
+  bottom: calc(100% + var(--wb-space-2));
+  transform: translateX(-50%);
+  display: flex;
+  gap: 2px;
+  padding: var(--wb-bar-padding);
+  background: var(--wb-color-surface);
+  border: var(--wb-border-width) solid var(--wb-color-border);
+  border-radius: var(--wb-radius);
+  box-shadow: var(--wb-shadow);
+  z-index: 110;
+
+  .icon-btn {
+    width: var(--wb-control-size);
+    height: var(--wb-control-size);
+    min-width: 44px;
+    min-height: 44px;
+    border: none;
+    background: transparent;
+    border-radius: var(--wb-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--wb-color-gray-600);
+
+    ng-icon {
+      font-size: 16px;
+    }
+
+    &.active {
+      background-color: var(--wb-color-primary);
+      color: white;
+    }
+  }
 }
 
 // Animations

@@ -519,6 +519,20 @@ describe('ConfigService', () => {
     });
   });
 
+  describe('toggleToolLock', () => {
+    it('locks by setting selectAfterDraw to false and restores the previous value on unlock', () => {
+      service.updateConfig({ selectAfterDraw: { pen: true } });
+
+      service.toggleToolLock();
+      expect(service.toolLocked()).toBe(true);
+      expect(service.getConfig().selectAfterDraw).toBe(false);
+
+      service.toggleToolLock();
+      expect(service.toolLocked()).toBe(false);
+      expect(service.getConfig().selectAfterDraw).toEqual({ pen: true });
+    });
+  });
+
   describe('resolveSelectAfterDraw', () => {
     it('falls back to the element default when the config is omitted', () => {
       expect(service.resolveSelectAfterDraw(ElementType.Pen, false)).toBe(false);

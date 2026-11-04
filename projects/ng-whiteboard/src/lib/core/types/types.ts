@@ -33,6 +33,8 @@ export interface AddImage {
   image: string | ArrayBuffer;
   x?: number;
   y?: number;
+  /** Treat x/y as the image's center instead of its top-left corner. */
+  center?: boolean;
 }
 
 export enum Direction {

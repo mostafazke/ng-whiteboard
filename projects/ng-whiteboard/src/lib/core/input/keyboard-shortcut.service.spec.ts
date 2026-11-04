@@ -58,6 +58,7 @@ describe('KeyboardShortcutService', () => {
       toggleGrid: jest.fn(),
       toggleSnapToGrid: jest.fn(),
       setActiveTool: jest.fn(),
+      pickImage: jest.fn(),
       bringToFront: jest.fn(),
       bringForward: jest.fn(),
       sendBackward: jest.fn(),
@@ -71,6 +72,7 @@ describe('KeyboardShortcutService', () => {
     mockConfigService = {
       getConfig: jest.fn().mockReturnValue(mockConfig),
       updateConfigValue: jest.fn(),
+      toggleToolLock: jest.fn(),
     } as unknown as jest.Mocked<ConfigService>;
 
     TestBed.configureTestingModule({
@@ -421,12 +423,35 @@ describe('KeyboardShortcutService', () => {
         ['3', 'pen'],
         ['9', 'text'],
         ['0', 'image'],
+        ['z', 'zoomArea'],
       ])('should handle %s for the %s tool', (key, tool) => {
         const event = addSpies(createKeyEvent({ key }));
         service.handleKeyDown(event);
 
         expect(mockApiService.setActiveTool).toHaveBeenCalledWith(tool);
         expect(event.preventDefault).toHaveBeenCalled();
+      });
+
+      it('opens the image picker when Image is chosen by key', () => {
+        service.handleKeyDown(addSpies(createKeyEvent({ key: 'i' })));
+        expect(mockApiService.pickImage).toHaveBeenCalledWith();
+      });
+
+      it('Q toggles the tool lock', () => {
+        const event = addSpies(createKeyEvent({ key: 'q' }));
+        service.handleKeyDown(event);
+        expect(mockConfigService.toggleToolLock).toHaveBeenCalled();
+        expect(event.preventDefault).toHaveBeenCalled();
+      });
+
+      it('ignores shortcuts of tools hidden by toolbarTools and renumbers the rest', () => {
+        mockConfigService.getConfig.mockReturnValue({ ...mockConfig, toolbarTools: ['select', 'rectangle'] } as never);
+
+        service.handleKeyDown(addSpies(createKeyEvent({ key: 'p' })));
+        expect(mockApiService.setActiveTool).not.toHaveBeenCalled();
+
+        service.handleKeyDown(addSpies(createKeyEvent({ key: '2' })));
+        expect(mockApiService.setActiveTool).toHaveBeenCalledWith('rectangle');
       });
 
       it('should handle E for Eraser tool', () => {
@@ -712,7 +737,7 @@ describe('KeyboardShortcutService', () => {
 
     describe('unhandled keys', () => {
       it('should not prevent default for unhandled keys', () => {
-        const event = addSpies(createKeyEvent({ key: 'q', ctrlKey: false }));
+        const event = addSpies(createKeyEvent({ key: 'j', ctrlKey: false }));
         service.handleKeyDown(event);
 
         expect(event.preventDefault).not.toHaveBeenCalled();

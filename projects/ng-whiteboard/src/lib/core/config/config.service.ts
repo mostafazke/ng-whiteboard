@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, computed, signal } from '@angular/core';
 import {
   ElementType,
   LineCap,
@@ -7,6 +7,7 @@ import {
   WhiteboardEvent,
   EditorConfig,
   PenType,
+  SelectAfterDrawConfig,
   defaultArrowConfig,
 } from '../types';
 import { EventBusService } from '../event-bus/event-bus.service';
@@ -51,7 +52,22 @@ export class ConfigService {
   private heldZoomChange = false;
   private heldConfigChange = false;
 
+  /** `selectAfterDraw` to restore when the tool lock is released. */
+  private unlockedSelectAfterDraw: SelectAfterDrawConfig | undefined;
+
+  /** Tool lock: the drawing tool stays active after each element (`selectAfterDraw: false`). */
+  readonly toolLocked = computed(() => this.config().selectAfterDraw === false);
+
   constructor(private eventBusService: EventBusService) {}
+
+  toggleToolLock(): void {
+    if (this.toolLocked()) {
+      this.updateConfig({ selectAfterDraw: this.unlockedSelectAfterDraw });
+    } else {
+      this.unlockedSelectAfterDraw = this.config().selectAfterDraw;
+      this.updateConfig({ selectAfterDraw: false });
+    }
+  }
 
   getConfig(): Readonly<WhiteboardConfig> {
     return this.config();
