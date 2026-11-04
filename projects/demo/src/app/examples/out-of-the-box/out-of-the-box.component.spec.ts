@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { BuiltinEditorComponent } from './builtin-editor.component';
+import { OutOfTheBoxComponent } from './out-of-the-box.component';
 import { NgWhiteboardComponent } from 'ng-whiteboard';
 
-describe('BuiltinEditorComponent', () => {
-  let component: BuiltinEditorComponent;
-  let fixture: ComponentFixture<BuiltinEditorComponent>;
+describe('OutOfTheBoxComponent', () => {
+  let component: OutOfTheBoxComponent;
+  let fixture: ComponentFixture<OutOfTheBoxComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NgWhiteboardComponent, BuiltinEditorComponent],
+      imports: [NgWhiteboardComponent, OutOfTheBoxComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(BuiltinEditorComponent);
+    fixture = TestBed.createComponent(OutOfTheBoxComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

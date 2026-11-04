@@ -1,15 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { NgWhiteboardComponent, WhiteboardConfig, WhiteboardElement } from 'ng-whiteboard';
 
-const PERSIST_KEY = 'whiteboardBuiltinEditorData';
+const PERSIST_KEY = 'whiteboardOutOfTheBoxData';
 
 @Component({
-  selector: 'app-builtin-editor',
-  template: `<div class="builtin-editor">
+  selector: 'app-out-of-the-box',
+  template: `<div class="out-of-the-box">
     <ng-whiteboard [data]="data" [config]="config" (dataChange)="onDataChange($event)"></ng-whiteboard>
   </div>`,
   styles: `
-    .builtin-editor {
+    .out-of-the-box {
       position: relative;
       height: 640px;
     }
@@ -17,7 +17,7 @@ const PERSIST_KEY = 'whiteboardBuiltinEditorData';
   standalone: true,
   imports: [NgWhiteboardComponent],
 })
-export class BuiltinEditorComponent implements OnInit {
+export class OutOfTheBoxComponent implements OnInit {
   data: WhiteboardElement[] = [];
   config: Partial<WhiteboardConfig> = {
     fullScreen: true,
