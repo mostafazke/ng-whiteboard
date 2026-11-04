@@ -27,6 +27,7 @@ import { ZoomService } from '../../viewport/zoom.service';
 import { PanService } from '../../viewport';
 import { AlignmentType, computeAlignmentUpdates } from './utils/alignment';
 import { isFlatCurve, toArrowPath } from './utils/arrow-path';
+import { DEFAULT_BOARD_TITLE } from './utils/board-title';
 import { buildDasharray } from './utils/dasharray';
 import { mergeSelectedProperties } from './utils/selected-properties';
 import { arrowPathKind } from './utils/shape-capabilities';
@@ -657,7 +658,7 @@ export class EditorStateService implements OnDestroy {
   // Save/export current board
   async save(format: FormatType, title?: string): Promise<void> {
     try {
-      await this.ioService.save(format, title || 'Whiteboard');
+      await this.ioService.save(format, title || DEFAULT_BOARD_TITLE);
     } catch {
       // IOService already logs the failure
     }
@@ -668,15 +669,15 @@ export class EditorStateService implements OnDestroy {
   }
 
   saveBoardFile(): void {
-    this.ioService.exportDataAsFile(this.getEditorConfigSignal()().title || 'Whiteboard');
+    this.ioService.exportDataAsFile(this.getEditorConfigSignal()().title || DEFAULT_BOARD_TITLE);
   }
 
   async openBoard(file: File): Promise<void> {
     this.endEdit();
     try {
       await this.ioService.importDataFromFile(file);
-    } catch {
-      // IOService already logs the failure
+    } catch (error) {
+      console.error('Failed to open board file:', error);
     }
   }
 

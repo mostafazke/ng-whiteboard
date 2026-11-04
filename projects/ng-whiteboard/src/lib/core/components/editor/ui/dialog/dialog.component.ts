@@ -47,10 +47,12 @@ import { BottomSheetComponent } from '../bottom-sheet/bottom-sheet.component';
       <div
         #panel
         class="dlg"
+        [class.dlg-sm]="size() === 'sm'"
         role="dialog"
         aria-modal="true"
         tabindex="-1"
         [attr.aria-label]="label()"
+        [attr.aria-describedby]="describedBy()"
         (keydown)="onKeydown($event)"
       >
         <ng-container *ngTemplateOutlet="body" />
@@ -66,6 +68,9 @@ export class DialogComponent {
   /** Visible title; the dialog has no header when omitted. */
   heading = input('');
   compact = input(false);
+  /** `sm` for short prompts such as confirmations. */
+  size = input<'md' | 'sm'>('md');
+  describedBy = input<string | null>(null);
   opener = input<HTMLElement | null>(null);
   focusFallback = input<HTMLElement | null>(null);
   closed = output<void>();

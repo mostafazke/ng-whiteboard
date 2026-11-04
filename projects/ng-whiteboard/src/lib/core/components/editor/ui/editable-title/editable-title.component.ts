@@ -11,8 +11,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { IconComponent } from '../../icon/icon.component';
-
-export const DEFAULT_BOARD_TITLE = 'Whiteboard';
+import { DEFAULT_BOARD_TITLE } from '../../utils/board-title';
 
 @Component({
   selector: 'ng-editable-title',

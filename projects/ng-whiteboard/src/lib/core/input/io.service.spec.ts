@@ -905,6 +905,25 @@ describe('IOService', () => {
     });
   });
 
+  describe('importDataFromFile', () => {
+    it('rejects a file that is not JSON', async () => {
+      const file = new File(['x'], 'pic.png', { type: 'image/png' });
+      await expect(service.importDataFromFile(file)).rejects.toThrow('Invalid file type');
+    });
+
+    it('accepts a .json file whose type is empty', async () => {
+      const spy = jest.spyOn(service, 'importData').mockImplementation();
+      const file = new File(['{"elements":[]}'], 'Board.JSON', { type: '' });
+      await service.importDataFromFile(file);
+      expect(spy).toHaveBeenCalledWith('{"elements":[]}');
+    });
+
+    it('still rejects an empty type without a .json name', async () => {
+      const file = new File(['{}'], 'board.txt', { type: '' });
+      await expect(service.importDataFromFile(file)).rejects.toThrow('Invalid file type');
+    });
+  });
+
   describe('importMultipleImages', () => {
     it('should handle empty file list', async () => {
       const fileList = {

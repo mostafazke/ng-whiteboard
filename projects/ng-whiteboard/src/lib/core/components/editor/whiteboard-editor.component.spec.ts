@@ -649,7 +649,61 @@ describe('WhiteboardEditorComponent', () => {
       expect(document.activeElement).toBe(q('ng-header-panel .menu-btn'));
     });
 
+    it('separates Copy as PNG, the theme toggle and Reset in the popover and in the compact sheet', () => {
+      mount(true);
+      const shape = (root: string) =>
+        Array.from(fixture.nativeElement.querySelector(`${root} [role="menu"]`).children as HTMLCollection).map(
+          (c) => c.getAttribute('role') + ':' + (c.textContent ?? '').trim().slice(0, 9)
+        );
+      const expected = [
+        'menuitem:Open…',
+        'menuitem:Save to f',
+        'menuitem:Export im',
+        'menuitem:Copy as P',
+        'separator:',
+        'menuitem:Dark mode',
+        'separator:',
+        'menuitem:Reset can',
+      ];
+      q<HTMLButtonElement>('ng-header-panel .menu-btn').click();
+      fixture.detectChanges();
+      expect(shape('ng-header-panel').map((e) => e.split(':')[0])).toEqual(expected.map((e) => e.split(':')[0]));
+
+      FakeResizeObserver.instances[FakeResizeObserver.instances.length - 1].resize(390, 844);
+      fixture.detectChanges();
+      component.menuSheetOpenSignal.set(true);
+      fixture.detectChanges();
+      expect(shape('ng-bottom-sheet').map((e) => e.split(':')[0])).toEqual(expected.map((e) => e.split(':')[0]));
+    });
+
+    it('Dark mode closes the compact menu sheet as well', () => {
+      mount(false);
+      FakeResizeObserver.instances[FakeResizeObserver.instances.length - 1].resize(390, 844);
+      fixture.detectChanges();
+      component.menuSheetOpenSignal.set(true);
+      fixture.detectChanges();
+      component.runMenuAction('theme');
+      expect(component.menuSheetOpenSignal()).toBe(false);
+    });
+
     describe('shortcuts', () => {
+      it('are ignored while the reset confirm is open', () => {
+        mount(false);
+        TestBed.inject(ElementsService).setElements([box()]);
+        choose('Reset canvas…');
+        press(q('.cancel-btn'), { key: 's', code: 'KeyS', ctrlKey: true });
+        press(q('.cancel-btn'), { key: 'E', code: 'KeyE', ctrlKey: true, shiftKey: true });
+        expect(ioServiceMock.exportDataAsFile).not.toHaveBeenCalled();
+        expect(component.exportDialogOpen()).toBe(false);
+      });
+
+      it('are ignored while the export dialog is open', () => {
+        mount(false);
+        choose('Export image…');
+        press(q('.dlg-close'), { key: 's', code: 'KeyS', ctrlKey: true });
+        expect(ioServiceMock.exportDataAsFile).not.toHaveBeenCalled();
+      });
+
       const toolbarButton = () => q<HTMLButtonElement>('ng-toolbar button');
 
       it('Ctrl+S saves once even when the board also reports the event, and prevents default', () => {

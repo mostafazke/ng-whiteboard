@@ -64,6 +64,12 @@
   }
 }
 
+.wb-menu-separator {
+  height: 0;
+  margin: var(--wb-space-1) var(--wb-space-2);
+  border-top: 1px solid var(--wb-color-border);
+}
+
 .wb-menu-label {
   flex: 1 1 auto;
   min-width: 0;

@@ -24,6 +24,15 @@ describe('ConfirmDialogComponent', () => {
     expect(document.activeElement).toBe(buttons()[0]);
   });
 
+  it('is narrow, has a short accessible name and describes itself with the message', () => {
+    const dialog = fixture.nativeElement.querySelector('.dlg') as HTMLElement;
+    expect(dialog.classList).toContain('dlg-sm');
+    expect(dialog.getAttribute('aria-label')).toBe('Confirm');
+    const message = fixture.nativeElement.querySelector('.confirm-message') as HTMLElement;
+    expect(message.id).toBeTruthy();
+    expect(dialog.getAttribute('aria-describedby')).toBe(message.id);
+  });
+
   it('confirm and cancel emit', () => {
     const confirmed = jest.fn();
     const cancelled = jest.fn();

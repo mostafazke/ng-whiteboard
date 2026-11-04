@@ -472,7 +472,7 @@ export class IOService {
 
   importDataFromFile(file: File): Promise<void> {
     return new Promise((resolve, reject) => {
-      if (!file.type.includes('json')) {
+      if (!file.type.includes('json') && !(file.type === '' && /\.json$/i.test(file.name))) {
         reject(new Error('Invalid file type. Only JSON files are supported.'));
         return;
       }

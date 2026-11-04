@@ -30,6 +30,10 @@
   outline: none;
 }
 
+.dlg-sm {
+  width: min(420px, calc(100% - 2 * var(--wb-space-4)));
+}
+
 .dlg-header {
   flex: none;
   display: flex;

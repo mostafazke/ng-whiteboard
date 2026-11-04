@@ -205,6 +205,7 @@ export class WhiteboardEditorComponent {
     const action = matchFileShortcut(event);
     if (!action) return;
     event.preventDefault();
+    if (this.exportDialogOpen() || this.confirmKind()) return;
     if (action === 'copy-png' && !canCopyImage()) return;
     this.rememberOpener(null);
     this.runMenuAction(action);
@@ -276,7 +277,7 @@ export class WhiteboardEditorComponent {
 
   runMenuAction(id: MainMenuActionId) {
     const state = this.editorStateService;
-    if (id !== 'theme') this.menuSheetOpenSignal.set(false);
+    this.menuSheetOpenSignal.set(false);
     switch (id) {
       case 'open':
         if (state.hasContent()) this.confirmKind.set('open');

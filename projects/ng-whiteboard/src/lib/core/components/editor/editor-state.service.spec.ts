@@ -11,6 +11,7 @@ import { ArrowElement, ArrowheadType } from '../../elements';
 import { ElementType, LineCap, PenType, WhiteboardElement, WhiteboardEvent } from '../../types';
 import { IOService } from '../../input/io.service';
 import { EditorStateService } from './editor-state.service';
+import { DEFAULT_BOARD_TITLE } from './utils/board-title';
 import { MIXED } from './utils/selected-properties';
 
 const rect = (id: string, x: number, y: number, width: number, height: number, extra = {}): WhiteboardElement =>
@@ -622,13 +623,26 @@ describe('EditorStateService board file actions', () => {
     expect(io.exportDataAsFile).toHaveBeenCalledWith('Sprint plan');
   });
 
-  it('openBoard imports the file and swallows failures', async () => {
+  it('openBoard imports the file', async () => {
     const file = new File(['{}'], 'a.json', { type: 'application/json' });
     await service.openBoard(file);
     expect(io.importDataFromFile).toHaveBeenCalledWith(file);
+  });
 
-    io.importDataFromFile.mockRejectedValueOnce(new Error('bad'));
+  it('openBoard logs a failure and does not reject', async () => {
+    const file = new File(['{}'], 'a.json', { type: 'application/json' });
+    const error = jest.spyOn(console, 'error').mockImplementation();
+    const failure = new Error('bad');
+    io.importDataFromFile.mockRejectedValueOnce(failure);
     await expect(service.openBoard(file)).resolves.toBeUndefined();
+    expect(error).toHaveBeenCalledWith(expect.stringContaining('open'), failure);
+    error.mockRestore();
+  });
+
+  it('saveBoardFile falls back to the default title', () => {
+    service.updateTitle('');
+    service.saveBoardFile();
+    expect(io.exportDataAsFile).toHaveBeenCalledWith(DEFAULT_BOARD_TITLE);
   });
 
   it('copyAsPng copies with the export settings, padding 16 and the selection', async () => {

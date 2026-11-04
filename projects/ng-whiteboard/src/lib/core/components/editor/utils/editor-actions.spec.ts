@@ -24,6 +24,11 @@ describe('buildMainMenu', () => {
     ]);
   });
 
+  it('puts separators before the theme toggle and before Reset', () => {
+    const items = buildMainMenu(base);
+    expect(items.filter((i) => i.separatorBefore).map((i) => i.id)).toEqual(['theme', 'reset']);
+  });
+
   it('omits Copy as PNG when image clipboard is unsupported', () => {
     expect(buildMainMenu({ ...base, canCopyImage: false }).map((i) => i.id)).not.toContain('copy-png');
   });

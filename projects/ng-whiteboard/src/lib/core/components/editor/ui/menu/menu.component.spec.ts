@@ -4,7 +4,7 @@ import { MenuComponent, MenuItem } from './menu.component';
 const ITEMS: MenuItem[] = [
   { id: 'open', label: 'Open…', icon: 'folder-open', shortcut: 'Ctrl+O' },
   { id: 'save', label: 'Save to file', icon: 'file-json' },
-  { id: 'reset', label: 'Reset canvas…', icon: 'rotate-ccw' },
+  { id: 'reset', label: 'Reset canvas…', icon: 'rotate-ccw', separatorBefore: true },
 ];
 
 describe('MenuComponent', () => {
@@ -43,6 +43,14 @@ describe('MenuComponent', () => {
     expect(document.activeElement).toBe(items()[2]);
     press(items()[2], 'Home');
     expect(document.activeElement).toBe(items()[0]);
+  });
+
+  it('renders a separator before items that ask for one and keeps it out of arrow navigation', () => {
+    const children = Array.from(fixture.nativeElement.querySelector('[role="menu"]').children) as HTMLElement[];
+    expect(children.map((c) => c.getAttribute('role'))).toEqual(['menuitem', 'menuitem', 'separator', 'menuitem']);
+    items()[1].focus();
+    press(items()[1], 'ArrowDown');
+    expect(document.activeElement).toBe(items()[2]);
   });
 
   it('emits the id of the chosen item', () => {

@@ -18,6 +18,7 @@ export interface MenuItem {
   label: string;
   icon: IconName;
   shortcut?: string;
+  separatorBefore?: boolean;
 }
 
 @Component({
@@ -33,6 +34,9 @@ export interface MenuItem {
       (keydown)="onKeydown($event)"
     >
       @for (item of items(); track item.id; let i = $index) {
+        @if (item.separatorBefore) {
+          <div class="wb-menu-separator" role="separator"></div>
+        }
         <button
           type="button"
           role="menuitem"

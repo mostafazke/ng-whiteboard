@@ -74,6 +74,11 @@ describe('DialogComponent', () => {
     expect(document.activeElement).toBe(q('#opener'));
   });
 
+  it('is wide by default', () => {
+    show();
+    expect(q('.dlg').classList).not.toContain('dlg-sm');
+  });
+
   it('the backdrop closes it', () => {
     show();
     q<HTMLElement>('.dlg-backdrop').click();

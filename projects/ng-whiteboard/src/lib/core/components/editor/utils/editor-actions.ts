@@ -13,6 +13,7 @@ export type ZoomActionId = 'fit' | 'selection' | 'reset';
 
 export interface MainMenuAction extends EditorAction<MainMenuActionId> {
   shortcut?: string;
+  separatorBefore?: boolean;
 }
 
 export const MAIN_MENU_ACTIONS: readonly MainMenuAction[] = [
@@ -20,8 +21,8 @@ export const MAIN_MENU_ACTIONS: readonly MainMenuAction[] = [
   { id: 'save', label: 'Save to file', icon: 'file-json', shortcut: 'Ctrl+S' },
   { id: 'export', label: 'Export image…', icon: 'image-down', shortcut: 'Ctrl+Shift+E' },
   { id: 'copy-png', label: 'Copy as PNG', icon: 'clipboard-copy', shortcut: 'Ctrl+Shift+C' },
-  { id: 'theme', label: 'Dark mode', icon: 'moon' },
-  { id: 'reset', label: 'Reset canvas…', icon: 'rotate-ccw' },
+  { id: 'theme', label: 'Dark mode', icon: 'moon', separatorBefore: true },
+  { id: 'reset', label: 'Reset canvas…', icon: 'rotate-ccw', separatorBefore: true },
 ];
 
 export const ZOOM_ACTIONS: readonly EditorAction<ZoomActionId>[] = [
@@ -57,5 +58,6 @@ export function buildMainMenu(options: { theme: string; canCopyImage: boolean; m
     label: action.id === 'theme' ? (dark ? 'Light mode' : 'Dark mode') : action.label,
     icon: action.id === 'theme' ? (dark ? 'sun' : 'moon') : action.icon,
     shortcut: action.shortcut ? formatShortcut(action.shortcut, options.mac) : undefined,
+    separatorBefore: action.separatorBefore,
   }));
 }
