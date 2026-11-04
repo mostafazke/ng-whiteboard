@@ -105,11 +105,6 @@ jobs:
         with:
           node-version: 24
           cache: yarn
-          registry-url: https://registry.npmjs.org
-        env:
-          # setup-node v7 runs yarn while resolving the cache, and yarn needs the
-          # token referenced by the generated .npmrc.
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
@@ -117,9 +112,9 @@ jobs:
       - name: Build library
         run: yarn build:lib
 
+      # npm trusted publishing: semantic-release exchanges the job's OIDC token
+      # (id-token: write) for a short-lived npm token, so no NPM_TOKEN secret is used.
       - name: Publish library
         run: yarn publish:lib
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
