@@ -733,26 +733,42 @@ describe('ApiService', () => {
 
   describe('Undo/Redo Operations', () => {
     it('should undo when history available', () => {
-      mockHistoryService.undo.mockReturnValue([mockElement]);
+      mockHistoryService.undoSnapshot.mockReturnValue({ elements: [mockElement] });
       const result = service.undo();
-      expect(mockHistoryService.undo).toHaveBeenCalled();
+      expect(mockHistoryService.undoSnapshot).toHaveBeenCalled();
       expect(mockElementsService.setElements).toHaveBeenCalledWith([mockElement]);
       expect(mockSelectionService.clearSelection).toHaveBeenCalled();
       expect(mockEventBusService.emit).toHaveBeenCalledWith(WhiteboardEvent.Undo, undefined);
       expect(result).toBe(true);
     });
 
+    it('should import layers before setting elements on undo', () => {
+      const layers = { layers: [], activeLayerId: 'l1' };
+      mockHistoryService.undoSnapshot.mockReturnValue({ elements: [mockElement], layers });
+      service.undo();
+      expect(mockLayerService.importLayerState).toHaveBeenCalledWith(layers);
+      expect(mockLayerService.importLayerState.mock.invocationCallOrder[0]).toBeLessThan(
+        mockElementsService.setElements.mock.invocationCallOrder[0]
+      );
+    });
+
+    it('should not touch layers on undo when the entry has none', () => {
+      mockHistoryService.undoSnapshot.mockReturnValue({ elements: [mockElement] });
+      service.undo();
+      expect(mockLayerService.importLayerState).not.toHaveBeenCalled();
+    });
+
     it('should return false when undo not available', () => {
-      mockHistoryService.undo.mockReturnValue(null);
+      mockHistoryService.undoSnapshot.mockReturnValue(null);
       const result = service.undo();
-      expect(mockHistoryService.undo).toHaveBeenCalled();
+      expect(mockHistoryService.undoSnapshot).toHaveBeenCalled();
       expect(result).toBe(false);
     });
 
     it('should redo when history available', () => {
-      mockHistoryService.redo.mockReturnValue([mockElement]);
+      mockHistoryService.redoSnapshot.mockReturnValue({ elements: [mockElement] });
       const result = service.redo();
-      expect(mockHistoryService.redo).toHaveBeenCalled();
+      expect(mockHistoryService.redoSnapshot).toHaveBeenCalled();
       expect(mockElementsService.setElements).toHaveBeenCalledWith([mockElement]);
       expect(mockSelectionService.clearSelection).toHaveBeenCalled();
       expect(mockEventBusService.emit).toHaveBeenCalledWith(WhiteboardEvent.Redo, undefined);
@@ -760,9 +776,9 @@ describe('ApiService', () => {
     });
 
     it('should return false when redo not available', () => {
-      mockHistoryService.redo.mockReturnValue(null);
+      mockHistoryService.redoSnapshot.mockReturnValue(null);
       const result = service.redo();
-      expect(mockHistoryService.redo).toHaveBeenCalled();
+      expect(mockHistoryService.redoSnapshot).toHaveBeenCalled();
       expect(result).toBe(false);
     });
 

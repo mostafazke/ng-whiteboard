@@ -1,16 +1,24 @@
 import { signal, Injectable } from '@angular/core';
 import { WhiteboardElement } from '../types';
+import { LayerState } from '../types/layers';
+
+export interface BoardSnapshot {
+  elements: WhiteboardElement[];
+  layers?: LayerState;
+}
 
 interface HistoryEntry {
   before: WhiteboardElement[];
   after: WhiteboardElement[];
+  layersBefore?: LayerState;
+  layersAfter?: LayerState;
   description: string;
   timestamp: number;
 }
 
 export interface BatchHandle {
-  /** Commit the batch; `after`, when given, is recorded as its final state first. */
-  execute: (after?: WhiteboardElement[]) => void;
+  /** Commit the batch; `after` and `layersAfter`, when given, are recorded as its final state first. */
+  execute: (after?: WhiteboardElement[], layersAfter?: LayerState) => void;
   clear: () => void;
 }
 
@@ -31,6 +39,8 @@ export class HistoryService {
   private batchBeforeSnapshot: WhiteboardElement[] | null = null;
   private batchDescription = 'Batch operation';
   private pendingBatchAfter: WhiteboardElement[] | null = null;
+  private batchLayersBefore: LayerState | undefined;
+  private pendingBatchLayersAfter: LayerState | undefined;
   private batchGeneration = 0;
 
   getCanUndoSignal() {
@@ -61,6 +71,23 @@ export class HistoryService {
     }
   }
 
+  recordBoardChange(before: BoardSnapshot, after: BoardSnapshot, description: string) {
+    if (this.batching) {
+      return;
+    }
+
+    if (!this.snapshotsEqual(before.elements, after.elements) || !this.layersEqual(before.layers, after.layers)) {
+      this.pushHistory({
+        before: this.cloneElements(before.elements),
+        after: this.cloneElements(after.elements),
+        layersBefore: this.cloneLayers(before.layers),
+        layersAfter: this.cloneLayers(after.layers),
+        description,
+        timestamp: Date.now(),
+      });
+    }
+  }
+
   recordElementCreation(before: WhiteboardElement[], after: WhiteboardElement[]) {
     this.recordChange(before, after, 'Create element');
   }
@@ -74,9 +101,10 @@ export class HistoryService {
     this.recordChange(before, after, 'Clear whiteboard');
   }
 
-  startBatch(description: string, beforeSnapshot: WhiteboardElement[]): BatchHandle {
+  startBatch(description: string, beforeSnapshot: WhiteboardElement[], layersBefore?: LayerState): BatchHandle {
     if (this.batchDepth === 0) {
       this.batchBeforeSnapshot = this.cloneElements(beforeSnapshot);
+      this.batchLayersBefore = this.cloneLayers(layersBefore);
       this.batchDescription = description;
       this.batching = true;
     }
@@ -91,9 +119,10 @@ export class HistoryService {
       if (generation === this.batchGeneration) action();
     };
     return {
-      execute: (after?: WhiteboardElement[]) =>
+      execute: (after?: WhiteboardElement[], layersAfter?: LayerState) =>
         settle(() => {
           if (after) this.completeBatch(after);
+          if (layersAfter && this.batching) this.pendingBatchLayersAfter = this.cloneLayers(layersAfter);
           this.finishBatchCommit();
         }),
       clear: () => settle(() => this.cancelBatch()),
@@ -113,10 +142,16 @@ export class HistoryService {
       return;
     }
     const after = this.pendingBatchAfter ?? this.batchBeforeSnapshot;
-    if (!this.snapshotsEqual(this.batchBeforeSnapshot, after)) {
+    const layersAfter = this.pendingBatchLayersAfter ?? this.batchLayersBefore;
+    if (
+      !this.snapshotsEqual(this.batchBeforeSnapshot, after) ||
+      !this.layersEqual(this.batchLayersBefore, layersAfter)
+    ) {
       this.pushHistory({
         before: this.batchBeforeSnapshot,
         after,
+        layersBefore: this.batchLayersBefore,
+        layersAfter,
         description: this.batchDescription,
         timestamp: Date.now(),
       });
@@ -133,6 +168,9 @@ export class HistoryService {
   private resetBatchState() {
     this.batching = false;
     this.batchBeforeSnapshot = null;
+    this.pendingBatchAfter = null;
+    this.batchLayersBefore = undefined;
+    this.pendingBatchLayersAfter = undefined;
     this.batchDescription = 'Batch operation';
   }
 
@@ -144,6 +182,18 @@ export class HistoryService {
     return this.performRedo();
   }
 
+  undoSnapshot(): BoardSnapshot | null {
+    const entry = this.takeUndo();
+    if (!entry) return null;
+    return this.toSnapshot(entry.before, entry.layersBefore);
+  }
+
+  redoSnapshot(): BoardSnapshot | null {
+    const entry = this.takeRedo();
+    if (!entry) return null;
+    return this.toSnapshot(entry.after, entry.layersAfter);
+  }
+
   clearHistory(): void {
     this.undoStack = [];
     this.redoStack = [];
@@ -151,21 +201,33 @@ export class HistoryService {
   }
 
   private performUndo(): WhiteboardElement[] | null {
-    if (this.undoStack.length === 0) return null;
+    return this.undoSnapshot()?.elements ?? null;
+  }
+
+  private performRedo(): WhiteboardElement[] | null {
+    return this.redoSnapshot()?.elements ?? null;
+  }
+
+  private takeUndo(): HistoryEntry | null {
     const entry = this.undoStack.pop();
     if (!entry) return null;
     this.redoStack.push(entry);
     this.updateSignals();
-    return this.cloneElements(entry.before);
+    return entry;
   }
 
-  private performRedo(): WhiteboardElement[] | null {
-    if (this.redoStack.length === 0) return null;
+  private takeRedo(): HistoryEntry | null {
     const entry = this.redoStack.pop();
     if (!entry) return null;
     this.undoStack.push(entry);
     this.updateSignals();
-    return this.cloneElements(entry.after);
+    return entry;
+  }
+
+  private toSnapshot(elements: WhiteboardElement[], layers?: LayerState): BoardSnapshot {
+    const snapshot: BoardSnapshot = { elements: this.cloneElements(elements) };
+    if (layers) snapshot.layers = this.cloneLayers(layers);
+    return snapshot;
   }
 
   private pushHistory(entry: HistoryEntry) {
@@ -194,6 +256,16 @@ export class HistoryService {
       }
       return cloned;
     });
+  }
+
+  private cloneLayers(layers: LayerState | undefined): LayerState | undefined {
+    return layers ? (JSON.parse(JSON.stringify(layers)) as LayerState) : undefined;
+  }
+
+  private layersEqual(a: LayerState | undefined, b: LayerState | undefined): boolean {
+    if (!a && !b) return true;
+    if (!a || !b) return false;
+    return JSON.stringify(a) === JSON.stringify(b);
   }
 
   private snapshotsEqual(a: WhiteboardElement[], b: WhiteboardElement[]): boolean {

@@ -416,9 +416,10 @@ export class ApiService {
   }
 
   undo(): boolean {
-    const elements = this.historyService.undo();
-    if (elements) {
-      this.elementsService.setElements(elements);
+    const snapshot = this.historyService.undoSnapshot();
+    if (snapshot) {
+      if (snapshot.layers) this.layerService.importLayerState(snapshot.layers);
+      this.elementsService.setElements(snapshot.elements);
       this.selectionService.clearSelection();
       this.eventBusService.emit(WhiteboardEvent.Undo, undefined);
       return true;
@@ -427,9 +428,10 @@ export class ApiService {
   }
 
   redo(): boolean {
-    const elements = this.historyService.redo();
-    if (elements) {
-      this.elementsService.setElements(elements);
+    const snapshot = this.historyService.redoSnapshot();
+    if (snapshot) {
+      if (snapshot.layers) this.layerService.importLayerState(snapshot.layers);
+      this.elementsService.setElements(snapshot.elements);
       this.selectionService.clearSelection();
       this.eventBusService.emit(WhiteboardEvent.Redo, undefined);
       return true;
