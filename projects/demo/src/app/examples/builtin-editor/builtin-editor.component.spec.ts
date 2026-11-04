@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ComprehensiveComponent } from './comprehensive.component';
+import { BuiltinEditorComponent } from './builtin-editor.component';
 import { NgWhiteboardComponent } from 'ng-whiteboard';
 
-describe('ComprehensiveComponent', () => {
-  let component: ComprehensiveComponent;
-  let fixture: ComponentFixture<ComprehensiveComponent>;
+describe('BuiltinEditorComponent', () => {
+  let component: BuiltinEditorComponent;
+  let fixture: ComponentFixture<BuiltinEditorComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NgWhiteboardComponent, ComprehensiveComponent],
+      imports: [NgWhiteboardComponent, BuiltinEditorComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ComprehensiveComponent);
+    fixture = TestBed.createComponent(BuiltinEditorComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

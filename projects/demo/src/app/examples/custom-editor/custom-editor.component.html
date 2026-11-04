@@ -298,6 +298,7 @@
     <main class="canvas-area">
       <ng-whiteboard
         [boardId]="boardId"
+        [showEditor]="false"
         (dataChange)="onDataChange($event)"
         [config]="config()"
         (configChange)="config.set($event)"

@@ -3,8 +3,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ExamplesComponent } from './examples.component';
 import { NgWhiteboardComponent } from 'ng-whiteboard';
 import { MinimalComponent } from './minimal/minimal.component';
-import { BasicComponent } from './basic/basic.component';
-import { ComprehensiveComponent } from './comprehensive/comprehensive.component';
+import { BuiltinEditorComponent } from './builtin-editor/builtin-editor.component';
+import { CustomEditorComponent } from './custom-editor/custom-editor.component';
 import { RouterTestingModule } from '@angular/router/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
@@ -19,8 +19,8 @@ describe('ExamplesComponent', () => {
         RouterTestingModule,
         ExamplesComponent,
         MinimalComponent,
-        BasicComponent,
-        ComprehensiveComponent,
+        BuiltinEditorComponent,
+        CustomEditorComponent,
         NoopAnimationsModule,
       ],
     }).compileComponents();

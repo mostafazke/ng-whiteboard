@@ -321,16 +321,18 @@ describe('NgWhiteboardComponent', () => {
   describe('showEditor', () => {
     const editorEl = () => fixture.nativeElement.querySelector('ng-whiteboard-editor');
 
-    it('does not render editor by default', () => {
-      expect(component.showEditor).toBe(false);
-      expect(editorEl()).toBeNull();
-    });
-
-    it('renders editor when showEditor is true', async () => {
-      component.showEditor = true;
-      fixture.debugElement.injector.get(ChangeDetectorRef).markForCheck();
+    it('renders the editor by default', async () => {
+      expect(component.showEditor).toBe(true);
       await renderDeferredEditor(fixture);
       expect(editorEl()).not.toBeNull();
+    });
+
+    it('renders only the canvas when showEditor is false', () => {
+      component.showEditor = false;
+      fixture.debugElement.injector.get(ChangeDetectorRef).markForCheck();
+      fixture.detectChanges();
+      expect(editorEl()).toBeNull();
+      expect(fixture.nativeElement.querySelector('ng-whiteboard-canvas')).not.toBeNull();
     });
 
     it('toggling showEditor at runtime adds/removes editor', async () => {

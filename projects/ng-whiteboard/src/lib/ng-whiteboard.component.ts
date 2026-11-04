@@ -112,10 +112,10 @@ export class NgWhiteboardComponent implements OnInit, OnDestroy {
   @Input() boardId = generateUUID();
 
   /**
-   * Show editor UI with toolbar, panels, and controls.
-   * When false, shows only the canvas.
+   * Show the built-in editor (toolbar, panels and controls). On by default;
+   * set to false to render only the canvas, e.g. under a custom editor UI.
    */
-  @Input() showEditor = false;
+  @Input() showEditor = true;
 
   /**
    * Whiteboard configuration options.

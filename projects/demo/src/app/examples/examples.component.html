@@ -5,18 +5,21 @@
     <div class="intro">
       <h1>Examples</h1>
       <p class="lead">
-        Explore different implementation examples showcasing various features and configurations of ng-whiteboard. From
-        minimal setups to comprehensive implementations.
+        Three ways to use ng-whiteboard: the bare canvas, the built-in editor that ships with the component, and your
+        own editor UI on top of the service API.
       </p>
     </div>
 
     <div class="example-section">
       <div class="example-header">
-        <h2 id="minimal">
-          <a class="anchor" [routerLink]="['/examples']" fragment="minimal" aria-label="Minimal example">#</a>
-          Minimal Example
+        <h2 id="canvas-only">
+          <a class="anchor" [routerLink]="['/examples']" fragment="canvas-only" aria-label="Canvas only example">#</a>
+          Canvas Only
         </h2>
-        <p>A simple, bare-bones implementation with minimal configuration.</p>
+        <p>
+          The drawing surface without any editor UI, using <code>[showEditor]="false"</code>. Draw with the pen, and use
+          keyboard shortcuts or the service API to change tools.
+        </p>
       </div>
       <div class="example-content">
         <div class="demo">
@@ -27,32 +30,40 @@
 
     <div class="example-section">
       <div class="example-header">
-        <h2 id="basic">
-          <a class="anchor" [routerLink]="['/examples']" fragment="basic" aria-label="Basic example">#</a>
-          Basic Example
+        <h2 id="builtin-editor">
+          <a class="anchor" [routerLink]="['/examples']" fragment="builtin-editor" aria-label="Built-in editor example"
+            >#</a
+          >
+          Built-in Editor
         </h2>
-        <p>A standard implementation with common features and controls.</p>
+        <p>
+          The default: a plain <code>&lt;ng-whiteboard&gt;</code> comes with the toolbar, properties panel, layers, zoom
+          controls, file menu and export dialog. No extra setup needed.
+        </p>
       </div>
       <div class="example-content">
         <div class="demo">
-          <app-basic-component></app-basic-component>
+          <app-builtin-editor></app-builtin-editor>
         </div>
       </div>
     </div>
 
     <div class="example-section">
       <div class="example-header">
-        <h2 id="comprehensive">
-          <a class="anchor" [routerLink]="['/examples']" fragment="comprehensive" aria-label="Comprehensive example"
+        <h2 id="custom-editor">
+          <a class="anchor" [routerLink]="['/examples']" fragment="custom-editor" aria-label="Custom editor example"
             >#</a
           >
-          Comprehensive Example
+          Custom Editor
         </h2>
-        <p>A full-featured implementation showcasing all available tools and options.</p>
+        <p>
+          Your own toolbar, layers and properties UI, built with <code>NgWhiteboardService</code> on a canvas with the
+          built-in editor turned off.
+        </p>
       </div>
       <div class="example-content">
         <div class="demo">
-          <app-comprehensive-component></app-comprehensive-component>
+          <app-custom-editor></app-custom-editor>
         </div>
       </div>
     </div>

@@ -4,20 +4,20 @@ import { initializeApp } from 'firebase/app';
 import { getDatabase, onValue, ref, set } from 'firebase/database';
 import { NgWhiteboardService, WhiteboardElement } from 'ng-whiteboard';
 import { environment } from '../../environments/environment';
-import { BasicComponent } from '../examples/basic/basic.component';
+import { CustomEditorComponent } from '../examples/custom-editor/custom-editor.component';
 
 @Component({
   selector: 'app-whiteboard-live-app',
   templateUrl: './live-app.component.html',
   styleUrls: ['./live-app.component.scss'],
   standalone: true,
-  imports: [CommonModule, BasicComponent],
+  imports: [CommonModule, CustomEditorComponent],
   providers: [NgWhiteboardService],
 })
 export class LiveAppComponent implements OnInit {
   private isSyncing = false;
   private whiteboardService = inject(NgWhiteboardService);
-  private readonly boardId = 'whiteboard-app'; // Match the board ID used in BasicComponent
+  private readonly boardId = 'whiteboard-app'; // Match the board ID used in CustomEditorComponent
 
   ngOnInit(): void {
     // Set the active board for the service

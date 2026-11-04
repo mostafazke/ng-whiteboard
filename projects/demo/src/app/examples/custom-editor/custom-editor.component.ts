@@ -24,25 +24,17 @@ import {
   WhiteboardElement,
 } from 'ng-whiteboard';
 
-/**
- * Professional whiteboard component with modern UI and layer support
- * Features:
- * - Multiple drawing tools (pen, shapes, text, etc.)
- * - Layer management (add, delete, rename, visibility, lock)
- * - Customizable colors and stroke widths
- * - Import/export functionality
- * - Keyboard shortcuts
- */
+/** A custom editor UI built on NgWhiteboardService, with the built-in editor turned off. */
 @Component({
-  selector: 'app-basic-component',
-  templateUrl: './basic.component.html',
-  styleUrls: ['./basic.component.scss'],
+  selector: 'app-custom-editor',
+  templateUrl: './custom-editor.component.html',
+  styleUrls: ['./custom-editor.component.scss'],
   encapsulation: ViewEncapsulation.None,
   standalone: true,
   imports: [CommonModule, FormsModule, NgWhiteboardComponent],
   providers: [NgWhiteboardService],
 })
-export class BasicComponent implements OnDestroy {
+export class CustomEditorComponent implements OnDestroy {
   private whiteboardService = inject(NgWhiteboardService);
   private sanitizer = inject(DomSanitizer);
   private clickOutsideListener?: (event: MouseEvent) => void;

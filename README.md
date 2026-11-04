@@ -96,6 +96,8 @@ export class AppModule {}
 <ng-whiteboard></ng-whiteboard>
 ```
 
+This renders the board with the built-in editor. For the canvas alone, under your own UI, use `<ng-whiteboard [showEditor]="false">`.
+
 ### Advanced Example With Persist Data
 
 ```typescript
@@ -142,10 +144,10 @@ export class WhiteboardContainerComponent implements OnInit {
 ## 🧰 Built-in Editor
 
 ```html
-<ng-whiteboard [showEditor]="true" [config]="{ theme: 'dark' }"></ng-whiteboard>
+<ng-whiteboard [config]="{ theme: 'dark' }"></ng-whiteboard>
 ```
 
-- `[showEditor]` (default `false`) adds the editor UI (toolbar, properties, layers). When `false`, only the canvas renders, unchanged.
+- The editor (toolbar, properties, layers) is on by default. `[showEditor]="false"` renders only the canvas, for example under a custom editor built with `NgWhiteboardService`.
 - The editor is lazy-loaded (`@defer`), so it appears just after the canvas. With SSR, no editor markup is rendered until the page hydrates.
 - `config.theme` is `'light' | 'dark'`. Unset renders as before (light).
 - The layout adapts to the editor's own container. Phones and small containers get a bottom toolbar and bottom sheets.
@@ -169,6 +171,7 @@ export class WhiteboardContainerComponent implements OnInit {
 | ------------------- | --------------------- | ---------------- | -------------------------------------------------------------------------------------------------- |
 | `[data]`            | `WhiteboardElement[]` | `[]`             | The whiteboard data                                                                                |
 | `[options]`         | `WhiteboardOptions`   | `null`           | Component configuration object, properties described below                                         |
+| `[showEditor]`      | `boolean`             | `true`           | Show the built-in editor; `false` renders only the canvas                                          |
 | `[drawingEnabled]`  | `boolean`             | `true`           | Enable mouse/touch interactions                                                                    |
 | `[selectedTool]`    | `ToolType`            | `ToolType.Pen`   | The current selected tool                                                                          |
 | `[canvasWidth]`     | `number`              | `800`            | The width of whiteboard canvas                                                                     |
@@ -377,6 +380,7 @@ Layer operations are undoable.
 
 ### ⚠️ Behaviour Changes
 
+- `<ng-whiteboard>` now shows the built-in editor by default. Add `[showEditor]="false"` to keep the previous canvas-only rendering.
 - `save()` output is now cropped to the content bounds with 16px padding (an empty board still exports the canvas box) and never includes editor chrome. For `FormatType.Svg` the vector is downloaded directly and the returned string is the SVG data URL.
 - JPEG export has a white background.
 - Raster exports are limited to 16384px per side and 268,435,456 pixels in total; the scale is reduced to fit.
