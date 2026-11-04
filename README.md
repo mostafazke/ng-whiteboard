@@ -152,7 +152,10 @@ export class WhiteboardContainerComponent implements OnInit {
 - Touch: pinch to zoom and two-finger pan work with or without the editor.
 - `Alt + P` toggles the properties panel.
 - The properties panel adapts to the selected shape: arrow heads, arrow path and line ends for arrows, corner radius for rectangles, brush for the pen, and so on. The optional `config.cornerRadius` sets the corner radius of new rectangles (default `5`).
-- **Save** downloads an SVG file and **Export** downloads a PNG file.
+- The header has a main menu (☰) with Open…, Save to file (.json), Export image…, Copy as PNG, Dark/Light mode and Reset canvas…, an editable board title, and a layers button. Shortcuts (editor only, focused board): `Ctrl/Cmd + O` open, `Ctrl/Cmd + S` save, `Ctrl/Cmd + Shift + E` export image, `Ctrl/Cmd + Shift + C` copy as PNG.
+- **Export image…** opens a dialog with a live preview, PNG or SVG, scale (1×/2×/3×), background on/off, an "only selected" option, a file name, and Download or Copy.
+- **Layers panel**: rename (double-click, `Enter` or `F2`), reorder by drag or `Alt + Arrow`, eye and lock toggles, and a ⋯ menu with opacity, blend mode, duplicate, merge down, and delete (with a confirm and a "move elements to the layer below" option).
+- Open, Reset and layer operations are undoable (one step each).
 - `EditorConfig` flags other than `title` are deprecated and ignored. They will be removed in the next major version.
 
 ## ⚙️ Configuration
@@ -319,7 +322,12 @@ export class MyWhiteboardComponent implements AfterViewInit {
 - **`clear()`** Clears all elements from the whiteboard.
 - **`undo()`** Reverts the last action.
 - **`redo()`** Restores the last undone action.
-- **`save(format = FormatType.Base64, name = 'New board')`** Saves the current whiteboard state in the specified format (e.g., Base64, JSON, SVG).
+- **`save(format = FormatType.Base64, name = 'whiteboard', options?: ExportOptions)`** Saves the current whiteboard in the specified format (e.g., Base64, JSON, SVG, PNG). `ExportOptions` is `{ scale?: number; background?: boolean; padding?: number; onlySelected?: boolean }`.
+- **`copyToClipboard(format: FormatType.Png | FormatType.Svg, options?: ExportOptions)`** Copies the board image to the clipboard.
+- **`resetBoard()`** Clears elements and layers back to a fresh board (undoable).
+- **`hasContent()`** Returns `true` if the board has any elements.
+
+> **Behaviour changes:** `save()` output is now cropped to the content bounds with 16px padding (an empty board still exports the canvas box) and never includes editor chrome. `reorderLayersByIndex` indices count from the top layer, as shown in the layers panel. `addLayer` and `setActiveLayer` no longer hide the other layers. Elements without a `layerId` (or with an unknown one) belong to the bottom layer for counts, visibility, lock and export.
 
 ### 🖌 Drawing Tools & Interaction
 
@@ -342,6 +350,12 @@ export class MyWhiteboardComponent implements AfterViewInit {
 - **`sendBackward(elementOrId: WhiteboardElement | string)`** Moves the element one layer backward.
 - **`setZIndex(elementOrId: WhiteboardElement | string, zIndex: number)`** Sets the exact z-index for an element.
 - **`getZIndex(elementOrId: WhiteboardElement | string)`** Returns the current z-index of an element.
+
+- **`removeLayer(id: string, mode: 'delete-elements' | 'move-elements' = 'delete-elements')`** Removes a layer; `'move-elements'` moves its elements to the layer below instead of deleting them.
+- **`mergeLayerDown(id: string)`** Merges a layer into the one below it.
+- **`beginLayerOpacityEdit(id: string)` / `endLayerOpacityEdit()`** Group a live opacity drag into a single undo step.
+
+Layer operations are undoable.
 
 ### ✂️ Clipboard Operations
 
