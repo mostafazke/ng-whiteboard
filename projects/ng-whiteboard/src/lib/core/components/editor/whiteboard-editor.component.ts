@@ -15,16 +15,16 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SvgService } from '../../svg/svg.service';
-import { BlendMode, ToolType } from '../../types';
+import { ToolType } from '../../types';
 import { canCopyImage } from '../../utils/dom/clipboard';
 import { isEditableTarget } from '../../utils/dom/is-editable-target';
 import { EditorLayout, layoutFor } from './editor-layout';
-import { EditorStateService, Layer } from './editor-state.service';
+import { EditorStateService } from './editor-state.service';
 import { IconComponent } from './icon/icon.component';
 import { ControlsPanelComponent } from './panels/controls-panel/controls-panel.component';
 import { HeaderPanelComponent } from './panels/header-panel/header-panel.component';
 import { HistoryPanelComponent } from './panels/history-panel/history-panel.component';
-import { LayerPanelComponent } from './panels/layer-panel/layer-panel.component';
+import { LayerPanelAction, LayerPanelComponent } from './panels/layer-panel/layer-panel.component';
 import { PropertiesPanelComponent } from './panels/properties-panel/properties-panel.component';
 import { ToolbarComponent } from './panels/toolbar/toolbar.component';
 import { BottomSheetComponent } from './ui/bottom-sheet/bottom-sheet.component';
@@ -98,7 +98,6 @@ export class WhiteboardEditorComponent {
   // UI State signals
   isPanelOpenSignal = signal(true);
   showLayersDropdownSignal = signal(false);
-  showLayerPanelSignal = signal(false);
   showZoomPopupSignal = signal(false);
   propertiesSheetOpenSignal = signal(false);
   menuSheetOpenSignal = signal(false);
@@ -222,54 +221,45 @@ export class WhiteboardEditorComponent {
     this.showLayersDropdownSignal.update((value) => !value);
   }
 
-  onLayerVisibilityToggle(layer: Layer) {
-    this.editorStateService.toggleLayerVisibility(layer.id);
-  }
-
-  onLayerLockToggle(layer: Layer) {
-    this.editorStateService.toggleLayerLock(layer.id);
-  }
-
-  onLayerPanelVisibilityToggled(event: { layerId: string }) {
-    this.editorStateService.toggleLayerVisibility(event.layerId);
-  }
-
-  onLayerPanelLockToggled(event: { layerId: string }) {
-    this.editorStateService.toggleLayerLock(event.layerId);
-  }
-
-  onLayerAdd() {
-    const layers = this.layersSignal();
-    this.editorStateService.addLayer(`Layer ${layers.length + 1}`);
-  }
-
-  // Layer Panel Event Handlers (for header panel integration)
-  onLayerPanelLayerSelected(layerId: string) {
-    this.editorStateService.setActiveLayer(layerId);
-  }
-
-  onLayerPanelLayerDeleted(layerId: string) {
-    this.editorStateService.removeLayer(layerId);
-  }
-
-  onLayerPanelLayerRenamed(event: { layerId: string; name: string }) {
-    this.editorStateService.updateLayer(event.layerId, { name: event.name });
-  }
-
-  onLayerPanelOpacityChanged(event: { layerId: string; opacity: number }) {
-    this.editorStateService.setLayerOpacity(event.layerId, event.opacity);
-  }
-
-  onLayerPanelLayerMoved(event: { layerId: string; direction: 'up' | 'down' }) {
-    if (event.direction === 'up') {
-      this.editorStateService.moveLayerUp(event.layerId);
-    } else {
-      this.editorStateService.moveLayerDown(event.layerId);
+  onLayerAction(action: LayerPanelAction) {
+    const state = this.editorStateService;
+    switch (action.type) {
+      case 'select':
+        if (action.id) state.setActiveLayer(action.id);
+        break;
+      case 'add':
+        state.addLayer(`Layer ${this.layersSignal().length + 1}`);
+        break;
+      case 'toggle-visible':
+        if (action.id) state.toggleLayerVisibility(action.id);
+        break;
+      case 'toggle-lock':
+        if (action.id) state.toggleLayerLock(action.id);
+        break;
+      case 'duplicate':
+        if (action.id) state.duplicateLayer(action.id);
+        break;
+      case 'merge-down':
+        if (action.id) state.mergeLayerDown(action.id);
+        break;
+      case 'rename':
+        state.updateLayer(action.id, { name: action.name });
+        break;
+      case 'reorder':
+        state.reorderLayersByIndex(action.from, action.to);
+        break;
+      case 'opacity':
+        if (action.phase === 'start') state.beginLayerOpacityEdit(action.id);
+        else if (action.phase === 'end') state.endLayerOpacityEdit();
+        else state.setLayerOpacity(action.id, action.opacity);
+        break;
+      case 'blend':
+        state.setLayerBlendMode(action.id, action.blendMode);
+        break;
+      case 'delete':
+        state.removeLayer(action.id, action.mode);
+        break;
     }
-  }
-
-  onLayerPanelBlendModeChanged(event: { layerId: string; blendMode: string }) {
-    this.editorStateService.setLayerBlendMode(event.layerId, event.blendMode as BlendMode);
   }
 
   onHeaderMenuAction(event: { id: MainMenuActionId; opener: HTMLElement | null }) {

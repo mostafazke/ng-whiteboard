@@ -288,6 +288,22 @@ describe('LayerManagementService', () => {
     });
   });
 
+  describe('reorderLayersByIndex()', () => {
+    const topFirst = () => [...service.layers()].sort((a, b) => b.zIndex - a.zIndex).map((l) => l.name);
+
+    it('indexes layers top-first (highest zIndex is 0) whatever the storage order', () => {
+      service.addLayer('B');
+      service.addLayer('C');
+      expect(topFirst()).toEqual(['C', 'B', 'Layer 1']);
+
+      expect(service.reorderLayersByIndex(0, 1)).toBe(true);
+      expect(topFirst()).toEqual(['B', 'C', 'Layer 1']);
+
+      expect(service.reorderLayersByIndex(2, 0)).toBe(true);
+      expect(topFirst()).toEqual(['Layer 1', 'B', 'C']);
+    });
+  });
+
   describe('toggleLayerVisibility()', () => {
     it('should toggle layer visibility', () => {
       const layer = service.layers()[0];

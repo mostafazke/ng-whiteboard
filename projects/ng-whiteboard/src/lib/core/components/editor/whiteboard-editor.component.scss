@@ -267,26 +267,9 @@
   }
 }
 
-// Layer panel hosted in the header popover or a sheet: drop its own card chrome.
-:where(.editor) .layers-dropdown ng-ng-layer-panel .layer-panel-header h3 {
-  display: none;
-}
-
-:where(.editor) .layers-dropdown ng-ng-layer-panel,
+// Layer panel hosted in a bottom sheet
 :where(.editor) ng-bottom-sheet .wb-sheet-layers {
   display: block;
-
-  .layer-panel {
-    width: 100%;
-    padding-top: 0;
-    border: none;
-    border-radius: 0;
-    box-shadow: none;
-  }
-
-  .layer-list {
-    max-height: none;
-  }
 }
 
 // Icon button base styles; :where() keeps the specificity of a bare class

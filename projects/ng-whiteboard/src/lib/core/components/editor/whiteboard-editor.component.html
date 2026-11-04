@@ -21,15 +21,7 @@
       [menuItems]="mainMenuItems()"
       (titleChange)="onTitleChange($event)"
       (layersToggle)="toggleLayersDropdown($event)"
-      (layerVisibilityToggle)="onLayerVisibilityToggle($event)"
-      (layerLockToggle)="onLayerLockToggle($event)"
-      (layerAdd)="onLayerAdd()"
-      (layerSelected)="onLayerPanelLayerSelected($event)"
-      (layerDeleted)="onLayerPanelLayerDeleted($event)"
-      (layerRenamed)="onLayerPanelLayerRenamed($event)"
-      (layerOpacityChanged)="onLayerPanelOpacityChanged($event)"
-      (layerMoved)="onLayerPanelLayerMoved($event)"
-      (layerBlendModeChanged)="onLayerPanelBlendModeChanged($event)"
+      (layerAction)="onLayerAction($event)"
       (propertiesToggle)="togglePropertiesSheet($event)"
       (menuToggle)="toggleMenuSheet($event)"
       (menuAction)="onHeaderMenuAction($event)"
@@ -132,21 +124,13 @@
       [open]="showLayersDropdownSignal()"
       (closed)="showLayersDropdownSignal.set(false)"
     >
-      <ng-ng-layer-panel
+      <ng-layer-panel
         class="wb-sheet-layers"
         [layers]="whiteboardLayersSignal()"
         [activeLayerId]="activeLayerIdSignal()"
-        (layerSelected)="onLayerPanelLayerSelected($event)"
-        (layerAdded)="onLayerAdd()"
-        (layerDeleted)="onLayerPanelLayerDeleted($event)"
-        (layerRenamed)="onLayerPanelLayerRenamed($event)"
-        (layerVisibilityToggled)="onLayerPanelVisibilityToggled($event)"
-        (layerLockToggled)="onLayerPanelLockToggled($event)"
-        (layerOpacityChanged)="onLayerPanelOpacityChanged($event)"
-        (layerMoved)="onLayerPanelLayerMoved($event)"
-        (layerBlendModeChanged)="onLayerPanelBlendModeChanged($event)"
+        (action)="onLayerAction($event)"
       >
-      </ng-ng-layer-panel>
+      </ng-layer-panel>
     </ng-bottom-sheet>
 
     <ng-bottom-sheet

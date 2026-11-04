@@ -784,6 +784,11 @@ export class EditorStateService implements OnDestroy {
     return this.apiService.removeLayer(layerId, mode);
   }
 
+  /** Indices are positions in the top-first list shown by the layers panel. */
+  reorderLayersByIndex(previousIndex: number, currentIndex: number): boolean {
+    return this.apiService.reorderLayersByIndex(previousIndex, currentIndex);
+  }
+
   mergeLayerDown(layerId: string): boolean {
     return this.apiService.mergeLayerDown(layerId);
   }

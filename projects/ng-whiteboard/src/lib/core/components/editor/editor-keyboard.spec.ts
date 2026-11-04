@@ -199,7 +199,11 @@ describe('Editor keyboard containment (integration)', () => {
   it('Escape in the layer rename input restores the name and keeps the popover open', () => {
     (host().querySelector('ng-header-panel .layers-button') as HTMLButtonElement).click();
     fixture.detectChanges();
-    const input = host().querySelector('ng-header-panel .layer-name') as HTMLInputElement;
+    host()
+      .querySelector('ng-header-panel .lp-name')!
+      .dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    fixture.detectChanges();
+    const input = host().querySelector('ng-header-panel .lp-name-input') as HTMLInputElement;
     const original = input.value;
     input.focus();
     input.value = 'Renamed';
@@ -207,7 +211,7 @@ describe('Editor keyboard containment (integration)', () => {
     key(input, 'keydown', { key: 'Escape', code: 'Escape' });
     fixture.detectChanges();
 
-    expect(input.value).toBe(original);
+    expect(host().querySelector('ng-header-panel .lp-name')?.textContent?.trim()).toBe(original);
     expect(editor.showLayersDropdownSignal()).toBe(true);
     expect(host().querySelector('ng-header-panel .layers-dropdown')).not.toBeNull();
   });

@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   effect,
   ElementRef,
   EventEmitter,
@@ -18,14 +19,7 @@ import { EditableTitleComponent } from '../../ui/editable-title/editable-title.c
 import { MenuComponent } from '../../ui/menu/menu.component';
 import { MainMenuActionId, MainMenuItem } from '../../utils/editor-actions';
 import { toWhiteboardLayers } from '../../utils/whiteboard-layers';
-import {
-  LayerPanelComponent,
-  WhiteboardLayer,
-  LayerMoveEvent,
-  LayerOpacityEvent,
-  LayerRenameEvent,
-  LayerBlendModeEvent,
-} from '../layer-panel/layer-panel.component';
+import { LayerPanelAction, LayerPanelComponent } from '../layer-panel/layer-panel.component';
 
 let nextMenuId = 0;
 
@@ -77,29 +71,14 @@ let nextMenuId = 0;
           </button>
 
           <div class="layers-dropdown" [id]="layersMenuId" *ngIf="showLayers() && !compact()">
-            <div class="dropdown-header">
-              <h4>Layers</h4>
-              <button class="close-btn" aria-label="Close layers" title="Close" (click)="closeLayers()">
-                <ng-icon name="close"></ng-icon>
-              </button>
-            </div>
-
-            <div class="layer-panel-wrapper">
-              <ng-ng-layer-panel
-                [layers]="convertLayersToWhiteboardLayers()"
-                [activeLayerId]="getActiveLayerId()"
-                (layerSelected)="onLayerSelected($event)"
-                (layerAdded)="onLayerAdded()"
-                (layerDeleted)="onLayerDeleted($event)"
-                (layerRenamed)="onLayerRenamed($event)"
-                (layerVisibilityToggled)="onLayerVisibilityToggled($event)"
-                (layerLockToggled)="onLayerLockToggled($event)"
-                (layerOpacityChanged)="onLayerOpacityChanged($event)"
-                (layerMoved)="onLayerMoved($event)"
-                (layerBlendModeChanged)="onLayerBlendModeChanged($event)"
-              >
-              </ng-ng-layer-panel>
-            </div>
+            <ng-layer-panel
+              [layers]="panelLayers()"
+              [activeLayerId]="activeLayerId()"
+              [showClose]="true"
+              (action)="layerAction.emit($event)"
+              (closed)="closeLayers()"
+            >
+            </ng-layer-panel>
           </div>
         </div>
       </div>
@@ -134,7 +113,7 @@ export class HeaderPanelComponent {
   private menuWrapper = viewChild<ElementRef<HTMLElement>>('menuWrapper');
   editorConfig = input<EditorConfig>({} as EditorConfig);
   layers = input<Layer[]>([]);
-  activeLayerId = input<string>(''); // Add activeLayerId as input
+  activeLayerId = input<string>('');
   showLayers = input<boolean>(false);
   compact = input<boolean>(false);
   hasSelection = input<boolean>(false);
@@ -144,24 +123,14 @@ export class HeaderPanelComponent {
   menuItems = input<readonly MainMenuItem[]>([]);
 
   protected menuPopoverOpen = signal(false);
+  protected panelLayers = computed(() => toWhiteboardLayers(this.layers()));
 
   @Output() titleChange = new EventEmitter<string>();
   @Output() layersToggle = new EventEmitter<HTMLElement | null>();
-  @Output() layerVisibilityToggle = new EventEmitter<Layer>();
-  @Output() layerLockToggle = new EventEmitter<Layer>();
-  @Output() layerAdd = new EventEmitter<void>();
-  @Output() layerMenuShow = new EventEmitter<Layer>();
+  @Output() layerAction = new EventEmitter<LayerPanelAction>();
   @Output() propertiesToggle = new EventEmitter<HTMLElement | null>();
   @Output() menuToggle = new EventEmitter<HTMLElement | null>();
   @Output() menuAction = new EventEmitter<{ id: MainMenuActionId; opener: HTMLElement | null }>();
-
-  // New layer panel events
-  @Output() layerSelected = new EventEmitter<string>();
-  @Output() layerDeleted = new EventEmitter<string>();
-  @Output() layerRenamed = new EventEmitter<LayerRenameEvent>();
-  @Output() layerOpacityChanged = new EventEmitter<LayerOpacityEvent>();
-  @Output() layerMoved = new EventEmitter<LayerMoveEvent>();
-  @Output() layerBlendModeChanged = new EventEmitter<LayerBlendModeEvent>();
 
   constructor() {
     effect(() => {
@@ -212,77 +181,5 @@ export class HeaderPanelComponent {
 
   closeLayers() {
     this.layersToggle.emit();
-  }
-
-  toggleLayerVisibility(layer: Layer) {
-    this.layerVisibilityToggle.emit(layer);
-  }
-
-  toggleLayerLock(layer: Layer) {
-    this.layerLockToggle.emit(layer);
-  }
-
-  addLayer() {
-    this.layerAdd.emit();
-  }
-
-  showLayerMenu(layer: Layer) {
-    this.layerMenuShow.emit(layer);
-  }
-
-  trackByLayer(index: number, layer: Layer): string {
-    return layer.id;
-  }
-
-  // Layer panel helper methods
-  convertLayersToWhiteboardLayers(): WhiteboardLayer[] {
-    return toWhiteboardLayers(this.layers());
-  }
-
-  getActiveLayerId(): string {
-    return this.activeLayerId();
-  }
-
-  // Layer panel event handlers
-  onLayerSelected(layerId: string) {
-    this.layerSelected.emit(layerId);
-  }
-
-  onLayerAdded() {
-    this.layerAdd.emit();
-  }
-
-  onLayerDeleted(layerId: string) {
-    this.layerDeleted.emit(layerId);
-  }
-
-  onLayerRenamed(event: LayerRenameEvent) {
-    this.layerRenamed.emit(event);
-  }
-
-  onLayerVisibilityToggled(event: { layerId: string; visible: boolean }) {
-    const layer = this.layers().find((l) => l.id === event.layerId);
-    if (layer) {
-      this.layerVisibilityToggle.emit(layer);
-    }
-  }
-
-  onLayerLockToggled(event: { layerId: string; locked: boolean }) {
-    const layer = this.layers().find((l) => l.id === event.layerId);
-    if (layer) {
-      this.layerLockToggle.emit(layer);
-    }
-  }
-
-  onLayerOpacityChanged(event: LayerOpacityEvent) {
-    this.layerOpacityChanged.emit(event);
-  }
-
-  onLayerMoved(event: LayerMoveEvent) {
-    this.layerMoved.emit(event);
-  }
-
-  onLayerBlendModeChanged(event: LayerBlendModeEvent) {
-    this.layerBlendModeChanged.emit(event);
   }
 }

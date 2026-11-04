@@ -16,12 +16,20 @@ describe('HeaderPanelComponent', () => {
   });
   afterEach(() => fixture.nativeElement.remove());
 
-  it('passes layer opacity to the layer panel as 0-1', () => {
+  it('renders the layer panel from the editor layers and forwards its actions in one output', () => {
     fixture.componentRef.setInput('layers', [
-      { id: 'l1', name: 'L', visible: true, locked: false, zIndex: 0, elements: [], opacity: 1 },
+      { id: 'l1', name: 'L', visible: true, locked: false, zIndex: 0, elements: ['a', 'b'], opacity: 1 },
     ]);
-    const [layer] = fixture.componentInstance.convertLayersToWhiteboardLayers();
-    expect(layer.opacity).toBe(1);
+    fixture.componentRef.setInput('activeLayerId', 'l1');
+    fixture.componentRef.setInput('showLayers', true);
+    fixture.detectChanges();
+    const forwarded = jest.fn();
+    fixture.componentInstance.layerAction.subscribe(forwarded);
+
+    expect(q('.lp-count').textContent?.trim()).toBe('2 elements');
+    q('.lp-eye').click();
+
+    expect(forwarded).toHaveBeenCalledWith({ type: 'toggle-visible', id: 'l1' });
   });
 
   it('Escape in compact leaves the layers sheet to handle it', () => {

@@ -1,152 +1,179 @@
-<div class="layer-panel">
-  <div class="layer-panel-header">
-    <h3>Layers</h3>
-    <button class="add-layer-btn" (click)="onAddLayer()" title="Add new layer" aria-label="Add new layer">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-      </svg>
-    </button>
-  </div>
-
-  <div class="layer-list" [class.empty]="layers.length === 0">
-    <div
-      *ngFor="let layer of sortedLayers; trackBy: trackByLayerId; let i = index"
-      class="layer-item"
-      [class.active]="layer.id === activeLayerId"
-      [class.locked]="layer.locked"
-      [class.hidden]="!layer.visible"
-      (click)="onSelectLayer(layer.id)"
-      [style.opacity]="getLayerOpacity(layer)"
-    >
-      <div class="layer-drag-handle" title="Drag to reorder">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-          <path
-            d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
-          />
-        </svg>
-      </div>
-
-      <div class="layer-controls">
-        <button
-          class="visibility-btn"
-          [class.hidden]="!layer.visible"
-          (click)="onToggleVisibility(layer.id, $event)"
-          title="Toggle visibility" aria-label="Toggle visibility" [attr.aria-pressed]="!layer.visible"
-        >
-          <svg *ngIf="layer.visible" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path
-              d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"
-            />
-          </svg>
-          <svg *ngIf="!layer.visible" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path
-              d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"
-            />
-          </svg>
+<section class="lp" aria-label="Layers">
+  <header class="lp-header">
+    <h3 class="lp-title">Layers</h3>
+    <div class="lp-header-actions">
+      <button type="button" class="lp-btn lp-add" aria-label="Add layer" title="Add layer" (click)="emit({ type: 'add' })">
+        <ng-icon name="plus"></ng-icon>
+      </button>
+      @if (showClose()) {
+        <button type="button" class="lp-btn close-btn" aria-label="Close layers" title="Close" (click)="closed.emit()">
+          <ng-icon name="close"></ng-icon>
         </button>
+      }
+    </div>
+  </header>
 
-        <button
-          class="lock-btn"
-          [class.locked]="layer.locked"
-          (click)="onToggleLock(layer.id, $event)"
-          title="Toggle lock" aria-label="Toggle lock" [attr.aria-pressed]="layer.locked"
+  <ul class="lp-list">
+    @for (layer of rows(); track layer.id; let i = $index; let last = $last) {
+      <li
+        class="lp-item"
+        [class.drop-before]="drag() && drag()!.to === i && drag()!.from > i"
+        [class.drop-after]="drag() && drag()!.to === i && drag()!.from < i"
+      >
+        <div
+          class="lp-row"
+          role="group"
+          tabindex="0"
+          [attr.data-id]="layer.id"
+          [attr.aria-label]="layer.name"
+          [attr.aria-current]="layer.id === activeLayerId() ? 'true' : null"
+          [class.active]="layer.id === activeLayerId()"
+          [class.is-hidden]="!layer.visible"
+          [class.is-locked]="layer.locked"
+          [class.menu-open]="menuId() === layer.id"
+          [class.dragging]="drag()?.from === i && drag()!.to !== i"
+          (click)="emit({ type: 'select', id: layer.id })"
+          (keydown)="onRowKeydown($event, layer, i)"
         >
-          <svg *ngIf="!layer.locked" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path
-              d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6z"
-            />
-          </svg>
-          <svg *ngIf="layer.locked" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path
-              d="M6 10v2h12v8H6v-8H4V10c0-3.31 2.69-6 6-6h4c3.31 0 6 2.69 6 6v2h-2V10c0-2.21-1.79-4-4-4h-4c-2.21 0-4 1.79-4 4z"
-            />
-          </svg>
-        </button>
-      </div>
-
-      <div class="layer-info">
-        <input
-          class="layer-name"
-          aria-label="Layer name"
-          [value]="layer.name"
-          (blur)="onRenameLayer(layer.id, $event)"
-          (keydown.enter)="onRenameLayerEnter(layer.id, $event)"
-          (keydown.escape)="onRenameLayerCancel(layer.name, $event)"
-          [readonly]="layer.locked"
-          (click)="$event.stopPropagation()"
-        />
-
-        <div class="layer-details">
-          <span class="layer-type">{{ layer.type }}</span>
-          <span class="layer-elements" *ngIf="layer.elements">
-            {{ layer.elements.length }} element<span *ngIf="layer.elements.length !== 1">s</span>
-          </span>
-        </div>
-      </div>
-
-      <div class="layer-actions">
-        <div class="opacity-control">
-          <input
-            type="range"
-            class="opacity-slider"
-            min="0"
-            max="100"
-            [value]="layer.opacity * 100"
-            (input)="onOpacityChange(layer.id, $event)"
+          <span
+            class="lp-grip"
+            title="Drag to reorder"
+            aria-hidden="true"
             (click)="$event.stopPropagation()"
-            [title]="'Opacity: ' + Math.round(layer.opacity * 100) + '%'"
-            aria-label="Layer opacity"
-          />
-          <span class="opacity-value">{{ Math.round(layer.opacity * 100) }}%</span>
+            (pointerdown)="onGripDown($any($event), i)"
+            (pointermove)="onGripMove($any($event))"
+            (pointerup)="onGripUp($any($event))"
+            (pointercancel)="cancelDrag()"
+            (lostpointercapture)="cancelDrag()"
+          >
+            <ng-icon name="grip"></ng-icon>
+          </span>
+
+          <div class="lp-info">
+            @if (renamingId() === layer.id) {
+              <input
+                class="lp-name-input"
+                type="text"
+                aria-label="Layer name"
+                [value]="layer.name"
+                (click)="$event.stopPropagation()"
+                (keydown.enter)="commitRename(layer, $any($event.target))"
+                (keydown.escape)="cancelRename($event, layer)"
+                (blur)="commitRename(layer, $any($event.target))"
+              />
+            } @else {
+              <span class="lp-name" (dblclick)="startRename(layer)">{{ layer.name }}</span>
+            }
+            <span class="lp-count">{{ countLabel(layer) }}</span>
+          </div>
+
+          <button
+            type="button"
+            class="lp-btn lp-toggle lp-eye"
+            [class.is-on]="!layer.visible"
+            [attr.aria-pressed]="!layer.visible"
+            [attr.aria-label]="layer.visible ? 'Hide layer' : 'Show layer'"
+            [title]="layer.visible ? 'Hide layer' : 'Show layer'"
+            (click)="toggle('toggle-visible', layer.id, $event)"
+          >
+            <ng-icon [name]="layer.visible ? 'eye' : 'eyeOff'"></ng-icon>
+          </button>
+          <button
+            type="button"
+            class="lp-btn lp-toggle lp-lock"
+            [class.is-on]="layer.locked"
+            [attr.aria-pressed]="layer.locked"
+            [attr.aria-label]="layer.locked ? 'Unlock layer' : 'Lock layer'"
+            [title]="layer.locked ? 'Unlock layer' : 'Lock layer'"
+            (click)="toggle('toggle-lock', layer.id, $event)"
+          >
+            <ng-icon [name]="layer.locked ? 'lock' : 'unlock'"></ng-icon>
+          </button>
+          <button
+            type="button"
+            class="lp-btn lp-toggle lp-more"
+            aria-haspopup="true"
+            aria-label="Layer options"
+            title="Layer options"
+            [attr.aria-expanded]="menuId() === layer.id"
+            (click)="toggleMenu(layer, $event)"
+          >
+            <ng-icon name="more"></ng-icon>
+          </button>
         </div>
 
-        <button
-          class="delete-btn"
-          (click)="onDeleteLayer(layer.id, $event)"
-          [disabled]="layers.length <= 1"
-          title="Delete layer" aria-label="Delete layer"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
-          </svg>
-        </button>
-      </div>
-    </div>
+        @if (menuId() === layer.id) {
+          <div class="lp-options" (keydown)="onOptionsKeydown($event)">
+            <label class="lp-field">
+              <span class="lp-field-label">Opacity</span>
+              <input
+                #slider
+                class="lp-slider"
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                aria-label="Layer opacity"
+                [value]="opacityPercent(layer)"
+                (input)="onOpacityInput(layer, slider)"
+                (change)="endOpacity()"
+                (pointerup)="endOpacity()"
+                (pointercancel)="endOpacity()"
+                (blur)="endOpacity()"
+              />
+              <output class="lp-field-value">{{ opacityPercent(layer) }}%</output>
+            </label>
+            <label class="lp-field">
+              <span class="lp-field-label">Blend</span>
+              <select #blend class="lp-blend" aria-label="Blend mode" (change)="onBlend(layer, blend)">
+                @for (mode of blendModes; track mode.value) {
+                  <option [value]="mode.value" [selected]="(layer.blendMode || 'normal') === mode.value">
+                    {{ mode.label }}
+                  </option>
+                }
+              </select>
+            </label>
+            <div class="lp-actions" role="menu" aria-label="Layer actions" (keydown)="onActionKeydown($event)">
+              <button type="button" role="menuitem" class="lp-action" (click)="runAction('duplicate', layer)">
+                <ng-icon name="duplicate"></ng-icon>Duplicate
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                class="lp-action"
+                [disabled]="last"
+                (click)="runAction('merge-down', layer)"
+              >
+                <ng-icon name="merge-down"></ng-icon>Merge down
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                class="lp-action lp-danger"
+                [disabled]="rows().length <= 1"
+                (click)="requestDelete(layer)"
+              >
+                <ng-icon name="delete"></ng-icon>Delete
+              </button>
+            </div>
+          </div>
+        }
 
-    <div *ngIf="layers.length === 0" class="empty-state">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor">
-        <path
-          d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"
-        />
-      </svg>
-      <p>No layers available</p>
-      <button class="add-first-layer" (click)="onAddLayer()">Add Layer</button>
-    </div>
-  </div>
-
-  <div class="layer-panel-footer" *ngIf="layers.length > 0">
-    <div class="layer-order-controls">
-      <button class="move-up-btn" (click)="onMoveLayerUp()" [disabled]="!canMoveUp()" title="Move layer up" aria-label="Move layer up">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" />
-        </svg>
-      </button>
-      <button class="move-down-btn" (click)="onMoveLayerDown()" [disabled]="!canMoveDown()" title="Move layer down" aria-label="Move layer down">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z" />
-        </svg>
-      </button>
-    </div>
-
-    <div class="layer-blend-mode" *ngIf="activeLayer">
-      <select class="blend-mode-select" aria-label="Blend mode" [value]="getBlendMode(activeLayer)" (change)="onBlendModeChange($event)">
-        <option value="normal">Normal</option>
-        <option value="multiply">Multiply</option>
-        <option value="screen">Screen</option>
-        <option value="overlay">Overlay</option>
-        <option value="darken">Darken</option>
-        <option value="lighten">Lighten</option>
-      </select>
-    </div>
-  </div>
-</div>
+        @if (confirmId() === layer.id) {
+          <div class="lp-confirm" role="alertdialog" aria-label="Delete layer" (keydown.escape)="$event.stopPropagation(); cancelDelete(layer)">
+            <p>{{ deleteMessage(layer) }}</p>
+            <div class="lp-confirm-actions">
+              <button type="button" class="lp-confirm-cancel" (click)="cancelDelete(layer)">Cancel</button>
+              <button type="button" class="lp-confirm-danger" (click)="confirmDelete(layer, 'delete-elements')">
+                Delete
+              </button>
+              <button type="button" class="lp-confirm-move" (click)="confirmDelete(layer, 'move-elements')">
+                Move elements to {{ neighbourName(i) }} and delete
+              </button>
+            </div>
+          </div>
+        }
+      </li>
+    }
+  </ul>
+</section>

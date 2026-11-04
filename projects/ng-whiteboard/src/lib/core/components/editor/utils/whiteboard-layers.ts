@@ -9,8 +9,7 @@ export function toWhiteboardLayers(layers: Layer[]): WhiteboardLayer[] {
     locked: layer.locked,
     opacity: layer.opacity ?? 1,
     zIndex: layer.zIndex,
-    type: 'drawing' as const,
-    elements: [],
+    elements: layer.elements,
     blendMode: layer.blendMode || 'normal',
   }));
 }

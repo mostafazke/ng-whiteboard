@@ -251,18 +251,16 @@ export class LayerManagementService {
   }
 
   /**
-   * Reorder layers by moving a layer from one position to another
-   * This properly reassigns zIndex values based on the new order
+   * Reorder layers by moving a layer between positions of the top-first list
+   * (index 0 is the layer with the highest zIndex) and reassign zIndex to match.
    *
-   * @param previousIndex - Current index in the layers array
-   * @param currentIndex - Target index in the layers array
    * @returns true if successful, false otherwise
    */
   reorderLayersByIndex(previousIndex: number, currentIndex: number): boolean {
-    const layers = this._layers();
+    const layers = [...this._layers()].sort((a, b) => b.zIndex - a.zIndex);
 
     if (previousIndex === currentIndex) {
-      return false; // No change needed
+      return false;
     }
 
     if (previousIndex < 0 || previousIndex >= layers.length || currentIndex < 0 || currentIndex >= layers.length) {
@@ -272,25 +270,16 @@ export class LayerManagementService {
 
     const layerToMove = layers[previousIndex];
 
-    // Prevent moving locked layers
     if (layerToMove.locked) {
       console.warn(`Cannot reorder locked layer: ${layerToMove.name}`);
       return false;
     }
 
-    // Create new array with the layer moved to its new position
-    const reorderedLayers = [...layers];
-    reorderedLayers.splice(previousIndex, 1); // Remove from old position
-    reorderedLayers.splice(currentIndex, 0, layerToMove); // Insert at new position
+    const reordered = [...layers];
+    reordered.splice(previousIndex, 1);
+    reordered.splice(currentIndex, 0, layerToMove);
 
-    // Reassign zIndex values based on new array order
-    // Lower index = higher zIndex (renders on top)
-    const updatedLayers = reorderedLayers.map((layer, index) => ({
-      ...layer,
-      zIndex: reorderedLayers.length - 1 - index, // Reverse: first item gets highest zIndex
-    }));
-
-    this._layers.set(updatedLayers);
+    this._layers.set(reordered.map((layer, index) => ({ ...layer, zIndex: reordered.length - 1 - index })));
     return true;
   }
 

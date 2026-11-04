@@ -95,10 +95,89 @@ describe('WhiteboardEditorComponent', () => {
     expect(component.isPanelOpenSignal()).toBe(before);
   });
 
-  it('slider 50 sets layer opacity 0.5', () => {
-    const spy = jest.spyOn(TestBed.inject(LayerManagementService), 'setLayerOpacity');
-    component.onLayerPanelOpacityChanged({ layerId: 'l1', opacity: 0.5 });
-    expect(spy).toHaveBeenCalledWith('l1', 0.5);
+  describe('layer actions', () => {
+    const layers = () => TestBed.inject(LayerManagementService);
+    const topFirst = () =>
+      [...layers().layers()]
+        .sort((a, b) => b.zIndex - a.zIndex)
+        .map((l) => l.id);
+    const opacityOf = (id: string) => layers().layers().find((l) => l.id === id)?.opacity;
+    const undoSteps = () => {
+      let n = 0;
+      while (component.canUndoSignal()) {
+        component.undo();
+        n++;
+      }
+      return n;
+    };
+
+    beforeEach(() => {
+      layers().addLayer('Top');
+      TestBed.inject(HistoryService).clearHistory();
+    });
+
+    it('select, add, rename, visibility and lock reach the board', () => {
+      const [top, bottom] = topFirst();
+      component.onLayerAction({ type: 'select', id: bottom });
+      expect(layers().activeLayerId()).toBe(bottom);
+
+      component.onLayerAction({ type: 'rename', id: top, name: 'Sketch' });
+      expect(layers().layers().find((l) => l.id === top)?.name).toBe('Sketch');
+
+      component.onLayerAction({ type: 'toggle-visible', id: bottom });
+      component.onLayerAction({ type: 'toggle-lock', id: bottom });
+      const state = layers().layers().find((l) => l.id === bottom);
+      expect([state?.visible, state?.locked]).toEqual([false, true]);
+
+      component.onLayerAction({ type: 'add' });
+      expect(layers().layers().length).toBe(3);
+      expect(layers().layers().some((l) => l.name === 'Layer 3')).toBe(true);
+    });
+
+    it('an opacity drag is one undo step', () => {
+      const [top] = topFirst();
+      component.onLayerAction({ type: 'opacity', id: top, opacity: 0.8, phase: 'start' });
+      component.onLayerAction({ type: 'opacity', id: top, opacity: 0.8, phase: 'change' });
+      component.onLayerAction({ type: 'opacity', id: top, opacity: 0.5, phase: 'change' });
+      component.onLayerAction({ type: 'opacity', id: top, opacity: 0.5, phase: 'end' });
+      expect(opacityOf(top)).toBe(0.5);
+      expect(undoSteps()).toBe(1);
+      expect(opacityOf(top)).toBe(1);
+    });
+
+    it('blend, duplicate and merge-down reach the board', () => {
+      const [top, bottom] = topFirst();
+      component.onLayerAction({ type: 'blend', id: top, blendMode: 'multiply' });
+      expect(layers().layers().find((l) => l.id === top)?.blendMode).toBe('multiply');
+      component.onLayerAction({ type: 'duplicate', id: top });
+      expect(layers().layers().length).toBe(3);
+      component.onLayerAction({ type: 'merge-down', id: top });
+      expect(layers().layers().some((l) => l.id === bottom)).toBe(true);
+    });
+
+    it('reorder uses top-first indices', () => {
+      const [top, bottom] = topFirst();
+      component.onLayerAction({ type: 'reorder', from: 0, to: 1 });
+      expect(topFirst()).toEqual([bottom, top]);
+    });
+
+    it('delete passes its mode', () => {
+      const removeLayer = jest.spyOn(component.editorStateService, 'removeLayer');
+      const [top] = topFirst();
+      component.onLayerAction({ type: 'delete', id: top, mode: 'move-elements' });
+      expect(removeLayer).toHaveBeenCalledWith(top, 'move-elements');
+    });
+
+    it('the header panel forwards its panel actions through one layerAction output', () => {
+      const [top] = topFirst();
+      component.showLayersDropdownSignal.set(true);
+      fixture.detectChanges();
+      document.body.appendChild(fixture.nativeElement);
+      (fixture.nativeElement.querySelector('.layers-dropdown .lp-eye') as HTMLButtonElement).click();
+      fixture.detectChanges();
+      fixture.nativeElement.remove();
+      expect(layers().layers().find((l) => l.id === top)?.visible).toBe(false);
+    });
   });
 
   it('toolbar has no more-tools button', () => {
