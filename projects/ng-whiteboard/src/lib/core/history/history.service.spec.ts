@@ -114,6 +114,25 @@ describe('HistoryService', () => {
     });
   });
 
+  describe('state id', () => {
+    it('changes on each step and returns to the same id on undo/redo', () => {
+      const stateId = service.getStateIdSignal();
+      expect(stateId()).toBe(0);
+      service.recordChange([], [createMockElement('1')], 'a');
+      const afterA = stateId();
+      service.recordChange([createMockElement('1')], [createMockElement('1'), createMockElement('2')], 'b');
+      const afterB = stateId();
+      expect(new Set([0, afterA, afterB]).size).toBe(3);
+      service.undo();
+      expect(stateId()).toBe(afterA);
+      service.redo();
+      expect(stateId()).toBe(afterB);
+      service.undo();
+      service.recordChange([createMockElement('1')], [], 'c');
+      expect([0, afterA, afterB]).not.toContain(stateId());
+    });
+  });
+
   describe('recordChange', () => {
     it('should record a change when before and after differ', () => {
       const before: WhiteboardElement[] = [];

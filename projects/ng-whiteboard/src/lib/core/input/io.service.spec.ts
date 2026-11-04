@@ -11,6 +11,12 @@ import { WhiteboardEvent } from '../types/events';
 import { createElement } from '../elements/element.utils';
 import { downloadFile } from '../utils/common';
 import { svgToBase64 } from '../utils/svg';
+import {
+  dataUrlToBytes,
+  embedBoardDataInSvg,
+  readBoardDataFromPng,
+  readBoardDataFromSvg,
+} from '../utils/files/board-data';
 import { ConfigService } from '../config/config.service';
 import { LayerManagementService } from '../elements/layer-management.service';
 import { getElementUtil } from '../elements/element.utils';
@@ -634,6 +640,35 @@ describe('IOService', () => {
       expect(result).toBe('data:image/png;base64,exportedData');
     });
 
+    describe('with embedBoardData', () => {
+      const PNG_1X1 =
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+
+      beforeEach(() => {
+        jest.spyOn(service, 'exportData').mockReturnValue('{"elements":[]}');
+      });
+
+      it('stores the board inside a downloaded PNG', async () => {
+        mockSvgToBase64.mockResolvedValue(PNG_1X1);
+        const result = await service.save(FormatType.Png, 'b', { embedBoardData: true });
+        expect(readBoardDataFromPng(dataUrlToBytes(result))).toBe('{"elements":[]}');
+        expect(mockDownloadFile).toHaveBeenCalledWith(result, 'b.png');
+      });
+
+      it('stores the board inside a downloaded SVG', async () => {
+        const result = await service.save(FormatType.Svg, 'b', { embedBoardData: true });
+        const svg = decodeURIComponent(escape(atob(result.split(',')[1])));
+        expect(readBoardDataFromSvg(svg)).toBe('{"elements":[]}');
+      });
+
+      it('leaves output untouched when not requested', async () => {
+        mockSvgToBase64.mockResolvedValue(PNG_1X1);
+        const result = await service.save(FormatType.Png, 'b');
+        expect(result).toBe(PNG_1X1);
+        expect(service.exportData).not.toHaveBeenCalled();
+      });
+    });
+
     it('should save as JPEG format and download file', async () => {
       const result = await service.save(FormatType.Jpeg, 'test-board');
 
@@ -908,9 +943,21 @@ describe('IOService', () => {
   });
 
   describe('importDataFromFile', () => {
-    it('rejects a file that is not JSON', async () => {
-      const file = new File(['x'], 'pic.png', { type: 'image/png' });
+    it('rejects a file that is neither a board nor an exported image', async () => {
+      const file = new File(['x'], 'pic.jpg', { type: 'image/jpeg' });
       await expect(service.importDataFromFile(file)).rejects.toThrow('Invalid file type');
+    });
+
+    it('rejects a PNG that carries no board data', async () => {
+      const file = new File(['x'], 'pic.png', { type: 'image/png' });
+      await expect(service.importDataFromFile(file)).rejects.toThrow('This image has no board data.');
+    });
+
+    it('opens an SVG exported with board data', async () => {
+      const spy = jest.spyOn(service, 'importData').mockImplementation();
+      const svg = embedBoardDataInSvg('<svg xmlns="http://www.w3.org/2000/svg"/>', '{"elements":[]}');
+      await service.importDataFromFile(new File([svg], 'board.svg', { type: 'image/svg+xml' }));
+      expect(spy).toHaveBeenCalledWith('{"elements":[]}');
     });
 
     it('accepts a .json file whose type is empty', async () => {

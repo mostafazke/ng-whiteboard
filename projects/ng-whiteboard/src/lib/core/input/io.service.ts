@@ -9,6 +9,14 @@ import { exportBounds, ExportBox } from '../utils/svg/export-bounds';
 import { buildExportSvg } from '../utils/svg/export-svg';
 import { canCopyImage, dataUrlToBlob } from '../utils/dom/clipboard';
 import { effectiveLayerId } from '../utils/layers/layer-membership';
+import {
+  boardFileKind,
+  bytesToDataUrl,
+  dataUrlToBytes,
+  embedBoardDataInPng,
+  embedBoardDataInSvg,
+  readBoardDataFromFile,
+} from '../utils/files/board-data';
 import { CanvasService } from '../canvas/canvas.service';
 import { ElementsService } from '../elements/elements.service';
 import { SelectionService } from '../elements/selection.service';
@@ -153,19 +161,24 @@ export class IOService {
   /**
    * Exports the board. Raster formats are clamped to 16384px per side and 268,435,456 px in total.
    * For `FormatType.Svg` the vector is downloaded as is, and the returned string is the SVG data URL.
+   * With `embedBoardData`, PNG and SVG output also carries the board so `importDataFromFile` can reopen it.
    */
   async save(format: FormatType = FormatType.Base64, name = 'New board', options: ExportOptions = {}): Promise<string> {
     const { svgString, width, height } = this.buildExport(options);
+    const embed = options.embedBoardData === true;
 
     try {
       if (format === FormatType.Svg) {
-        const imgSrc = this.svgDataUrl(svgString);
+        const imgSrc = this.svgDataUrl(embed ? embedBoardDataInSvg(svgString, this.exportData()) : svgString);
         this.downloadFile(imgSrc, name, 'svg');
         this.eventBusService.emit(WhiteboardEvent.Save, imgSrc);
         return imgSrc;
       }
 
-      const imageString = await svgToBase64(svgString, width, height, format);
+      let imageString = await svgToBase64(svgString, width, height, format);
+      if (embed && format === FormatType.Png) {
+        imageString = bytesToDataUrl(embedBoardDataInPng(dataUrlToBytes(imageString), this.exportData()), 'image/png');
+      }
 
       if (format !== FormatType.Base64) {
         this.downloadFile(imageString, name, this.getFileExtension(format));
@@ -485,35 +498,14 @@ export class IOService {
     }
   }
 
-  importDataFromFile(file: File): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (!file.type.includes('json') && !(file.type === '' && /\.json$/i.test(file.name))) {
-        reject(new Error('Invalid file type. Only JSON files are supported.'));
-        return;
-      }
-
-      const reader = new FileReader();
-
-      reader.onload = (event) => {
-        const result = event.target?.result;
-        if (result && typeof result === 'string') {
-          try {
-            this.importData(result);
-            resolve();
-          } catch (error) {
-            reject(error);
-          }
-        } else {
-          reject(new Error('Failed to read file'));
-        }
-      };
-
-      reader.onerror = () => {
-        reject(new Error('Failed to read file'));
-      };
-
-      reader.readAsText(file);
-    });
+  /** Opens a `.json` board file, or a PNG/SVG image exported with board data. */
+  async importDataFromFile(file: File): Promise<void> {
+    if (!boardFileKind(file)) {
+      throw new Error('Invalid file type. Only board files (.json) and exported PNG or SVG images are supported.');
+    }
+    const json = await readBoardDataFromFile(file);
+    if (!json) throw new Error('This image has no board data.');
+    this.importData(json);
   }
 
   private downloadFile(dataUrl: string, name: string, extension: string): void {

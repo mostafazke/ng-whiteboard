@@ -14,6 +14,7 @@ interface HistoryEntry {
   layersAfter?: LayerState;
   description: string;
   timestamp: number;
+  id?: number;
 }
 
 export interface BatchHandle {
@@ -33,6 +34,8 @@ export class HistoryService {
   private canRedoSignal = signal(false);
   private undoDescriptionSignal = signal<string | undefined>(undefined);
   private redoDescriptionSignal = signal<string | undefined>(undefined);
+  private stateIdSignal = signal(0);
+  private nextEntryId = 1;
 
   private batching = false;
   private batchDepth = 0;
@@ -54,6 +57,10 @@ export class HistoryService {
   }
   getRedoDescriptionSignal() {
     return this.redoDescriptionSignal.asReadonly();
+  }
+  /** Identifies the board state reached through history: equal ids mean the same point in the undo stack. */
+  getStateIdSignal() {
+    return this.stateIdSignal.asReadonly();
   }
 
   recordChange(before: WhiteboardElement[], after: WhiteboardElement[], description: string) {
@@ -229,6 +236,7 @@ export class HistoryService {
   }
 
   private pushHistory(entry: HistoryEntry) {
+    entry.id = this.nextEntryId++;
     this.undoStack.push(entry);
     if (this.undoStack.length > this.MAX_HISTORY) this.undoStack.shift();
     this.redoStack = [];
@@ -240,6 +248,7 @@ export class HistoryService {
     this.canRedoSignal.set(this.redoStack.length > 0);
     this.undoDescriptionSignal.set(this.undoStack[this.undoStack.length - 1]?.description);
     this.redoDescriptionSignal.set(this.redoStack[this.redoStack.length - 1]?.description);
+    this.stateIdSignal.set(this.undoStack[this.undoStack.length - 1]?.id ?? 0);
   }
 
   private cloneElements(elements: WhiteboardElement[]): WhiteboardElement[] {
