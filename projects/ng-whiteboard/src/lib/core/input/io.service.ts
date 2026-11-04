@@ -200,7 +200,7 @@ export class IOService {
   exportData(): string {
     const elements = this.elementsService.getElements();
     const canvasConfig = this.canvasService.getConfig();
-    const layerState = this.layerManagementService.exportLayerState();
+    const layerState = this.layerManagementService.exportLayerState(elements);
     const editorConfig = this.configService.getEditorConfig();
 
     const exportData = {

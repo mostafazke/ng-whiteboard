@@ -66,6 +66,17 @@ describe('EditorStateService', () => {
     history = TestBed.inject(HistoryService);
   });
 
+  describe('layersSignal', () => {
+    it('counts elements loaded without layerId on the default layer', () => {
+      elements.setElements(Array.from({ length: 6 }, (_, i) => rect(`r${i}`, 0, 0, 10, 10)));
+
+      const layers = service.layersSignal();
+
+      expect(layers).toHaveLength(1);
+      expect(layers[0].elements).toHaveLength(6);
+    });
+  });
+
   describe('alignElements', () => {
     it('skips locked elements and is one undo step', () => {
       elements.setElements([

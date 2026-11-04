@@ -612,17 +612,34 @@ describe('LayerManagementService', () => {
   });
 
   describe('getElementLayer()', () => {
-    it('should return layer containing element', () => {
-      const layer1 = service.layers()[0];
-      service.assignElementToLayer('element-1', layer1.id);
-
-      const result = service.getElementLayer('element-1');
-      expect(result?.id).toBe(layer1.id);
+    it('should return the layer named by layerId', () => {
+      const layer2 = service.addLayer();
+      expect(service.getElementLayer({ layerId: layer2.id })?.id).toBe(layer2.id);
     });
 
-    it('should return null if element not in any layer', () => {
-      const result = service.getElementLayer('non-existent');
-      expect(result).toBeNull();
+    it('should fall back to the bottom layer for missing or unknown layerId', () => {
+      const bottom = service.layers()[0];
+      service.addLayer();
+      expect(service.getElementLayer({})?.id).toBe(bottom.id);
+      expect(service.getElementLayer({ layerId: 'gone' })?.id).toBe(bottom.id);
+    });
+  });
+
+  describe('layersWithMembership()', () => {
+    it('should derive elements from layerId', () => {
+      const bottom = service.layers()[0];
+      const layer2 = service.addLayer();
+      const els = [{ id: 'a', layerId: layer2.id }, { id: 'b' }, { id: 'c', layerId: 'gone' }] as WhiteboardElement[];
+
+      const result = service.layersWithMembership(els);
+
+      expect(result.find((l) => l.id === bottom.id)?.elements).toEqual(['b', 'c']);
+      expect(result.find((l) => l.id === layer2.id)?.elements).toEqual(['a']);
+    });
+
+    it('should be used by exportLayerState', () => {
+      const state = service.exportLayerState([{ id: 'x' } as WhiteboardElement]);
+      expect(state.layers[0].elements).toEqual(['x']);
     });
   });
 

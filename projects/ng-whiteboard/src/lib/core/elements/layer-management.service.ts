@@ -1,6 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { WhiteboardElement, WhiteboardLayer, LayerState, BlendMode, BLEND_MODES } from '../types';
-import { generateUUID } from '../utils';
+import { effectiveLayerId, elementIdsByLayer, generateUUID } from '../utils';
 
 @Injectable({
   providedIn: 'root',
@@ -494,9 +494,16 @@ export class LayerManagementService {
   /**
    * Get layer containing element
    */
-  getElementLayer(elementId: string): WhiteboardLayer | null {
+  getElementLayer(element: Pick<WhiteboardElement, 'layerId'>): WhiteboardLayer | null {
     const layers = this._layers();
-    return layers.find((layer) => layer.elements.includes(elementId)) || null;
+    const layerId = effectiveLayerId(element, layers);
+    return layers.find((layer) => layer.id === layerId) || null;
+  }
+
+  layersWithMembership(elements: readonly WhiteboardElement[]): WhiteboardLayer[] {
+    const layers = this._layers();
+    const membership = elementIdsByLayer(elements, layers);
+    return layers.map((layer) => ({ ...layer, elements: membership.get(layer.id) ?? [] }));
   }
 
   // RENDERING HELPERS
@@ -547,9 +554,9 @@ export class LayerManagementService {
   /**
    * Serialize layer state for saving
    */
-  exportLayerState(): LayerState {
+  exportLayerState(elements: readonly WhiteboardElement[] = []): LayerState {
     return {
-      layers: this._layers(),
+      layers: this.layersWithMembership(elements),
       activeLayerId: this._activeLayerId(),
     };
   }

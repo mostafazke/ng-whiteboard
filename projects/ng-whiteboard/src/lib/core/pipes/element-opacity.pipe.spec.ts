@@ -80,7 +80,7 @@ describe('ElementOpacityPipe', () => {
     expect(pipe.transform(element, layers)).toBe(0.2);
   });
 
-  it('should handle missing layerId gracefully', () => {
+  it('should apply bottom layer opacity when layerId is missing', () => {
     const element = { id: '1', opacity: 50 } as WhiteboardElement;
     const layers: WhiteboardLayer[] = [
       {
@@ -93,8 +93,8 @@ describe('ElementOpacityPipe', () => {
         opacity: 0.5,
       },
     ];
-    // Element has no layerId, so layer opacity is not applied
-    expect(pipe.transform(element, layers)).toBe(0.5);
+    // No layerId means the bottom layer, whose opacity applies
+    expect(pipe.transform(element, layers)).toBe(0.25);
   });
 
   it('should handle missing layer gracefully', () => {

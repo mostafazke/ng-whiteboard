@@ -9,6 +9,7 @@ import { SelectionService } from '../../elements/selection.service';
 import { IOService } from '../../input/io.service';
 import { BatchHandle, HistoryService } from '../../history/history.service';
 import { ToolsService } from '../../tools/tools.service';
+import { effectiveLayerId } from '../../utils';
 import {
   ArrowHeadStyle,
   ArrowLineStyle,
@@ -80,7 +81,7 @@ export class EditorStateService implements OnDestroy {
   // Layer signals - delegate to LayerManagementService
   layersSignal = computed(() => {
     // Convert WhiteboardLayer to legacy Layer interface for compatibility
-    return this.layerManagementService.layers().map((layer) => ({
+    return this.layerManagementService.layersWithMembership(this.elementsService.elements()).map((layer) => ({
       id: layer.id,
       name: layer.name,
       visible: layer.visible,
@@ -143,7 +144,7 @@ export class EditorStateService implements OnDestroy {
 
   private isLocked(element: WhiteboardElement): boolean {
     if (element.locked) return true;
-    return !!element.layerId && !!this.layerManagementService.getElementLayer(element.id)?.locked;
+    return !!this.layerManagementService.getElementLayer(element)?.locked;
   }
 
   updateTitle(title: string) {
@@ -674,12 +675,9 @@ export class EditorStateService implements OnDestroy {
 
   getVisibleElements(elements: WhiteboardElement[]): WhiteboardElement[] {
     const layers = this.layersSignal();
-    const visibleLayerIds = layers.filter((layer) => layer.visible).map((layer) => layer.id);
+    const visibleLayerIds = new Set(layers.filter((layer) => layer.visible).map((layer) => layer.id));
 
-    return elements.filter((element) => {
-      const layerId = element.layerId || 'default';
-      return visibleLayerIds.includes(layerId);
-    });
+    return elements.filter((element) => visibleLayerIds.has(effectiveLayerId(element, layers) ?? ''));
   }
 
   // ============================================================================
