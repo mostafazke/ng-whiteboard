@@ -1,0 +1,84 @@
+:host {
+  display: block;
+}
+
+.wb-menu {
+  display: flex;
+  flex-direction: column;
+  min-width: 240px;
+  max-width: 100%;
+  padding: var(--wb-space-1);
+  background: var(--wb-color-surface);
+  color: var(--wb-color-text-primary);
+  border: 1px solid var(--wb-color-border);
+  border-radius: var(--wb-radius);
+  box-shadow: var(--wb-shadow-lg);
+
+  &.embedded {
+    min-width: 0;
+    padding: 0 var(--wb-space-2) var(--wb-space-3);
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+
+    .wb-menu-item {
+      min-height: 48px;
+      font-size: 0.9375rem;
+    }
+  }
+}
+
+.wb-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--wb-space-3);
+  min-height: 36px;
+  padding: 0 var(--wb-space-3);
+  border: none;
+  border-radius: var(--wb-radius-sm);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--wb-color-gray-100);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--wb-color-primary);
+    outline-offset: -2px;
+  }
+
+  ng-icon {
+    display: flex;
+    flex: none;
+    color: var(--wb-color-text-secondary);
+  }
+
+  @media (pointer: coarse) {
+    min-height: 44px;
+  }
+}
+
+.wb-menu-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wb-menu-shortcut {
+  flex: none;
+  color: var(--wb-color-text-tertiary);
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+
+  @media (pointer: coarse) {
+    display: none;
+  }
+}

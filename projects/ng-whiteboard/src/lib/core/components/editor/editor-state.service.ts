@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { computed, inject, Injectable, OnDestroy, Signal } from '@angular/core';
+import { computed, inject, Injectable, OnDestroy, Signal, signal } from '@angular/core';
 import { ApiService } from '../../api/api.service';
 import { ConfigService } from '../../config/config.service';
 import { ArrowElement, ArrowheadType } from '../../elements/arrow-element';
@@ -42,6 +42,14 @@ export interface Layer {
   blendMode?: string; // Layer blend mode
 }
 
+export interface ExportSettings {
+  format: 'png' | 'svg';
+  scale: number;
+  background: boolean;
+}
+
+const COPY_PADDING = 16;
+
 @Injectable()
 export class EditorStateService implements OnDestroy {
   private ioService = inject(IOService);
@@ -63,6 +71,10 @@ export class EditorStateService implements OnDestroy {
     if (event.target === this.editOwner && !isModifiedKey(event)) return;
     this.endEdit();
   };
+
+  /** The title the host passed on first render; Reset restores it. */
+  readonly initialTitle = this.configService.getEditorConfig().title;
+  readonly exportSettings = signal<ExportSettings>({ format: 'png', scale: 2, background: true });
 
   // Theme handling - use WhiteboardConfig as the source of truth
   themeSignal = computed(() => this.getConfigSignal()().theme ?? 'light');
@@ -649,6 +661,44 @@ export class EditorStateService implements OnDestroy {
     } catch {
       // IOService already logs the failure
     }
+  }
+
+  hasContent(): boolean {
+    return this.apiService.hasContent();
+  }
+
+  saveBoardFile(): void {
+    this.ioService.exportDataAsFile(this.getEditorConfigSignal()().title || 'Whiteboard');
+  }
+
+  async openBoard(file: File): Promise<void> {
+    this.endEdit();
+    try {
+      await this.ioService.importDataFromFile(file);
+    } catch {
+      // IOService already logs the failure
+    }
+  }
+
+  async copyAsPng(): Promise<void> {
+    const { scale, background } = this.exportSettings();
+    try {
+      await this.ioService.copyToClipboard(FormatType.Png, {
+        scale,
+        background,
+        padding: COPY_PADDING,
+        onlySelected: this.hasSelectionSignal(),
+      });
+    } catch (error) {
+      console.error('Failed to copy image:', error);
+    }
+  }
+
+  resetBoard(): void {
+    this.endEdit();
+    this.apiService.resetBoard();
+    this.updateTitle(this.initialTitle);
+    this.centerView();
   }
 
   undo() {

@@ -23,7 +23,18 @@
     .dropdown-wrapper {
       position: relative;
 
-      .layers-button {
+      .menu-popover {
+        position: absolute;
+        top: calc(100% + var(--wb-space-2));
+        left: 0;
+        z-index: 1000;
+        width: max-content;
+        max-width: calc(100vw - 2 * var(--wb-space-4));
+        animation: wb-slide-up 0.2s ease;
+      }
+
+      .layers-button,
+      .menu-btn {
         width: var(--wb-header-control-size);
         height: var(--wb-header-control-size);
         border: none;
@@ -50,8 +61,9 @@
       .layers-dropdown {
         position: absolute;
         top: calc(100% + var(--wb-space-2));
-        left: 0;
+        right: 0;
         min-width: 280px;
+        max-width: calc(100vw - 2 * var(--wb-space-4));
         background: var(--wb-color-surface);
         border: 1px solid var(--wb-color-border);
         border-radius: var(--wb-radius);
@@ -202,44 +214,8 @@
       }
     }
 
-    .title-section {
+    ng-editable-title {
       flex: 0 1 auto;
-      min-width: 0;
-      max-width: 240px;
-
-      .title-input {
-        font-size: 1.125rem;
-        font-weight: 600;
-        padding: var(--wb-space-2);
-        border: 1px solid var(--wb-color-gray-300);
-        border-radius: var(--wb-radius-sm);
-        width: 100%;
-        background: var(--wb-color-surface);
-        color: var(--wb-color-text-primary);
-
-        &:focus {
-          border-color: var(--wb-color-primary);
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-      }
-
-      h1 {
-        font-size: 1.125rem;
-        font-weight: 600;
-        padding: var(--wb-space-2);
-        cursor: pointer;
-        color: var(--wb-color-gray-800);
-        margin: 0;
-        text-overflow: ellipsis;
-        overflow: hidden;
-        white-space: nowrap;
-        border-radius: var(--wb-radius-sm);
-        transition: background-color 0.2s ease;
-
-        &:hover {
-          background-color: var(--wb-color-gray-50);
-        }
-      }
     }
   }
 
@@ -279,15 +255,7 @@
           height: 16px;
         }
 
-        .action-label {
-          @include bp.not-wide {
-            display: none;
-          }
-        }
-
-        &.theme-btn,
-        &.properties-btn,
-        &.menu-btn {
+        &.properties-btn {
           padding: var(--wb-space-2);
         }
 
@@ -321,7 +289,8 @@
   }
 
   .action-btn,
-  .layers-button {
+  .layers-button,
+  .menu-btn {
     flex: none;
     justify-content: center;
 

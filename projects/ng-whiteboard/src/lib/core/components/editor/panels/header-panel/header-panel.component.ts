@@ -1,11 +1,22 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, input, Output, viewChild } from '@angular/core';
-import { EditorStateService } from '../../editor-state.service';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  ElementRef,
+  EventEmitter,
+  HostListener,
+  input,
+  Output,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { EditorConfig } from '../../../../types';
 import { Layer } from '../../editor-state.service';
 import { IconComponent } from '../../icon/icon.component';
-import { DOCUMENT_ACTIONS, DocumentActionId } from '../../utils/editor-actions';
-import { themeToggleLabel } from '../../utils/theme-label';
+import { EditableTitleComponent } from '../../ui/editable-title/editable-title.component';
+import { MenuComponent } from '../../ui/menu/menu.component';
+import { MainMenuActionId, MainMenuItem } from '../../utils/editor-actions';
 import { toWhiteboardLayers } from '../../utils/whiteboard-layers';
 import {
   LayerPanelComponent,
@@ -21,11 +32,36 @@ let nextMenuId = 0;
 @Component({
   selector: 'ng-header-panel',
   standalone: true,
-  imports: [CommonModule, IconComponent, LayerPanelComponent],
+  imports: [CommonModule, IconComponent, LayerPanelComponent, MenuComponent, EditableTitleComponent],
   template: `
     <div class="header-panel">
-      <!-- Left Section: Layers & Title -->
       <div class="header-left">
+        <div #menuWrapper class="dropdown-wrapper">
+          <button
+            #menuTrigger
+            type="button"
+            (click)="toggleMenu($event)"
+            class="menu-btn"
+            [class.active]="isMenuExpanded()"
+            title="Menu"
+            aria-label="Menu"
+            aria-haspopup="menu"
+            [attr.aria-expanded]="isMenuExpanded()"
+            [attr.aria-controls]="menuPopoverOpen() ? mainMenuId : null"
+          >
+            <ng-icon name="menu"></ng-icon>
+          </button>
+
+          @if (menuPopoverOpen() && !compact()) {
+            <div class="menu-popover" [id]="mainMenuId">
+              <ng-menu [items]="menuItems()" (itemSelected)="chooseMenuItem($event)" (closeRequested)="closeMenu(true)">
+              </ng-menu>
+            </div>
+          }
+        </div>
+
+        <ng-editable-title [value]="editorConfig().title" (valueChange)="titleChange.emit($event)"> </ng-editable-title>
+
         <div class="dropdown-wrapper" (keydown.escape)="onEscape($event)">
           <button
             #layersTrigger
@@ -66,106 +102,58 @@ let nextMenuId = 0;
             </div>
           </div>
         </div>
-
-        <div class="title-section">
-          <ng-container *ngIf="isEditingTitle(); else titleDisplay">
-            <input
-              #titleInput
-              type="text"
-              class="title-input"
-              [value]="editorConfig().title"
-              (blur)="onTitleBlur($event)"
-              (keyup.enter)="onTitleBlur($event)"
-              autoFocus
-            />
-          </ng-container>
-          <ng-template #titleDisplay>
-            <h1 (click)="startTitleEdit()">{{ editorConfig().title }}</h1>
-          </ng-template>
-        </div>
       </div>
 
-      <!-- Right Section: Actions -->
-      <div class="header-right">
-        <div class="actions" *ngIf="compact(); else fullActions">
-          <button
-            class="action-btn properties-btn"
-            [class.has-selection]="hasSelection()"
-            [class.active]="propertiesOpen()"
-            title="Properties"
-            aria-label="Properties"
-            [attr.aria-expanded]="propertiesOpen()"
-            (click)="propertiesToggle.emit($any($event.currentTarget))"
-          >
-            <ng-icon name="properties"></ng-icon>
-          </button>
-          <button
-            class="action-btn menu-btn"
-            [class.active]="menuOpen()"
-            title="Menu"
-            aria-label="Menu"
-            [attr.aria-expanded]="menuOpen()"
-            (click)="menuToggle.emit($any($event.currentTarget))"
-          >
-            <ng-icon name="menu"></ng-icon>
-          </button>
-        </div>
-        <ng-template #fullActions>
+      @if (compact()) {
+        <div class="header-right">
           <div class="actions">
-            @for (action of documentActions; track action.id) {
-              <button
-                class="action-btn"
-                [title]="action.label"
-                [attr.aria-label]="action.label"
-                (click)="runDocumentAction(action.id)"
-              >
-                <ng-icon [name]="action.icon"></ng-icon>
-                <span class="action-label">{{ action.label }}</span>
-              </button>
-            }
             <button
-              class="action-btn theme-btn"
-              (click)="editorState.toggleTheme()"
-              [title]="themeToggleLabel()"
-              [attr.aria-label]="themeToggleLabel()"
+              class="action-btn properties-btn"
+              [class.has-selection]="hasSelection()"
+              [class.active]="propertiesOpen()"
+              title="Properties"
+              aria-label="Properties"
+              [attr.aria-expanded]="propertiesOpen()"
+              (click)="propertiesToggle.emit($any($event.currentTarget))"
             >
-              <ng-icon [name]="editorState.themeSignal() === 'dark' ? 'sun' : 'moon'"></ng-icon>
+              <ng-icon name="properties"></ng-icon>
             </button>
           </div>
-        </ng-template>
-      </div>
+        </div>
+      }
     </div>
   `,
   styleUrl: './header-panel.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeaderPanelComponent {
-  constructor(public editorState: EditorStateService) {}
-  readonly layersMenuId = `wb-layers-menu-${nextMenuId++}`;
+  readonly layersMenuId = `wb-layers-menu-${nextMenuId}`;
+  readonly mainMenuId = `wb-main-menu-${nextMenuId++}`;
   private layersTrigger = viewChild<ElementRef<HTMLButtonElement>>('layersTrigger');
+  private menuTrigger = viewChild<ElementRef<HTMLButtonElement>>('menuTrigger');
+  private menuWrapper = viewChild<ElementRef<HTMLElement>>('menuWrapper');
   editorConfig = input<EditorConfig>({} as EditorConfig);
   layers = input<Layer[]>([]);
   activeLayerId = input<string>(''); // Add activeLayerId as input
   showLayers = input<boolean>(false);
-  isEditingTitle = input<boolean>(false);
   compact = input<boolean>(false);
   hasSelection = input<boolean>(false);
   propertiesOpen = input<boolean>(false);
+  /** Whether the parent's compact menu sheet is open. */
   menuOpen = input<boolean>(false);
+  menuItems = input<readonly MainMenuItem[]>([]);
+
+  protected menuPopoverOpen = signal(false);
 
   @Output() titleChange = new EventEmitter<string>();
-  @Output() titleEditStart = new EventEmitter<void>();
-  @Output() titleEditEnd = new EventEmitter<void>();
   @Output() layersToggle = new EventEmitter<HTMLElement | null>();
   @Output() layerVisibilityToggle = new EventEmitter<Layer>();
   @Output() layerLockToggle = new EventEmitter<Layer>();
   @Output() layerAdd = new EventEmitter<void>();
   @Output() layerMenuShow = new EventEmitter<Layer>();
-  @Output() newDocument = new EventEmitter<void>();
-  @Output() saveDocument = new EventEmitter<void>();
-  @Output() exportDocument = new EventEmitter<void>();
   @Output() propertiesToggle = new EventEmitter<HTMLElement | null>();
   @Output() menuToggle = new EventEmitter<HTMLElement | null>();
+  @Output() menuAction = new EventEmitter<{ id: MainMenuActionId; opener: HTMLElement | null }>();
 
   // New layer panel events
   @Output() layerSelected = new EventEmitter<string>();
@@ -175,15 +163,40 @@ export class HeaderPanelComponent {
   @Output() layerMoved = new EventEmitter<LayerMoveEvent>();
   @Output() layerBlendModeChanged = new EventEmitter<LayerBlendModeEvent>();
 
-  readonly documentActions = DOCUMENT_ACTIONS;
-
-  runDocumentAction(id: DocumentActionId) {
-    const outputs = { new: this.newDocument, save: this.saveDocument, export: this.exportDocument };
-    outputs[id].emit();
+  constructor() {
+    effect(() => {
+      if (this.compact()) this.menuPopoverOpen.set(false);
+    });
   }
 
-  themeToggleLabel(): string {
-    return themeToggleLabel(this.editorState.themeSignal());
+  isMenuExpanded(): boolean {
+    return this.compact() ? this.menuOpen() : this.menuPopoverOpen();
+  }
+
+  toggleMenu(event: Event) {
+    if (this.compact()) {
+      this.menuToggle.emit(event.currentTarget as HTMLElement);
+      return;
+    }
+    this.menuPopoverOpen.update((open) => !open);
+  }
+
+  closeMenu(refocus: boolean) {
+    this.menuPopoverOpen.set(false);
+    if (refocus) this.menuTrigger()?.nativeElement.focus();
+  }
+
+  chooseMenuItem(id: string) {
+    this.menuPopoverOpen.set(false);
+    this.menuAction.emit({ id: id as MainMenuActionId, opener: this.menuTrigger()?.nativeElement ?? null });
+  }
+
+  @HostListener('document:pointerdown', ['$event'])
+  onDocumentPointerDown(event: Event) {
+    if (!this.menuPopoverOpen()) return;
+    const target = event.target;
+    if (target instanceof Node && this.menuWrapper()?.nativeElement.contains(target)) return;
+    this.closeMenu(false);
   }
 
   toggleLayers(event?: Event) {
@@ -199,17 +212,6 @@ export class HeaderPanelComponent {
 
   closeLayers() {
     this.layersToggle.emit();
-  }
-
-  startTitleEdit() {
-    this.titleEditStart.emit();
-  }
-
-  onTitleBlur(event: Event) {
-    const target = event.target as HTMLInputElement;
-    const newTitle = target.value.trim() || 'Untitled Whiteboard';
-    this.titleChange.emit(newTitle);
-    this.titleEditEnd.emit();
   }
 
   toggleLayerVisibility(layer: Layer) {

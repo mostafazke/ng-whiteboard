@@ -104,7 +104,7 @@ export class KeyboardShortcutService {
     }
 
     // Clipboard
-    if (ctrl && key === 'c') {
+    if (ctrl && !shift && key === 'c') {
       this.apiService.copyElements();
       return true;
     }

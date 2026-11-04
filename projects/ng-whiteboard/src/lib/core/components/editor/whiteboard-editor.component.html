@@ -4,7 +4,7 @@
   tabindex="-1"
   [attr.data-theme]="themeSignal()"
   [attr.data-layout]="layout()"
-  (keydown)="togglePanelOnShortcut($event); containKey($event)"
+  (keydown)="handleShortcut($event); containKey($event)"
   (keyup)="containKey($event)"
 >
   <div class="editor-container">
@@ -14,14 +14,12 @@
       [layers]="layersSignal()"
       [activeLayerId]="activeLayerIdSignal()"
       [showLayers]="showLayersDropdownSignal()"
-      [isEditingTitle]="isEditingTitleSignal()"
       [compact]="isCompact()"
       [hasSelection]="hasSelectionSignal()"
       [propertiesOpen]="propertiesSheetOpenSignal()"
       [menuOpen]="menuSheetOpenSignal()"
+      [menuItems]="mainMenuItems()"
       (titleChange)="onTitleChange($event)"
-      (titleEditStart)="onTitleEditStart()"
-      (titleEditEnd)="onTitleEditEnd()"
       (layersToggle)="toggleLayersDropdown($event)"
       (layerVisibilityToggle)="onLayerVisibilityToggle($event)"
       (layerLockToggle)="onLayerLockToggle($event)"
@@ -32,11 +30,9 @@
       (layerOpacityChanged)="onLayerPanelOpacityChanged($event)"
       (layerMoved)="onLayerPanelLayerMoved($event)"
       (layerBlendModeChanged)="onLayerPanelBlendModeChanged($event)"
-      (newDocument)="clear()"
-      (saveDocument)="save()"
-      (exportDocument)="export()"
       (propertiesToggle)="togglePropertiesSheet($event)"
       (menuToggle)="toggleMenuSheet($event)"
+      (menuAction)="onHeaderMenuAction($event)"
     >
     </ng-header-panel>
 
@@ -126,17 +122,7 @@
       [open]="menuSheetOpenSignal()"
       (closed)="menuSheetOpenSignal.set(false)"
     >
-      <div class="wb-sheet-menu">
-        @for (action of documentActions; track action.id) {
-          <button class="wb-sheet-item" (click)="menuSheetOpenSignal.set(false); runDocumentAction(action.id)">
-            <ng-icon [name]="action.icon"></ng-icon><span>{{ action.label }}</span>
-          </button>
-        }
-        <button class="wb-sheet-item" [attr.aria-label]="themeToggleLabelSignal()" (click)="toggleTheme()">
-          <ng-icon [name]="themeSignal() === 'dark' ? 'sun' : 'moon'"></ng-icon>
-          <span>{{ themeSignal() === 'dark' ? 'Light mode' : 'Dark mode' }}</span>
-        </button>
-      </div>
+      <ng-menu [embedded]="true" [items]="mainMenuItems()" (itemSelected)="runMenuAction($any($event))"></ng-menu>
     </ng-bottom-sheet>
 
     <ng-bottom-sheet
@@ -183,4 +169,37 @@
       </div>
     </ng-bottom-sheet>
   }
+
+  <ng-dialog
+    label="Export image"
+    heading="Export image"
+    [compact]="isCompact()"
+    [open]="exportDialogOpen()"
+    [opener]="sheetOpenerSignal()"
+    [focusFallback]="root"
+    (closed)="exportDialogOpen.set(false)"
+  ></ng-dialog>
+
+  @if (confirmKind(); as kind) {
+    <ng-confirm-dialog
+      [open]="true"
+      [message]="confirmCopy[kind].message"
+      [confirmLabel]="confirmCopy[kind].confirmLabel"
+      [compact]="isCompact()"
+      [opener]="sheetOpenerSignal()"
+      [focusFallback]="root"
+      (confirmed)="onConfirmed()"
+      (cancelled)="confirmKind.set(null)"
+    ></ng-confirm-dialog>
+  }
+
+  <input
+    #fileInput
+    type="file"
+    hidden
+    tabindex="-1"
+    aria-hidden="true"
+    accept=".json,application/json"
+    (change)="onFileSelected($event)"
+  />
 </div>

@@ -9,6 +9,7 @@ import { HistoryService } from '../../history/history.service';
 import { ArrowBindingService } from '../../elements/arrow-binding.service';
 import { ArrowElement, ArrowheadType } from '../../elements';
 import { ElementType, LineCap, PenType, WhiteboardElement, WhiteboardEvent } from '../../types';
+import { IOService } from '../../input/io.service';
 import { EditorStateService } from './editor-state.service';
 import { MIXED } from './utils/selected-properties';
 
@@ -585,5 +586,87 @@ describe('EditorStateService', () => {
       service.updateElementProperty('startHead', 'circle');
       expect(arrowOf('a').startHead.type).toBe('circle');
     });
+  });
+});
+
+describe('EditorStateService board file actions', () => {
+  let service: EditorStateService;
+  let io: { exportDataAsFile: jest.Mock; importDataFromFile: jest.Mock; copyToClipboard: jest.Mock };
+  let api: ApiService;
+
+  beforeEach(() => {
+    io = {
+      exportDataAsFile: jest.fn(),
+      importDataFromFile: jest.fn().mockResolvedValue(undefined),
+      copyToClipboard: jest.fn().mockResolvedValue(undefined),
+    };
+    TestBed.configureTestingModule({
+      providers: [EditorStateService, ApiService, { provide: IOService, useValue: io }],
+    });
+    TestBed.inject(ConfigService).updateEditorConfigValue('title', 'Host title');
+    service = TestBed.inject(EditorStateService);
+    api = TestBed.inject(ApiService);
+  });
+
+  it('captures the initial title on construction', () => {
+    expect(service.initialTitle).toBe('Host title');
+  });
+
+  it('exposes the export session settings with their defaults', () => {
+    expect(service.exportSettings()).toEqual({ format: 'png', scale: 2, background: true });
+  });
+
+  it('saveBoardFile downloads the board as <title>', () => {
+    service.updateTitle('Sprint plan');
+    service.saveBoardFile();
+    expect(io.exportDataAsFile).toHaveBeenCalledWith('Sprint plan');
+  });
+
+  it('openBoard imports the file and swallows failures', async () => {
+    const file = new File(['{}'], 'a.json', { type: 'application/json' });
+    await service.openBoard(file);
+    expect(io.importDataFromFile).toHaveBeenCalledWith(file);
+
+    io.importDataFromFile.mockRejectedValueOnce(new Error('bad'));
+    await expect(service.openBoard(file)).resolves.toBeUndefined();
+  });
+
+  it('copyAsPng copies with the export settings, padding 16 and the selection', async () => {
+    const elements = TestBed.inject(ElementsService);
+    elements.setElements([rect('r', 0, 0, 10, 10)]);
+    TestBed.inject(SelectionService).selectElements(['r']);
+    service.exportSettings.set({ format: 'png', scale: 3, background: false });
+
+    await service.copyAsPng();
+
+    expect(io.copyToClipboard).toHaveBeenCalledWith('png', {
+      scale: 3,
+      background: false,
+      padding: 16,
+      onlySelected: true,
+    });
+  });
+
+  it('copyAsPng does not reject when the clipboard fails', async () => {
+    io.copyToClipboard.mockRejectedValueOnce(new Error('denied'));
+    await expect(service.copyAsPng()).resolves.toBeUndefined();
+  });
+
+  it('resetBoard clears the board, restores the title and resets zoom and pan', () => {
+    const reset = jest.spyOn(api, 'resetBoard');
+    const centre = jest.spyOn(service, 'centerView');
+    service.updateTitle('Changed');
+
+    service.resetBoard();
+
+    expect(reset).toHaveBeenCalledTimes(1);
+    expect(service.getEditorConfigSignal()().title).toBe('Host title');
+    expect(centre).toHaveBeenCalledTimes(1);
+  });
+
+  it('hasContent follows the board', () => {
+    expect(service.hasContent()).toBe(false);
+    TestBed.inject(ElementsService).setElements([rect('r', 0, 0, 10, 10)]);
+    expect(service.hasContent()).toBe(true);
   });
 });
