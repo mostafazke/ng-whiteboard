@@ -199,8 +199,19 @@ export class IOService {
     if (!canCopyImage()) {
       throw new Error('Copying images to the clipboard is not supported in this browser');
     }
-    const { dataUrl } = await this.renderExport(FormatType.Png, options);
-    await navigator.clipboard.write([new ClipboardItem({ 'image/png': dataUrlToBlob(dataUrl) })]);
+    const blob = this.renderExport(FormatType.Png, options).then(({ dataUrl }) => dataUrlToBlob(dataUrl));
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+  }
+
+  private roundOutward(box: ExportBox): ExportBox {
+    const x = Math.floor(box.x);
+    const y = Math.floor(box.y);
+    return {
+      x,
+      y,
+      width: Math.ceil(box.x + box.width) - x,
+      height: Math.ceil(box.y + box.height) - y,
+    };
   }
 
   private svgDataUrl(svgString: string): string {
@@ -209,14 +220,16 @@ export class IOService {
 
   private getExportableElements(onlySelected: boolean): WhiteboardElement[] {
     const layers = this.layerManagementService.layers();
-    const selected = onlySelected ? new Set(this.selectionService.getSelectedIds()) : null;
-
-    return this.elementsService.getElements().filter((element) => {
+    const visible = this.elementsService.getElements().filter((element) => {
       if (element.isDeleting) return false;
-      if (selected && !selected.has(element.id)) return false;
       const layerId = effectiveLayerId(element, layers);
       return !layerId || !!layers.find((l) => l.id === layerId)?.visible;
     });
+    if (!onlySelected) return visible;
+
+    const selected = new Set(this.selectionService.getSelectedIds());
+    const picked = visible.filter((element) => selected.has(element.id));
+    return picked.length > 0 ? picked : visible;
   }
 
   private buildExport(options: ExportOptions): { svgString: string; width: number; height: number } {
@@ -228,12 +241,8 @@ export class IOService {
     const { scale = 1, padding = 16, background = true, onlySelected = false } = options;
     const exportable = this.getExportableElements(onlySelected);
     const { canvasWidth, canvasHeight } = this.canvasService.getConfig();
-    const box: ExportBox = exportBounds(exportable, padding) ?? {
-      x: 0,
-      y: 0,
-      width: canvasWidth,
-      height: canvasHeight,
-    };
+    const tight = exportBounds(exportable, padding);
+    const box: ExportBox = tight ? this.roundOutward(tight) : { x: 0, y: 0, width: canvasWidth, height: canvasHeight };
     const width = Math.max(1, Math.round(box.width * scale));
     const height = Math.max(1, Math.round(box.height * scale));
 

@@ -28,6 +28,36 @@ describe('exportBounds', () => {
     expect(result.width).toBeCloseTo(2 * half + 2);
   });
 
+  it('includes the control point of a curved arrow', () => {
+    const arrow = createElement(ElementType.Arrow, {
+      x1: 0,
+      y1: 0,
+      x2: 100,
+      y2: 0,
+      style: { strokeWidth: 2 },
+      startHead: { type: 'none' },
+      endHead: { type: 'none' },
+      pathType: { type: 'quadratic', cx: 50, cy: -80 },
+    } as never);
+    const result = exportBounds([arrow], 0)!;
+    expect(result.y).toBeLessThanOrEqual(-80);
+  });
+
+  it('widens arrows by their arrowhead size', () => {
+    const arrow = createElement(ElementType.Arrow, {
+      x1: 0,
+      y1: 0,
+      x2: 100,
+      y2: 0,
+      style: { strokeWidth: 2 },
+      startHead: { type: 'none' },
+      endHead: { type: 'arrow' },
+    } as never);
+    const result = exportBounds([arrow], 0)!;
+    expect(result.y).toBeLessThanOrEqual(-6);
+    expect(result.x + result.width).toBeGreaterThanOrEqual(101);
+  });
+
   it('unions several elements', () => {
     const result = exportBounds([rect(0, 0, 10, 10), rect(100, 100, 10, 10)], 0)!;
     expect(result).toEqual({ x: -1, y: -1, width: 112, height: 112 });

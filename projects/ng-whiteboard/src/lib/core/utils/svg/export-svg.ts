@@ -31,7 +31,13 @@ export function buildExportSvg(source: SVGSVGElement, options: ExportSvgOptions)
     if (!keepElementIds.has(node.getAttribute('data-wb-id') ?? '')) node.remove();
   });
 
-  clone.querySelector('#contentGroup')?.removeAttribute('transform');
+  const contentGroup = clone.querySelector('#contentGroup');
+  if (contentGroup) {
+    contentGroup.removeAttribute('transform');
+    Array.from(contentGroup.children).forEach((child) => {
+      if (!child.hasAttribute('data-wb-id')) child.remove();
+    });
+  }
 
   const backgroundRect = clone.querySelector('#contentBackground');
   if (backgroundRect) {

@@ -1165,9 +1165,49 @@ describe('IOService', () => {
     it('excludes a hidden-layer element even when it is selected', async () => {
       mockSelectionService.getSelectedIds = jest.fn().mockReturnValue(['hidden']);
       await service.save(FormatType.Png, 'b', { onlySelected: true });
-      expect(mockSvgToBase64).toHaveBeenCalledWith(expect.any(String), 800, 600, FormatType.Png);
       expect(capturedSvg()).not.toContain('data-wb-id="hidden"');
-      expect(capturedSvg()).not.toContain('data-wb-id="a"');
+    });
+
+    it('falls back to all exportable elements when no selected element is exportable', async () => {
+      mockSelectionService.getSelectedIds = jest.fn().mockReturnValue(['hidden']);
+      await service.save(FormatType.Svg, 'b', { onlySelected: true });
+      expect(capturedSvg()).toContain('viewBox="-7 -7 134 84"');
+      expect(capturedSvg()).toContain('data-wb-id="a"');
+    });
+
+    it('strips editor chrome from the content group', async () => {
+      const svg = buildSvg(['a']);
+      const content = svg.querySelector('#contentGroup')!;
+      for (const cls of ['line-endpoint-handle', 'curve-handle', 'snap-indicator', 'connection-point']) {
+        const c = document.createElementNS(NS, 'circle');
+        c.setAttribute('class', cls);
+        content.appendChild(c);
+      }
+      const marquee = document.createElementNS(NS, 'rect');
+      marquee.setAttribute('stroke', 'blue');
+      content.appendChild(marquee);
+      mockCanvasService.getCanvas.mockReturnValue(svg);
+
+      await service.save(FormatType.Svg, 'b');
+
+      const out = capturedSvg();
+      for (const cls of [
+        'line-endpoint-handle',
+        'curve-handle',
+        'snap-indicator',
+        'connection-point',
+        'stroke="blue"',
+      ]) {
+        expect(out).not.toContain(cls);
+      }
+      expect(out).toContain('data-wb-id="a"');
+    });
+
+    it('rounds the crop outward so viewBox and size agree', async () => {
+      mockElementsService.getElements.mockReturnValue([makeRect('a', 10.4, 10.4, 100, 50, { layerId: 'L1' })]);
+      await service.save(FormatType.Svg, 'b', { padding: 0 });
+      expect(capturedSvg()).toContain('viewBox="9 9 103 53"');
+      expect(mockSvgToBase64).toHaveBeenCalledWith(expect.any(String), 103, 53, FormatType.Svg);
     });
 
     it('keeps only selected visible elements when onlySelected', async () => {
@@ -1204,7 +1244,7 @@ describe('IOService', () => {
     describe('copyToClipboard', () => {
       const original = Object.getOwnPropertyDescriptor(navigator, 'clipboard');
       class FakeClipboardItem {
-        constructor(public items: Record<string, Blob>) {}
+        constructor(public items: Record<string, Blob | Promise<Blob>>) {}
       }
 
       afterEach(() => {
@@ -1218,11 +1258,13 @@ describe('IOService', () => {
         Object.defineProperty(navigator, 'clipboard', { value: { write }, configurable: true });
         (globalThis as Record<string, unknown>)['ClipboardItem'] = FakeClipboardItem;
 
-        await service.copyToClipboard(FormatType.Png);
+        const pending = service.copyToClipboard(FormatType.Png);
 
         expect(write).toHaveBeenCalledTimes(1);
-        const item = write.mock.calls[0][0][0] as FakeClipboardItem;
-        expect(item.items['image/png'].type).toBe('image/png');
+        const item = write.mock.calls[0][0][0] as unknown as { items: Record<string, Promise<Blob>> };
+        expect(item.items['image/png']).toBeInstanceOf(Promise);
+        await pending;
+        expect((await item.items['image/png']).type).toBe('image/png');
       });
 
       it('writes svg as text', async () => {
