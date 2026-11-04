@@ -845,6 +845,28 @@ describe('HistoryService', () => {
       expect(service.redoSnapshot()?.layers).toEqual(layerState('New'));
     });
 
+    it('keeps the layer before-state when a layer batch is nested in an element-only batch', () => {
+      const outer = service.startBatch('Update properties', []);
+      const inner = service.startBatch('Layer opacity', [], layerState('Old'));
+      inner.execute(undefined, layerState('New'));
+      outer.execute([createMockElement('1')]);
+      expect(service.undoSnapshot()?.layers).toEqual(layerState('Old'));
+      expect(service.redoSnapshot()?.layers).toEqual(layerState('New'));
+    });
+
+    it('keeps entries symmetric when only one side carries layers', () => {
+      service.recordBoardChange({ elements: [] }, { elements: [], layers: layerState('New') }, 'one-sided');
+      expect(service.getCanUndoSignal()()).toBe(false);
+
+      service.recordBoardChange(
+        { elements: [] },
+        { elements: [createMockElement('1')], layers: layerState('New') },
+        'one-sided'
+      );
+      expect(service.undoSnapshot()?.layers).toBeUndefined();
+      expect(service.redoSnapshot()?.layers).toBeUndefined();
+    });
+
     it('does not record a batch whose elements and layers are unchanged', () => {
       const handle = service.startBatch('Noop', [], layerState('Same'));
       handle.execute(undefined, layerState('Same'));

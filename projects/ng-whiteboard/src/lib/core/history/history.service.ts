@@ -80,8 +80,7 @@ export class HistoryService {
       this.pushHistory({
         before: this.cloneElements(before.elements),
         after: this.cloneElements(after.elements),
-        layersBefore: this.cloneLayers(before.layers),
-        layersAfter: this.cloneLayers(after.layers),
+        ...this.layerParts(before.layers, after.layers),
         description,
         timestamp: Date.now(),
       });
@@ -107,7 +106,7 @@ export class HistoryService {
       this.batchLayersBefore = this.cloneLayers(layersBefore);
       this.batchDescription = description;
       this.batching = true;
-    }
+    } else if (!this.batchLayersBefore) this.batchLayersBefore = this.cloneLayers(layersBefore);
     this.batchDepth++;
     const generation = this.batchGeneration;
     let settled = false;
@@ -150,8 +149,7 @@ export class HistoryService {
       this.pushHistory({
         before: this.batchBeforeSnapshot,
         after,
-        layersBefore: this.batchLayersBefore,
-        layersAfter,
+        ...this.layerParts(this.batchLayersBefore, layersAfter),
         description: this.batchDescription,
         timestamp: Date.now(),
       });
@@ -262,9 +260,12 @@ export class HistoryService {
     return layers ? (JSON.parse(JSON.stringify(layers)) as LayerState) : undefined;
   }
 
+  private layerParts(before: LayerState | undefined, after: LayerState | undefined) {
+    return before && after ? { layersBefore: this.cloneLayers(before), layersAfter: this.cloneLayers(after) } : {};
+  }
+
   private layersEqual(a: LayerState | undefined, b: LayerState | undefined): boolean {
-    if (!a && !b) return true;
-    if (!a || !b) return false;
+    if (!a || !b) return true;
     return JSON.stringify(a) === JSON.stringify(b);
   }
 
