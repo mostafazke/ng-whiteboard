@@ -26,7 +26,7 @@ import { ZoomService } from '../../viewport/zoom.service';
 import { PanService } from '../../viewport';
 import { AlignmentType, computeAlignmentUpdates } from './utils/alignment';
 import { isFlatCurve, toArrowPath } from './utils/arrow-path';
-import { buildDasharray } from './utils/dasharray';
+import { buildDasharray, rescaleDasharray } from './utils/dasharray';
 import { mergeSelectedProperties } from './utils/selected-properties';
 import { arrowPathKind } from './utils/shape-capabilities';
 
@@ -249,7 +249,9 @@ export class EditorStateService implements OnDestroy {
 
     // If no selection, update global config
     if (selectedElements.length === 0) {
+      const dasharray = rescaleDasharray(this.configService.getConfig().dasharray, width);
       this.configService.updateConfigValue('strokeWidth', width);
+      if (dasharray !== undefined) this.configService.updateConfigValue('dasharray', dasharray);
       return;
     }
 
@@ -258,6 +260,7 @@ export class EditorStateService implements OnDestroy {
       style: {
         ...element.style,
         strokeWidth: width,
+        dasharray: rescaleDasharray(element.style?.dasharray, width),
       },
     }));
 

@@ -1,0 +1,18 @@
+@use '../picker-tile' as tile;
+
+.editor .wb-brush-picker {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--wb-space-1);
+  width: 100%;
+
+  .wb-brush-option {
+    @include tile.picker-tile(40px);
+
+    svg {
+      width: 100%;
+      max-width: 40px;
+      height: 28px;
+    }
+  }
+}

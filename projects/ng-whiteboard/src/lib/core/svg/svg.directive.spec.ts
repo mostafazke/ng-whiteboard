@@ -18,10 +18,12 @@ interface MockSvgElement {
   hasPointerCapture?: (id: number) => boolean;
   releasePointerCapture?: (id: number) => void;
   setPointerCapture?: (id: number) => void;
+  focus?: (options?: FocusOptions) => void;
 }
 
 function withCurrentTarget<E extends PointerEvent>(event: E, target: MockSvgElement): E {
-  Object.defineProperty(event, 'currentTarget', { value: target });
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  Object.defineProperty(event, 'currentTarget', { value: { focus: () => {}, ...target } });
   return event;
 }
 
@@ -80,6 +82,18 @@ describe('SvgDirective', () => {
     });
     directive.onPointerDown(eventMock);
     expect(svgServiceMock.onPointerDown).toHaveBeenCalled();
+  });
+
+  it('should focus the canvas on pointerdown so canvas keys are not kept by editor controls', () => {
+    const focus = jest.fn();
+    const eventMock = withCurrentTarget(new MouseEvent('pointerdown', { button: 0 }) as PointerEvent, {
+      getBoundingClientRect: () => ({ left: 0, top: 0 }),
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      setPointerCapture: () => {},
+      focus,
+    });
+    directive.onPointerDown(eventMock);
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true });
   });
 
   it('should not call onPointerDown for right button', () => {

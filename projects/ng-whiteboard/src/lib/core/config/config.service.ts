@@ -39,7 +39,7 @@ export class ConfigService {
     gridSize: 10,
     snapToGrid: true,
     keyboardShortcutsEnabled: true,
-    penType: PenType.Pen,
+    penType: PenType.Marker,
     penThrottlingThreshold: 2,
     arrowConfig: { ...defaultArrowConfig },
   });

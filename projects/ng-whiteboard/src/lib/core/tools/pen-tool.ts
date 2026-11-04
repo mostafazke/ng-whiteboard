@@ -1,7 +1,7 @@
 import { PenElement } from '../elements';
 import { createElement } from '../elements/element.utils';
-import { ElementType, PointerInfo, ToolType, WhiteboardElementStyle, PenThickness } from '../types';
-import { getPresetForType } from '../types/pen-presets';
+import { ElementType, PointerInfo, ToolType, WhiteboardElementStyle } from '../types';
+import { getPenTypeStyle } from '../types/pen-presets';
 import { StrokeOptions } from '../utils/drawing';
 import { BaseTool } from './base-tool';
 import { CursorType } from '../types/cursors';
@@ -17,10 +17,7 @@ export class PenTool extends BaseTool {
   }
 
   private getCurrentPathOptions(): StrokeOptions {
-    const penType = this.whiteboardConfig.penType;
-    const preset = getPresetForType(penType, PenThickness.Medium);
-
-    const strokeOptions = preset.strokeOptions;
+    const strokeOptions = getPenTypeStyle(this.whiteboardConfig.penType).strokeOptions;
 
     return {
       smoothing: strokeOptions.smoothing || 0.5,
@@ -51,6 +48,7 @@ export class PenTool extends BaseTool {
       {
         points: initialPoints,
         pathOptions: currentPathOptions,
+        penType: this.whiteboardConfig.penType,
         isComplete: false,
         style: this.getElementStyle(),
         zIndex: this.apiService.getNextZIndex(),
@@ -113,8 +111,7 @@ export class PenTool extends BaseTool {
   }
 
   private getElementStyle(): WhiteboardElementStyle {
-    const penType = this.whiteboardConfig.penType;
-    const preset = getPresetForType(penType, PenThickness.Medium);
+    const penStyle = getPenTypeStyle(this.whiteboardConfig.penType);
 
     return {
       strokeColor: this.whiteboardConfig.strokeColor,
@@ -123,7 +120,7 @@ export class PenTool extends BaseTool {
       lineJoin: this.whiteboardConfig.lineJoin,
       dasharray: this.whiteboardConfig.dasharray,
       dashoffset: this.whiteboardConfig.dashoffset,
-      opacity: preset.opacity,
+      opacity: penStyle.opacity,
     };
   }
 }

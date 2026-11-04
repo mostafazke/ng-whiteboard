@@ -1,4 +1,4 @@
-import { BaseElement, Bounds, ElementType, ElementUtil, Point, defaultElementStyle } from '../types';
+import { BaseElement, Bounds, ElementType, ElementUtil, PenType, Point, defaultElementStyle } from '../types';
 import { generateId } from '../utils/common';
 import { hitTestPen, StrokeOptions } from '../utils/drawing';
 import { calculateBoundingBox } from '../utils/geometry/bounds';
@@ -7,6 +7,8 @@ export interface PenElement extends BaseElement {
   type: ElementType.Pen;
   points: [number, number][];
   pathOptions?: StrokeOptions;
+  /** Absent on strokes created before pen types were rendered distinctly. */
+  penType?: PenType;
   isComplete?: boolean;
   isClosed?: boolean;
 }

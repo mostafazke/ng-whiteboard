@@ -14,11 +14,11 @@ import { GlobalKeyboardDirective, ResizeHandlerDirective } from '../../directive
 
 import { SvgDirective } from '../../svg/svg.directive';
 import { SvgService } from '../../svg/svg.service';
-import { ElementType, ToolType, WhiteboardElement } from '../../types';
+import { ElementType, PENCIL_FILTER_ID, ToolType, WhiteboardElement } from '../../types';
 import { ApiService } from '../../api';
 import { CanvasService } from '../../canvas';
 import { ConnectionUIService, HandleService, SelectionService } from '../../elements';
-import { GripCursorPipe, ElementOpacityPipe, PointsToPathPipe, ArrowheadPipe } from '../../pipes';
+import { GripCursorPipe, ElementOpacityPipe, PenRenderPipe, ArrowheadPipe } from '../../pipes';
 import { ToolsService } from '../../tools';
 
 @Component({
@@ -28,7 +28,7 @@ import { ToolsService } from '../../tools';
     CommonModule,
     GripCursorPipe,
     ElementOpacityPipe,
-    PointsToPathPipe,
+    PenRenderPipe,
     ArrowheadPipe,
     SvgDirective,
     ResizeHandlerDirective,
@@ -57,6 +57,7 @@ export class WhiteboardCanvasComponent implements AfterViewInit {
   handleService = inject(HandleService);
 
   config = this.configService.getConfigSignal();
+  readonly pencilFilterId = PENCIL_FILTER_ID;
 
   themeSignal = computed(() => this.config().theme);
 

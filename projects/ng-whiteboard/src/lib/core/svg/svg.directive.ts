@@ -48,7 +48,10 @@ export class SvgDirective implements OnDestroy {
     }
 
     if (event.currentTarget) {
-      (event.currentTarget as Element).setPointerCapture(event.pointerId);
+      const target = event.currentTarget as SVGElement;
+      // preventDefault() above suppresses the browser's focus change, so editor controls would keep canvas keys
+      target.focus({ preventScroll: true });
+      target.setPointerCapture(event.pointerId);
     }
 
     if (event.button === MOUSE_BUTTON.RIGHT) return;

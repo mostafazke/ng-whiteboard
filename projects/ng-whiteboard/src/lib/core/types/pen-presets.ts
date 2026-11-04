@@ -108,6 +108,87 @@ const pencilOptions: StrokeOptions = {
   end: { cap: true, taper: 0.2 },
 };
 
+/** How a pen type turns the configured stroke width into a rendered stroke. */
+export interface PenTypeStyle {
+  /** `outline` fills a variable-width shape; `stroke` draws a uniform centerline. */
+  render: 'outline' | 'stroke';
+  /** Multiplier applied to the configured stroke width. */
+  sizeFactor: number;
+  minSize: number;
+  lineCap: LineCap;
+  lineJoin: LineJoin;
+  opacity?: number;
+  blendMode?: string;
+  /** Id of an SVG filter defined by the canvas. */
+  filter?: string;
+  strokeOptions: StrokeOptions;
+}
+
+export const PENCIL_FILTER_ID = 'wb-pencil-texture';
+
+export const PEN_TYPE_STYLES: Record<PenType, PenTypeStyle> = {
+  [PenType.Pen]: {
+    render: 'outline',
+    sizeFactor: 1.6,
+    minSize: 2,
+    lineCap: LineCap.Round,
+    lineJoin: LineJoin.Round,
+    strokeOptions: {
+      thinning: 0.5,
+      streamline: 0.5,
+      simulatePressure: true,
+      start: { cap: true, taper: 0.1 },
+      end: { cap: true, taper: 0.15 },
+    },
+  },
+  [PenType.Marker]: {
+    render: 'stroke',
+    sizeFactor: 2.5,
+    minSize: 3,
+    lineCap: LineCap.Round,
+    lineJoin: LineJoin.Round,
+    strokeOptions: { streamline: 0.45, simulatePressure: false },
+  },
+  [PenType.Highlighter]: {
+    render: 'stroke',
+    sizeFactor: 7,
+    minSize: 12,
+    lineCap: LineCap.Butt,
+    lineJoin: LineJoin.Round,
+    opacity: 0.4,
+    blendMode: 'multiply',
+    strokeOptions: { streamline: 0.6, simulatePressure: false },
+  },
+  [PenType.Brush]: {
+    render: 'outline',
+    sizeFactor: 5,
+    minSize: 6,
+    lineCap: LineCap.Round,
+    lineJoin: LineJoin.Round,
+    strokeOptions: {
+      thinning: 0.9,
+      streamline: 0.7,
+      simulatePressure: true,
+      start: { cap: true, taper: 0.35 },
+      end: { cap: true, taper: 0.5 },
+    },
+  },
+  [PenType.Pencil]: {
+    render: 'stroke',
+    sizeFactor: 0.75,
+    minSize: 1,
+    lineCap: LineCap.Round,
+    lineJoin: LineJoin.Round,
+    opacity: 0.9,
+    filter: PENCIL_FILTER_ID,
+    strokeOptions: { streamline: 0.25, simulatePressure: false },
+  },
+};
+
+export function getPenTypeStyle(type: PenType | undefined): PenTypeStyle {
+  return (type && PEN_TYPE_STYLES[type]) || PEN_TYPE_STYLES[PenType.Marker];
+}
+
 /** Size mappings for different thickness levels. */
 export const THICKNESS_SIZES: Record<PenThickness, number> = {
   [PenThickness.ExtraFine]: 1,

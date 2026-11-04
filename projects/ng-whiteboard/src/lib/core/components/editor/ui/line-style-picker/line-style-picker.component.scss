@@ -1,0 +1,18 @@
+@use '../picker-tile' as tile;
+
+.editor .wb-line-style-picker {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--wb-space-1);
+  width: 100%;
+
+  .wb-line-style-option {
+    @include tile.picker-tile(36px);
+
+    svg {
+      width: 100%;
+      max-width: 40px;
+      height: 12px;
+    }
+  }
+}

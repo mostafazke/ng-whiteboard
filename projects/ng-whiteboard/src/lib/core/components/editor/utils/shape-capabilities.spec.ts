@@ -28,6 +28,10 @@ describe('sectionsForElements', () => {
     expect(sectionsForElements([]).size).toBe(0);
   });
 
+  it('offers line style for pen strokes', () => {
+    expect(sectionsForElements([ElementType.Pen]).has('strokeStyle')).toBe(true);
+  });
+
   it('never includes brush', () => {
     expect(sectionsForElements([ElementType.Pen]).has('brush')).toBe(false);
   });
@@ -35,7 +39,7 @@ describe('sectionsForElements', () => {
 
 describe('sectionsForTool', () => {
   it('returns pen sections', () => {
-    expect(new Set(sectionsForTool(ToolType.Pen))).toEqual(new Set(['stroke', 'strokeWidth', 'brush']));
+    expect(new Set(sectionsForTool(ToolType.Pen))).toEqual(new Set(['stroke', 'strokeWidth', 'strokeStyle', 'brush']));
   });
 
   it('returns rectangle sections', () => {

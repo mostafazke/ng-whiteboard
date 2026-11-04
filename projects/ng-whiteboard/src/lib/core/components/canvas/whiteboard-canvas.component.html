@@ -19,6 +19,31 @@
     [attr.y]="canvasY()"
   >
     <defs>
+      <filter
+        [attr.id]="pencilFilterId"
+        filterUnits="userSpaceOnUse"
+        x="-100000"
+        y="-100000"
+        width="200000"
+        height="200000"
+      >
+        <feTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="2" seed="3" result="noise" />
+        <feDisplacementMap
+          in="SourceGraphic"
+          in2="noise"
+          scale="1.5"
+          xChannelSelector="R"
+          yChannelSelector="G"
+          result="rough"
+        />
+        <feColorMatrix
+          in="noise"
+          type="matrix"
+          values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.6 1.5"
+          result="grain"
+        />
+        <feComposite in="rough" in2="grain" operator="in" />
+      </filter>
       <!-- Grid -->
       <pattern id="smallGrid" [attr.width]="gridSize()" [attr.height]="gridSize()" patternUnits="userSpaceOnUse">
         <path
@@ -62,17 +87,48 @@
         >
           @switch (item.type) {
             @case (types.Pen) {
-              <g>
-                <path
-                  fill="none"
-                  [attr.d]="item.points | pointsToPath: item.pathOptions"
-                  [attr.stroke-width]="item.style.strokeWidth"
-                  [attr.stroke-linecap]="item.style.lineCap"
-                  [attr.stroke-linejoin]="item.style.lineJoin"
-                  [attr.stroke]="item.style.strokeColor"
-                  [attr.stroke-dasharray]="item.style.dasharray"
-                  [attr.stroke-dashoffset]="item.style.dashoffset"
-                ></path>
+              @let pen =
+                item.points
+                  | penRender: item.penType : item.style.strokeWidth : item.style.dasharray : item.pathOptions;
+              <g [attr.filter]="pen.filter" [style.mix-blend-mode]="pen.blendMode">
+                @if (pen.filled) {
+                  @if (pen.dashMask) {
+                    <mask
+                      [attr.id]="'wb-pen-dash-' + item.id"
+                      maskUnits="userSpaceOnUse"
+                      x="-100000"
+                      y="-100000"
+                      width="200000"
+                      height="200000"
+                    >
+                      <path
+                        fill="none"
+                        stroke="white"
+                        stroke-linecap="butt"
+                        [attr.d]="pen.dashMask.d"
+                        [attr.stroke-width]="pen.dashMask.width"
+                        [attr.stroke-dasharray]="pen.dasharray"
+                      ></path>
+                    </mask>
+                  }
+                  <path
+                    stroke="none"
+                    [attr.d]="pen.d"
+                    [attr.fill]="item.style.strokeColor"
+                    [attr.mask]="pen.dashMask ? 'url(#wb-pen-dash-' + item.id + ')' : null"
+                  ></path>
+                } @else {
+                  <path
+                    fill="none"
+                    [attr.d]="pen.d"
+                    [attr.stroke-width]="pen.strokeWidth"
+                    [attr.stroke-linecap]="pen.lineCap ?? item.style.lineCap"
+                    [attr.stroke-linejoin]="pen.lineJoin ?? item.style.lineJoin"
+                    [attr.stroke]="item.style.strokeColor"
+                    [attr.stroke-dasharray]="pen.dasharray"
+                    [attr.stroke-dashoffset]="item.style.dashoffset"
+                  ></path>
+                }
               </g>
             }
             @case (types.Image) {

@@ -200,11 +200,7 @@ describe('Editor edit batch vs canvas history (integration)', () => {
 
       checked('Brush').click();
       fixture.detectChanges();
-      (
-        Array.from(panel().querySelectorAll('[aria-label="Brush"] [role="radio"]')).find(
-          (option) => option.textContent?.trim() === 'Marker'
-        ) as HTMLElement
-      ).click();
+      (panel().querySelector('[aria-label="Brush"] [role="radio"][aria-label="Marker"]') as HTMLElement).click();
       fixture.detectChanges();
 
       expect(api.getConfig().penType).toBe('marker');

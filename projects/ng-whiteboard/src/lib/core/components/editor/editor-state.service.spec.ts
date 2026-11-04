@@ -165,6 +165,27 @@ describe('EditorStateService', () => {
       expect(history.undo()).toBeNull();
     });
 
+    it('stroke width keeps each element line style in proportion and leaves custom dashes alone', () => {
+      elements.setElements([
+        rect('a', 0, 0, 10, 10, { style: { strokeWidth: 2, dasharray: '6,6' } }),
+        rect('b', 20, 0, 10, 10, { style: { strokeWidth: 2, dasharray: '4,9' } }),
+        rect('c', 40, 0, 10, 10, { style: { strokeWidth: 2, dasharray: '' } }),
+      ]);
+      selection.selectElements(['a', 'b', 'c']);
+
+      service.updateElementProperty('strokeWidth', 5);
+
+      expect(elements.getElements().map((e) => e.style.dasharray)).toEqual(['15,15', '4,9', '']);
+    });
+
+    it('stroke width with nothing selected rescales the default line style', () => {
+      selection.selectElements([]);
+      service.updateElementProperty('lineStyle', 'dotted');
+      service.updateElementProperty('strokeWidth', 4);
+
+      expect(TestBed.inject(ConfigService).getConfig().dasharray).toBe('4,8');
+    });
+
     it('line style scales the dasharray to each element stroke width in one undo step', () => {
       elements.setElements([
         rect('a', 0, 0, 10, 10, { style: { strokeWidth: 2 } }),

@@ -129,13 +129,12 @@
     .controls {
       display: flex;
       flex-direction: column;
+      gap: var(--wb-space-4);
 
       .control-group {
         display: flex;
         flex-direction: column;
         gap: var(--wb-space-2);
-        padding: var(--wb-space-2);
-        background: var(--wb-color-gray-50);
 
         .group-label {
           font-size: 0.75rem;
@@ -171,12 +170,14 @@
           }
         }
 
-        // Five brush names don't fit one row of the floating panel.
-        &.brush ::ng-deep .wb-segmented {
-          flex-wrap: wrap;
+        &.brush .brush-header {
+          display: flex;
+          align-items: baseline;
+          justify-content: space-between;
 
-          .wb-segmented-option {
-            flex: 1 1 auto;
+          .brush-name {
+            font-size: 0.75rem;
+            color: var(--wb-color-gray-500);
           }
         }
       }
@@ -328,45 +329,6 @@
           }
         }
       }
-
-      .line-style-buttons {
-        display: flex;
-        gap: var(--wb-space-2);
-
-        .line-style-btn {
-          flex: 1;
-          padding: var(--wb-space-2);
-          border: 1px solid var(--wb-color-gray-300);
-          background: var(--wb-color-surface);
-          border-radius: var(--wb-radius-sm);
-          cursor: pointer;
-          color: var(--wb-color-gray-600);
-          transition: all 0.2s ease;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          min-height: 36px;
-
-          svg {
-            display: block;
-          }
-
-          &:hover:not(.active) {
-            background: var(--wb-color-gray-50);
-            border-color: var(--wb-color-gray-400);
-          }
-
-          &.active {
-            background: var(--wb-color-primary);
-            color: white;
-            border-color: var(--wb-color-primary);
-
-            &:hover {
-              background: var(--wb-color-primary-dark, #2563eb);
-            }
-          }
-        }
-      }
     }
   }
 }
@@ -427,7 +389,6 @@
   }
 
   .panel-sections .section .controls {
-    .line-style-buttons .line-style-btn,
     .button-group .style-btn {
       min-height: 44px;
     }

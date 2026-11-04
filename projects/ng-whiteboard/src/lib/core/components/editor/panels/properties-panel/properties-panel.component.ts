@@ -5,20 +5,21 @@ import {
   DEFAULT_CORNER_RADIUS,
   ElementType,
   LineCap,
-  PenType,
   ToolType,
   WhiteboardConfig,
   WhiteboardElement,
 } from '../../../../types';
 import { AlignmentType } from '../../utils/alignment';
 import { IconComponent } from '../../icon/icon.component';
-import { buildDasharray } from '../../utils/dasharray';
+import { LineStyle, lineStyleOf } from '../../utils/dasharray';
 import { MIXED, SelectedProperties } from '../../utils/selected-properties';
 import { PropertySection, sectionsForElements, sectionsForTool } from '../../utils/shape-capabilities';
 import { ColorPickerComponent } from '../../ui/color-picker/color-picker.component';
 import { AlignmentControlsComponent } from '../../ui/alignment-controls/alignment-controls.component';
 import { SegmentedControlComponent, SegmentedOption } from '../../ui/segmented-control/segmented-control.component';
 import { ArrowheadPickerComponent } from '../../ui/arrowhead-picker/arrowhead-picker.component';
+import { BrushPickerComponent, penTypeLabel } from '../../ui/brush-picker/brush-picker.component';
+import { LineStylePickerComponent } from '../../ui/line-style-picker/line-style-picker.component';
 
 interface ColorPickerEvent {
   property: 'strokeColor' | 'fillColor' | 'backgroundColor';
@@ -42,14 +43,6 @@ const ARROW_PATH_OPTIONS: readonly SegmentedOption[] = [
   { value: 'elbow', label: 'Elbow' },
 ];
 
-const BRUSH_OPTIONS: readonly SegmentedOption[] = [
-  { value: PenType.Pen, label: 'Pen' },
-  { value: PenType.Marker, label: 'Marker' },
-  { value: PenType.Highlighter, label: 'Highlighter' },
-  { value: PenType.Brush, label: 'Brush' },
-  { value: PenType.Pencil, label: 'Pencil' },
-];
-
 @Component({
   selector: 'ng-properties-panel',
   standalone: true,
@@ -60,6 +53,8 @@ const BRUSH_OPTIONS: readonly SegmentedOption[] = [
     AlignmentControlsComponent,
     SegmentedControlComponent,
     ArrowheadPickerComponent,
+    BrushPickerComponent,
+    LineStylePickerComponent,
   ],
   template: `
     <!-- Properties Panel -->
@@ -182,77 +177,15 @@ const BRUSH_OPTIONS: readonly SegmentedOption[] = [
 
                   @if (show('strokeStyle')) {
                     <div class="control-row">
-                      <label>Line Style</label>
-                      <div class="line-style-buttons">
-                        <button
-                          class="line-style-btn"
-                          [class.active]="dashArrayValue() === ''"
-                          (click)="onLineStyleChange('')"
-                          title="Solid"
-                          aria-label="Solid"
-                        >
-                          <svg width="32" height="4" viewBox="0 0 32 4">
-                            <line x1="0" y1="2" x2="32" y2="2" stroke="currentColor" stroke-width="2" />
-                          </svg>
-                        </button>
-                        <button
-                          class="line-style-btn"
-                          [class.active]="isDashedActive()"
-                          (click)="onLineStyleChange('dashed')"
-                          title="Dashed"
-                          aria-label="Dashed"
-                        >
-                          <svg width="32" height="4" viewBox="0 0 32 4">
-                            <line
-                              x1="0"
-                              y1="2"
-                              x2="32"
-                              y2="2"
-                              stroke="currentColor"
-                              stroke-width="2"
-                              stroke-dasharray="5,5"
-                            />
-                          </svg>
-                        </button>
-                        <button
-                          class="line-style-btn"
-                          [class.active]="isDottedActive()"
-                          (click)="onLineStyleChange('dotted')"
-                          title="Dotted"
-                          aria-label="Dotted"
-                        >
-                          <svg width="32" height="4" viewBox="0 0 32 4">
-                            <line
-                              x1="0"
-                              y1="2"
-                              x2="32"
-                              y2="2"
-                              stroke="currentColor"
-                              stroke-width="2"
-                              stroke-dasharray="2,2"
-                            />
-                          </svg>
-                        </button>
-                        <button
-                          class="line-style-btn"
-                          [class.active]="isDashDotActive()"
-                          (click)="onLineStyleChange('dashdot')"
-                          title="Dash-Dot"
-                          aria-label="Dash-Dot"
-                        >
-                          <svg width="32" height="4" viewBox="0 0 32 4">
-                            <line
-                              x1="0"
-                              y1="2"
-                              x2="32"
-                              y2="2"
-                              stroke="currentColor"
-                              stroke-width="2"
-                              stroke-dasharray="10,5,2,5"
-                            />
-                          </svg>
-                        </button>
-                      </div>
+                      <label>Line style</label>
+                      <wb-line-style-picker
+                        label="Line style"
+                        [value]="lineStyleValue()"
+                        [color]="strokeColorValue()"
+                        [width]="strokeWidthNumber()"
+                        [lineCap]="lineCapValue()"
+                        (valueChange)="onLineStyleChange($event)"
+                      ></wb-line-style-picker>
                     </div>
                   }
 
@@ -362,13 +295,16 @@ const BRUSH_OPTIONS: readonly SegmentedOption[] = [
               @if (show('brush')) {
                 <div class="control-group brush">
                   <div class="control-row">
-                    <label>Brush</label>
-                    <wb-segmented-control
+                    <div class="brush-header">
+                      <label>Brush</label>
+                      <span class="brush-name">{{ brushName() }}</span>
+                    </div>
+                    <wb-brush-picker
                       label="Brush"
-                      [options]="brushOptions"
                       [value]="config().penType"
+                      [color]="strokeColorValue()"
                       (valueChange)="emitChange('penType', $event)"
-                    ></wb-segmented-control>
+                    ></wb-brush-picker>
                   </div>
                 </div>
               }
@@ -513,7 +449,7 @@ export class PropertiesPanelComponent {
 
   protected readonly lineEndOptions = LINE_END_OPTIONS;
   protected readonly arrowPathOptions = ARROW_PATH_OPTIONS;
-  protected readonly brushOptions = BRUSH_OPTIONS;
+  protected brushName = computed(() => penTypeLabel(this.config().penType));
 
   // Computed properties for better performance
   selectedElement = computed(() => this.selectedElements()[0] || null);
@@ -614,25 +550,12 @@ export class PropertiesPanelComponent {
     return texts.length > 0 && texts.every((el) => el.style.fontStyle === 'italic');
   });
 
-  isDashedActive = computed(() => {
+  /** The style is read from the pattern's proportions, so it survives stroke width changes. */
+  lineStyleValue = computed(() => {
     const dasharray = this.dashArrayValue();
-    const width = this.strokeWidthNumber();
-    // Dashed pattern: dash length ~3x width, gap ~3x width
-    return dasharray === buildDasharray('dashed', width);
-  });
-
-  isDottedActive = computed(() => {
-    const dasharray = this.dashArrayValue();
-    const width = this.strokeWidthNumber();
-    // Dotted pattern: dash length ~1x width, gap ~2x width
-    return dasharray === buildDasharray('dotted', width);
-  });
-
-  isDashDotActive = computed(() => {
-    const dasharray = this.dashArrayValue();
-    const width = this.strokeWidthNumber();
-    // Dash-dot pattern: long dash ~5x, gap ~2x, short dash ~1x, gap ~2x
-    return dasharray === buildDasharray('dashdot', width);
+    if (dasharray !== MIXED) return lineStyleOf(dasharray);
+    const styles = new Set(this.selectedElements().map((el) => lineStyleOf(el.style?.dasharray)));
+    return styles.size === 1 ? [...styles][0] : MIXED;
   });
 
   show(section: PropertySection): boolean {
@@ -697,7 +620,7 @@ export class PropertiesPanelComponent {
     });
   }
 
-  onLineStyleChange(style: string) {
+  onLineStyleChange(style: LineStyle) {
     this.propertyChange.emit({ property: 'lineStyle', value: style });
   }
 }

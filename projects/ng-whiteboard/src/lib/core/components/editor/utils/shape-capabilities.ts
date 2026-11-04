@@ -14,7 +14,7 @@ export type PropertySection =
   | 'brush';
 
 const ELEMENT_SECTIONS: Record<ElementType, readonly PropertySection[]> = {
-  [ElementType.Pen]: ['stroke', 'strokeWidth', 'opacity'],
+  [ElementType.Pen]: ['stroke', 'strokeWidth', 'strokeStyle', 'opacity'],
   [ElementType.Rectangle]: ['stroke', 'fill', 'strokeWidth', 'strokeStyle', 'cornerRadius', 'opacity'],
   [ElementType.Ellipse]: ['stroke', 'fill', 'strokeWidth', 'strokeStyle', 'opacity'],
   [ElementType.Line]: ['stroke', 'strokeWidth', 'strokeStyle', 'lineEnds', 'opacity'],
@@ -24,7 +24,7 @@ const ELEMENT_SECTIONS: Record<ElementType, readonly PropertySection[]> = {
 };
 
 const TOOL_SECTIONS: Partial<Record<ToolType, readonly PropertySection[]>> = {
-  [ToolType.Pen]: ['stroke', 'strokeWidth', 'brush'],
+  [ToolType.Pen]: ['stroke', 'strokeWidth', 'strokeStyle', 'brush'],
   [ToolType.Rectangle]: ['stroke', 'fill', 'strokeWidth', 'strokeStyle', 'cornerRadius'],
   [ToolType.Ellipse]: ['stroke', 'fill', 'strokeWidth', 'strokeStyle'],
   [ToolType.Line]: ['stroke', 'strokeWidth', 'strokeStyle', 'lineEnds'],

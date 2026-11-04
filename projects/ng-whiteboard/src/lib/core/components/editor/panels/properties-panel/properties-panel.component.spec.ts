@@ -61,13 +61,28 @@ describe('PropertiesPanelComponent', () => {
     expect(pickers.map((p) => p.classList.contains('mixed'))).toEqual([true, false]);
   });
 
-  it('marks no line style active when the dash pattern is MIXED', () => {
-    fixture.componentRef.setInput('selectedElements', [rect('a'), rect('b')]);
+  it('marks no line style active when the selected styles differ', () => {
+    fixture.componentRef.setInput('selectedElements', [
+      rect('a', { dasharray: '6,6' }),
+      rect('b', { dasharray: '2,4' }),
+    ]);
     fixture.componentRef.setInput('selectedProperties', props({ dasharray: MIXED }));
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelectorAll('.line-style-btn').length).toBe(4);
-    expect(fixture.nativeElement.querySelector('.line-style-btn.active')).toBeNull();
+    expect(fixture.nativeElement.querySelectorAll('.wb-line-style-option').length).toBe(4);
+    expect(fixture.nativeElement.querySelector('.wb-line-style-option[aria-checked="true"]')).toBeNull();
+  });
+
+  it('marks one line style when the selection shares it at different widths', () => {
+    fixture.componentRef.setInput('selectedElements', [
+      rect('a', { strokeWidth: 2, dasharray: '6,6' }),
+      rect('b', { strokeWidth: 8, dasharray: '24,24' }),
+    ]);
+    fixture.componentRef.setInput('selectedProperties', props({ dasharray: MIXED }));
+    fixture.detectChanges();
+
+    const checked = fixture.nativeElement.querySelectorAll('.wb-line-style-option[aria-checked="true"]');
+    expect(Array.from(checked).map((b) => (b as HTMLElement).getAttribute('aria-label'))).toEqual(['Dashed']);
   });
 
   it('shows Mixed in the font family select when text fonts differ', () => {
@@ -98,7 +113,7 @@ describe('PropertiesPanelComponent', () => {
     const labels = () => Array.from(el().querySelectorAll('label')).map((label) => label.textContent?.trim());
     const radio = (group: string, label: string) =>
       Array.from(el().querySelectorAll(`[aria-label="${group}"] [role="radio"]`)).find(
-        (button) => button.textContent?.trim() === label
+        (button) => (button.textContent?.trim() || button.getAttribute('aria-label')) === label
       ) as HTMLElement;
 
     const render = (elements: WhiteboardElement[], activeTool = ToolType.Select) => {
@@ -131,7 +146,7 @@ describe('PropertiesPanelComponent', () => {
 
       expect(el().querySelectorAll('ng-color-picker').length).toBe(0);
       expect(query('input[aria-label="Stroke width"]')).toBeNull();
-      expect(el().querySelectorAll('.line-style-btn').length).toBe(0);
+      expect(el().querySelectorAll('.wb-line-style-option').length).toBe(0);
       expect(el().querySelectorAll('wb-segmented-control, wb-arrowhead-picker').length).toBe(0);
       expect(query('select[aria-label="Font family"]')).toBeNull();
       expect(query('input[aria-label="Opacity"]')).not.toBeNull();
@@ -144,7 +159,7 @@ describe('PropertiesPanelComponent', () => {
       expect(labels()).not.toContain('Stroke');
       expect(query('select[aria-label="Font family"]')).not.toBeNull();
       expect(query('input[aria-label="Stroke width"]')).toBeNull();
-      expect(el().querySelectorAll('.line-style-btn').length).toBe(0);
+      expect(el().querySelectorAll('.wb-line-style-option').length).toBe(0);
     });
 
     it('shows only stroke, width, dash and opacity for an arrow plus a rectangle', () => {
@@ -153,7 +168,7 @@ describe('PropertiesPanelComponent', () => {
       expect(labels()).toContain('Stroke');
       expect(labels()).not.toContain('Fill');
       expect(query('input[aria-label="Stroke width"]')).not.toBeNull();
-      expect(el().querySelectorAll('.line-style-btn').length).toBe(4);
+      expect(el().querySelectorAll('.wb-line-style-option').length).toBe(4);
       expect(query('input[aria-label="Opacity"]')).not.toBeNull();
       expect(query('input[aria-label="Corner radius"]')).toBeNull();
       expect(el().querySelectorAll('wb-segmented-control, wb-arrowhead-picker').length).toBe(0);
@@ -173,14 +188,16 @@ describe('PropertiesPanelComponent', () => {
       render([], ToolType.Pen);
 
       const options = Array.from(el().querySelectorAll('[aria-label="Brush"] [role="radio"]'));
-      expect(options.map((option) => option.textContent?.trim())).toEqual([
+      expect(options.map((option) => option.getAttribute('aria-label'))).toEqual([
         'Pen',
         'Marker',
         'Highlighter',
         'Brush',
         'Pencil',
       ]);
-      expect(radio('Brush', 'Pen').getAttribute('aria-checked')).toBe('true');
+      expect(radio('Brush', 'Marker').getAttribute('aria-checked')).toBe('true');
+      expect(query('.brush-name')?.textContent?.trim()).toBe('Marker');
+      expect(labels()).toContain('Line style');
       expect(query('input[aria-label="Opacity"]')).toBeNull();
     });
 
@@ -203,9 +220,9 @@ describe('PropertiesPanelComponent', () => {
     it('shows the general controls without fill for the select tool with nothing selected', () => {
       render([], ToolType.Select);
 
-      expect(labels()).toEqual(expect.arrayContaining(['Background', 'Stroke', 'Width', 'Line Style']));
+      expect(labels()).toEqual(expect.arrayContaining(['Background', 'Stroke', 'Width', 'Line style']));
       expect(labels()).not.toContain('Fill');
-      expect(el().querySelectorAll('.line-style-btn').length).toBe(4);
+      expect(el().querySelectorAll('.wb-line-style-option').length).toBe(4);
     });
 
     it('labels the stroke as text color for the text tool with nothing selected', () => {
