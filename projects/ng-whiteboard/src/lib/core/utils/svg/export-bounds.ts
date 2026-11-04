@@ -45,9 +45,11 @@ export function exportBounds(elements: readonly WhiteboardElement[], padding: nu
 
   for (const element of elements) {
     const bounds = getCombinedScreenBounds([element]);
-    if (!bounds) continue;
+    if (!bounds || ![bounds.minX, bounds.minY, bounds.maxX, bounds.maxY].every(Number.isFinite)) continue;
     const half = (element.style?.strokeWidth ?? 0) / 2;
     const extra = element.type === ElementType.Arrow ? arrowExtent(element as ArrowElement) : null;
+    if (extra && ![extra.minX, extra.minY, extra.maxX, extra.maxY].every(Number.isFinite)) continue;
+    if (!Number.isFinite(half)) continue;
     minX = Math.min(minX, bounds.minX - half, extra?.minX ?? Infinity);
     minY = Math.min(minY, bounds.minY - half, extra?.minY ?? Infinity);
     maxX = Math.max(maxX, bounds.maxX + half, extra?.maxX ?? -Infinity);

@@ -62,4 +62,24 @@ describe('exportBounds', () => {
     const result = exportBounds([rect(0, 0, 10, 10), rect(100, 100, 10, 10)], 0)!;
     expect(result).toEqual({ x: -1, y: -1, width: 112, height: 112 });
   });
+
+  it('skips an element with non-finite bounds instead of discarding the whole crop', () => {
+    const broken = createElement(ElementType.Ellipse, { style: { strokeWidth: 2 } } as never);
+    delete (broken as { cx?: number }).cx;
+    delete (broken as { cy?: number }).cy;
+    const valid = rect(10, 10, 100, 50);
+    expect(exportBounds([broken, valid], 16)).toEqual(exportBounds([valid], 16));
+  });
+
+  it('skips an arrow with a non-finite extent', () => {
+    const arrow = createElement(ElementType.Arrow, {
+      x1: 0,
+      y1: 0,
+      x2: NaN,
+      y2: 0,
+      style: { strokeWidth: 2 },
+    } as never);
+    const valid = rect(10, 10, 100, 50);
+    expect(exportBounds([arrow, valid], 16)).toEqual(exportBounds([valid], 16));
+  });
 });

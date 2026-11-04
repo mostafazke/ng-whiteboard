@@ -20,6 +20,10 @@ import { ConfigService } from '../config/config.service';
 import { isTheme } from '../config/theme-colors';
 import { HistoryService } from '../history/history.service';
 
+const MAX_EXPORT_SIDE = 16384;
+const MAX_EXPORT_AREA = 268435456;
+const DEFAULT_EXPORT_PADDING = 16;
+
 /**
  * Handles import/export operations for the whiteboard including images, state serialization, and various export formats.
  */
@@ -146,29 +150,27 @@ export class IOService {
     }
   }
 
+  /**
+   * Exports the board. Raster formats are clamped to 16384px per side and 268,435,456 px in total.
+   * For `FormatType.Svg` the vector is downloaded as is, and the returned string is the SVG data URL.
+   */
   async save(format: FormatType = FormatType.Base64, name = 'New board', options: ExportOptions = {}): Promise<string> {
     const { svgString, width, height } = this.buildExport(options);
 
     try {
+      if (format === FormatType.Svg) {
+        const imgSrc = this.svgDataUrl(svgString);
+        this.downloadFile(imgSrc, name, 'svg');
+        this.eventBusService.emit(WhiteboardEvent.Save, imgSrc);
+        return imgSrc;
+      }
+
       const imageString = await svgToBase64(svgString, width, height, format);
 
-      switch (format) {
-        case FormatType.Base64:
-          this.eventBusService.emit(WhiteboardEvent.Save, imageString);
-          break;
-
-        case FormatType.Svg: {
-          const imgSrc = this.svgDataUrl(svgString);
-          this.downloadFile(imgSrc, name, 'svg');
-          this.eventBusService.emit(WhiteboardEvent.Save, imgSrc);
-          break;
-        }
-
-        default:
-          this.downloadFile(imageString, name, this.getFileExtension(format));
-          this.eventBusService.emit(WhiteboardEvent.Save, imageString);
-          break;
+      if (format !== FormatType.Base64) {
+        this.downloadFile(imageString, name, this.getFileExtension(format));
       }
+      this.eventBusService.emit(WhiteboardEvent.Save, imageString);
 
       return imageString;
     } catch (error) {
@@ -238,13 +240,26 @@ export class IOService {
       throw new Error('SVG content not found');
     }
 
-    const { scale = 1, padding = 16, background = true, onlySelected = false } = options;
+    const { background = true, onlySelected = false } = options;
+    const scale =
+      typeof options.scale === 'number' && Number.isFinite(options.scale) && options.scale > 0 ? options.scale : 1;
+    const padding =
+      typeof options.padding === 'number' && Number.isFinite(options.padding) && options.padding >= 0
+        ? options.padding
+        : DEFAULT_EXPORT_PADDING;
     const exportable = this.getExportableElements(onlySelected);
     const { canvasWidth, canvasHeight } = this.canvasService.getConfig();
     const tight = exportBounds(exportable, padding);
     const box: ExportBox = tight ? this.roundOutward(tight) : { x: 0, y: 0, width: canvasWidth, height: canvasHeight };
-    const width = Math.max(1, Math.round(box.width * scale));
-    const height = Math.max(1, Math.round(box.height * scale));
+    const fit = Math.min(
+      scale,
+      MAX_EXPORT_SIDE / box.width,
+      MAX_EXPORT_SIDE / box.height,
+      Math.sqrt(MAX_EXPORT_AREA / (box.width * box.height))
+    );
+    const round = fit < scale ? Math.floor : Math.round;
+    const width = Math.max(1, round(box.width * fit));
+    const height = Math.max(1, round(box.height * fit));
 
     const clone = buildExportSvg(svgElement, {
       box,

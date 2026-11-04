@@ -646,7 +646,9 @@ describe('IOService', () => {
 
       expect(mockDownloadFile).toHaveBeenCalledWith(expect.stringContaining('data:image/svg+xml'), 'test-board.svg');
       expect(mockEventBusService.emit).toHaveBeenCalledWith(WhiteboardEvent.Save, expect.any(String));
-      expect(result).toBe('data:image/png;base64,exportedData');
+      expect(mockSvgToBase64).not.toHaveBeenCalled();
+      expect(result).toMatch(/^data:image\/svg\+xml;base64,/);
+      expect(result).toBe(mockDownloadFile.mock.calls[0][0]);
     });
 
     it('should throw error if SVG content not found', async () => {
@@ -726,7 +728,7 @@ describe('IOService', () => {
       const result = await service.exportAsSvg('my-whiteboard');
 
       expect(mockDownloadFile).toHaveBeenCalledWith(expect.any(String), 'my-whiteboard.svg');
-      expect(result).toBe('data:image/png;base64,test');
+      expect(result).toMatch(/^data:image\/svg\+xml;base64,/);
     });
 
     it('should export as Base64', async () => {
@@ -1131,7 +1133,11 @@ describe('IOService', () => {
       return svg;
     };
 
-    const capturedSvg = () => mockSvgToBase64.mock.calls[0][0] as string;
+    const capturedSvg = () => {
+      if (mockSvgToBase64.mock.calls.length) return mockSvgToBase64.mock.calls[0][0] as string;
+      const url = mockDownloadFile.mock.calls[0][0] as string;
+      return decodeURIComponent(escape(atob(url.split(',')[1])));
+    };
 
     beforeEach(() => {
       layerService = TestBed.inject(LayerManagementService);
@@ -1174,6 +1180,33 @@ describe('IOService', () => {
     it('requests output size scaled from the crop', async () => {
       await service.save(FormatType.Png, 'b', { scale: 2 });
       expect(mockSvgToBase64).toHaveBeenCalledWith(expect.any(String), 268, 168, FormatType.Png);
+    });
+
+    it('clamps a huge scale so no side exceeds 16384px and the area stays under the cap', async () => {
+      mockElementsService.getElements.mockReturnValue([]);
+      await service.save(FormatType.Png, 'b', { scale: 100 });
+      const [, width, height] = mockSvgToBase64.mock.calls[0];
+      expect(width).toBeLessThanOrEqual(16384);
+      expect(height).toBeLessThanOrEqual(16384);
+      expect(width * height).toBeLessThanOrEqual(268435456);
+      expect(width / height).toBeCloseTo(800 / 600, 1);
+    });
+
+    it('clamps renderExport as well', async () => {
+      mockElementsService.getElements.mockReturnValue([]);
+      const { width, height } = await service.renderExport(FormatType.Png, { scale: 1000 });
+      expect(width).toBeLessThanOrEqual(16384);
+      expect(width * height).toBeLessThanOrEqual(268435456);
+    });
+
+    it.each([NaN, 0, -2, Infinity, '2' as unknown as number])('treats scale %p as 1', async (scale) => {
+      await service.save(FormatType.Png, 'b', { scale });
+      expect(mockSvgToBase64).toHaveBeenCalledWith(expect.any(String), 134, 84, FormatType.Png);
+    });
+
+    it.each([NaN, -5, Infinity, 'x' as unknown as number])('treats padding %p as 16', async (padding) => {
+      await service.save(FormatType.Png, 'b', { padding });
+      expect(mockSvgToBase64).toHaveBeenCalledWith(expect.any(String), 134, 84, FormatType.Png);
     });
 
     it('honours custom padding', async () => {
@@ -1226,7 +1259,7 @@ describe('IOService', () => {
       mockElementsService.getElements.mockReturnValue([makeRect('a', 10.4, 10.4, 100, 50, { layerId: 'L1' })]);
       await service.save(FormatType.Svg, 'b', { padding: 0 });
       expect(capturedSvg()).toContain('viewBox="9 9 103 53"');
-      expect(mockSvgToBase64).toHaveBeenCalledWith(expect.any(String), 103, 53, FormatType.Svg);
+      expect(capturedSvg()).toContain('width="103"');
     });
 
     it('keeps only selected visible elements when onlySelected', async () => {

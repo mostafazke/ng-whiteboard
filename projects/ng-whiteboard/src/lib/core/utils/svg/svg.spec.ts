@@ -148,6 +148,26 @@ describe('SVG Utils', () => {
       HTMLCanvasElement.prototype.toDataURL = jest.fn().mockReturnValue('data:image/png;base64,mockBase64Data');
     });
 
+    it('rejects when the 2d context is unavailable', async () => {
+      HTMLCanvasElement.prototype.getContext = jest.fn().mockReturnValue(null);
+      await expect(svgToBase64('<svg/>', 10, 10)).rejects.toThrow(/canvas/i);
+    });
+
+    it('rejects when drawing throws', async () => {
+      HTMLCanvasElement.prototype.getContext = jest.fn().mockReturnValue({
+        drawImage: jest.fn().mockImplementation(() => {
+          throw new Error('too big');
+        }),
+        fillRect: jest.fn(),
+      });
+      await expect(svgToBase64('<svg/>', 10, 10)).rejects.toThrow('too big');
+    });
+
+    it('rejects when the canvas yields an empty data url', async () => {
+      HTMLCanvasElement.prototype.toDataURL = jest.fn().mockReturnValue('data:,');
+      await expect(svgToBase64('<svg/>', 10, 10)).rejects.toThrow(/too large|empty/i);
+    });
+
     it('should convert SVG string to base64 PNG by default', async () => {
       const svgString = '<svg width="100" height="100"><rect width="50" height="50"/></svg>';
 
