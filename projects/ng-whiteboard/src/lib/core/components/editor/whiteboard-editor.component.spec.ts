@@ -68,6 +68,18 @@ describe('WhiteboardEditorComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('announces copy feedback in a polite status region', async () => {
+    const region = fixture.nativeElement.querySelector('.wb-status') as HTMLElement;
+    expect(region.getAttribute('aria-live')).toBe('polite');
+    expect(region.textContent?.trim()).toBe('');
+
+    component.runMenuAction('copy-png');
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(region.textContent).toContain('Copied to clipboard');
+  });
+
   it('toggles panel on Alt+P from board keydown', () => {
     const before = component.isPanelOpenSignal();
     keyDown$.next(altP());
@@ -97,11 +109,11 @@ describe('WhiteboardEditorComponent', () => {
 
   describe('layer actions', () => {
     const layers = () => TestBed.inject(LayerManagementService);
-    const topFirst = () =>
-      [...layers().layers()]
-        .sort((a, b) => b.zIndex - a.zIndex)
-        .map((l) => l.id);
-    const opacityOf = (id: string) => layers().layers().find((l) => l.id === id)?.opacity;
+    const topFirst = () => [...layers().layers()].sort((a, b) => b.zIndex - a.zIndex).map((l) => l.id);
+    const opacityOf = (id: string) =>
+      layers()
+        .layers()
+        .find((l) => l.id === id)?.opacity;
     const undoSteps = () => {
       let n = 0;
       while (component.canUndoSignal()) {
@@ -122,16 +134,26 @@ describe('WhiteboardEditorComponent', () => {
       expect(layers().activeLayerId()).toBe(bottom);
 
       component.onLayerAction({ type: 'rename', id: top, name: 'Sketch' });
-      expect(layers().layers().find((l) => l.id === top)?.name).toBe('Sketch');
+      expect(
+        layers()
+          .layers()
+          .find((l) => l.id === top)?.name
+      ).toBe('Sketch');
 
       component.onLayerAction({ type: 'toggle-visible', id: bottom });
       component.onLayerAction({ type: 'toggle-lock', id: bottom });
-      const state = layers().layers().find((l) => l.id === bottom);
+      const state = layers()
+        .layers()
+        .find((l) => l.id === bottom);
       expect([state?.visible, state?.locked]).toEqual([false, true]);
 
       component.onLayerAction({ type: 'add' });
       expect(layers().layers().length).toBe(3);
-      expect(layers().layers().some((l) => l.name === 'Layer 3')).toBe(true);
+      expect(
+        layers()
+          .layers()
+          .some((l) => l.name === 'Layer 3')
+      ).toBe(true);
     });
 
     it('an opacity drag is one undo step', () => {
@@ -160,11 +182,19 @@ describe('WhiteboardEditorComponent', () => {
     it('blend, duplicate and merge-down reach the board', () => {
       const [top, bottom] = topFirst();
       component.onLayerAction({ type: 'blend', id: top, blendMode: 'multiply' });
-      expect(layers().layers().find((l) => l.id === top)?.blendMode).toBe('multiply');
+      expect(
+        layers()
+          .layers()
+          .find((l) => l.id === top)?.blendMode
+      ).toBe('multiply');
       component.onLayerAction({ type: 'duplicate', id: top });
       expect(layers().layers().length).toBe(3);
       component.onLayerAction({ type: 'merge-down', id: top });
-      expect(layers().layers().some((l) => l.id === bottom)).toBe(true);
+      expect(
+        layers()
+          .layers()
+          .some((l) => l.id === bottom)
+      ).toBe(true);
     });
 
     it('reorder uses top-first indices', () => {
@@ -188,7 +218,11 @@ describe('WhiteboardEditorComponent', () => {
       (fixture.nativeElement.querySelector('.layers-dropdown .lp-eye') as HTMLButtonElement).click();
       fixture.detectChanges();
       fixture.nativeElement.remove();
-      expect(layers().layers().find((l) => l.id === top)?.visible).toBe(false);
+      expect(
+        layers()
+          .layers()
+          .find((l) => l.id === top)?.visible
+      ).toBe(false);
     });
   });
 

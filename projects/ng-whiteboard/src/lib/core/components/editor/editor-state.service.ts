@@ -51,6 +51,7 @@ export interface ExportSettings {
 }
 
 export const EXPORT_PADDING = 16;
+const STATUS_MS = 2500;
 
 @Injectable()
 export class EditorStateService implements OnDestroy {
@@ -76,6 +77,9 @@ export class EditorStateService implements OnDestroy {
 
   /** The title the host passed on first render; Reset restores it. */
   readonly initialTitle = this.configService.getEditorConfig().title;
+  private readonly status = signal<string | null>(null);
+  private statusTimer: ReturnType<typeof setTimeout> | null = null;
+  readonly statusMessage = this.status.asReadonly();
   readonly exportSettings = signal<ExportSettings>({ format: 'png', scale: 2, background: true });
 
   // Theme handling - use WhiteboardConfig as the source of truth
@@ -648,6 +652,16 @@ export class EditorStateService implements OnDestroy {
 
   ngOnDestroy() {
     this.endEdit();
+    if (this.statusTimer) clearTimeout(this.statusTimer);
+  }
+
+  notify(message: string): void {
+    if (this.statusTimer) clearTimeout(this.statusTimer);
+    this.status.set(message);
+    this.statusTimer = setTimeout(() => {
+      this.statusTimer = null;
+      this.status.set(null);
+    }, STATUS_MS);
   }
 
   // Remove currently selected elements
@@ -703,6 +717,7 @@ export class EditorStateService implements OnDestroy {
       await this.ioService.importDataFromFile(file);
     } catch (error) {
       console.error('Failed to open board file:', error);
+      this.notify("Couldn't open that file");
     }
   }
 
@@ -715,8 +730,10 @@ export class EditorStateService implements OnDestroy {
         padding: EXPORT_PADDING,
         onlySelected: this.hasSelectionSignal(),
       });
+      this.notify('Copied to clipboard');
     } catch (error) {
       console.error('Failed to copy image:', error);
+      this.notify("Couldn't copy");
     }
   }
 

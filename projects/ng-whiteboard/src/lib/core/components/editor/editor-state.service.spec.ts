@@ -666,6 +666,44 @@ describe('EditorStateService board file actions', () => {
     await expect(service.copyAsPng()).resolves.toBeUndefined();
   });
 
+  describe('status message', () => {
+    beforeEach(() => jest.useFakeTimers());
+    afterEach(() => jest.useRealTimers());
+
+    it('reports a successful copy and hides after 2.5s', async () => {
+      await service.copyAsPng();
+      expect(service.statusMessage()).toBe('Copied to clipboard');
+      jest.advanceTimersByTime(2499);
+      expect(service.statusMessage()).toBe('Copied to clipboard');
+      jest.advanceTimersByTime(2);
+      expect(service.statusMessage()).toBeNull();
+    });
+
+    it('reports a failed copy', async () => {
+      jest.spyOn(console, 'error').mockImplementation();
+      TestBed.inject(IOService).copyToClipboard = jest.fn().mockRejectedValue(new Error('denied'));
+      await service.copyAsPng();
+      expect(service.statusMessage()).toBe("Couldn't copy");
+    });
+
+    it('reports a file that could not be opened', async () => {
+      jest.spyOn(console, 'error').mockImplementation();
+      TestBed.inject(IOService).importDataFromFile = jest.fn().mockRejectedValue(new Error('bad'));
+      await service.openBoard(new File(['x'], 'a.json'));
+      expect(service.statusMessage()).toBe("Couldn't open that file");
+    });
+
+    it('a newer message restarts the timer', () => {
+      service.notify('one');
+      jest.advanceTimersByTime(2000);
+      service.notify('two');
+      jest.advanceTimersByTime(2000);
+      expect(service.statusMessage()).toBe('two');
+      jest.advanceTimersByTime(600);
+      expect(service.statusMessage()).toBeNull();
+    });
+  });
+
   it('resetBoard clears the board, restores the title and resets zoom and pan', () => {
     const reset = jest.spyOn(api, 'resetBoard');
     const centre = jest.spyOn(service, 'centerView');

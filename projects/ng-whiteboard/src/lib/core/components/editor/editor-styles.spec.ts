@@ -78,4 +78,22 @@ describe('editor styles stay inside the editor', () => {
     const unscoped = topLevelSelectors.filter((selector) => !/^(:where\(\.editor\)|\.editor\b)/.test(selector));
     expect(unscoped).toEqual([]);
   });
+
+  describe('export dialog in the compact sheet', () => {
+    const sheet = readFileSync(join(__dirname, 'ui/export-dialog/export-dialog.component.scss'), 'utf8');
+
+    it('keeps the footer sticky at the bottom of the sheet scroll area', () => {
+      const footer = sheet.slice(sheet.indexOf('.wb-export-footer'));
+      expect(footer).toMatch(/position:\s*sticky;\s*bottom:/);
+    });
+
+    it('caps the preview height in compact and shrinks it on short containers', () => {
+      expect(sheet).toContain('max-height: min(35vh, 260px)');
+      expect(sheet).toMatch(/@container wb-editor \(max-height: 499\.98px\)[^}]*\{[^}]*max-height: 25vh/s);
+    });
+  });
+
+  it('the status toast sits above the bottom bars', () => {
+    expect(globalSheet).toMatch(/\.wb-status\s*\{[^}]*--wb-bottom-reserve/s);
+  });
 });

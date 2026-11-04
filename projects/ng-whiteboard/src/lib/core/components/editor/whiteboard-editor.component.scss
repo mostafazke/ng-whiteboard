@@ -230,6 +230,33 @@
   }
 }
 
+// Transient feedback, centred above the bottom bars so it never covers the toolbar.
+:where(.editor) .editor-container > .wb-status {
+  position: absolute;
+  z-index: 110;
+  left: 50%;
+  bottom: calc(var(--wb-bottom-reserve) + var(--wb-safe-bottom) + var(--wb-gap));
+  transform: translateX(-50%);
+  max-width: calc(100% - 2 * var(--wb-gap));
+  pointer-events: none;
+}
+
+.editor .wb-status-message {
+  display: block;
+  padding: var(--wb-space-2) var(--wb-space-4);
+  border: 1px solid var(--wb-color-border);
+  border-radius: var(--wb-radius);
+  background: var(--wb-color-surface);
+  color: var(--wb-color-text-primary);
+  box-shadow: var(--wb-shadow-md);
+  font-size: 0.875rem;
+}
+
+// A sheet's content scrolls in the sheet, so sticky footers inside it stay at the sheet's bottom edge.
+.editor .bs-content .dlg-body {
+  overflow: visible;
+}
+
 // Bottom sheet content (compact layout)
 :where(.editor) .wb-sheet-menu {
   display: flex;

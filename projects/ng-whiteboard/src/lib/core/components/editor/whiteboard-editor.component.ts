@@ -112,6 +112,7 @@ export class WhiteboardEditorComponent {
   // Expose editor state signals
   selectedElementsSignal = this.editorStateService.selectedElementsSignal;
   selectedToolSignal = this.editorStateService.selectedToolSignal;
+  statusMessageSignal = this.editorStateService.statusMessage;
   layersSignal = this.editorStateService.layersSignal;
   activeLayerIdSignal = this.editorStateService.activeLayerIdSignal;
   hasSelectionSignal = this.editorStateService.hasSelectionSignal;

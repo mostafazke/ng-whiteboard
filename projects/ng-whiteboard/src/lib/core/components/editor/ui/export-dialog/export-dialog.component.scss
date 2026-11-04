@@ -53,7 +53,11 @@
 
     @include bp.compact {
       min-height: 8rem;
-      max-height: 14rem;
+      max-height: min(35vh, 260px);
+    }
+
+    @container wb-editor (max-height: 499.98px) {
+      max-height: 25vh;
     }
   }
 
@@ -64,7 +68,7 @@
     object-fit: contain;
 
     @include bp.compact {
-      max-height: 12rem;
+      max-height: 100%;
     }
   }
 
@@ -201,6 +205,16 @@
   justify-content: flex-end;
   gap: var(--wb-space-2);
   margin-top: var(--wb-space-4);
+
+  @include bp.compact {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    margin: var(--wb-space-4) calc(-1 * var(--wb-space-4)) 0;
+    padding: var(--wb-space-3) var(--wb-space-4);
+    border-top: 1px solid var(--wb-color-border);
+    background: var(--wb-color-surface);
+  }
 
   .wb-export-status {
     flex: 1 1 auto;

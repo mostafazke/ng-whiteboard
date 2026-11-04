@@ -77,6 +77,12 @@
       (centerView)="onCenterView()"
     >
     </ng-controls-panel>
+
+    <div class="wb-status" role="status" aria-live="polite">
+      @if (statusMessageSignal(); as message) {
+        <span class="wb-status-message">{{ message }}</span>
+      }
+    </div>
   </div>
 
   @if (isCompact()) {
