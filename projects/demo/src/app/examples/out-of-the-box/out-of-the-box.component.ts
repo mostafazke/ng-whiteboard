@@ -9,9 +9,10 @@ const PERSIST_KEY = 'whiteboardOutOfTheBoxData';
     <ng-whiteboard [data]="data" [config]="config" (dataChange)="onDataChange($event)"></ng-whiteboard>
   </div>`,
   styles: `
+    :host,
     .out-of-the-box {
-      position: relative;
-      height: 640px;
+      display: block;
+      height: 100%;
     }
   `,
   standalone: true,
