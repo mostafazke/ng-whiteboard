@@ -643,98 +643,15 @@ describe('LayerManagementService', () => {
     });
   });
 
-  describe('Rendering Helpers', () => {
-    const createMockElement = (id: string): WhiteboardElement => ({
-      id,
-      type: ElementType.Rectangle,
-      x: 0,
-      y: 0,
-      width: 100,
-      height: 100,
-      rx: 5,
-      rotation: 0,
-      opacity: 100,
-      zIndex: 1,
-      selectAfterDraw: false,
-      style: {},
-    });
+  describe('duplicateLayer()', () => {
+    it('copies elements without layerId from the bottom layer', () => {
+      const bottom = service.layers()[0];
+      const other = service.addLayer();
+      const els = [{ id: 'a' }, { id: 'b', layerId: 'gone' }, { id: 'c', layerId: other.id }] as WhiteboardElement[];
 
-    describe('getVisibleElements()', () => {
-      it('should return elements from visible layers', () => {
-        const layer1 = service.layers()[0];
-        const layer2 = service.addLayer();
+      const { elementMap } = service.duplicateLayer(bottom.id, els);
 
-        // Assign elements to both layers
-        service.setActiveLayer(layer1.id);
-        service.assignElementToLayer('element-1', layer1.id);
-
-        service.setActiveLayer(layer2.id);
-        service.assignElementToLayer('element-2', layer2.id);
-
-        // At this point, only layer2 is visible (active layer)
-        // layer1 is hidden because setActiveLayer makes all others invisible
-
-        const allElements = [createMockElement('element-1'), createMockElement('element-2')];
-        const visible = service.getVisibleElements(allElements);
-
-        // Only element-2 should be visible (from layer2)
-        expect(visible.length).toBe(1);
-        expect(visible[0].id).toBe('element-2');
-      });
-
-      it('should return empty array if no layers visible', () => {
-        const layer = service.layers()[0];
-        service.assignElementToLayer('element-1', layer.id);
-        service.toggleLayerVisibility(layer.id);
-
-        const allElements = [createMockElement('element-1')];
-        const visible = service.getVisibleElements(allElements);
-
-        expect(visible.length).toBe(0);
-      });
-    });
-
-    describe('getEditableElements()', () => {
-      it('should return elements from unlocked layers', () => {
-        const layer1 = service.layers()[0];
-        const layer2 = service.addLayer();
-
-        service.assignElementToLayer('element-1', layer1.id);
-        service.assignElementToLayer('element-2', layer2.id);
-
-        service.setActiveLayer(layer1.id);
-        service.toggleLayerLock(layer1.id);
-
-        const allElements = [createMockElement('element-1'), createMockElement('element-2')];
-        const editable = service.getEditableElements(allElements);
-
-        expect(editable.length).toBe(1);
-        expect(editable[0].id).toBe('element-2');
-      });
-    });
-
-    describe('getSortedElements()', () => {
-      it('should sort elements by layer zIndex', () => {
-        const layer1 = service.layers()[0];
-        const layer2 = service.addLayer();
-        const layer3 = service.addLayer();
-
-        service.assignElementToLayer('element-1', layer3.id);
-        service.assignElementToLayer('element-2', layer1.id);
-        service.assignElementToLayer('element-3', layer2.id);
-
-        const allElements = [
-          createMockElement('element-1'),
-          createMockElement('element-2'),
-          createMockElement('element-3'),
-        ];
-
-        const sorted = service.getSortedElements(allElements);
-
-        expect(sorted[0].id).toBe('element-2'); // layer1 has lowest zIndex
-        expect(sorted[1].id).toBe('element-3'); // layer2
-        expect(sorted[2].id).toBe('element-1'); // layer3 has highest zIndex
-      });
+      expect([...elementMap.keys()]).toEqual(['a', 'b']);
     });
   });
 

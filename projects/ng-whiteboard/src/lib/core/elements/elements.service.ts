@@ -979,15 +979,15 @@ export class ElementsService {
 
   // ---------- Private Helper Methods ----------
 
-  /**
-   * Check if an update operation is a lock-related operation
-   */
   private getLayerOf(element: WhiteboardElement) {
     const layers = this.layerManagement.layers();
     const layerId = effectiveLayerId(element, layers);
     return layers.find((layer) => layer.id === layerId);
   }
 
+  /**
+   * Check if an update operation is a lock-related operation
+   */
   private isLockOperation(update: Partial<WhiteboardElement>): boolean {
     return 'locked' in update;
   }

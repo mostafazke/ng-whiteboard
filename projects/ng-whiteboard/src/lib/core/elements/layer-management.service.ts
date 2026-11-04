@@ -129,7 +129,7 @@ export class LayerManagementService {
 
     // Create a map of old element IDs to new element IDs
     const elementMap = new Map<string, string>();
-    const layerElements = elements.filter((el) => layerToDuplicate.elements.includes(el.id));
+    const layerElements = elements.filter((el) => effectiveLayerId(el, layers) === id);
 
     layerElements.forEach((element) => {
       const newElementId = generateUUID();
@@ -504,49 +504,6 @@ export class LayerManagementService {
     const layers = this._layers();
     const membership = elementIdsByLayer(elements, layers);
     return layers.map((layer) => ({ ...layer, elements: membership.get(layer.id) ?? [] }));
-  }
-
-  // RENDERING HELPERS
-
-  /**
-   * Get elements from visible layers only
-   */
-  getVisibleElements(allElements: WhiteboardElement[]): WhiteboardElement[] {
-    const visibleLayers = this.visibleLayers();
-    const visibleElementIds = new Set(visibleLayers.flatMap((layer) => layer.elements));
-
-    return allElements.filter((element) => visibleElementIds.has(element.id));
-  }
-
-  /**
-   * Get elements from unlocked layers only (for editing)
-   */
-  getEditableElements(allElements: WhiteboardElement[]): WhiteboardElement[] {
-    const unlockedLayers = this.unlockedLayers();
-    const editableElementIds = new Set(unlockedLayers.flatMap((layer) => layer.elements));
-
-    return allElements.filter((element) => editableElementIds.has(element.id));
-  }
-
-  /**
-   * Get elements sorted by layer z-index
-   */
-  getSortedElements(allElements: WhiteboardElement[]): WhiteboardElement[] {
-    const sortedLayers = this.sortedLayers();
-    const elementLayerMap = new Map<string, number>();
-
-    // Map each element to its layer's z-index
-    sortedLayers.forEach((layer) => {
-      layer.elements.forEach((elementId) => {
-        elementLayerMap.set(elementId, layer.zIndex);
-      });
-    });
-
-    return allElements.sort((a, b) => {
-      const aZIndex = elementLayerMap.get(a.id) ?? 0;
-      const bZIndex = elementLayerMap.get(b.id) ?? 0;
-      return aZIndex - bZIndex;
-    });
   }
 
   // EXPORT/IMPORT SUPPORT
