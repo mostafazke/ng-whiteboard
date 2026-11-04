@@ -34,7 +34,11 @@ describe('ToolbarComponent', () => {
   });
 
   it('uses roving tabindex with the active tool tabbable', () => {
-    expect(buttons().filter((b) => b.tabIndex === 0).map((b) => b.dataset['tool'])).toEqual([ToolType.Pen]);
+    expect(
+      buttons()
+        .filter((b) => b.tabIndex === 0)
+        .map((b) => b.dataset['tool'])
+    ).toEqual([ToolType.Pen]);
     expect(buttons().filter((b) => b.tabIndex === -1).length).toBe(buttons().length - 1);
   });
 
@@ -87,5 +91,27 @@ describe('ToolbarComponent', () => {
 
   it('every tool button has an accessible name', () => {
     expect(buttons().every((b) => (b.getAttribute('aria-label') ?? '').length > 0)).toBe(true);
+  });
+
+  it('tooltip and aria-keyshortcuts match the keyboard shortcuts, without a native title', () => {
+    const pen = buttons().find((b) => b.dataset['tool'] === ToolType.Pen) as HTMLButtonElement;
+    expect(pen.dataset['tooltip']).toBe('Pen (P)');
+    expect(pen.getAttribute('aria-keyshortcuts')).toBe('P D 3');
+    expect(buttons().some((b) => b.hasAttribute('title'))).toBe(false);
+  });
+
+  it('numbers tools 1-9 then 0 in display order', () => {
+    expect(buttons().map((b) => b.querySelector('.tool-digit')?.textContent?.trim())).toEqual([
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+      '7',
+      '8',
+      '9',
+      '0',
+    ]);
   });
 });

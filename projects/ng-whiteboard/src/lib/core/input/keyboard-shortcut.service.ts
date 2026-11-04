@@ -2,7 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { ApiService } from '../api';
 import { ConfigService } from '../config/config.service';
 import { KEY_LOWER, MOVEMENT } from '../constants';
-import { AlignmentType, ToolType } from '../types';
+import { AlignmentType } from '../types';
+import { toolForKey } from './tool-shortcuts';
 
 @Injectable({ providedIn: 'root' })
 export class KeyboardShortcutService {
@@ -47,40 +48,9 @@ export class KeyboardShortcutService {
   private handleKeyDownShortcuts(key: string, ctrl: boolean, shift: boolean, alt: boolean): boolean {
     // Tool Shortcuts
     if (!ctrl && !shift && !alt) {
-      if (key === 'v') {
-        this.apiService.setActiveTool(ToolType.Select);
-        return true;
-      }
-      if (key === 'd') {
-        this.apiService.setActiveTool(ToolType.Pen);
-        return true;
-      }
-      if (key === 'e') {
-        this.apiService.setActiveTool(ToolType.Eraser);
-        return true;
-      }
-      if (key === 'h') {
-        this.apiService.setActiveTool(ToolType.Hand);
-        return true;
-      }
-      if (key === 'r') {
-        this.apiService.setActiveTool(ToolType.Rectangle);
-        return true;
-      }
-      if (key === 'o') {
-        this.apiService.setActiveTool(ToolType.Ellipse);
-        return true;
-      }
-      if (key === 'a') {
-        this.apiService.setActiveTool(ToolType.Arrow);
-        return true;
-      }
-      if (key === 'l') {
-        this.apiService.setActiveTool(ToolType.Line);
-        return true;
-      }
-      if (key === 't') {
-        this.apiService.setActiveTool(ToolType.Text);
+      const tool = toolForKey(key);
+      if (tool) {
+        this.apiService.setActiveTool(tool);
         return true;
       }
     }

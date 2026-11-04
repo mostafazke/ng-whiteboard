@@ -414,6 +414,21 @@ describe('KeyboardShortcutService', () => {
         expect(event.stopPropagation).toHaveBeenCalled();
       });
 
+      it.each([
+        ['p', 'pen'],
+        ['i', 'image'],
+        ['1', 'hand'],
+        ['3', 'pen'],
+        ['9', 'text'],
+        ['0', 'image'],
+      ])('should handle %s for the %s tool', (key, tool) => {
+        const event = addSpies(createKeyEvent({ key }));
+        service.handleKeyDown(event);
+
+        expect(mockApiService.setActiveTool).toHaveBeenCalledWith(tool);
+        expect(event.preventDefault).toHaveBeenCalled();
+      });
+
       it('should handle E for Eraser tool', () => {
         const event = addSpies(createKeyEvent({ key: 'e' }));
         service.handleKeyDown(event);

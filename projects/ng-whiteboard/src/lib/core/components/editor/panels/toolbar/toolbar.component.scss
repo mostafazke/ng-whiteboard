@@ -46,6 +46,16 @@
         font-size: 16px;
       }
 
+      .tool-digit {
+        position: absolute;
+        right: 2px;
+        bottom: 1px;
+        font-size: 8px;
+        line-height: 1;
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
       &:hover {
         background-color: var(--wb-color-gray-100);
         color: var(--wb-color-gray-900);
@@ -65,8 +75,8 @@
         scroll-snap-align: start;
 
         @media (hover: hover) {
-          &[data-tool]:hover::after {
-            content: attr(title);
+          &[data-tooltip]:hover::after {
+            content: attr(data-tooltip);
             position: absolute;
             bottom: calc(100% + 8px);
             left: 50%;
@@ -110,6 +120,10 @@
   .toolbar-floating .toolbar-group .icon-btn {
     min-width: 44px;
     min-height: 44px;
+
+    .tool-digit {
+      display: none;
+    }
   }
 }
 
