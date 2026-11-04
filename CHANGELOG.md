@@ -1,3 +1,95 @@
+# [6.0.0](https://github.com/mostafazke/ng-whiteboard/compare/v5.6.0...v6.0.0) (2026-11-04)
+
+
+* feat!: show the built-in editor by default ([ea30517](https://github.com/mostafazke/ng-whiteboard/commit/ea30517b43f8943ddaac1414d89f4305a63a070a))
+
+
+### Bug Fixes
+
+* **canvas:** cancel gestures via tool cancel hook, keep deactivate as before ([8e387f0](https://github.com/mostafazke/ng-whiteboard/commit/8e387f0918fb66805674b7afc6cbfd1b64f98b83))
+* **canvas:** ignore pinch and two-finger pan while drawing is disabled ([c0b2e1a](https://github.com/mostafazke/ng-whiteboard/commit/c0b2e1a4f9595458026a2a220b962463b7c4daad))
+* **config:** ignore unknown theme values on import and theme switch ([59d99be](https://github.com/mostafazke/ng-whiteboard/commit/59d99becbba5b13139cbf40e904f1e7dbd37d25b))
+* **demo:** let the out-of-the-box example fill its frame ([42d49cb](https://github.com/mostafazke/ng-whiteboard/commit/42d49cb98d2d7a92380334b4264cfe6a8166479f))
+* **editor,gestures:** accumulate sub-dead-zone pinch scale; review fixes ([59bb1f7](https://github.com/mostafazke/ng-whiteboard/commit/59bb1f7b6e08da23bbb307c6623c76b31c61372c))
+* **editor:** 44px hit targets for sliders and selects on coarse pointers ([b375bae](https://github.com/mostafazke/ng-whiteboard/commit/b375bae9d20e2236839cee134c5477a1a46dc3ff))
+* **editor:** apply alignment and distribute using real element bounds ([7a09aad](https://github.com/mostafazke/ng-whiteboard/commit/7a09aad5699a95234f73bb87368b116c09e8f55f))
+* **editor:** close the edit batch before canvas gestures and shortcuts ([b877ae1](https://github.com/mostafazke/ng-whiteboard/commit/b877ae16efab305fac4c785c8b78ad09512af67d))
+* **editor:** contain arrow keys, scope Alt+P to its board, and tighten focus handling ([822386e](https://github.com/mostafazke/ng-whiteboard/commit/822386e36326a79aec106224004680ec79d9f451))
+* **editor:** dedupe board keydown, use KeyP for Alt+P and wire save/export ([6ca92f2](https://github.com/mostafazke/ng-whiteboard/commit/6ca92f205dc3c11a68b291f3d0b68c2eeccfdff3))
+* **editor:** drop unused FormsModule and the @angular/forms peer dependency ([33c7d5a](https://github.com/mostafazke/ng-whiteboard/commit/33c7d5aad7806524c8443a761c3d900ae667a262))
+* **editor:** flat curves, text style without selection, text color, swap no-op, shared corner radius ([15a0247](https://github.com/mostafazke/ng-whiteboard/commit/15a02478dcee32dad40789f1f94748a017a99732))
+* **editor:** harden mixed color seeds, fill and opacity merge, per-element line style, owner-scoped endEdit ([275d6cb](https://github.com/mostafazke/ng-whiteboard/commit/275d6cb19c858e3ebea289498beb7adf04dce32a))
+* **editor:** keep fill hidden with nothing selected for non-drawing tools ([4dea846](https://github.com/mostafazke/ng-whiteboard/commit/4dea846886ba56e93161e994faccac73c40220b0))
+* **editor:** keep focus in the editor on layout change; split Alt+P handler ([cdd92e8](https://github.com/mostafazke/ng-whiteboard/commit/cdd92e8365cff6d630d0f694f83f01e431c96ac0))
+* **editor:** keep keys typed in editor controls away from canvas shortcuts ([edcac13](https://github.com/mostafazke/ng-whiteboard/commit/edcac132a36c03ab9cbc21c302598c0e40c8e2ac))
+* **editor:** keep the color swatch row on one line without overflow ([b5ca56b](https://github.com/mostafazke/ng-whiteboard/commit/b5ca56b7924a458093dc61d4b4ad8b6741205e89))
+* **editor:** layer panel batch close, enter rename, popover position; layers no longer hide others ([eec289f](https://github.com/mostafazke/ng-whiteboard/commit/eec289f96e95cd3fd2cb234acbc60ad7cc912c5b))
+* **editor:** let the custom color picker apply black to a mixed selection ([0eaeba3](https://github.com/mostafazke/ng-whiteboard/commit/0eaeba3af519d0b1085ea632e02cea9b2c63025e))
+* **editor:** menu separators, open errors, compact confirm dialog ([d26258c](https://github.com/mostafazke/ng-whiteboard/commit/d26258cda863416715543774449c13336a3d1dc3))
+* **editor:** never leave a history batch open after slider or color edits ([b8bfdf2](https://github.com/mostafazke/ng-whiteboard/commit/b8bfdf27c8a6b2dcac92338f3de89db5b27aa1d3))
+* **editor:** preview real color value, repaint seed after edit, reuse buildDasharray ([81f3ce7](https://github.com/mostafazke/ng-whiteboard/commit/81f3ce727ecdc49ce147480dcf4bf608133bf56e))
+* **editor:** record a slider or color picker drag as one undo step ([7d2ecc3](https://github.com/mostafazke/ng-whiteboard/commit/7d2ecc3087d79752aa87778d76f19833a219b166))
+* **editor:** remove debug output, dead menu and fix layer opacity and shortcut scope ([5657cef](https://github.com/mostafazke/ng-whiteboard/commit/5657cef7aabf4777a3befc91e51f75d929f08fb7))
+* **editor:** render no properties panel or sheet until the container is measured ([c7b0585](https://github.com/mostafazke/ng-whiteboard/commit/c7b0585ae8a36735e424644b55cb9d7abfc14d2f))
+* **editor:** review fixes for export, import, layers and keyboard focus ([5afa315](https://github.com/mostafazke/ng-whiteboard/commit/5afa315d6a0af129f8b2c2eacf0485a106b16200))
+* **editor:** scope editor styles to the editor root ([c7244bf](https://github.com/mostafazke/ng-whiteboard/commit/c7244bf35ab945853912cffd77e2a4eb44df1983))
+* **editor:** show Mixed in the font family select for differing fonts ([9538d98](https://github.com/mostafazke/ng-whiteboard/commit/9538d984d5cc3c04b681a1881ca44821f33a16e9))
+* **editor:** sticky export footer on phones and status toast for copy/open feedback ([b2b0c71](https://github.com/mostafazke/ng-whiteboard/commit/b2b0c71731e818c0bac536226570fd7abf3c8731))
+* **editor:** surface export errors, sanitise filename, cheaper preview ([92f9ec4](https://github.com/mostafazke/ng-whiteboard/commit/92f9ec4e94e75a20972584b856d17d6a61700d5b))
+* **editor:** sync grid/snap toggles with config, undo via ApiService, skip locked elements ([2d9086e](https://github.com/mostafazke/ng-whiteboard/commit/2d9086e376e0d351d9e392700780818da71b775a))
+* **editor:** theme the layer panel with --wb-* tokens so dark mode applies ([c5797ae](https://github.com/mostafazke/ng-whiteboard/commit/c5797ae9d996ab3f5137a41d5934d06ce286b66d))
+* **export:** crop to content, scale, transparent option, clean svg and clipboard copy ([1cc4232](https://github.com/mostafazke/ng-whiteboard/commit/1cc4232db54d0c3e6907149a48f56290feadb594))
+* **export:** skip malformed elements in bounds, reject failed rasterising, clamp size and validate options, keep SVG vector ([0c63ac6](https://github.com/mostafazke/ng-whiteboard/commit/0c63ac646068ca45d73f8924df1ee7a4385ab59a))
+* **export:** strip editor chrome, include curve and arrowheads, safari-safe copy ([cba7189](https://github.com/mostafazke/ng-whiteboard/commit/cba7189e9e6b07fef4ab654b2fc46bf9d2c5ca5c))
+* **gestures:** reset stale DrawStart, add a pinch dead zone, nest config holds ([b2c278f](https://github.com/mostafazke/ng-whiteboard/commit/b2c278fd7aa9e7fe008fef61c5ed17ed59a7b886))
+* **history:** keep layer before-state in nested batches ([8922c70](https://github.com/mostafazke/ng-whiteboard/commit/8922c7027b64982e1f34b03824fdf8a2e3ffdfd9))
+* **io:** open and reset are single undo steps covering layers ([ff536a1](https://github.com/mostafazke/ng-whiteboard/commit/ff536a1dd07b614c45dbc7e283478edda729d23b))
+* **layers:** derive duplicate and query membership from layerId ([f73d41d](https://github.com/mostafazke/ng-whiteboard/commit/f73d41d70b4aaf860e3f227fc06a04c13022ae75))
+* **layers:** derive layer membership from element layerId ([70ed3f7](https://github.com/mostafazke/ng-whiteboard/commit/70ed3f7b0d4f634ca35ba5e118983034e1b10da9))
+* **layers:** keep merged elements on top, derive layers() membership, activate visual neighbour ([e31080d](https://github.com/mostafazke/ng-whiteboard/commit/e31080d04cc59a0da5219d23e2fe74b67003d45e))
+* **selection:** move selected lines/arrows while a drawing tool is active ([#422](https://github.com/mostafazke/ng-whiteboard/issues/422)) ([05928e8](https://github.com/mostafazke/ng-whiteboard/commit/05928e826a2d1e4e0a3718c4426e7a2673b79317)), closes [#396](https://github.com/mostafazke/ng-whiteboard/issues/396)
+* shifted shortcuts, stuck pan and draws, copy ids, saved-state tracking, flyout focus ([2b4d26a](https://github.com/mostafazke/ng-whiteboard/commit/2b4d26ab211670027476d7bd8a8a4cd4f762b209))
+* **svg:** only emit DrawEnd on cancel when a DrawStart was emitted ([37e4a01](https://github.com/mostafazke/ng-whiteboard/commit/37e4a0182fb0f69af1188648a46044ca5a250f1e))
+* **theme:** make theme opt-in so default rendering matches master ([1d9bfce](https://github.com/mostafazke/ng-whiteboard/commit/1d9bfceb9dc27c0e23c676a5c400007509e2505e))
+* **tools:** close the text box a pinch's first finger opened ([4ecfb71](https://github.com/mostafazke/ng-whiteboard/commit/4ecfb71a46d581eac08082a901f03f149d8067d7))
+
+
+### Features
+
+* **canvas:** pinch-to-zoom and two-finger pan ([e384a02](https://github.com/mostafazke/ng-whiteboard/commit/e384a026d394dfcbfc58b83cf60bd7e5cb6b82d9))
+* **config:** cornerRadius default for new rectangles ([35a2a3e](https://github.com/mostafazke/ng-whiteboard/commit/35a2a3e1ca2fcf40ab29c25588c700cef3fa3e2a))
+* **editor:** add whiteboard editor with panels and theme support ([e0300ec](https://github.com/mostafazke/ng-whiteboard/commit/e0300ec98fb00dea97fa2fbf2a31a12f3902c1c0))
+* **editor:** arrow path conversion helper ([c06a77c](https://github.com/mostafazke/ng-whiteboard/commit/c06a77c900718bc59c05cbb08d17432020b4abb8))
+* **editor:** brush and line-style pickers, pen stroke rendering presets ([0e75bdd](https://github.com/mostafazke/ng-whiteboard/commit/0e75bdd3e0542807383986c2a47d2c9d20e35154))
+* **editor:** contextual properties panel per shape ([0470fb4](https://github.com/mostafazke/ng-whiteboard/commit/0470fb4545c9b5d28920a4627060512fd5ad6d16))
+* **editor:** edit arrow heads, arrow path, line ends, corner radius and brush ([3fa185c](https://github.com/mostafazke/ng-whiteboard/commit/3fa185c437814de79e6211d26cbe83f1e68e3cf8))
+* **editor:** edit properties of multiple selected elements ([4e2f67e](https://github.com/mostafazke/ng-whiteboard/commit/4e2f67e4907e062cb141a72daf2822376b07f3a0))
+* **editor:** export image dialog with preview, scale and background options ([38a6413](https://github.com/mostafazke/ng-whiteboard/commit/38a6413d21bffd31e213c34685ffd8a3d9011f4b))
+* **editor:** keyboard navigation and accessible labels ([f10417c](https://github.com/mostafazke/ng-whiteboard/commit/f10417cca9fcdeac65c9d526b906931b8edab9e0))
+* **editor:** main menu, editable title, confirm dialog and file shortcuts ([0909544](https://github.com/mostafazke/ng-whiteboard/commit/0909544b5f45ae2a46ef9d7249011d3c8e78c4a4))
+* **editor:** real Save / Save as, unsaved indicator and reopenable image export ([8fa7d8e](https://github.com/mostafazke/ng-whiteboard/commit/8fa7d8e67d6ae57abc5b2bf2e1e711b37ccef6fb))
+* **editor:** rebuild layers panel with rename, drag reorder and layer menu ([5ef9a53](https://github.com/mostafazke/ng-whiteboard/commit/5ef9a53990a2ab081dcc1ac1b4ef8ed900a9d222))
+* **editor:** responsive layout with bottom sheets and touch targets ([8b13296](https://github.com/mostafazke/ng-whiteboard/commit/8b132960d955071e82e2473f0ac0e0fff7c96984))
+* **editor:** segmented control and arrowhead picker ([7b9309b](https://github.com/mostafazke/ng-whiteboard/commit/7b9309b18eb98acd8f378aaff6ff93eb1fae0cd1))
+* **editor:** shape section capabilities and merged shape properties ([869e659](https://github.com/mostafazke/ng-whiteboard/commit/869e65907f4167828c2850a24b92c000fead1eb3))
+* **history:** record layer state alongside elements ([b2bc426](https://github.com/mostafazke/ng-whiteboard/commit/b2bc426849abb90f88369a5231f2f93cac2c0ecb))
+* **io:** embed board data in exported PNG/SVG and open it back ([856c942](https://github.com/mostafazke/ng-whiteboard/commit/856c9425d25b92992a1e41256afe0e6b1e635a60))
+* **layers:** undoable layer operations, merge down and safe delete ([58d956e](https://github.com/mostafazke/ng-whiteboard/commit/58d956e63957c203ff3355a06da3235d6ebab1f7))
+* **toolbar:** shared tool shortcuts, number keys and single tooltip ([c7df69f](https://github.com/mostafazke/ng-whiteboard/commit/c7df69f510ca3f6e9c57e1f3293c4ba690f289d5))
+* **toolbar:** tool lock, zoom-area tool, image picker, compact shape flyout, configurable tools and position ([ca6e9a4](https://github.com/mostafazke/ng-whiteboard/commit/ca6e9a4fb141c60fb0d7c961f5e2fbf3ac6f39ae))
+
+
+### Performance Improvements
+
+* **editor:** lazy-load the built-in editor with [@defer](https://github.com/defer) ([deb9adc](https://github.com/mostafazke/ng-whiteboard/commit/deb9adc18d925f123e34369db7c4c34b9a4cb0a1))
+* **gestures:** emit one ZoomChange/ConfigChange per pinch and skip zoom on pure pans ([65eb0a2](https://github.com/mostafazke/ng-whiteboard/commit/65eb0a2299e2f4844b11786edb20361d5626f498))
+
+
+### BREAKING CHANGES
+
+* <ng-whiteboard> now renders the built-in editor unless
+[showEditor]="false" is set.
+
 # [5.6.0](https://github.com/mostafazke/ng-whiteboard/compare/v5.5.0...v5.6.0) (2026-06-30)
 
 ### Features
