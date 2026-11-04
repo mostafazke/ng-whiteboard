@@ -35,6 +35,10 @@ const DEFAULT_EXPORT_PADDING = 16;
 /**
  * Handles import/export operations for the whiteboard including images, state serialization, and various export formats.
  */
+function isPositiveNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0;
+}
+
 @Injectable({ providedIn: 'root' })
 export class IOService {
   constructor(
@@ -64,8 +68,10 @@ export class IOService {
       let x = (imageInfo.x || 0) - (imageInfo.center ? width / 2 : 0);
       let y = (imageInfo.y || 0) - (imageInfo.center ? height / 2 : 0);
 
-      if (x < 0) x = 0;
-      if (y < 0) y = 0;
+      if (!imageInfo.center) {
+        x = Math.max(0, x);
+        y = Math.max(0, y);
+      }
 
       const element = createElement(ElementType.Image, {
         src: imageInfo.image,
@@ -188,10 +194,11 @@ export class IOService {
   async save(format: FormatType = FormatType.Base64, name = 'New board', options: ExportOptions = {}): Promise<string> {
     const { svgString, width, height } = this.buildExport(options);
     const embed = options.embedBoardData === true;
+    const boardData = () => this.exportData(options.onlySelected ? this.getExportableElements(true) : undefined);
 
     try {
       if (format === FormatType.Svg) {
-        const imgSrc = this.svgDataUrl(embed ? embedBoardDataInSvg(svgString, this.exportData()) : svgString);
+        const imgSrc = this.svgDataUrl(embed ? embedBoardDataInSvg(svgString, boardData()) : svgString);
         this.downloadFile(imgSrc, name, 'svg');
         this.eventBusService.emit(WhiteboardEvent.Save, imgSrc);
         return imgSrc;
@@ -199,7 +206,7 @@ export class IOService {
 
       let imageString = await svgToBase64(svgString, width, height, format);
       if (embed && format === FormatType.Png) {
-        imageString = bytesToDataUrl(embedBoardDataInPng(dataUrlToBytes(imageString), this.exportData()), 'image/png');
+        imageString = bytesToDataUrl(embedBoardDataInPng(dataUrlToBytes(imageString), boardData()), 'image/png');
       }
 
       if (format !== FormatType.Base64) {
@@ -323,8 +330,7 @@ export class IOService {
     return this.save(FormatType.Base64);
   }
 
-  exportData(): string {
-    const elements = this.elementsService.getElements();
+  exportData(elements: WhiteboardElement[] = this.elementsService.getElements()): string {
     const canvasConfig = this.canvasService.getConfig();
     const layerState = this.layerManagementService.exportLayerState(elements);
     const editorConfig = this.configService.getEditorConfig();
@@ -417,7 +423,7 @@ export class IOService {
       if (data.canvas) {
         const { canvas } = data;
 
-        if (canvas.width && canvas.height) {
+        if (isPositiveNumber(canvas.width) && isPositiveNumber(canvas.height)) {
           this.canvasService.setCanvasDimensions(canvas.width, canvas.height);
         }
 
@@ -437,15 +443,15 @@ export class IOService {
       if (data.viewport) {
         const { viewport } = data;
 
-        if (viewport.zoom !== undefined) {
+        if (isPositiveNumber(viewport.zoom)) {
           this.zoomService.zoom(viewport.zoom);
         }
 
-        if (viewport.x !== undefined && viewport.y !== undefined) {
+        if (Number.isFinite(viewport.x) && Number.isFinite(viewport.y)) {
           this.panService.panTo(viewport.x, viewport.y);
         }
 
-        if (viewport.canvasX !== undefined && viewport.canvasY !== undefined) {
+        if (Number.isFinite(viewport.canvasX) && Number.isFinite(viewport.canvasY)) {
           this.configService.updateConfig(
             {
               canvasX: viewport.canvasX,
@@ -503,8 +509,8 @@ export class IOService {
         const { settings } = data;
         const settingsConfig: Partial<WhiteboardConfig> = {};
 
-        if (settings.drawingEnabled !== undefined) settingsConfig.drawingEnabled = settings.drawingEnabled;
-        if (settings.keyboardShortcutsEnabled !== undefined) {
+        if (typeof settings.drawingEnabled === 'boolean') settingsConfig.drawingEnabled = settings.drawingEnabled;
+        if (typeof settings.keyboardShortcutsEnabled === 'boolean') {
           settingsConfig.keyboardShortcutsEnabled = settings.keyboardShortcutsEnabled;
         }
         if (isTheme(settings.theme)) settingsConfig.theme = settings.theme;

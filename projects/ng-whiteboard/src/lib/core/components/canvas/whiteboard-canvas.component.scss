@@ -12,7 +12,6 @@
 
   &[data-theme='dark'] {
     .svgroot {
-      // Grid colors for dark theme
       #smallGrid path {
         stroke: var(--canvas-grid-dark);
       }
@@ -20,7 +19,6 @@
         stroke: var(--canvas-grid-light);
       }
 
-      // Selection colors for dark theme
       #selectionBox {
         stroke: var(--canvas-selection-dark);
       }

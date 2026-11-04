@@ -26,9 +26,13 @@ function sanitizeFilename(name: string, title: string): string {
   const clean = name
     .trim()
     .replace(/\.(png|svg)$/i, '')
-    .replace(/[\\/:*?"<>|]/g, '-')
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\\/:*?"<>|\u0000-\u001f]/g, '-')
+    .replace(/[. ]+$/, '')
+    .slice(0, 200)
     .trim();
-  return clean || title.trim() || DEFAULT_BOARD_TITLE;
+  const safe = /^(con|prn|aux|nul|com\d|lpt\d)$/i.test(clean) ? `${clean}-board` : clean;
+  return safe || title.trim() || DEFAULT_BOARD_TITLE;
 }
 
 @Component({
@@ -186,6 +190,7 @@ export class ExportDialogComponent {
   private copiedTimer: ReturnType<typeof setTimeout> | undefined;
   private firstRender = true;
   private destroyed = false;
+  private busy = false;
 
   constructor() {
     effect((onCleanup) => {
@@ -232,19 +237,33 @@ export class ExportDialogComponent {
   }
 
   protected async download(): Promise<void> {
+    if (this.busy) return;
+    this.busy = true;
     this.error.set(null);
-    const ok = await this.state.exportImage(this.format(), sanitizeFilename(this.filename(), this.title()), {
-      ...this.options(),
-      embedBoardData: this.settings().embedBoardData,
-    });
+    let ok: boolean;
+    try {
+      ok = await this.state.exportImage(this.format(), sanitizeFilename(this.filename(), this.title()), {
+        ...this.options(),
+        embedBoardData: this.settings().embedBoardData,
+      });
+    } finally {
+      this.busy = false;
+    }
     if (this.destroyed) return;
     if (ok) this.closed.emit();
     else this.error.set('Export failed');
   }
 
   protected async copy(): Promise<void> {
+    if (this.busy) return;
+    this.busy = true;
     this.error.set(null);
-    const ok = await this.state.copyImage(this.format(), this.options());
+    let ok: boolean;
+    try {
+      ok = await this.state.copyImage(this.format(), this.options());
+    } finally {
+      this.busy = false;
+    }
     if (this.destroyed) return;
     if (!ok) {
       this.error.set("Couldn't copy");

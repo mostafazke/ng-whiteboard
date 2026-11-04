@@ -1,6 +1,5 @@
 @use '../../breakpoints' as bp;
 
-// Floating Toolbar Styles
 .toolbar-floating {
   position: relative;
   background: var(--wb-color-surface);
@@ -174,7 +173,6 @@
   }
 }
 
-// Animations
 @keyframes tooltipFadeIn {
   from {
     opacity: 0;

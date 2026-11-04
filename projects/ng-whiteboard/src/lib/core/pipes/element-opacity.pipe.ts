@@ -15,7 +15,7 @@ export class ElementOpacityPipe implements PipeTransform {
       return 0.1;
     }
 
-    let opacity = (element.opacity || 100) / 100;
+    let opacity = (element.opacity ?? 100) / 100;
 
     if (element.style?.opacity !== undefined) {
       opacity *= element.style.opacity;

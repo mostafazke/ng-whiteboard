@@ -1,8 +1,6 @@
 import { LineCap, LineJoin } from './types';
 import { StrokeOptions } from '../utils/drawing/stroke-types';
 
-/** Predefined pen configurations for different drawing styles. */
-
 /** Available pen types. */
 export enum PenType {
   Pen = 'pen',
@@ -14,11 +12,11 @@ export enum PenType {
 
 /** Pen thickness options. */
 export enum PenThickness {
-  ExtraFine = 'extra-fine', // 1px
-  Fine = 'fine', // 2px
-  Medium = 'medium', // 4px
-  Thick = 'thick', // 8px
-  ExtraThick = 'extra-thick', // 12px
+  ExtraFine = 'extra-fine',
+  Fine = 'fine',
+  Medium = 'medium',
+  Thick = 'thick',
+  ExtraThick = 'extra-thick',
 }
 
 /** Complete pen preset configuration. */

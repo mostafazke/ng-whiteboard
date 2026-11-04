@@ -25,7 +25,7 @@ import {
 import { WhiteboardEvent } from '../types/events';
 import { CursorType } from '../types/cursors';
 import { ClipboardService, IOService } from '../input';
-import { elementIdsByLayer } from '../utils';
+import { elementIdsByLayer, generateId } from '../utils';
 
 @Injectable()
 export class ApiService {
@@ -565,9 +565,16 @@ export class ApiService {
       if (!layer || result.elementMap.size === 0) return;
 
       const copies: WhiteboardElement[] = [];
+      const groupIds = new Map<string, string>();
       result.elementMap.forEach((newElementId, oldElementId) => {
         const original = currentElements.find((el: WhiteboardElement) => el.id === oldElementId);
-        if (original) copies.push({ ...original, id: newElementId, layerId: layer.id });
+        if (!original) return;
+        const copy: WhiteboardElement = { ...original, id: newElementId, layerId: layer.id };
+        if (original.groupId) {
+          if (!groupIds.has(original.groupId)) groupIds.set(original.groupId, generateId());
+          copy.groupId = groupIds.get(original.groupId);
+        }
+        copies.push(copy);
       });
       this.elementsService.addElements(copies);
     });

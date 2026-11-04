@@ -9,7 +9,6 @@ import { SelectionService } from '../../elements/selection.service';
 import { IOService } from '../../input/io.service';
 import { BatchHandle, HistoryService } from '../../history/history.service';
 import { ToolsService } from '../../tools/tools.service';
-import { effectiveLayerId } from '../../utils';
 import { boardFileKind } from '../../utils/files/board-data';
 import {
   BoardFileHandle,
@@ -110,23 +109,18 @@ export class EditorStateService implements OnDestroy {
     return unchanged ? 'saved' : 'unsaved';
   });
 
-  // Theme handling - use WhiteboardConfig as the source of truth
   themeSignal = computed(() => this.getConfigSignal()().theme ?? 'light');
 
   toggleTheme(): void {
     const current = this.themeSignal();
     const newTheme = current === 'light' ? 'dark' : 'light';
-    // Update WhiteboardConfig as the source of truth
     this.configService.updateConfigValue('theme', newTheme);
   }
 
-  // Reactive signals for editor state
   selectedElementsSignal = this.selectionService.getSelectedElementsSignal();
   selectedToolSignal = this.toolsService.selectedTool;
 
-  // Layer signals - delegate to LayerManagementService
   layersSignal = computed(() => {
-    // Convert WhiteboardLayer to legacy Layer interface for compatibility
     return this.layerManagementService.layersWithMembership(this.elementsService.elements()).map((layer) => ({
       id: layer.id,
       name: layer.name,
@@ -143,17 +137,10 @@ export class EditorStateService implements OnDestroy {
   canUndoSignal = this.historyService.getCanUndoSignal();
   canRedoSignal = this.historyService.getCanRedoSignal();
 
-  // Computed properties
   hasSelectionSignal = computed(() => this.selectedElementsSignal().length > 0);
-  activeLayerSignal = computed(() => {
-    const layers = this.layersSignal();
-    const activeId = this.activeLayerIdSignal();
-    return layers.find((layer) => layer.id === activeId) || layers[0];
-  });
 
   selectedPropertiesSignal = computed(() => mergeSelectedProperties(this.selectedElementsSignal()));
 
-  // Public API methods
   getConfigSignal(): Signal<WhiteboardConfig> {
     return this.configService.getConfigSignal();
   }
@@ -204,11 +191,6 @@ export class EditorStateService implements OnDestroy {
     this.configService.updateEditorConfigValue('title', title);
   }
 
-  // Zoom management
-  setZoom(zoom: number) {
-    this.zoomService.zoom(zoom);
-  }
-
   zoomIn() {
     this.zoomService.zoomIn();
   }
@@ -234,26 +216,18 @@ export class EditorStateService implements OnDestroy {
     this.panService.resetPan();
   }
 
-  // Clear all elements
   clear() {
     this.endEdit();
     this.elementsService.clear();
   }
 
-  /**
-   * Update background color of the canvas
-   */
   updateBackgroundColor(color: string) {
     this.configService.updateConfig({ backgroundColor: color });
   }
 
-  /**
-   * Update stroke color for selected elements or global config
-   */
   updateStrokeColor(color: string) {
     const selectedElements = this.selectedElementsSignal();
 
-    // If no selection, update global config
     if (selectedElements.length === 0) {
       this.configService.updateConfigValue('strokeColor', color);
       return;
@@ -272,13 +246,9 @@ export class EditorStateService implements OnDestroy {
     this.applyUpdates(updates);
   }
 
-  /**
-   * Update fill color for selected elements or global config
-   */
   updateFillColor(color: string) {
     const selectedElements = this.selectedElementsSignal();
 
-    // If no selection, update global config
     if (selectedElements.length === 0) {
       this.configService.updateConfigValue('fill', color);
       return;
@@ -295,13 +265,9 @@ export class EditorStateService implements OnDestroy {
     this.applyUpdates(updates);
   }
 
-  /**
-   * Update stroke width for selected elements or global config
-   */
   updateStrokeWidth(width: number) {
     const selectedElements = this.selectedElementsSignal();
 
-    // If no selection, update global config
     if (selectedElements.length === 0) {
       const dasharray = rescaleDasharray(this.configService.getConfig().dasharray, width);
       this.configService.updateConfigValue('strokeWidth', width);
@@ -338,13 +304,9 @@ export class EditorStateService implements OnDestroy {
     this.applyUpdates(updates);
   }
 
-  /**
-   * Update font size for selected text elements or global config
-   */
   updateFontSize(fontSize: number) {
     const selectedElements = this.selectedElementsSignal();
 
-    // If no selection, update global config
     if (selectedElements.length === 0) {
       this.configService.updateConfigValue('fontSize', fontSize);
       return;
@@ -363,13 +325,9 @@ export class EditorStateService implements OnDestroy {
     this.applyUpdates(updates);
   }
 
-  /**
-   * Update font family for selected text elements or global config
-   */
   updateFontFamily(fontFamily: string) {
     const selectedElements = this.selectedElementsSignal();
 
-    // If no selection, update global config
     if (selectedElements.length === 0) {
       this.configService.updateConfigValue('fontFamily', fontFamily);
       return;
@@ -428,13 +386,9 @@ export class EditorStateService implements OnDestroy {
     this.applyUpdates(updates);
   }
 
-  /**
-   * Update dash array (line style) for selected elements or global config
-   */
   updateDashArray(dasharray: string) {
     const selectedElements = this.selectedElementsSignal();
 
-    // If no selection, update global config
     if (selectedElements.length === 0) {
       this.configService.updateConfigValue('dasharray', dasharray);
       return;
@@ -578,11 +532,7 @@ export class EditorStateService implements OnDestroy {
     });
   }
 
-  /**
-   * Generic method to update any property for selected elements or global config
-   */
   updateElementProperty(property: string, value: string | number | boolean) {
-    // Handle different property types - each method handles selection vs config internally
     switch (property) {
       case 'backgroundColor':
         this.updateBackgroundColor(value as string);
@@ -639,7 +589,6 @@ export class EditorStateService implements OnDestroy {
         this.updatePenType(value as PenType);
         break;
       default: {
-        // Generic property update for style properties (element-only)
         const selectedElements = this.selectedElementsSignal();
         if (selectedElements.length === 0) return;
 
@@ -702,19 +651,9 @@ export class EditorStateService implements OnDestroy {
     }, STATUS_MS);
   }
 
-  // Remove currently selected elements
   removeSelectedElements() {
     this.endEdit();
     this.selectionService.removeSelectedElements();
-  }
-
-  // Save/export current board
-  async save(format: FormatType, title?: string): Promise<void> {
-    try {
-      await this.ioService.save(format, title || DEFAULT_BOARD_TITLE);
-    } catch {
-      // IOService already logs the failure
-    }
   }
 
   renderExport(format: FormatType.Png | FormatType.Svg, options: ExportOptions) {
@@ -867,28 +806,8 @@ export class EditorStateService implements OnDestroy {
     this.configService.updateConfig({ snapToGrid: !this.configService.getConfig().snapToGrid });
   }
 
-  getActiveLayerId(): string {
-    return this.activeLayerIdSignal();
-  }
-
-  getVisibleElements(elements: WhiteboardElement[]): WhiteboardElement[] {
-    const layers = this.layersSignal();
-    const visibleLayerIds = new Set(layers.filter((layer) => layer.visible).map((layer) => layer.id));
-
-    return elements.filter((element) => visibleLayerIds.has(effectiveLayerId(element, layers) ?? ''));
-  }
-
-  // ============================================================================
-  // ============================================================================
-  // LAYER MANAGEMENT METHODS - Delegate to LayerManagementService
-  // ============================================================================
-
-  /**
-   * Add a new layer
-   */
   addLayer(name?: string): Layer {
     const whiteboardLayer = this.apiService.addLayer(name);
-    // Convert WhiteboardLayer to legacy Layer interface
     return {
       id: whiteboardLayer.id,
       name: whiteboardLayer.name,
@@ -899,9 +818,6 @@ export class EditorStateService implements OnDestroy {
     };
   }
 
-  /**
-   * Remove a layer
-   */
   removeLayer(layerId: string, mode: 'delete-elements' | 'move-elements' = 'delete-elements'): boolean {
     return this.apiService.removeLayer(layerId, mode);
   }
@@ -927,9 +843,6 @@ export class EditorStateService implements OnDestroy {
     this.apiService.endLayerOpacityEdit();
   }
 
-  /**
-   * Update layer properties
-   */
   updateLayer(layerId: string, updates: Partial<Layer>): boolean {
     let success = true;
 
@@ -958,51 +871,22 @@ export class EditorStateService implements OnDestroy {
     return success;
   }
 
-  /**
-   * Set active layer
-   */
   setActiveLayer(layerId: string): boolean {
     return this.layerManagementService.setActiveLayer(layerId);
   }
 
-  /**
-   * Move layer up in z-order
-   */
-  moveLayerUp(layerId: string): boolean {
-    return this.apiService.moveLayerUp(layerId);
-  }
-
-  /**
-   * Move layer down in z-order
-   */
-  moveLayerDown(layerId: string): boolean {
-    return this.apiService.moveLayerDown(layerId);
-  }
-
-  /**
-   * Toggle layer visibility
-   */
   toggleLayerVisibility(layerId: string): boolean {
     return this.apiService.toggleLayerVisibility(layerId);
   }
 
-  /**
-   * Toggle layer lock
-   */
   toggleLayerLock(layerId: string): boolean {
     return this.apiService.toggleLayerLock(layerId);
   }
 
-  /**
-   * Set layer opacity
-   */
   setLayerOpacity(layerId: string, opacity: number): boolean {
     return this.apiService.setLayerOpacity(layerId, opacity);
   }
 
-  /**
-   * Set layer blend mode
-   */
   setLayerBlendMode(layerId: string, blendMode: BlendMode): boolean {
     return this.apiService.setLayerBlendMode(layerId, blendMode);
   }

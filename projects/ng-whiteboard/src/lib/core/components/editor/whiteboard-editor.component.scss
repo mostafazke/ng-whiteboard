@@ -21,7 +21,6 @@
 
 // Light theme (default)
 .editor {
-  // Design tokens - Light theme
   --wb-color-primary: #3b82f6;
   --wb-color-primary-dark: #2563eb;
   --wb-color-primary-light: #60a5fa;
@@ -37,7 +36,6 @@
   --wb-color-gray-800: #1f2937;
   --wb-color-gray-900: #111827;
 
-  // Theme-specific colors
   --wb-color-background: #ffffff;
   --wb-color-surface: #ffffff;
   --wb-color-border: #e5e7eb;
@@ -51,7 +49,6 @@
   --wb-color-danger: #dc2626;
   --wb-color-danger-subtle: #fee2e2;
 
-  // Shadows - Light theme
   --wb-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
   --wb-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   --wb-shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
@@ -60,7 +57,6 @@
 
 // Dark theme
 .editor[data-theme='dark'] {
-  // Design tokens - Dark theme
   --wb-color-primary: #60a5fa;
   --wb-color-primary-dark: #3b82f6;
   --wb-color-primary-light: #93c5fd;
@@ -76,7 +72,6 @@
   --wb-color-gray-800: #f3f4f6;
   --wb-color-gray-900: #f9fafb;
 
-  // Theme-specific colors
   --wb-color-background: #111827;
   --wb-color-surface: #1f2937;
   --wb-color-border: #374151;
@@ -90,7 +85,6 @@
   --wb-color-danger: #f87171;
   --wb-color-danger-subtle: #450a0a;
 
-  // Shadows - Dark theme
   --wb-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --wb-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
   --wb-shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
@@ -278,7 +272,6 @@
   overflow: visible;
 }
 
-// Bottom sheet content (compact layout)
 :where(.editor) .wb-sheet-menu {
   display: flex;
   flex-direction: column;
@@ -315,7 +308,6 @@
   }
 }
 
-// Layer panel hosted in a bottom sheet
 :where(.editor) ng-bottom-sheet .wb-sheet-layers {
   display: block;
 }
@@ -352,12 +344,10 @@
   }
 }
 
-// Utility classes
 :where(.editor) .flex-spacer {
   flex: 1;
 }
 
-// Animation keyframes
 @keyframes wb-slide-up {
   from {
     opacity: 0;

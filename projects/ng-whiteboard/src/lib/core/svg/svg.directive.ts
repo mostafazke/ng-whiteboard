@@ -179,7 +179,7 @@ export class SvgDirective implements OnDestroy {
 
   @HostListener('keydown', ['$event'])
   onKeyDown(event: KeyboardEvent): void {
-    event.preventDefault();
+    if (event.key !== 'Tab' && !/^Fd+$/.test(event.key)) event.preventDefault();
     this.svgService.onKeyDown(event);
   }
 

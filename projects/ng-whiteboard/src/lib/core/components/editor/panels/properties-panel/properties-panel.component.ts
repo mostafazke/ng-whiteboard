@@ -57,7 +57,6 @@ const ARROW_PATH_OPTIONS: readonly SegmentedOption[] = [
     LineStylePickerComponent,
   ],
   template: `
-    <!-- Properties Panel -->
     <div class="properties-panel">
       <div class="panel-content" [class.open]="isOpen()">
         <div class="panel-header">
@@ -103,7 +102,6 @@ const ARROW_PATH_OPTIONS: readonly SegmentedOption[] = [
         </div>
 
         <div class="panel-sections">
-          <!-- Canvas and fill -->
           @if (!hasSelection() || show('fill')) {
             <div class="section">
               <div class="controls">
@@ -136,7 +134,6 @@ const ARROW_PATH_OPTIONS: readonly SegmentedOption[] = [
             </div>
           }
 
-          <!-- Shape Properties -->
           <div class="section">
             <div class="controls">
               @if (show('stroke') || show('strokeWidth') || show('strokeStyle') || show('lineEnds')) {
@@ -330,7 +327,6 @@ const ARROW_PATH_OPTIONS: readonly SegmentedOption[] = [
                 </div>
               }
 
-              <!-- Alignment Controls -->
               <div class="control-group" *ngIf="hasSelection() && selectedElements().length > 1">
                 <label class="group-label">Alignment</label>
                 <ng-alignment-controls
@@ -411,7 +407,6 @@ const ARROW_PATH_OPTIONS: readonly SegmentedOption[] = [
         </div>
       </div>
 
-      <!-- Panel Toggle Button -->
       <button
         *ngIf="!isOpen() && !embedded()"
         class="panel-toggle-btn"
@@ -451,7 +446,6 @@ export class PropertiesPanelComponent {
   protected readonly arrowPathOptions = ARROW_PATH_OPTIONS;
   protected brushName = computed(() => penTypeLabel(this.config().penType));
 
-  // Computed properties for better performance
   selectedElement = computed(() => this.selectedElements()[0] || null);
   hasSelection = computed(() => this.selectedElements().length > 0);
 

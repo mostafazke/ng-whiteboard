@@ -97,7 +97,6 @@ export class ColorPickerComponent implements OnDestroy {
     return this.value !== MIXED && HEX_COLOR.test(this.value) ? this.value : NATIVE_SEEDS[this.seedIndex];
   }
 
-  // Curated preset colors - most commonly used
   presetColors = [
     '#000000', // Black
     '#ef4444', // Red

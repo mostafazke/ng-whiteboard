@@ -106,6 +106,19 @@ describe('ApiService undoable layer operations', () => {
     expect(elements.getElements().length).toBe(2);
   });
 
+  it('duplicateLayer gives grouped copies their own group', () => {
+    elements.setElements([
+      { ...el('a', top), groupId: 'g' },
+      { ...el('b', top), groupId: 'g' },
+    ]);
+    api.duplicateLayer(top);
+    const copies = elements.getElements().filter((e) => e.layerId !== top);
+    expect(copies).toHaveLength(2);
+    expect(copies[0].groupId).toBeDefined();
+    expect(copies[0].groupId).not.toBe('g');
+    expect(copies[1].groupId).toBe(copies[0].groupId);
+  });
+
   it('removeLayer delete-elements removes members and undo restores layer and elements in one step', () => {
     elements.setElements([el('a', top), el('b', top), el('c', bottom)]);
     history.clearHistory();

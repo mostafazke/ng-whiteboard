@@ -672,6 +672,19 @@ describe('IOService', () => {
         expect(readBoardDataFromSvg(svg)).toBe('{"elements":[]}');
       });
 
+      it('stores only the exported elements when exporting the selection', async () => {
+        (mockSelectionService as unknown as { getSelectedIds: jest.Mock }).getSelectedIds = jest
+          .fn()
+          .mockReturnValue([]);
+        await service.save(FormatType.Svg, 'b', { embedBoardData: true, onlySelected: true });
+        expect(service.exportData).toHaveBeenCalledWith(expect.any(Array));
+      });
+
+      it('stores the whole board otherwise', async () => {
+        await service.save(FormatType.Svg, 'b', { embedBoardData: true });
+        expect(service.exportData).toHaveBeenCalledWith(undefined);
+      });
+
       it('leaves output untouched when not requested', async () => {
         mockSvgToBase64.mockResolvedValue(PNG_1X1);
         const result = await service.save(FormatType.Png, 'b');

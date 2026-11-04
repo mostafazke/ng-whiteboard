@@ -4,8 +4,10 @@ const FOCUSABLE = [
   'input:not([disabled]):not([type="hidden"])',
   'select:not([disabled])',
   'textarea:not([disabled])',
-  '[tabindex]:not([tabindex="-1"])',
-].join(',');
+  '[tabindex]',
+]
+  .map((selector) => `${selector}:not([tabindex="-1"])`)
+  .join(',');
 
 export function getFocusableElements(root: HTMLElement): HTMLElement[] {
   return Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE));

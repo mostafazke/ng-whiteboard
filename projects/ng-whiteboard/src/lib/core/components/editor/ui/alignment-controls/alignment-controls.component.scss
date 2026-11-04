@@ -1,6 +1,5 @@
 @use '../../breakpoints' as bp;
 
-// Alignment Controls Styles
 .alignment-buttons {
   display: flex;
   flex-direction: column;
@@ -53,7 +52,6 @@
   }
 }
 
-// Responsive adjustments
 @include bp.coarse {
   .alignment-buttons .alignment-group .button-row .alignment-btn {
     width: 44px;

@@ -93,7 +93,6 @@ export class WhiteboardEditorComponent {
   readonly isMeasured = computed(() => this.layout() !== null);
   readonly isCompact = computed(() => this.layout() === 'compact');
 
-  // Reactive signals for better performance
   configSignal = this.editorStateService.getConfigSignal();
   editorConfigSignal = this.editorStateService.getEditorConfigSignal();
   themeSignal = this.editorStateService.themeSignal;
@@ -101,7 +100,6 @@ export class WhiteboardEditorComponent {
   readonly toolbarPosition = computed(() =>
     this.configSignal().toolbarPosition === 'left' && !this.isCompact() ? 'left' : 'bottom'
   );
-  // UI State signals
   isPanelOpenSignal = signal(true);
   showLayersDropdownSignal = signal(false);
   showZoomPopupSignal = signal(false);
@@ -113,7 +111,6 @@ export class WhiteboardEditorComponent {
   readonly confirmCopy = CONFIRM_COPY;
   readonly zoomActions = ZOOM_ACTIONS;
 
-  // Expose editor state signals
   selectedElementsSignal = this.editorStateService.selectedElementsSignal;
   selectedToolSignal = this.editorStateService.selectedToolSignal;
   statusMessageSignal = this.editorStateService.statusMessage;
@@ -333,7 +330,6 @@ export class WhiteboardEditorComponent {
     else this.fileInput()?.nativeElement.click();
   }
 
-  // Properties Panel Events
   onColorChange(event: { property: string; value: string }) {
     switch (event.property) {
       case 'backgroundColor':
@@ -391,7 +387,6 @@ export class WhiteboardEditorComponent {
     this.editorStateService.alignElements(alignment);
   }
 
-  // Toolbar Events
   setSelectedTool(tool: ToolType) {
     this.editorStateService.selectTool(tool);
   }
@@ -400,7 +395,6 @@ export class WhiteboardEditorComponent {
     this.editorStateService.toggleToolLock();
   }
 
-  // Controls Panel Events
   zoomIn() {
     this.editorStateService.zoomIn();
   }
@@ -409,24 +403,19 @@ export class WhiteboardEditorComponent {
     this.editorStateService.zoomOut();
   }
 
-  onZoomTo(value: number) {
-    this.editorStateService.setZoom(value);
-    this.toggleZoomPopup();
-  }
-
   zoomToFit() {
     this.editorStateService.zoomToFit();
-    this.toggleZoomPopup();
+    this.showZoomPopupSignal.set(false);
   }
 
   zoomToSelection() {
     this.editorStateService.zoomToSelection();
-    this.toggleZoomPopup();
+    this.showZoomPopupSignal.set(false);
   }
 
   resetZoom() {
     this.editorStateService.resetZoom();
-    this.toggleZoomPopup();
+    this.showZoomPopupSignal.set(false);
   }
 
   private readonly zoomActionHandlers: Record<ZoomActionId, () => void> = {

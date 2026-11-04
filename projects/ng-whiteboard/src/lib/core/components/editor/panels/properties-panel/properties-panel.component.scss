@@ -1,7 +1,5 @@
 @use '../../breakpoints' as bp;
 
-// Properties Panel Styles
-
 .properties-panel {
   pointer-events: auto;
 }
@@ -333,7 +331,6 @@
   }
 }
 
-// Scrollbar styling
 .panel-sections::-webkit-scrollbar {
   width: 6px;
 }

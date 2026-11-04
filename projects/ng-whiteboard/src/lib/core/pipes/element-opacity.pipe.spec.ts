@@ -30,6 +30,11 @@ describe('ElementOpacityPipe', () => {
     expect(pipe.transform(element, layers)).toBe(0.5);
   });
 
+  it('keeps an element opacity of 0', () => {
+    const element = { id: '1', opacity: 0 } as WhiteboardElement;
+    expect(pipe.transform(element, [])).toBe(0);
+  });
+
   it('should apply style opacity', () => {
     const element = { id: '1', style: { opacity: 0.5 } } as WhiteboardElement;
     const layers: WhiteboardLayer[] = [];
