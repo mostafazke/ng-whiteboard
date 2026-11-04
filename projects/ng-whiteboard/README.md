@@ -381,6 +381,7 @@ Layer operations are undoable.
 ### ⚠️ Behaviour Changes
 
 - `<ng-whiteboard>` now shows the built-in editor by default. Add `[showEditor]="false"` to keep the previous canvas-only rendering.
+- The default `penType` is now `PenType.Marker` (was `PenType.Pen`). Set `config.penType` to `PenType.Pen` to keep the previous default.
 - `save()` output is now cropped to the content bounds with 16px padding (an empty board still exports the canvas box) and never includes editor chrome. For `FormatType.Svg` the vector is downloaded directly and the returned string is the SVG data URL.
 - JPEG export has a white background.
 - Raster exports are limited to 16384px per side and 268,435,456 pixels in total; the scale is reduced to fit.
