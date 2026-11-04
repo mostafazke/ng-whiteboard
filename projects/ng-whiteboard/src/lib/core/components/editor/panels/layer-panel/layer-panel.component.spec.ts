@@ -166,7 +166,9 @@ describe('LayerPanelComponent', () => {
       key(rows()[1], { key: 'Enter' });
       expect(q('.lp-name-input')).not.toBeNull();
       expect(actions).toEqual([]);
-      q<HTMLInputElement>('.lp-name-input').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      q<HTMLInputElement>('.lp-name-input').dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })
+      );
       fixture.detectChanges();
       key(rows()[1], { key: ' ' });
       expect(actions).toEqual([{ type: 'select', id: 'a' }]);
@@ -291,6 +293,15 @@ describe('LayerPanelComponent', () => {
         { type: 'opacity', id: 'b', opacity: 0.4, phase: 'change' },
         { type: 'opacity', id: 'b', opacity: 0.4, phase: 'end' },
       ]);
+    });
+
+    it('a keyboard step ends the edit on the change event', () => {
+      twoLayers();
+      openMenu(0);
+      input('55');
+      slider().dispatchEvent(new Event('change'));
+      const phases = actions.filter((a) => a.type === 'opacity').map((a) => (a as { phase: string }).phase);
+      expect(phases).toEqual(['start', 'change', 'end']);
     });
 
     it('a lost pointerup still ends the edit on pointercancel, blur and close', () => {

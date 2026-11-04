@@ -184,6 +184,77 @@ describe('ApiService undoable layer operations', () => {
     expect(canUndo()).toBe(false);
   });
 
+  describe('stacking after members move', () => {
+    const stackKey = (id: string) => {
+      const e = elements.getElements().find((x) => x.id === id)!;
+      return (layerOf(e.layerId!)?.zIndex ?? 0) * 1000 + (e.zIndex ?? 0);
+    };
+    const draw = (id: string, layerId: string) => {
+      elements.addElements([{ id, type: ElementType.Rectangle, x: 0, y: 0, layerId } as unknown as WhiteboardElement]);
+    };
+
+    it('merge down places the merged elements above every element of the target, in one undo step', () => {
+      draw('a1', bottom);
+      draw('b1', top);
+      draw('b2', top);
+      draw('a2', bottom);
+      history.clearHistory();
+      const before = Object.fromEntries(elements.getElements().map((e) => [e.id, e.zIndex]));
+
+      expect(api.mergeLayerDown(top)).toBe(true);
+
+      expect(stackKey('b1')).toBeGreaterThan(stackKey('a1'));
+      expect(stackKey('b1')).toBeGreaterThan(stackKey('a2'));
+      expect(stackKey('b2')).toBeGreaterThan(stackKey('b1'));
+      expect(stackSize()).toBe(1);
+      api.undo();
+      expect(Object.fromEntries(elements.getElements().map((e) => [e.id, e.zIndex]))).toEqual(before);
+      expect(elementLayer('b1')).toBe(top);
+    });
+
+    it('delete and move into the layer below sits above its elements', () => {
+      draw('b1', top);
+      draw('a1', bottom);
+      api.removeLayer(top, 'move-elements');
+      expect(stackKey('b1')).toBeGreaterThan(stackKey('a1'));
+    });
+
+    it('delete and move from the lowest layer sits below the layer above', () => {
+      draw('a1', bottom);
+      draw('b1', top);
+      draw('a2', bottom);
+      api.removeLayer(bottom, 'move-elements');
+      expect(stackKey('a1')).toBeLessThan(stackKey('b1'));
+      expect(stackKey('a2')).toBeLessThan(stackKey('b1'));
+      expect(stackKey('a1')).toBeLessThan(stackKey('a2'));
+    });
+  });
+
+  describe('public layers signal', () => {
+    it('derives each layer elements from element.layerId', () => {
+      api.removeLayer(top);
+      elements.setElements([
+        { id: 'x', type: ElementType.Rectangle, x: 0, y: 0 },
+        { id: 'y', type: ElementType.Rectangle, x: 0, y: 0 },
+        { id: 'z', type: ElementType.Rectangle, x: 0, y: 0 },
+      ] as unknown as WhiteboardElement[]);
+      expect(api.layers()[0].elements.length).toBe(3);
+      expect(api.activeLayer().elements.length).toBe(3);
+    });
+
+    it('follows moves between layers', () => {
+      elements.setElements([el('a', top), el('b', bottom)]);
+      elements.moveToLayer(['a'], bottom, true);
+      expect(
+        api
+          .layers()
+          .find((l) => l.id === bottom)
+          ?.elements.sort()
+      ).toEqual(['a', 'b']);
+      expect(api.layers().find((l) => l.id === top)?.elements).toEqual([]);
+    });
+  });
+
   it('wraps an opacity drag in one history step', () => {
     api.beginLayerOpacityEdit(top);
     api.setLayerOpacity(top, 0.8);
@@ -236,7 +307,16 @@ describe('Whole-board operations', () => {
     const layerList = [
       { id: 'L1', name: 'One', visible: true, locked: false, zIndex: 0, elements: [], opacity: 1, blendMode: 'normal' },
       { id: 'L2', name: 'Two', visible: true, locked: false, zIndex: 1, elements: [], opacity: 1, blendMode: 'normal' },
-      { id: 'L3', name: 'Three', visible: true, locked: false, zIndex: 2, elements: [], opacity: 1, blendMode: 'normal' },
+      {
+        id: 'L3',
+        name: 'Three',
+        visible: true,
+        locked: false,
+        zIndex: 2,
+        elements: [],
+        opacity: 1,
+        blendMode: 'normal',
+      },
     ];
     return JSON.stringify({
       elements: [el('x', 'L1'), el('y', 'L3')],

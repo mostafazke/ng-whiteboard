@@ -101,6 +101,27 @@ describe('LayerManagementService', () => {
     });
   });
 
+  describe('removeLayer() active neighbour', () => {
+    it('activates the layer below in visual order, not the last stored one', () => {
+      const a = service.layers()[0];
+      const b = service.addLayer('B');
+      const c = service.addLayer('C');
+      service.reorderLayer(c.id, -5);
+      service.setActiveLayer(b.id);
+      service.removeLayer(b.id);
+      expect(service.getActiveLayerId()).toBe(a.id);
+    });
+
+    it('activates the layer above when the lowest layer is removed', () => {
+      const a = service.layers()[0];
+      const b = service.addLayer('B');
+      service.addLayer('C');
+      service.setActiveLayer(a.id);
+      service.removeLayer(a.id);
+      expect(service.getActiveLayerId()).toBe(b.id);
+    });
+  });
+
   describe('removeLayer()', () => {
     it('should remove a layer', () => {
       const newLayer = service.addLayer('To Remove');

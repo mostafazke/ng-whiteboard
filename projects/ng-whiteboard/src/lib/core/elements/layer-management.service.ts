@@ -86,8 +86,10 @@ export class LayerManagementService {
 
     // If active layer was removed, set new active layer
     if (this._activeLayerId() === id) {
-      const newActiveLayer = updatedLayers[Math.max(0, updatedLayers.length - 1)];
-      this.setActiveLayer(newActiveLayer.id);
+      const sorted = [...layers].sort((a, b) => a.zIndex - b.zIndex);
+      const index = sorted.findIndex((l) => l.id === id);
+      const neighbour = sorted[index - 1] ?? sorted[index + 1];
+      this.setActiveLayer(neighbour.id);
     }
 
     return true;

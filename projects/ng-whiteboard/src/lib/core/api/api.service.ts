@@ -20,6 +20,7 @@ import {
   WhiteboardConfig,
   WhiteboardElement,
   BlendMode,
+  WhiteboardLayer,
 } from '../types';
 import { WhiteboardEvent } from '../types/events';
 import { CursorType } from '../types/cursors';
@@ -60,11 +61,17 @@ export class ApiService {
 
   readonly availableTools = this.toolsService.availableTools;
 
-  readonly layers = this.layerService.layers;
+  readonly layers: Signal<WhiteboardLayer[]> = computed(() =>
+    this.layerService.layersWithMembership(this.elementsService.elements())
+  );
 
   readonly activeLayerId = this.layerService.activeLayerId;
 
-  readonly activeLayer = this.layerService.activeLayer;
+  readonly activeLayer: Signal<WhiteboardLayer> = computed(() => {
+    const layers = this.layers();
+    const activeId = this.activeLayerId();
+    return layers.find((layer) => layer.id === activeId) || layers[0];
+  });
 
   setElements(elements: WhiteboardElement[]): void {
     this.elementsService.setElements(elements);
@@ -634,10 +641,29 @@ export class ApiService {
   }
 
   private releaseMembers(layerId: string, moveTo: string | null): void {
-    const ids = elementIdsByLayer(this.elementsService.getElements(), this.layerService.layers()).get(layerId) ?? [];
+    const elements = this.elementsService.getElements();
+    const layers = this.layerService.layers();
+    const membership = elementIdsByLayer(elements, layers);
+    const ids = membership.get(layerId) ?? [];
     if (!ids.length) return;
-    if (moveTo) this.elementsService.moveToLayer(ids, moveTo, true);
-    else this.elementsService.removeElementsByIds(ids, true);
+    if (!moveTo) {
+      this.elementsService.removeElementsByIds(ids, true);
+      return;
+    }
+
+    const zOf = new Map(elements.map((e) => [e.id, e.zIndex ?? 0]));
+    const ordered = [...ids].sort((a, b) => (zOf.get(a) ?? 0) - (zOf.get(b) ?? 0));
+    const targetZ = (membership.get(moveTo) ?? []).map((id) => zOf.get(id) ?? 0);
+    const movesUp =
+      (layers.find((l) => l.id === layerId)?.zIndex ?? 0) > (layers.find((l) => l.id === moveTo)?.zIndex ?? 0);
+
+    let start: number | null = null;
+    if (targetZ.length) start = movesUp ? Math.max(...targetZ) + 1 : Math.min(...targetZ) - ordered.length;
+
+    this.elementsService.updateElements(
+      ordered.map((id, i) => (start === null ? { id, layerId: moveTo } : { id, layerId: moveTo, zIndex: start + i })),
+      true
+    );
   }
 
   toggleGrid(): void {
