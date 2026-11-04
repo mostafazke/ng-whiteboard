@@ -223,7 +223,7 @@ describe('Alt+P with several boards (integration)', () => {
 
   const press = (target: HTMLElement) =>
     target.dispatchEvent(
-      new KeyboardEvent('keydown', { key: 'p', code: 'KeyP', altKey: true, bubbles: true, cancelable: true }),
+      new KeyboardEvent('keydown', { key: 'p', code: 'KeyP', altKey: true, bubbles: true, cancelable: true })
     );
 
   beforeEach(async () => {
@@ -238,7 +238,7 @@ describe('Alt+P with several boards (integration)', () => {
     for (const f of fixtures) await renderDeferredEditor(f);
     editors = fixtures.map((f) => f.debugElement.query(By.directive(WhiteboardEditorComponent)).componentInstance);
     (fixtures[1].nativeElement.querySelector('[globalKeyboard]') as HTMLElement).dispatchEvent(
-      new MouseEvent('mouseenter'),
+      new MouseEvent('mouseenter')
     );
   });
 
@@ -285,11 +285,14 @@ describe('File shortcuts with several boards (integration)', () => {
     for (const f of fixtures) await renderDeferredEditor(f);
     saves = fixtures.map((f) =>
       jest
-        .spyOn(f.debugElement.query(By.directive(WhiteboardEditorComponent)).injector.get(IOService), 'exportDataAsFile')
-        .mockImplementation(),
+        .spyOn(
+          f.debugElement.query(By.directive(WhiteboardEditorComponent)).injector.get(IOService),
+          'exportDataAsFile'
+        )
+        .mockImplementation()
     );
     (fixtures[1].nativeElement.querySelector('[globalKeyboard]') as HTMLElement).dispatchEvent(
-      new MouseEvent('mouseenter'),
+      new MouseEvent('mouseenter')
     );
   });
 
@@ -299,7 +302,13 @@ describe('File shortcuts with several boards (integration)', () => {
     const button = fixtures[0].nativeElement.querySelector('ng-toolbar button') as HTMLElement;
     button.focus();
 
-    const event = new KeyboardEvent('keydown', { key: 's', code: 'KeyS', ctrlKey: true, bubbles: true, cancelable: true });
+    const event = new KeyboardEvent('keydown', {
+      key: 's',
+      code: 'KeyS',
+      ctrlKey: true,
+      bubbles: true,
+      cancelable: true,
+    });
     button.dispatchEvent(event);
 
     expect(saves.map((s) => s.mock.calls.length)).toEqual([1, 0]);

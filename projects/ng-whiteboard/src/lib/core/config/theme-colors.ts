@@ -21,7 +21,8 @@ export function applyThemeColors(prev: WhiteboardConfig, next: WhiteboardConfig)
 
   return {
     ...next,
-    backgroundColor: next.backgroundColor === fromColors.backgroundColor ? toColors.backgroundColor : next.backgroundColor,
+    backgroundColor:
+      next.backgroundColor === fromColors.backgroundColor ? toColors.backgroundColor : next.backgroundColor,
     strokeColor: next.strokeColor === fromColors.strokeColor ? toColors.strokeColor : next.strokeColor,
   };
 }
