@@ -26,15 +26,15 @@ import {
 
 /** A custom editor UI built on NgWhiteboardService, with the built-in editor turned off. */
 @Component({
-  selector: 'app-custom-editor',
-  templateUrl: './custom-editor.component.html',
-  styleUrls: ['./custom-editor.component.scss'],
+  selector: 'app-basic-component',
+  templateUrl: './basic.component.html',
+  styleUrls: ['./basic.component.scss'],
   encapsulation: ViewEncapsulation.None,
   standalone: true,
   imports: [CommonModule, FormsModule, NgWhiteboardComponent],
   providers: [NgWhiteboardService],
 })
-export class CustomEditorComponent implements OnDestroy {
+export class BasicComponent implements OnDestroy {
   private whiteboardService = inject(NgWhiteboardService);
   private sanitizer = inject(DomSanitizer);
   private clickOutsideListener?: (event: MouseEvent) => void;

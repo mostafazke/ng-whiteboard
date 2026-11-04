@@ -4,7 +4,7 @@ import { ExamplesComponent } from './examples.component';
 import { NgWhiteboardComponent } from 'ng-whiteboard';
 import { MinimalComponent } from './minimal/minimal.component';
 import { OutOfTheBoxComponent } from './out-of-the-box/out-of-the-box.component';
-import { CustomEditorComponent } from './custom-editor/custom-editor.component';
+import { ComprehensiveComponent } from './comprehensive/comprehensive.component';
 import { RouterTestingModule } from '@angular/router/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
@@ -20,7 +20,7 @@ describe('ExamplesComponent', () => {
         ExamplesComponent,
         MinimalComponent,
         OutOfTheBoxComponent,
-        CustomEditorComponent,
+        ComprehensiveComponent,
         NoopAnimationsModule,
       ],
     }).compileComponents();

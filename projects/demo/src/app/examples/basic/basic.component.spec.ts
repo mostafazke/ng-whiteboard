@@ -1,12 +1,12 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { CustomEditorComponent } from './custom-editor.component';
+import { BasicComponent } from './basic.component';
 import { NgWhiteboardService, ToolType, FormatType } from 'ng-whiteboard';
 import { signal } from '@angular/core';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
-describe('CustomEditorComponent', () => {
-  let component: CustomEditorComponent;
-  let fixture: ComponentFixture<CustomEditorComponent>;
+describe('BasicComponent', () => {
+  let component: BasicComponent;
+  let fixture: ComponentFixture<BasicComponent>;
   let mockWhiteboardService: any;
 
   beforeEach(async () => {
@@ -48,16 +48,16 @@ describe('CustomEditorComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-      imports: [CustomEditorComponent, NoopAnimationsModule],
+      imports: [BasicComponent, NoopAnimationsModule],
     })
-      .overrideComponent(CustomEditorComponent, {
+      .overrideComponent(BasicComponent, {
         set: {
           providers: [{ provide: NgWhiteboardService, useValue: mockWhiteboardService }],
         },
       })
       .compileComponents();
 
-    fixture = TestBed.createComponent(CustomEditorComponent);
+    fixture = TestBed.createComponent(BasicComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
