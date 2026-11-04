@@ -56,6 +56,15 @@
                     <td>Initial whiteboard data/elements to load</td>
                   </tr>
                   <tr>
+                    <td><code>showEditor</code></td>
+                    <td><code>boolean</code></td>
+                    <td><code>true</code></td>
+                    <td>
+                      Show the built-in editor (toolbar, properties, layers). Set to <code>false</code> to render only
+                      the canvas, e.g. under your own editor UI. <code>Alt+P</code> toggles the properties panel.
+                    </td>
+                  </tr>
+                  <tr>
                     <td><code>selectedTool</code></td>
                     <td><code>ToolType</code></td>
                     <td><code>-</code></td>
@@ -341,8 +350,32 @@
                   <tr>
                     <td><code>penType</code></td>
                     <td><code>PenType</code></td>
-                    <td><code>PenType.Pen</code></td>
+                    <td><code>PenType.Marker</code></td>
                     <td>Type of pen tool (Pen, Highlighter, etc.)</td>
+                  </tr>
+                  <tr>
+                    <td><code>theme</code></td>
+                    <td><code>'light' | 'dark'</code></td>
+                    <td><code>unset (light)</code></td>
+                    <td>Color theme for the canvas and the built-in editor</td>
+                  </tr>
+                  <tr>
+                    <td><code>cornerRadius</code></td>
+                    <td><code>number</code></td>
+                    <td><code>unset (5)</code></td>
+                    <td>Default corner radius for new rectangles</td>
+                  </tr>
+                  <tr>
+                    <td><code>toolbarTools</code></td>
+                    <td><code>ToolType[]</code></td>
+                    <td><code>unset (all)</code></td>
+                    <td>Tools shown in the editor toolbar. Hidden tools also lose their keyboard shortcuts.</td>
+                  </tr>
+                  <tr>
+                    <td><code>toolbarPosition</code></td>
+                    <td><code>'bottom' | 'left'</code></td>
+                    <td><code>'bottom'</code></td>
+                    <td>Where the editor toolbar sits. Phones always use the bottom.</td>
                   </tr>
                   <tr>
                     <td><code>arrowConfig</code></td>
@@ -625,8 +658,24 @@
                     <td>Clear all elements from the whiteboard</td>
                   </tr>
                   <tr>
-                    <td><code>save(format?, name?)</code></td>
-                    <td>Save whiteboard in specified format (Base64, JSON, SVG)</td>
+                    <td><code>save(format?, name?, options?)</code></td>
+                    <td>
+                      Save whiteboard in specified format (Base64, JSON, SVG, PNG). Output is cropped to the content
+                      with 16px padding. <code>options</code>:
+                      <code>&#123; scale?, background?, padding?, onlySelected? &#125;</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>copyToClipboard(format, options?)</code></td>
+                    <td>Copy the board as PNG or SVG to the clipboard</td>
+                  </tr>
+                  <tr>
+                    <td><code>resetBoard()</code></td>
+                    <td>Reset to a fresh board (undoable)</td>
+                  </tr>
+                  <tr>
+                    <td><code>hasContent()</code></td>
+                    <td>Returns true if the board has any elements</td>
                   </tr>
                 </tbody>
               </table>
@@ -741,8 +790,19 @@
                     <td>Add a new layer with optional name</td>
                   </tr>
                   <tr>
-                    <td><code>removeLayer(id)</code></td>
-                    <td>Remove a layer by ID</td>
+                    <td><code>removeLayer(id, mode?)</code></td>
+                    <td>
+                      Remove a layer; mode is 'delete-elements' (default) or 'move-elements' (moves its elements to the
+                      layer below). Undoable
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>mergeLayerDown(id)</code></td>
+                    <td>Merge a layer into the one below it</td>
+                  </tr>
+                  <tr>
+                    <td><code>beginLayerOpacityEdit(id) / endLayerOpacityEdit()</code></td>
+                    <td>Group a live opacity edit into one undo step</td>
                   </tr>
                   <tr>
                     <td><code>renameLayer(id, name)</code></td>
@@ -750,7 +810,7 @@
                   </tr>
                   <tr>
                     <td><code>setActiveLayer(id)</code></td>
-                    <td>Set the active layer by ID</td>
+                    <td>Set the active layer by ID (other layers stay visible)</td>
                   </tr>
                   <tr>
                     <td><code>getActiveLayerId()</code></td>
@@ -782,7 +842,10 @@
                   </tr>
                   <tr>
                     <td><code>reorderLayersByIndex(from, to)</code></td>
-                    <td>Reorder layers by moving from one index to another</td>
+                    <td>
+                      Reorder layers by moving from one index to another; indices count from the top layer (0 is the
+                      top-most, as listed in the layers panel)
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -845,8 +908,8 @@
                     <td>Import whiteboard data from JSON string</td>
                   </tr>
                   <tr>
-                    <td><code>save(format?, name?)</code></td>
-                    <td>Save whiteboard in specified format (Base64, JSON, SVG, PDF)</td>
+                    <td><code>save(format?, name?, options?)</code></td>
+                    <td>Save whiteboard in specified format (Base64, JSON, SVG, PNG); see ExportOptions</td>
                   </tr>
                   <tr>
                     <td><code>clear()</code></td>

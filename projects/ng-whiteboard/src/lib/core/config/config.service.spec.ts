@@ -27,11 +27,7 @@ describe('ConfigService', () => {
     });
 
     it('should have default editor config values', () => {
-      const editorConfig = service.getEditorConfig();
-      expect(editorConfig.title).toBe('Whiteboard');
-      expect(editorConfig.enableEditor).toBe(true);
-      expect(editorConfig.showTitle).toBe(true);
-      expect(editorConfig.showZoom).toBe(true);
+      expect(service.getEditorConfig()).toEqual({ title: 'Whiteboard' });
     });
   });
 
@@ -523,6 +519,20 @@ describe('ConfigService', () => {
     });
   });
 
+  describe('toggleToolLock', () => {
+    it('locks by setting selectAfterDraw to false and restores the previous value on unlock', () => {
+      service.updateConfig({ selectAfterDraw: { pen: true } });
+
+      service.toggleToolLock();
+      expect(service.toolLocked()).toBe(true);
+      expect(service.getConfig().selectAfterDraw).toBe(false);
+
+      service.toggleToolLock();
+      expect(service.toolLocked()).toBe(false);
+      expect(service.getConfig().selectAfterDraw).toEqual({ pen: true });
+    });
+  });
+
   describe('resolveSelectAfterDraw', () => {
     it('falls back to the element default when the config is omitted', () => {
       expect(service.resolveSelectAfterDraw(ElementType.Pen, false)).toBe(false);
@@ -542,6 +552,132 @@ describe('ConfigService', () => {
       expect(service.resolveSelectAfterDraw(ElementType.Pen, false)).toBe(true); // overridden
       expect(service.resolveSelectAfterDraw(ElementType.Rectangle, true)).toBe(true); // missing → default
       expect(service.resolveSelectAfterDraw(ElementType.Rectangle, false)).toBe(false); // missing → default
+    });
+  });
+
+  describe('theme', () => {
+    it('default config has no theme', () => {
+      expect(service.getConfig().theme).toBeUndefined();
+    });
+
+    it('should swap default light colors to dark defaults when switching to dark', () => {
+      service.updateConfig({ backgroundColor: '#F8F9FA', strokeColor: '#333333' });
+      service.updateConfig({ theme: 'dark' });
+
+      expect(service.getConfig().backgroundColor).toBe('#1a1a1a');
+      expect(service.getConfig().strokeColor).toBe('#e5e7eb');
+    });
+
+    it('should swap default dark colors back to light defaults when switching to light', () => {
+      service.updateConfig({ backgroundColor: '#F8F9FA', strokeColor: '#333333' });
+      service.updateConfigValue('theme', 'dark');
+      service.setConfigValue('theme', 'light');
+
+      expect(service.getConfig().backgroundColor).toBe('#F8F9FA');
+      expect(service.getConfig().strokeColor).toBe('#333333');
+    });
+
+    it('should keep a custom stroke color when switching theme', () => {
+      service.updateConfig({ backgroundColor: '#F8F9FA', strokeColor: '#ff0000' });
+      service.updateConfig({ theme: 'dark' });
+
+      expect(service.getConfig().backgroundColor).toBe('#1a1a1a');
+      expect(service.getConfig().strokeColor).toBe('#ff0000');
+    });
+
+    it('should keep a custom background and still swap a default stroke', () => {
+      service.updateConfig({ backgroundColor: '#abcdef', strokeColor: '#333333' });
+      service.updateConfig({ theme: 'dark' });
+
+      expect(service.getConfig().backgroundColor).toBe('#abcdef');
+      expect(service.getConfig().strokeColor).toBe('#e5e7eb');
+    });
+
+    it('setting light on an unset theme leaves the colors alone', () => {
+      service.updateConfig({ backgroundColor: '#F8F9FA', strokeColor: '#333333' });
+      service.updateConfig({ theme: 'light' });
+
+      expect(service.getConfig().backgroundColor).toBe('#F8F9FA');
+      expect(service.getConfig().strokeColor).toBe('#333333');
+    });
+
+    it('unsetting a dark theme swaps the dark defaults back like light', () => {
+      service.updateConfig({ backgroundColor: '#F8F9FA', strokeColor: '#333333' });
+      service.updateConfig({ theme: 'dark' });
+      service.updateConfig({ theme: undefined });
+
+      expect(service.getConfig().backgroundColor).toBe('#F8F9FA');
+      expect(service.getConfig().strokeColor).toBe('#333333');
+    });
+
+    it('should not change colors when other options are updated', () => {
+      service.updateConfig({ theme: 'dark', backgroundColor: '#F8F9FA', strokeColor: '#333333' });
+      service.updateConfig({ backgroundColor: '#F8F9FA' });
+
+      expect(service.getConfig().backgroundColor).toBe('#F8F9FA');
+    });
+  });
+
+  describe('holdEvents / releaseEvents', () => {
+    let emitted: WhiteboardEvent[];
+
+    beforeEach(() => {
+      emitted = [];
+      eventBusService.listen().subscribe((event) => emitted.push(event.type));
+    });
+
+    it('applies updates immediately but emits one ZoomChange and one ConfigChange on release', () => {
+      service.holdEvents();
+      service.updateConfig({ zoom: 2 });
+      service.updateConfig({ zoom: 3, x: 10 });
+      service.updateConfig({ x: 20 });
+
+      expect(service.getConfig()).toMatchObject({ zoom: 3, x: 20 });
+      expect(emitted).toEqual([]);
+
+      service.releaseEvents();
+
+      expect(emitted).toEqual([WhiteboardEvent.ZoomChange, WhiteboardEvent.ConfigChange]);
+    });
+
+    it('emits only what the held updates would have emitted', () => {
+      service.holdEvents();
+      service.updateConfig({ x: 5 });
+      service.updateConfig({ canvasX: 1 }, false);
+      service.releaseEvents();
+
+      expect(emitted).toEqual([WhiteboardEvent.ConfigChange]);
+    });
+
+    it('release without hold emits nothing', () => {
+      service.releaseEvents();
+      expect(emitted).toEqual([]);
+    });
+
+    it('nested holds emit only when the outermost hold is released', () => {
+      service.holdEvents();
+      service.holdEvents();
+      service.updateConfig({ zoom: 2 });
+
+      service.releaseEvents();
+      expect(emitted).toEqual([]);
+      service.updateConfig({ x: 3 });
+      expect(emitted).toEqual([]);
+
+      service.releaseEvents();
+      expect(emitted).toEqual([WhiteboardEvent.ZoomChange, WhiteboardEvent.ConfigChange]);
+    });
+
+    it('an extra release does not underflow: the next hold still holds', () => {
+      service.holdEvents();
+      service.releaseEvents();
+      service.releaseEvents();
+
+      service.holdEvents();
+      service.updateConfig({ x: 1 });
+      expect(emitted).toEqual([]);
+      service.releaseEvents();
+      expect(emitted).toEqual([WhiteboardEvent.ConfigChange]);
     });
   });
 });

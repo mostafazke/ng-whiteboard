@@ -4,6 +4,7 @@ import {
   AddImage,
   AlignmentType,
   BoundingBox,
+  ExportOptions,
   FormatType,
   SelectionBox,
   ToolType,
@@ -237,6 +238,22 @@ export class NgWhiteboardService {
   public clear(): void {
     const instance = this.getApi();
     instance.clear();
+  }
+
+  /**
+   * Clear all elements and reset layers to a single default layer as one undoable step.
+   */
+  public resetBoard(): void {
+    const instance = this.getApi();
+    instance.resetBoard();
+  }
+
+  /**
+   * Whether the board has any elements.
+   */
+  public hasContent(): boolean {
+    const instance = this.getApi();
+    return instance.hasContent();
   }
 
   /**
@@ -653,9 +670,21 @@ export class NgWhiteboardService {
   /**
    * Save the whiteboard in the specified format.
    */
-  public async save(format: FormatType = FormatType.Base64, name = 'whiteboard'): Promise<string> {
+  public async save(
+    format: FormatType = FormatType.Base64,
+    name = 'whiteboard',
+    options?: ExportOptions
+  ): Promise<string> {
     const instance = this.getApi();
-    return instance.save(format, name);
+    return instance.save(format, name, options);
+  }
+
+  /**
+   * Copy the whiteboard to the clipboard as a PNG image or SVG text.
+   */
+  public async copyToClipboard(format: FormatType.Png | FormatType.Svg, options?: ExportOptions): Promise<void> {
+    const instance = this.getApi();
+    return instance.copyToClipboard(format, options);
   }
 
   /**
@@ -763,11 +792,35 @@ export class NgWhiteboardService {
   }
 
   /**
-   * Remove a layer by ID.
+   * Remove a layer by ID. With `'move-elements'` its elements move to the adjacent layer instead of being deleted.
    */
-  public removeLayer(id: string): boolean {
+  public removeLayer(id: string, mode: 'delete-elements' | 'move-elements' = 'delete-elements'): boolean {
     const instance = this.getApi();
-    return instance.removeLayer(id);
+    return instance.removeLayer(id, mode);
+  }
+
+  /**
+   * Merge a layer into the layer directly below it. Returns false when there is no layer below.
+   */
+  public mergeLayerDown(id: string): boolean {
+    const instance = this.getApi();
+    return instance.mergeLayerDown(id);
+  }
+
+  /**
+   * Start grouping layer opacity changes (e.g. a slider drag) into one undo step.
+   */
+  public beginLayerOpacityEdit(id: string): void {
+    const instance = this.getApi();
+    instance.beginLayerOpacityEdit(id);
+  }
+
+  /**
+   * Finish the layer opacity edit started with `beginLayerOpacityEdit`.
+   */
+  public endLayerOpacityEdit(): void {
+    const instance = this.getApi();
+    instance.endLayerOpacityEdit();
   }
 
   /**
@@ -851,10 +904,12 @@ export class NgWhiteboardService {
   }
 
   /**
-   * Reorder layers by index position.
+   * Reorder layers by index position. Indices refer to the top-first list, as shown in the
+   * layers panel: index 0 is the top-most layer (highest zIndex).
    *
    * @example
    * ```typescript
+   * // Move the third layer from the top to the very top
    * this.whiteboardService.reorderLayersByIndex(2, 0);
    * ```
    */

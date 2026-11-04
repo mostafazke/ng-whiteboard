@@ -1,0 +1,34 @@
+.history-panel {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 2px;
+  padding: var(--wb-bar-padding) var(--wb-space-2);
+  background: var(--wb-color-surface);
+  border: var(--wb-border-width) solid var(--wb-color-border);
+  border-radius: var(--wb-radius);
+  box-shadow: var(--wb-shadow);
+
+  .icon-btn {
+    width: var(--wb-control-size);
+    height: var(--wb-control-size);
+    background: transparent;
+    color: var(--wb-color-gray-600);
+
+    &:hover:not(:disabled) {
+      background-color: var(--wb-color-gray-100);
+      color: var(--wb-color-gray-900);
+    }
+
+    &:active:not(:disabled) {
+      background-color: var(--wb-color-gray-200);
+    }
+  }
+
+  .divider {
+    width: 1px;
+    height: 20px;
+    background-color: var(--wb-color-gray-200);
+    margin: 0 var(--wb-space-1);
+  }
+}

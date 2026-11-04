@@ -15,6 +15,7 @@ describe('KeyboardShortcutService', () => {
 
   const createKeyEvent = (options: {
     key: string;
+    code?: string;
     ctrlKey?: boolean;
     metaKey?: boolean;
     shiftKey?: boolean;
@@ -22,6 +23,7 @@ describe('KeyboardShortcutService', () => {
   }): KeyboardEvent => {
     return new KeyboardEvent('keydown', {
       key: options.key,
+      code: options.code,
       ctrlKey: options.ctrlKey || false,
       metaKey: options.metaKey || false,
       shiftKey: options.shiftKey || false,
@@ -58,6 +60,7 @@ describe('KeyboardShortcutService', () => {
       toggleGrid: jest.fn(),
       toggleSnapToGrid: jest.fn(),
       setActiveTool: jest.fn(),
+      pickImage: jest.fn(),
       bringToFront: jest.fn(),
       bringForward: jest.fn(),
       sendBackward: jest.fn(),
@@ -71,6 +74,7 @@ describe('KeyboardShortcutService', () => {
     mockConfigService = {
       getConfig: jest.fn().mockReturnValue(mockConfig),
       updateConfigValue: jest.fn(),
+      toggleToolLock: jest.fn(),
     } as unknown as jest.Mocked<ConfigService>;
 
     TestBed.configureTestingModule({
@@ -414,6 +418,44 @@ describe('KeyboardShortcutService', () => {
         expect(event.stopPropagation).toHaveBeenCalled();
       });
 
+      it.each([
+        ['p', 'pen'],
+        ['i', 'image'],
+        ['1', 'hand'],
+        ['3', 'pen'],
+        ['9', 'text'],
+        ['0', 'image'],
+        ['z', 'zoomArea'],
+      ])('should handle %s for the %s tool', (key, tool) => {
+        const event = addSpies(createKeyEvent({ key }));
+        service.handleKeyDown(event);
+
+        expect(mockApiService.setActiveTool).toHaveBeenCalledWith(tool);
+        expect(event.preventDefault).toHaveBeenCalled();
+      });
+
+      it('opens the image picker when Image is chosen by key', () => {
+        service.handleKeyDown(addSpies(createKeyEvent({ key: 'i' })));
+        expect(mockApiService.pickImage).toHaveBeenCalledWith();
+      });
+
+      it('Q toggles the tool lock', () => {
+        const event = addSpies(createKeyEvent({ key: 'q' }));
+        service.handleKeyDown(event);
+        expect(mockConfigService.toggleToolLock).toHaveBeenCalled();
+        expect(event.preventDefault).toHaveBeenCalled();
+      });
+
+      it('ignores shortcuts of tools hidden by toolbarTools and renumbers the rest', () => {
+        mockConfigService.getConfig.mockReturnValue({ ...mockConfig, toolbarTools: ['select', 'rectangle'] } as never);
+
+        service.handleKeyDown(addSpies(createKeyEvent({ key: 'p' })));
+        expect(mockApiService.setActiveTool).not.toHaveBeenCalled();
+
+        service.handleKeyDown(addSpies(createKeyEvent({ key: '2' })));
+        expect(mockApiService.setActiveTool).toHaveBeenCalledWith('rectangle');
+      });
+
       it('should handle E for Eraser tool', () => {
         const event = addSpies(createKeyEvent({ key: 'e' }));
         service.handleKeyDown(event);
@@ -573,6 +615,20 @@ describe('KeyboardShortcutService', () => {
     });
 
     describe('additional zoom shortcuts', () => {
+      it.each([
+        [')', 'Digit0', 'resetZoom'],
+        ['!', 'Digit1', 'zoomToFit'],
+        ['@', 'Digit2', 'zoomToSelection'],
+      ] as const)('matches Shift+%s by its physical key %s', (key, code, method) => {
+        service.handleKeyDown(createKeyEvent({ key, code, shiftKey: true }));
+        expect(mockApiService[method]).toHaveBeenCalled();
+      });
+
+      it('matches Ctrl+Shift+; when the browser reports ":"', () => {
+        service.handleKeyDown(createKeyEvent({ key: ':', code: 'Semicolon', ctrlKey: true, shiftKey: true }));
+        expect(mockApiService.toggleSnapToGrid).toHaveBeenCalled();
+      });
+
       it('should handle Shift+0 for reset zoom (100%)', () => {
         const event = addSpies(createKeyEvent({ key: '0', shiftKey: true }));
         service.handleKeyDown(event);
@@ -697,7 +753,7 @@ describe('KeyboardShortcutService', () => {
 
     describe('unhandled keys', () => {
       it('should not prevent default for unhandled keys', () => {
-        const event = addSpies(createKeyEvent({ key: 'q', ctrlKey: false }));
+        const event = addSpies(createKeyEvent({ key: 'j', ctrlKey: false }));
         service.handleKeyDown(event);
 
         expect(event.preventDefault).not.toHaveBeenCalled();

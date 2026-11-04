@@ -149,27 +149,21 @@ export class ToolsService {
   constructor() {
     this.initializeDefaultTools();
 
-    effect(
-      () => {
-        const toolType = this.effectiveTool();
-        const apiService = this._apiServiceCache();
-        // Only update tool instance after ApiService is initialized
-        if (apiService) {
-          this.updateCurrentToolInstance(toolType);
-        }
-      },
-      { allowSignalWrites: true }
-    );
+    effect(() => {
+      const toolType = this.effectiveTool();
+      const apiService = this._apiServiceCache();
+      // Only update tool instance after ApiService is initialized
+      if (apiService) {
+        this.updateCurrentToolInstance(toolType);
+      }
+    });
 
-    effect(
-      () => {
-        // Only update cursor after tool instance is available
-        if (this._currentToolInstance()) {
-          this.updateCursorForActiveTool();
-        }
-      },
-      { allowSignalWrites: true }
-    );
+    effect(() => {
+      // Only update cursor after tool instance is available
+      if (this._currentToolInstance()) {
+        this.updateCursorForActiveTool();
+      }
+    });
   }
 
   private initializeDefaultTools(): void {

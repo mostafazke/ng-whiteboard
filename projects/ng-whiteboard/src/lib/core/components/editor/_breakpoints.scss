@@ -1,0 +1,24 @@
+// Mirrors editor-layout.ts. `.editor` is the `wb-editor` size container.
+@mixin compact {
+  @container wb-editor (max-width: 639.98px) or (max-height: 499.98px) {
+    @content;
+  }
+}
+
+@mixin medium {
+  @container wb-editor (min-width: 640px) and (max-width: 1023.98px) and (min-height: 500px) {
+    @content;
+  }
+}
+
+@mixin not-wide {
+  @container wb-editor (max-width: 1023.98px) or (max-height: 499.98px) {
+    @content;
+  }
+}
+
+@mixin coarse {
+  @media (pointer: coarse) {
+    @content;
+  }
+}

@@ -5,6 +5,22 @@
   min-height: inherit;
   max-width: inherit;
   max-height: inherit;
+
+  --canvas-grid-dark: #374151;
+  --canvas-selection-dark: #60a5fa;
+
+  &[data-theme='dark'] .svgroot {
+    #smallGrid path,
+    #grid path {
+      stroke: var(--canvas-grid-dark);
+    }
+
+    #selectionBox,
+    #selectorBox {
+      stroke: var(--canvas-selection-dark);
+    }
+  }
+
   .svgroot {
     position: absolute;
     top: 0;

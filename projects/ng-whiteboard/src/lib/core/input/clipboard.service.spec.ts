@@ -381,6 +381,19 @@ describe('ClipboardService', () => {
         expect(duplicated[1].id).toContain('_copy_');
       });
 
+      it('gives duplicated groups their own group id', () => {
+        const grouped = [
+          { ...createMockRectangle('elem1'), groupId: 'g' },
+          { ...createMockEllipse('elem2'), groupId: 'g' },
+        ];
+
+        const duplicated = service.duplicateElements(grouped);
+
+        expect(duplicated[0].groupId).toBeDefined();
+        expect(duplicated[0].groupId).not.toBe('g');
+        expect(duplicated[1].groupId).toBe(duplicated[0].groupId);
+      });
+
       it('should return empty array for empty input', () => {
         const duplicated = service.duplicateElements([]);
 

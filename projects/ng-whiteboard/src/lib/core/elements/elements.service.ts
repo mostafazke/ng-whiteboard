@@ -2,7 +2,7 @@ import { HistoryService } from '../history/history.service';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { EventBusService } from '../event-bus';
 import { WhiteboardElement, WhiteboardEvent } from '../types';
-import { getElementBounds } from '../utils';
+import { effectiveLayerId, getElementBounds } from '../utils';
 import { LayerManagementService } from './layer-management.service';
 
 export interface LockInfo {
@@ -250,8 +250,8 @@ export class ElementsService {
       }
 
       // Check if element's layer is locked
-      if (!ignoreLock && element.layerId) {
-        const elementLayer = this.layerManagement.getElementLayer(element.id);
+      if (!ignoreLock) {
+        const elementLayer = this.getLayerOf(element);
         if (elementLayer?.locked) {
           console.warn(`Attempted to modify element on locked layer: ${elementLayer.name}`);
           return element; // Return unchanged element
@@ -301,8 +301,8 @@ export class ElementsService {
       }
 
       // Check if element's layer is locked
-      if (!ignoreLock && element.layerId) {
-        const elementLayer = this.layerManagement.getElementLayer(element.id);
+      if (!ignoreLock) {
+        const elementLayer = this.getLayerOf(element);
         if (elementLayer?.locked) {
           console.warn(`Attempted to remove element from locked layer: ${elementLayer.name}`);
           return false;
@@ -978,6 +978,12 @@ export class ElementsService {
   }
 
   // ---------- Private Helper Methods ----------
+
+  private getLayerOf(element: WhiteboardElement) {
+    const layers = this.layerManagement.layers();
+    const layerId = effectiveLayerId(element, layers);
+    return layers.find((layer) => layer.id === layerId);
+  }
 
   /**
    * Check if an update operation is a lock-related operation

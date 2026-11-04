@@ -1,0 +1,174 @@
+@use '../../breakpoints' as bp;
+
+.toolbar-floating {
+  position: relative;
+  background: var(--wb-color-surface);
+  border: var(--wb-border-width) solid var(--wb-color-border);
+  border-radius: var(--wb-radius);
+  box-shadow: var(--wb-shadow);
+  padding: var(--wb-bar-padding) var(--wb-space-2);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  user-select: none;
+
+  .toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    position: relative;
+
+    .icon-btn {
+      width: var(--wb-control-size);
+      height: var(--wb-control-size);
+      color: var(--wb-color-gray-600);
+      position: relative;
+
+      .tool-digit {
+        position: absolute;
+        right: 2px;
+        bottom: 1px;
+        font-size: 8px;
+        line-height: 1;
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
+      &:hover {
+        background-color: var(--wb-color-gray-100);
+        color: var(--wb-color-gray-900);
+      }
+
+      &.active {
+        background-color: var(--wb-color-primary);
+        color: white;
+
+        &:hover {
+          background-color: var(--wb-color-primary-dark);
+        }
+      }
+
+      &.tool-btn {
+        flex: none;
+        scroll-snap-align: start;
+
+        @media (hover: hover) {
+          &[data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--wb-color-gray-900);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            z-index: 100;
+            animation: tooltipFadeIn 0.2s ease;
+          }
+        }
+      }
+    }
+  }
+
+  .toolbar-separator {
+    flex: none;
+    width: 1px;
+    height: 20px;
+    background-color: var(--wb-color-gray-200);
+    margin: 0 var(--wb-space-1);
+  }
+
+  .flyout-caret {
+    position: absolute;
+    right: 2px;
+    bottom: 2px;
+    border-left: 4px solid transparent;
+    border-bottom: 4px solid currentColor;
+    opacity: 0.6;
+  }
+
+  &.vertical {
+    flex-direction: column;
+    padding: var(--wb-space-2) var(--wb-bar-padding);
+
+    .toolbar-group {
+      flex-direction: column;
+    }
+
+    .toolbar-separator {
+      width: 20px;
+      height: 1px;
+      margin: var(--wb-space-1) 0;
+    }
+
+    .toolbar-group .icon-btn.tool-btn[data-tooltip]:hover::after {
+      bottom: auto;
+      top: 50%;
+      left: calc(100% + 8px);
+      transform: translateY(-50%);
+      animation: none;
+    }
+  }
+}
+
+.flyout-menu {
+  position: absolute;
+  bottom: calc(100% + var(--wb-space-2));
+  transform: translateX(-50%);
+  display: flex;
+  gap: 2px;
+  padding: var(--wb-bar-padding);
+  background: var(--wb-color-surface);
+  border: var(--wb-border-width) solid var(--wb-color-border);
+  border-radius: var(--wb-radius);
+  box-shadow: var(--wb-shadow);
+  z-index: 110;
+
+  .icon-btn {
+    width: var(--wb-control-size);
+    height: var(--wb-control-size);
+    min-width: 44px;
+    min-height: 44px;
+    background: transparent;
+    color: var(--wb-color-gray-600);
+
+    &.active {
+      background-color: var(--wb-color-primary);
+      color: white;
+    }
+  }
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@include bp.coarse {
+  .toolbar-floating .toolbar-group .icon-btn .tool-digit {
+    display: none;
+  }
+}
+
+@include bp.compact {
+  .toolbar-floating {
+    justify-content: safe center;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+
+    .toolbar-group {
+      flex: none;
+    }
+  }
+}

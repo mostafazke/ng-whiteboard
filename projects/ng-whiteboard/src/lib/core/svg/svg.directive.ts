@@ -1,14 +1,31 @@
-import { Directive, HostListener, ElementRef, inject } from '@angular/core';
+import { Directive, HostListener, ElementRef, OnDestroy, inject } from '@angular/core';
 import { SvgService } from './svg.service';
 import { PointerInfo } from '../types';
 import { MOUSE_BUTTON } from '../constants';
+import { ZoomService } from '../viewport/zoom.service';
+import { PanService } from '../viewport/pan.service';
+import { ConfigService } from '../config/config.service';
+import { GestureFrame, GestureTracker } from './gesture-tracker';
+
+const TOUCH = 'touch';
+/** Pinch scale changes accumulate until they pass this, so finger-distance jitter during a pan never zooms. */
+const PINCH_DEAD_ZONE = 1e-3;
 
 @Directive({
   selector: '[svg]',
   standalone: true,
 })
-export class SvgDirective {
+export class SvgDirective implements OnDestroy {
   private elementRef = inject(ElementRef);
+  private zoomService = inject(ZoomService);
+  private panService = inject(PanService);
+  private configService = inject(ConfigService);
+  private gestureTracker = new GestureTracker();
+  /** The touch pointer currently forwarded to the svg service as a normal single-pointer interaction. */
+  private singleTouchId: number | null = null;
+  private holdingConfigEvents = false;
+  /** Scale of the current gesture not yet applied because it is still inside {@link PINCH_DEAD_ZONE}. */
+  private pendingScale = 1;
   lastX!: number;
   lastY!: number;
 
@@ -20,6 +37,10 @@ export class SvgDirective {
 
   constructor(private svgService: SvgService) {}
 
+  ngOnDestroy(): void {
+    this.releaseConfigEvents();
+  }
+
   @HostListener('pointerdown', ['$event'])
   onPointerDown(event: PointerEvent): void {
     if (event.button !== MOUSE_BUTTON.RIGHT) {
@@ -27,10 +48,26 @@ export class SvgDirective {
     }
 
     if (event.currentTarget) {
-      (event.currentTarget as Element).setPointerCapture(event.pointerId);
+      const target = event.currentTarget as SVGElement;
+      // preventDefault() above suppresses the browser's focus change, so editor controls would keep canvas keys
+      target.focus({ preventScroll: true });
+      target.setPointerCapture(event.pointerId);
     }
 
     if (event.button === MOUSE_BUTTON.RIGHT) return;
+
+    if (event.pointerType === TOUCH) {
+      const { x, y } = this.getPointerPosition(event);
+      const result = this.gestureTracker.down(event.pointerId, x, y);
+      if (result === 'start-gesture') {
+        this.singleTouchId = null;
+        this.pendingScale = 1;
+        this.svgService.cancelInteraction();
+        return;
+      }
+      if (result === 'ignore') return;
+      this.singleTouchId = event.pointerId;
+    }
 
     const currentTime = Date.now();
     const currentX = event.clientX;
@@ -59,6 +96,13 @@ export class SvgDirective {
 
   @HostListener('pointermove', ['$event'])
   onPointerMove(event: PointerEvent): void {
+    if (event.pointerType === TOUCH) {
+      const { x, y } = this.getPointerPosition(event);
+      const frame = this.gestureTracker.move(event.pointerId, x, y);
+      if (frame && this.configService.getConfig().drawingEnabled) this.applyGesture(frame);
+      if (this.gestureTracker.isGesturing || event.pointerId !== this.singleTouchId) return;
+    }
+
     if (event.clientX === this.lastX && event.clientY === this.lastY) return;
     this.lastX = event.clientX;
     this.lastY = event.clientY;
@@ -77,6 +121,8 @@ export class SvgDirective {
       (event.currentTarget as Element).releasePointerCapture(event.pointerId);
     }
 
+    if (event.pointerType === TOUCH && !this.releaseTouch(event.pointerId)) return;
+
     if (event.button === MOUSE_BUTTON.RIGHT) return;
     const pointerInfo = this.createPointerInfo(event);
     this.svgService.onPointerUp(pointerInfo);
@@ -88,7 +134,41 @@ export class SvgDirective {
     if (event.currentTarget && (event.currentTarget as Element).hasPointerCapture(event.pointerId)) {
       (event.currentTarget as Element).releasePointerCapture(event.pointerId);
     }
+    if (event.pointerType === TOUCH && !this.releaseTouch(event.pointerId)) return;
     this.svgService.onPointerCancel(this.createPointerInfo(event));
+  }
+
+  /** Forget a touch pointer; true when it was the forwarded single pointer and should reach the svg service. */
+  private releaseTouch(pointerId: number): boolean {
+    const result = this.gestureTracker.up(pointerId);
+    if (result === 'end-gesture') this.releaseConfigEvents();
+    const isSingle = result === 'single' && pointerId === this.singleTouchId;
+    if (pointerId === this.singleTouchId) this.singleTouchId = null;
+    return isSingle;
+  }
+
+  /**
+   * Zoom about the previous midpoint, then pan by its movement, so the content under the fingers follows it.
+   * Config events are held until the gesture ends, so consumers get one ZoomChange/ConfigChange per gesture.
+   */
+  private applyGesture({ scale, dx, dy, centerX, centerY }: GestureFrame): void {
+    if (!this.holdingConfigEvents) {
+      this.holdingConfigEvents = true;
+      this.configService.holdEvents();
+    }
+    this.pendingScale *= scale;
+    if (Math.abs(this.pendingScale - 1) >= PINCH_DEAD_ZONE) {
+      this.zoomService.zoomAtPoint(this.zoomService.getZoomLevel() * this.pendingScale, centerX - dx, centerY - dy);
+      this.pendingScale = 1;
+    }
+    const zoom = this.zoomService.getZoomLevel();
+    this.panService.pan(dx / zoom, dy / zoom);
+  }
+
+  private releaseConfigEvents(): void {
+    if (!this.holdingConfigEvents) return;
+    this.holdingConfigEvents = false;
+    this.configService.releaseEvents();
   }
 
   @HostListener('wheel', ['$event'])
@@ -99,8 +179,14 @@ export class SvgDirective {
 
   @HostListener('keydown', ['$event'])
   onKeyDown(event: KeyboardEvent): void {
-    event.preventDefault();
+    if (event.key !== 'Tab' && !/^F\d+$/.test(event.key)) event.preventDefault();
     this.svgService.onKeyDown(event);
+  }
+
+  @HostListener('blur')
+  @HostListener('window:blur')
+  onBlur(): void {
+    this.svgService.releaseHeldKeys();
   }
 
   @HostListener('keyup', ['$event'])

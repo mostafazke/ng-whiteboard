@@ -52,7 +52,7 @@ describe('ElementsService', () => {
       }),
       assignElementToLayer: jest.fn().mockReturnValue(true),
       removeElementFromAllLayers: jest.fn(),
-      getElementLayer: jest.fn().mockReturnValue(null),
+      layers: jest.fn().mockReturnValue([]),
     };
 
     TestBed.configureTestingModule({
@@ -314,19 +314,26 @@ describe('ElementsService', () => {
         // Add an element with a layerId
         service.setElements([createMockElement('el-1', { x: 0, y: 0, layerId: 'layer-1' })]);
 
-        (layerManagement.getElementLayer as jest.Mock).mockReturnValue({
-          id: 'layer-1',
-          locked: true,
-          name: 'Layer 1',
-          visible: true,
-          zIndex: 0,
-          elements: [],
-        });
+        (layerManagement.layers as unknown as jest.Mock).mockReturnValue([
+          { id: 'layer-1', locked: true, name: 'Layer 1', visible: true, zIndex: 0, elements: [] },
+        ]);
 
         service.updateElements([{ id: 'el-1', x: 999 } as Partial<WhiteboardElement> & { id: string }]);
 
         const element = service.getElementById('el-1');
         expect(element?.x).toBe(0); // Unchanged
+      });
+
+      it('should treat an unknown layerId as the locked bottom layer', () => {
+        service.setElements([createMockElement('el-1', { x: 0, y: 0, layerId: 'gone' })]);
+        (layerManagement.layers as unknown as jest.Mock).mockReturnValue([
+          { id: 'bottom', locked: true, name: 'Bottom', visible: true, zIndex: 0, elements: [] },
+          { id: 'top', locked: false, name: 'Top', visible: true, zIndex: 1, elements: [] },
+        ]);
+
+        service.updateElements([{ id: 'el-1', x: 999 } as Partial<WhiteboardElement> & { id: string }]);
+
+        expect(service.getElementById('el-1')?.x).toBe(0);
       });
 
       it('should update zIndex and maxZIndex', () => {
@@ -416,14 +423,9 @@ describe('ElementsService', () => {
           createMockElement('el-3'),
         ]);
 
-        (layerManagement.getElementLayer as jest.Mock).mockReturnValue({
-          id: 'layer-1',
-          locked: true,
-          name: 'Layer 1',
-          visible: true,
-          zIndex: 0,
-          elements: [],
-        });
+        (layerManagement.layers as unknown as jest.Mock).mockReturnValue([
+          { id: 'layer-1', locked: true, name: 'Layer 1', visible: true, zIndex: 0, elements: [] },
+        ]);
 
         service.removeElementsByIds(['el-1']);
 

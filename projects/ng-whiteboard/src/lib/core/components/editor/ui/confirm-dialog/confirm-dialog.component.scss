@@ -1,0 +1,54 @@
+:host {
+  display: contents;
+}
+
+.confirm-message {
+  margin: 0 0 var(--wb-space-4);
+  font-size: 0.9375rem;
+  line-height: 1.4;
+}
+
+.confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--wb-space-2);
+}
+
+.cancel-btn,
+.confirm-btn {
+  min-height: 36px;
+  padding: 0 var(--wb-space-4);
+  border: 1px solid var(--wb-color-border);
+  border-radius: var(--wb-radius-sm);
+  background: var(--wb-color-surface);
+  color: var(--wb-color-text-primary);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--wb-color-gray-100);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--wb-color-primary);
+    outline-offset: 2px;
+  }
+
+  @media (pointer: coarse) {
+    min-height: 44px;
+  }
+}
+
+.confirm-btn {
+  border-color: var(--wb-color-danger);
+  background: var(--wb-color-danger);
+  color: var(--wb-color-white);
+
+  &:hover {
+    background: var(--wb-color-danger);
+    filter: brightness(0.92);
+  }
+}

@@ -1,0 +1,85 @@
+import { ElementType } from '../../types';
+import { createElement } from '../../elements/element.utils';
+import { exportBounds } from './export-bounds';
+
+const rect = (x: number, y: number, width: number, height: number, extra: object = {}) =>
+  createElement(ElementType.Rectangle, {
+    x,
+    y,
+    width,
+    height,
+    style: { strokeWidth: 2 },
+    ...extra,
+  } as never);
+
+describe('exportBounds', () => {
+  it('returns null for no elements', () => {
+    expect(exportBounds([], 16)).toBeNull();
+  });
+
+  it('expands by half the stroke width and then by padding', () => {
+    expect(exportBounds([rect(10, 10, 100, 50)], 16)).toEqual({ x: -7, y: -7, width: 134, height: 84 });
+  });
+
+  it('includes rotated corners', () => {
+    const result = exportBounds([rect(0, 0, 100, 100, { rotation: 45 })], 0)!;
+    const half = (100 * Math.SQRT2) / 2;
+    expect(result.x).toBeCloseTo(50 - half - 1);
+    expect(result.width).toBeCloseTo(2 * half + 2);
+  });
+
+  it('includes the control point of a curved arrow', () => {
+    const arrow = createElement(ElementType.Arrow, {
+      x1: 0,
+      y1: 0,
+      x2: 100,
+      y2: 0,
+      style: { strokeWidth: 2 },
+      startHead: { type: 'none' },
+      endHead: { type: 'none' },
+      pathType: { type: 'quadratic', cx: 50, cy: -80 },
+    } as never);
+    const result = exportBounds([arrow], 0)!;
+    expect(result.y).toBeLessThanOrEqual(-80);
+  });
+
+  it('widens arrows by their arrowhead size', () => {
+    const arrow = createElement(ElementType.Arrow, {
+      x1: 0,
+      y1: 0,
+      x2: 100,
+      y2: 0,
+      style: { strokeWidth: 2 },
+      startHead: { type: 'none' },
+      endHead: { type: 'arrow' },
+    } as never);
+    const result = exportBounds([arrow], 0)!;
+    expect(result.y).toBeLessThanOrEqual(-6);
+    expect(result.x + result.width).toBeGreaterThanOrEqual(101);
+  });
+
+  it('unions several elements', () => {
+    const result = exportBounds([rect(0, 0, 10, 10), rect(100, 100, 10, 10)], 0)!;
+    expect(result).toEqual({ x: -1, y: -1, width: 112, height: 112 });
+  });
+
+  it('skips an element with non-finite bounds instead of discarding the whole crop', () => {
+    const broken = createElement(ElementType.Ellipse, { style: { strokeWidth: 2 } } as never);
+    delete (broken as { cx?: number }).cx;
+    delete (broken as { cy?: number }).cy;
+    const valid = rect(10, 10, 100, 50);
+    expect(exportBounds([broken, valid], 16)).toEqual(exportBounds([valid], 16));
+  });
+
+  it('skips an arrow with a non-finite extent', () => {
+    const arrow = createElement(ElementType.Arrow, {
+      x1: 0,
+      y1: 0,
+      x2: NaN,
+      y2: 0,
+      style: { strokeWidth: 2 },
+    } as never);
+    const valid = rect(10, 10, 100, 50);
+    expect(exportBounds([arrow, valid], 16)).toEqual(exportBounds([valid], 16));
+  });
+});

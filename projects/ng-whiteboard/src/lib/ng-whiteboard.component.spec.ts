@@ -1,4 +1,12 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ChangeDetectorRef } from '@angular/core';
+import {
+  ComponentFixture,
+  DeferBlockBehavior,
+  discardPeriodicTasks,
+  fakeAsync,
+  flushMicrotasks,
+  TestBed,
+} from '@angular/core/testing';
 import { NgWhiteboardComponent } from './ng-whiteboard.component';
 import { ConfigService } from './core/config/config.service';
 import { ApiService } from './core/api';
@@ -7,6 +15,9 @@ import { EventBusService } from './core/event-bus/event-bus.service';
 import { InstanceService } from './core/canvas/instance.service';
 import { ToolType, WhiteboardElement, ElementType } from './core/types';
 import { WhiteboardEvent } from './core/types/events';
+import { createElement } from './core/elements/element.utils';
+import { SvgService } from './core/svg/svg.service';
+import { renderDeferredEditor } from './core/components/editor/testing/render-deferred-editor';
 
 describe('NgWhiteboardComponent', () => {
   let component: NgWhiteboardComponent;
@@ -304,6 +315,54 @@ describe('NgWhiteboardComponent', () => {
           expect(spy).toHaveBeenCalledWith(tool);
         });
       });
+    });
+  });
+
+  describe('showEditor', () => {
+    const editorEl = () => fixture.nativeElement.querySelector('ng-whiteboard-editor');
+
+    it('renders the editor by default', async () => {
+      expect(component.showEditor).toBe(true);
+      await renderDeferredEditor(fixture);
+      expect(editorEl()).not.toBeNull();
+    });
+
+    it('renders only the canvas when showEditor is false', () => {
+      component.showEditor = false;
+      fixture.debugElement.injector.get(ChangeDetectorRef).markForCheck();
+      fixture.detectChanges();
+      expect(editorEl()).toBeNull();
+      expect(fixture.nativeElement.querySelector('ng-whiteboard-canvas')).not.toBeNull();
+    });
+
+    it('toggling showEditor at runtime adds/removes editor', async () => {
+      component.showEditor = true;
+      fixture.debugElement.injector.get(ChangeDetectorRef).markForCheck();
+      await renderDeferredEditor(fixture);
+      expect(editorEl()).not.toBeNull();
+
+      component.showEditor = false;
+      fixture.debugElement.injector.get(ChangeDetectorRef).markForCheck();
+      fixture.detectChanges();
+      expect(editorEl()).toBeNull();
+    });
+
+    it('showEditor true -> false -> true renders a fresh editor again', async () => {
+      const toggle = async (show: boolean) => {
+        component.showEditor = show;
+        fixture.debugElement.injector.get(ChangeDetectorRef).markForCheck();
+        await renderDeferredEditor(fixture);
+      };
+      await toggle(true);
+      const first = editorEl();
+      await toggle(false);
+      expect(editorEl()).toBeNull();
+
+      await toggle(true);
+
+      expect(editorEl()).not.toBeNull();
+      expect(editorEl()).not.toBe(first);
+      expect(editorEl().querySelector('ng-toolbar')).not.toBeNull();
     });
   });
 
@@ -659,4 +718,91 @@ describe('NgWhiteboardComponent', () => {
       fixture.detectChanges();
     });
   });
+
+  describe('keyboard on the focused canvas svg', () => {
+    let svg: SVGSVGElement;
+
+    const press = (key: string, init: KeyboardEventInit = {}) => {
+      svg.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...init }));
+      svg.dispatchEvent(new KeyboardEvent('keyup', { key, bubbles: true, cancelable: true, ...init }));
+    };
+
+    const rect = (id: string) => createElement(ElementType.Rectangle, { id, x: 0, y: 0, width: 10, height: 10 });
+
+    beforeEach(() => {
+      svg = fixture.nativeElement.querySelector('svg[globalKeyboard]');
+      expect(svg.isConnected).toBe(true);
+      svg.dispatchEvent(new MouseEvent('mouseenter'));
+      svg.focus();
+      expect(document.activeElement).toBe(svg);
+    });
+
+    it('Ctrl+Z undoes exactly one step', () => {
+      apiService.addElements([rect('a')]);
+      apiService.addElements([rect('b')]);
+      let undos = 0;
+      component.undo.subscribe(() => undos++);
+
+      press('z', { ctrlKey: true });
+
+      expect(undos).toBe(1);
+      expect(apiService.getElements().map((el) => el.id)).toEqual(['a']);
+    });
+
+    it('Delete removes the selection once', () => {
+      apiService.addElements([rect('a'), rect('b')]);
+      apiService.selectElements('a');
+      let removals = 0;
+      component.elementsRemoved.subscribe(() => removals++);
+
+      press('Delete');
+
+      expect(removals).toBe(1);
+      expect(apiService.getElements().map((el) => el.id)).toEqual(['b']);
+    });
+
+    it('a tool letter switches the tool once', () => {
+      const setActiveTool = jest.spyOn(toolsService, 'setActiveTool');
+
+      press('r');
+
+      expect(setActiveTool).toHaveBeenCalledTimes(1);
+      expect(toolsService.getActiveToolType()).toBe(ToolType.Rectangle);
+    });
+
+    it('keyDown$ emits a non-shortcut key once although it reaches both the svg and window listeners', () => {
+      const svgService = fixture.debugElement.injector.get(SvgService);
+      const keyDowns: KeyboardEvent[] = [];
+      svgService.keyDown$.subscribe((event) => keyDowns.push(event));
+
+      press('q');
+
+      expect(keyDowns.length).toBe(1);
+    });
+  });
+});
+
+describe('NgWhiteboardComponent deferred editor trigger', () => {
+  beforeEach(async () => {
+    global.ResizeObserver = jest.fn().mockImplementation(() => ({
+      observe: jest.fn(),
+      unobserve: jest.fn(),
+      disconnect: jest.fn(),
+    }));
+    await TestBed.configureTestingModule({
+      imports: [NgWhiteboardComponent],
+      deferBlockBehavior: DeferBlockBehavior.Playthrough,
+    }).compileComponents();
+  });
+
+  it('loads the editor immediately on its own trigger, without forcing a defer block state', fakeAsync(() => {
+    const fixture = TestBed.createComponent(NgWhiteboardComponent);
+    fixture.componentInstance.showEditor = true;
+    fixture.detectChanges();
+    flushMicrotasks();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('ng-whiteboard-editor ng-toolbar')).not.toBeNull();
+    discardPeriodicTasks();
+  }));
 });

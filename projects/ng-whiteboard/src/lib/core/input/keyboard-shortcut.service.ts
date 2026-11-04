@@ -3,6 +3,7 @@ import { ApiService } from '../api';
 import { ConfigService } from '../config/config.service';
 import { KEY_LOWER, MOVEMENT } from '../constants';
 import { AlignmentType, ToolType } from '../types';
+import { toolForKey } from './tool-shortcuts';
 
 @Injectable({ providedIn: 'root' })
 export class KeyboardShortcutService {
@@ -20,12 +21,12 @@ export class KeyboardShortcutService {
     }
 
     const key = event.key.toLowerCase();
+    const code = event.code ?? '';
     const ctrl = event.ctrlKey || event.metaKey;
     const shift = event.shiftKey;
     const alt = event.altKey;
 
-    // Prevent default browser behavior for our shortcuts
-    if (this.handleKeyDownShortcuts(key, ctrl, shift, alt)) {
+    if (this.handleKeyDownShortcuts(key, code, ctrl, shift, alt)) {
       event.preventDefault();
       event.stopPropagation();
     }
@@ -44,43 +45,19 @@ export class KeyboardShortcutService {
     );
   }
 
-  private handleKeyDownShortcuts(key: string, ctrl: boolean, shift: boolean, alt: boolean): boolean {
+  private handleKeyDownShortcuts(key: string, code: string, ctrl: boolean, shift: boolean, alt: boolean): boolean {
+    // With Shift held, `key` is the shifted character (`)`, `!`, `:` on US layouts), so match the physical key too.
+    const digit = (n: number) => key === String(n) || code === `Digit${n}`;
     // Tool Shortcuts
     if (!ctrl && !shift && !alt) {
-      if (key === 'v') {
-        this.apiService.setActiveTool(ToolType.Select);
+      const tool = toolForKey(key, this.configService.getConfig().toolbarTools);
+      if (tool) {
+        this.apiService.setActiveTool(tool);
+        if (tool === ToolType.Image) this.apiService.pickImage();
         return true;
       }
-      if (key === 'd') {
-        this.apiService.setActiveTool(ToolType.Pen);
-        return true;
-      }
-      if (key === 'e') {
-        this.apiService.setActiveTool(ToolType.Eraser);
-        return true;
-      }
-      if (key === 'h') {
-        this.apiService.setActiveTool(ToolType.Hand);
-        return true;
-      }
-      if (key === 'r') {
-        this.apiService.setActiveTool(ToolType.Rectangle);
-        return true;
-      }
-      if (key === 'o') {
-        this.apiService.setActiveTool(ToolType.Ellipse);
-        return true;
-      }
-      if (key === 'a') {
-        this.apiService.setActiveTool(ToolType.Arrow);
-        return true;
-      }
-      if (key === 'l') {
-        this.apiService.setActiveTool(ToolType.Line);
-        return true;
-      }
-      if (key === 't') {
-        this.apiService.setActiveTool(ToolType.Text);
+      if (key === 'q') {
+        this.configService.toggleToolLock();
         return true;
       }
     }
@@ -104,7 +81,7 @@ export class KeyboardShortcutService {
     }
 
     // Clipboard
-    if (ctrl && key === 'c') {
+    if (ctrl && !shift && key === 'c') {
       this.apiService.copyElements();
       return true;
     }
@@ -200,16 +177,16 @@ export class KeyboardShortcutService {
       this.apiService.zoomOut();
       return true;
     }
-    if (shift && !ctrl && !alt && key === '0') {
-      this.apiService.resetZoom(); // Zoom to 100%
+    if (shift && !ctrl && !alt && digit(0)) {
+      this.apiService.resetZoom();
       return true;
     }
-    if (shift && !ctrl && !alt && key === '1') {
-      this.apiService.zoomToFit(); // Zoom to fit
+    if (shift && !ctrl && !alt && digit(1)) {
+      this.apiService.zoomToFit();
       return true;
     }
-    if (shift && !ctrl && !alt && key === '2') {
-      this.apiService.zoomToSelection(); // Zoom to selection
+    if (shift && !ctrl && !alt && digit(2)) {
+      this.apiService.zoomToSelection();
       return true;
     }
 
@@ -218,7 +195,7 @@ export class KeyboardShortcutService {
       this.apiService.toggleGrid();
       return true;
     }
-    if (ctrl && key === ';' && shift) {
+    if (ctrl && shift && (key === ';' || code === 'Semicolon')) {
       this.apiService.toggleSnapToGrid();
       return true;
     }

@@ -1,0 +1,46 @@
+.editor .wb-arrowhead-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--wb-space-1);
+  width: 100%;
+
+  .wb-arrowhead-option {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid var(--wb-color-gray-300);
+    border-radius: var(--wb-radius-sm);
+    background: var(--wb-color-surface);
+    color: var(--wb-color-gray-600);
+    cursor: pointer;
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease,
+      color 0.15s ease;
+
+    &:hover {
+      background: var(--wb-color-gray-50);
+      border-color: var(--wb-color-primary);
+      color: var(--wb-color-gray-900);
+    }
+
+    &[aria-checked='true'] {
+      background: var(--wb-color-primary);
+      border-color: var(--wb-color-primary);
+      color: white;
+    }
+
+    svg {
+      display: block;
+      pointer-events: none;
+
+      &.mirrored {
+        transform: scaleX(-1);
+      }
+    }
+  }
+}

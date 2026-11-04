@@ -1,4 +1,5 @@
-import { Injectable, signal, WritableSignal } from '@angular/core';
+import { inject, Injectable, signal, WritableSignal } from '@angular/core';
+import { Observable, Subject } from 'rxjs';
 import { ApiService } from '../api/api.service';
 import { ContextMenuService } from '../components/context-menu';
 import { ConfigService } from '../config/config.service';
@@ -14,6 +15,7 @@ import {
 } from '../constants';
 import { EventBusService } from '../event-bus/event-bus.service';
 import { DragDropService } from '../input/drag-drop.service';
+import { ElementsService } from '../elements/elements.service';
 import { KeyboardShortcutService } from '../input/keyboard-shortcut.service';
 import { ToolsService } from '../tools/tools.service';
 import { PointerInfo, WhiteboardEvent } from '../types';
@@ -27,10 +29,17 @@ export class SvgService {
   private readonly pointerMoveSig: WritableSignal<PointerInfo | null> = signal<PointerInfo | null>(null);
   private readonly pointerUpSig: WritableSignal<PointerInfo | null> = signal<PointerInfo | null>(null);
 
+  private readonly keyDownSubject = new Subject<KeyboardEvent>();
+  readonly keyDown$: Observable<KeyboardEvent> = this.keyDownSubject.asObservable();
+
+  private lastKeyDownEvent: KeyboardEvent | null = null;
   private isSpaceHeld = false;
   /** True while a pointer gesture is manipulating the selection (move/resize/rotate) even though
    *  a non-Select tool is active — see {@link tryBeginSelectionGesture}. */
   private selectionGesture = false;
+  /** True between a DrawStart and its DrawEnd, so a cancelled interaction never emits an unpaired DrawEnd. */
+  private drawStarted = false;
+  private readonly elementsService = inject(ElementsService);
 
   constructor(
     private toolsService: ToolsService,
@@ -44,6 +53,7 @@ export class SvgService {
   ) {}
 
   onPointerDown(info: PointerInfo) {
+    this.drawStarted = false;
     if (info.button === MOUSE_BUTTON.MIDDLE) {
       this.toolsService.pushTemporaryTool(ToolType.Hand, TEMPORARY_TOOL_ID.PAN_MIDDLE);
       const hand = this.safeGetHandTool();
@@ -64,7 +74,7 @@ export class SvgService {
     // from the drawing tool. Lets a just-drawn element stay fully editable while you keep drawing.
     if (this.tryBeginSelectionGesture(info)) return;
 
-    this.EventBusService.emit(WhiteboardEvent.DrawStart, info);
+    this.emitDrawStart(info);
 
     const currentTool = this.toolsService.getActiveToolInstance();
     currentTool?.handlePointerDown?.(info);
@@ -115,32 +125,84 @@ export class SvgService {
 
     if (!this.canDraw()) return;
 
-    this.EventBusService.emit(WhiteboardEvent.DrawEnd);
+    this.emitDrawEnd();
     const currentTool = this.toolsService.getActiveToolInstance();
     currentTool?.handlePointerUp?.(info);
     this.pointerUpSig.set(info);
   }
 
   /**
-   * Pointer interaction cut short (pointercancel / pointerleave): if a selection gesture is in
-   * flight, finalize it cleanly so the flag never sticks. `SelectTool.handlePointerUp` commits any
-   * open batch and resets its own state, so this leaves nothing dangling.
+   * Pointer interaction cut short (pointercancel / pointerleave): finish it as a release so neither
+   * a selection gesture nor a drawing tool's draft is left open.
    */
   onPointerCancel(info: PointerInfo): void {
     if (this.selectionGesture) {
       this.endSelectionGesture(info);
+    } else if (this.drawStarted) {
+      this.onPointerUp(info);
+    }
+  }
+
+  /** Focus left the board while Space was held, so its keyup will never arrive here. */
+  releaseHeldKeys(): void {
+    if (!this.isSpaceHeld) return;
+    this.isSpaceHeld = false;
+    this.toolsService.popTemporaryTool(TEMPORARY_TOOL_ID.PAN_SPACE);
+  }
+
+  /**
+   * Abort the in-flight pointer interaction (e.g. a second finger turned it into a pinch):
+   * the active tool drops its draft and in-progress state via `cancel()`. Select-tool drags are
+   * finished rather than reset, since deactivating Select would clear the selection.
+   */
+  cancelInteraction(): void {
+    const lastDown = this.pointerDownSig();
+
+    if (this.selectionGesture) {
+      if (lastDown) {
+        this.endSelectionGesture(lastDown);
+      } else {
+        this.selectionGesture = false;
+      }
+    } else if (this.drawStarted) {
+      this.emitDrawEnd();
+    }
+
+    this.elementsService.clearDraftElements();
+
+    const tool = this.toolsService.getActiveToolInstance();
+    if (!tool) return;
+    if (tool.type === ToolType.Select) {
+      if (lastDown) tool.handlePointerUp?.(lastDown);
+    } else {
+      tool.cancel?.();
     }
   }
 
   /** Hand the up/cancel to the Select tool and clear the capture flag. */
   private endSelectionGesture(info: PointerInfo): void {
-    this.EventBusService.emit(WhiteboardEvent.DrawEnd);
+    this.emitDrawEnd();
     this.safeGetToolInstance(ToolType.Select)?.handlePointerUp?.(info);
     this.pointerUpSig.set(info);
     this.selectionGesture = false;
   }
 
+  private emitDrawStart(info: PointerInfo): void {
+    this.drawStarted = true;
+    this.EventBusService.emit(WhiteboardEvent.DrawStart, info);
+  }
+
+  private emitDrawEnd(): void {
+    this.drawStarted = false;
+    this.EventBusService.emit(WhiteboardEvent.DrawEnd);
+  }
+
   onKeyDown(event: KeyboardEvent) {
+    if (event !== this.lastKeyDownEvent) {
+      this.lastKeyDownEvent = event;
+      this.keyDownSubject.next(event);
+    }
+
     if (event.code === KEY.SPACE && !this.isSpaceHeld && !this.isTextToolEditing()) {
       this.isSpaceHeld = true;
       this.toolsService.pushTemporaryTool(ToolType.Hand, TEMPORARY_TOOL_ID.PAN_SPACE);
@@ -305,7 +367,7 @@ export class SvgService {
     if (!selectTool) return false;
 
     this.selectionGesture = true;
-    this.EventBusService.emit(WhiteboardEvent.DrawStart, info);
+    this.emitDrawStart(info);
     selectTool.handlePointerDown?.(info);
     this.pointerDownSig.set(info);
     return true;

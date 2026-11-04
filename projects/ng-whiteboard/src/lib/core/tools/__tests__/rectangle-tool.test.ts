@@ -45,6 +45,7 @@ describe('RectangleTool', () => {
         }
       }),
       commitDraftElements: jest.fn(),
+      removeDraftElements: jest.fn(),
       getConfig: jest.fn().mockReturnValue(config),
       getNextZIndex: jest.fn().mockReturnValue(1),
       getActiveLayerId: jest.fn().mockReturnValue('layer-1'),
@@ -71,6 +72,31 @@ describe('RectangleTool', () => {
       expect(rectangleTool.startPoint).toEqual({ x: 100, y: 200 });
       expect(createElement).toHaveBeenCalledWith(ElementType.Rectangle, expect.any(Object), 'layer-1');
       expect(apiService.addDraftElements).toHaveBeenCalledWith([expect.any(Object)]);
+    });
+
+    it('should default the corner radius to 5 when cornerRadius is unset', () => {
+      (createElement as jest.Mock).mockReturnValue({ id: '1', type: ElementType.Rectangle });
+
+      rectangleTool.handlePointerDown(createMockPointerInfo({ x: 10, y: 10, eventType: 'pointerdown' }));
+
+      expect(createElement).toHaveBeenLastCalledWith(
+        ElementType.Rectangle,
+        expect.objectContaining({ rx: 5 }),
+        'layer-1'
+      );
+    });
+
+    it('should use the configured cornerRadius, including 0', () => {
+      (createElement as jest.Mock).mockReturnValue({ id: '1', type: ElementType.Rectangle });
+      rectangleTool.whiteboardConfig.cornerRadius = 0;
+
+      rectangleTool.handlePointerDown(createMockPointerInfo({ x: 10, y: 10, eventType: 'pointerdown' }));
+
+      expect(createElement).toHaveBeenLastCalledWith(
+        ElementType.Rectangle,
+        expect.objectContaining({ rx: 0 }),
+        'layer-1'
+      );
     });
 
     it('should snap to grid if enabled', () => {
@@ -238,6 +264,7 @@ describe('RectangleTool', () => {
         {
           x: 100,
           y: 200,
+          rx: 5,
           style: {
             strokeColor: '#000000',
             strokeWidth: 2,
@@ -310,6 +337,7 @@ describe('RectangleTool', () => {
         {
           x: 100,
           y: 200,
+          rx: 5,
           style: {
             strokeColor: '#000000',
             strokeWidth: 2,
@@ -439,5 +467,19 @@ describe('RectangleTool', () => {
         })
       );
     });
+  });
+
+  it('cancel() removes its draft so a later pointer up commits nothing', () => {
+    (createElement as jest.Mock).mockReturnValue({ id: 'r1', type: ElementType.Rectangle });
+    rectangleTool.handlePointerDown(createMockPointerInfo({ x: 10, y: 10 }));
+
+    rectangleTool.cancel();
+    rectangleTool.handlePointerUp();
+
+    expect(apiService.removeDraftElements).toHaveBeenCalledWith(['r1']);
+    expect(rectangleTool.element).toBeNull();
+    expect(rectangleTool.startPoint).toBeNull();
+    expect(apiService.commitDraftElements).not.toHaveBeenCalled();
+    expect(apiService.finalizeDraw).not.toHaveBeenCalled();
   });
 });

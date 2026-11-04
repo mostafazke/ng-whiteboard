@@ -145,6 +145,39 @@ describe('WhiteboardCanvasComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  describe('data-theme', () => {
+    beforeEach(() => {
+      (globalThis as unknown as { ResizeObserver: unknown }).ResizeObserver = class {
+        observe() {
+          // No-op
+        }
+        disconnect() {
+          // No-op
+        }
+        unobserve() {
+          // No-op
+        }
+      };
+    });
+
+    afterEach(() => {
+      delete (globalThis as unknown as { ResizeObserver?: unknown }).ResizeObserver;
+    });
+
+    it('is absent by default', () => {
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.hasAttribute('data-theme')).toBe(false);
+    });
+
+    it('is dark when theme is dark', () => {
+      mockConfigSignal.set({ ...mockConfig, theme: 'dark' } as typeof mockConfig);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.getAttribute('data-theme')).toBe('dark');
+    });
+  });
+
   describe('selectedToolSignal', () => {
     it('should return the selected tool from toolsService', () => {
       expect(component.selectedToolSignal()).toBe(ToolType.Pen);
@@ -287,7 +320,7 @@ describe('WhiteboardCanvasComponent', () => {
       const filtered = component.filteredElements();
       expect(filtered.length).toBe(3);
       // z-indices:
-      // no-layer: 0*1000 + 50000 = 50000 (layerA is undefined, zIndex is 0)
+      // no-layer: bottom layer z10 -> 10*1000 + 50000 = 60000
       // layer-10: 10*1000 + 1 = 10001
       // layer-20: 20*1000 + 1 = 20001
       // Order should be layer-10, layer-20, no-layer
@@ -338,20 +371,30 @@ describe('WhiteboardCanvasComponent', () => {
       mockAllElements.set([mockElement]);
 
       const filtered = component.filteredElements();
-      // Elements without layerId should still be shown if there are no layers?
-      // Current logic: elements.filter((el) => !el.layerId || visibleLayerIds.has(el.layerId))
-      // if visibleLayerIds is empty, and el.layerId is 'default', it will be filtered out.
-      // If el.layerId is undefined, it will stay.
-      expect(filtered.length).toBe(0); // mockElement has layerId: 'default'
+      expect(filtered.length).toBe(1);
     });
 
-    it('should handle elements with non-existent layerId', () => {
+    it('should place elements with non-existent layerId on the bottom layer', () => {
       const elementBadLayer = { ...mockElement, id: 'bad-layer', layerId: 'non-existent' };
       mockLayers.set([mockLayer]);
       mockAllElements.set([elementBadLayer]);
 
-      const filtered = component.filteredElements();
-      expect(filtered.length).toBe(0);
+      expect(component.filteredElements().length).toBe(1);
+
+      mockLayers.set([
+        { ...mockLayer, visible: false },
+        { ...mockLayer, id: 'top', zIndex: 1 },
+      ]);
+      expect(component.filteredElements().length).toBe(0);
+    });
+
+    it('should hide elements without layerId when the bottom layer is hidden', () => {
+      const hiddenBottom = { ...mockLayer, id: 'a', visible: false, zIndex: 0 };
+      const visibleTop = { ...mockLayer, id: 'b', visible: true, zIndex: 1 };
+      mockLayers.set([visibleTop, hiddenBottom]);
+      mockAllElements.set([{ ...mockElement, id: 'orphan', layerId: undefined }]);
+
+      expect(component.filteredElements()).toEqual([]);
     });
 
     it('should correctly map isLocked, blendMode, and transform from layer/element', () => {

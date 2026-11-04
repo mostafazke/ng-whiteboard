@@ -1,6 +1,6 @@
 import { Injectable, signal, computed } from '@angular/core';
 import { WhiteboardElement, WhiteboardLayer, LayerState, BlendMode, BLEND_MODES } from '../types';
-import { generateUUID } from '../utils';
+import { effectiveLayerId, elementIdsByLayer, generateUUID } from '../utils';
 
 @Injectable({
   providedIn: 'root',
@@ -56,13 +56,7 @@ export class LayerManagementService {
       blendMode: 'normal',
     };
 
-    // Make all other layers invisible
-    const updatedLayers = layers.map((layer) => ({
-      ...layer,
-      visible: false,
-    }));
-
-    this._layers.set([...updatedLayers, newLayer]);
+    this._layers.set([...layers, newLayer]);
     this.setActiveLayer(newLayer.id);
 
     return newLayer;
@@ -92,8 +86,10 @@ export class LayerManagementService {
 
     // If active layer was removed, set new active layer
     if (this._activeLayerId() === id) {
-      const newActiveLayer = updatedLayers[Math.max(0, updatedLayers.length - 1)];
-      this.setActiveLayer(newActiveLayer.id);
+      const sorted = [...layers].sort((a, b) => a.zIndex - b.zIndex);
+      const index = sorted.findIndex((l) => l.id === id);
+      const neighbour = sorted[index - 1] ?? sorted[index + 1];
+      this.setActiveLayer(neighbour.id);
     }
 
     return true;
@@ -129,7 +125,7 @@ export class LayerManagementService {
 
     // Create a map of old element IDs to new element IDs
     const elementMap = new Map<string, string>();
-    const layerElements = elements.filter((el) => layerToDuplicate.elements.includes(el.id));
+    const layerElements = elements.filter((el) => effectiveLayerId(el, layers) === id);
 
     layerElements.forEach((element) => {
       const newElementId = generateUUID();
@@ -251,18 +247,16 @@ export class LayerManagementService {
   }
 
   /**
-   * Reorder layers by moving a layer from one position to another
-   * This properly reassigns zIndex values based on the new order
+   * Reorder layers by moving a layer between positions of the top-first list
+   * (index 0 is the layer with the highest zIndex) and reassign zIndex to match.
    *
-   * @param previousIndex - Current index in the layers array
-   * @param currentIndex - Target index in the layers array
    * @returns true if successful, false otherwise
    */
   reorderLayersByIndex(previousIndex: number, currentIndex: number): boolean {
-    const layers = this._layers();
+    const layers = [...this._layers()].sort((a, b) => b.zIndex - a.zIndex);
 
     if (previousIndex === currentIndex) {
-      return false; // No change needed
+      return false;
     }
 
     if (previousIndex < 0 || previousIndex >= layers.length || currentIndex < 0 || currentIndex >= layers.length) {
@@ -272,25 +266,16 @@ export class LayerManagementService {
 
     const layerToMove = layers[previousIndex];
 
-    // Prevent moving locked layers
     if (layerToMove.locked) {
       console.warn(`Cannot reorder locked layer: ${layerToMove.name}`);
       return false;
     }
 
-    // Create new array with the layer moved to its new position
-    const reorderedLayers = [...layers];
-    reorderedLayers.splice(previousIndex, 1); // Remove from old position
-    reorderedLayers.splice(currentIndex, 0, layerToMove); // Insert at new position
+    const reordered = [...layers];
+    reordered.splice(previousIndex, 1);
+    reordered.splice(currentIndex, 0, layerToMove);
 
-    // Reassign zIndex values based on new array order
-    // Lower index = higher zIndex (renders on top)
-    const updatedLayers = reorderedLayers.map((layer, index) => ({
-      ...layer,
-      zIndex: reorderedLayers.length - 1 - index, // Reverse: first item gets highest zIndex
-    }));
-
-    this._layers.set(updatedLayers);
+    this._layers.set(reordered.map((layer, index) => ({ ...layer, zIndex: reordered.length - 1 - index })));
     return true;
   }
 
@@ -376,8 +361,7 @@ export class LayerManagementService {
    * Behavior:
    * - Allows activating any layer including locked layers
    * - When a locked layer is active, drawing will be disabled
-   * - Makes all other layers invisible when a layer is activated
-   * - This ensures only the active layer is visible
+   * - Never changes any layer's visibility
    */
   setActiveLayer(id: string): boolean {
     const layers = this._layers();
@@ -387,14 +371,6 @@ export class LayerManagementService {
       console.warn(`Layer with id ${id} not found`);
       return false;
     }
-
-    // Make all layers invisible except the one being activated
-    const updatedLayers = layers.map((l) => ({
-      ...l,
-      visible: l.id === id,
-    }));
-
-    this._layers.set(updatedLayers);
 
     this._activeLayerId.set(id);
     return true;
@@ -494,52 +470,16 @@ export class LayerManagementService {
   /**
    * Get layer containing element
    */
-  getElementLayer(elementId: string): WhiteboardLayer | null {
+  getElementLayer(element: Pick<WhiteboardElement, 'layerId'>): WhiteboardLayer | null {
     const layers = this._layers();
-    return layers.find((layer) => layer.elements.includes(elementId)) || null;
+    const layerId = effectiveLayerId(element, layers);
+    return layers.find((layer) => layer.id === layerId) || null;
   }
 
-  // RENDERING HELPERS
-
-  /**
-   * Get elements from visible layers only
-   */
-  getVisibleElements(allElements: WhiteboardElement[]): WhiteboardElement[] {
-    const visibleLayers = this.visibleLayers();
-    const visibleElementIds = new Set(visibleLayers.flatMap((layer) => layer.elements));
-
-    return allElements.filter((element) => visibleElementIds.has(element.id));
-  }
-
-  /**
-   * Get elements from unlocked layers only (for editing)
-   */
-  getEditableElements(allElements: WhiteboardElement[]): WhiteboardElement[] {
-    const unlockedLayers = this.unlockedLayers();
-    const editableElementIds = new Set(unlockedLayers.flatMap((layer) => layer.elements));
-
-    return allElements.filter((element) => editableElementIds.has(element.id));
-  }
-
-  /**
-   * Get elements sorted by layer z-index
-   */
-  getSortedElements(allElements: WhiteboardElement[]): WhiteboardElement[] {
-    const sortedLayers = this.sortedLayers();
-    const elementLayerMap = new Map<string, number>();
-
-    // Map each element to its layer's z-index
-    sortedLayers.forEach((layer) => {
-      layer.elements.forEach((elementId) => {
-        elementLayerMap.set(elementId, layer.zIndex);
-      });
-    });
-
-    return allElements.sort((a, b) => {
-      const aZIndex = elementLayerMap.get(a.id) ?? 0;
-      const bZIndex = elementLayerMap.get(b.id) ?? 0;
-      return aZIndex - bZIndex;
-    });
+  layersWithMembership(elements: readonly WhiteboardElement[]): WhiteboardLayer[] {
+    const layers = this._layers();
+    const membership = elementIdsByLayer(elements, layers);
+    return layers.map((layer) => ({ ...layer, elements: membership.get(layer.id) ?? [] }));
   }
 
   // EXPORT/IMPORT SUPPORT
@@ -547,9 +487,9 @@ export class LayerManagementService {
   /**
    * Serialize layer state for saving
    */
-  exportLayerState(): LayerState {
+  exportLayerState(elements: readonly WhiteboardElement[] = []): LayerState {
     return {
-      layers: this._layers(),
+      layers: this.layersWithMembership(elements),
       activeLayerId: this._activeLayerId(),
     };
   }

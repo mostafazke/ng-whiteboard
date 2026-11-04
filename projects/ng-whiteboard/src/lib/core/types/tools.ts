@@ -37,5 +37,7 @@ export type Tool = {
   handleKeyUp?(event: KeyboardEvent): void;
   onActivate?(): void;
   onDeactivate?(): void;
+  /** Abort an in-progress interaction: drop this tool's draft and state without recording history. */
+  cancel?(): void;
   isEditing?: boolean;
 };

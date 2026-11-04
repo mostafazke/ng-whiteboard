@@ -14,6 +14,12 @@ export class LineTool extends BaseTool {
   private lastY = 0;
   private readonly MIN_LENGTH = 2;
 
+  override cancel(): void {
+    if (this.element) this.apiService.removeDraftElements([this.element.id]);
+    this.element = null;
+    this.startPoint = null;
+  }
+
   override handlePointerDown(event: PointerInfo): void {
     if (!this.active) return;
 

@@ -1,0 +1,123 @@
+@use '../../breakpoints' as bp;
+
+.controls-panel {
+  display: flex;
+  align-items: center;
+  gap: var(--wb-space-1);
+  padding: var(--wb-bar-padding) var(--wb-space-2);
+  background: var(--wb-color-surface);
+  border: var(--wb-border-width) solid var(--wb-color-border);
+  border-radius: var(--wb-radius);
+  box-shadow: var(--wb-shadow);
+
+  .zoom-controls {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .icon-btn {
+    width: var(--wb-control-size);
+    height: var(--wb-control-size);
+    color: var(--wb-color-gray-600);
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: var(--wb-color-gray-100);
+      color: var(--wb-color-gray-900);
+    }
+
+    &:active {
+      background: var(--wb-color-gray-200);
+    }
+
+    &:disabled:hover {
+      background: transparent;
+      color: var(--wb-color-gray-600);
+    }
+  }
+
+  .dropdown-wrapper {
+    position: relative;
+  }
+
+  .zoom-value {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--wb-space-1);
+    min-width: 45px;
+    height: var(--wb-control-size);
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--wb-color-gray-700);
+    background: var(--wb-color-gray-50);
+    border: 1px solid var(--wb-color-gray-200);
+    border-radius: var(--wb-radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: var(--wb-color-gray-100);
+      border-color: var(--wb-color-gray-300);
+    }
+
+    &.active {
+      background: var(--wb-color-primary);
+      color: white;
+      border-color: var(--wb-color-primary);
+    }
+  }
+
+  .zoom-dropdown {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 0;
+    background: var(--wb-color-white);
+    border: 1px solid var(--wb-color-gray-200);
+    border-radius: var(--wb-radius);
+    box-shadow: var(--wb-shadow-lg);
+    z-index: 1000;
+    min-width: 120px;
+    overflow: hidden;
+
+    .zoom-actions {
+      padding: var(--wb-space-1);
+
+      .zoom-action {
+        display: flex;
+        align-items: center;
+        gap: var(--wb-space-1);
+        width: 100%;
+        padding: var(--wb-space-1);
+        border: none;
+        background: none;
+        color: var(--wb-color-gray-700);
+        text-align: left;
+        cursor: pointer;
+        border-radius: var(--wb-radius-sm);
+        font-size: 0.7rem;
+        transition: background 0.2s ease;
+
+        &:hover {
+          background: var(--wb-color-gray-100);
+        }
+
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+
+          &:hover {
+            background: none;
+          }
+        }
+      }
+    }
+  }
+}
+
+@include bp.coarse {
+  .controls-panel .zoom-dropdown .zoom-actions .zoom-action {
+    font-size: 0.8125rem;
+  }
+}

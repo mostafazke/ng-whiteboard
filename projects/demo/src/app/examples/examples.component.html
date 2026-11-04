@@ -5,18 +5,17 @@
     <div class="intro">
       <h1>Examples</h1>
       <p class="lead">
-        Explore different implementation examples showcasing various features and configurations of ng-whiteboard. From
-        minimal setups to comprehensive implementations.
+        Three ways to use ng-whiteboard: the bare canvas, the complete whiteboard as it ships, and your own interface on
+        top of the service API.
       </p>
     </div>
 
     <div class="example-section">
       <div class="example-header">
-        <h2 id="minimal">
-          <a class="anchor" [routerLink]="['/examples']" fragment="minimal" aria-label="Minimal example">#</a>
-          Minimal Example
+        <h2 id="canvas-only">
+          <a class="anchor" [routerLink]="['/examples']" fragment="canvas-only" aria-label="Canvas only example">#</a>
+          Canvas Only
         </h2>
-        <p>A simple, bare-bones implementation with minimal configuration.</p>
       </div>
       <div class="example-content">
         <div class="demo">
@@ -27,28 +26,32 @@
 
     <div class="example-section">
       <div class="example-header">
-        <h2 id="basic">
-          <a class="anchor" [routerLink]="['/examples']" fragment="basic" aria-label="Basic example">#</a>
-          Basic Example
+        <h2 id="out-of-the-box">
+          <a class="anchor" [routerLink]="['/examples']" fragment="out-of-the-box" aria-label="Out of the box example"
+            >#</a
+          >
+          Out of the Box
         </h2>
-        <p>A standard implementation with common features and controls.</p>
       </div>
       <div class="example-content">
         <div class="demo">
-          <app-basic-component></app-basic-component>
+          <app-out-of-the-box></app-out-of-the-box>
         </div>
       </div>
     </div>
 
     <div class="example-section">
       <div class="example-header">
-        <h2 id="comprehensive">
-          <a class="anchor" [routerLink]="['/examples']" fragment="comprehensive" aria-label="Comprehensive example"
+        <h2 id="custom-interface">
+          <a
+            class="anchor"
+            [routerLink]="['/examples']"
+            fragment="custom-interface"
+            aria-label="Custom interface example"
             >#</a
           >
-          Comprehensive Example
+          Custom Interface
         </h2>
-        <p>A full-featured implementation showcasing all available tools and options.</p>
       </div>
       <div class="example-content">
         <div class="demo">

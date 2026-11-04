@@ -59,4 +59,19 @@ describe('HandTool', () => {
     handTool.handlePointerUp();
     expect(handTool['isDragging']).toBe(false);
   });
+
+  it('cancel() ends a drag and resets the cursor so later moves do not pan', () => {
+    handTool.handlePointerDown(createMockPointerInfo({ clientX: 100, clientY: 200 }));
+
+    handTool.cancel();
+    handTool.handlePointerMove(createMockPointerInfo({ clientX: 150, clientY: 250 }));
+
+    expect(mockApiService.resetCursor).toHaveBeenCalledTimes(1);
+    expect(mockApiService.pan).not.toHaveBeenCalled();
+  });
+
+  it('cancel() without a drag does nothing', () => {
+    handTool.cancel();
+    expect(mockApiService.resetCursor).not.toHaveBeenCalled();
+  });
 });

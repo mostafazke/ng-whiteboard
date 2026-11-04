@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, computed, signal } from '@angular/core';
 import {
   ElementType,
   LineCap,
@@ -7,9 +7,11 @@ import {
   WhiteboardEvent,
   EditorConfig,
   PenType,
+  SelectAfterDrawConfig,
   defaultArrowConfig,
 } from '../types';
 import { EventBusService } from '../event-bus/event-bus.service';
+import { applyThemeColors } from './theme-colors';
 
 @Injectable({ providedIn: 'root' })
 export class ConfigService {
@@ -38,83 +40,34 @@ export class ConfigService {
     gridSize: 10,
     snapToGrid: true,
     keyboardShortcutsEnabled: true,
-    penType: PenType.Pen,
+    penType: PenType.Marker,
     penThrottlingThreshold: 2,
     arrowConfig: { ...defaultArrowConfig },
   });
 
-  private editorConfig = signal<EditorConfig>({
-    title: 'Whiteboard',
-    enableEditor: true,
-    // Core panels / features
-    showTitle: true,
-    showZoom: true,
-    showLayers: true,
-    showTools: true,
-    showGrid: true,
-    showBackground: true,
-    showStroke: true,
-    showFill: true,
-    showOpacity: true,
-    showFont: true,
-    showDash: true,
-    showEraser: true,
-    showUndo: true,
-    showRedo: true,
-    showClear: true,
-    showSave: true,
-    showLoad: false,
-    showExport: true,
-    showImport: false,
-    showShare: false,
-    showSettings: false,
-    showHelp: false,
-    showAbout: false,
-    showFeedback: false,
-    showSupport: false,
-    showContact: false,
-    showPrivacy: false,
-    showTerms: false,
-    showLicense: false,
-    showAttribution: false,
-    showCredits: false,
-    showChangelog: false,
-    showReleaseNotes: false,
-    showRoadmap: false,
-    showBlog: false,
-    showForum: false,
-    showCommunity: false,
-    showEvents: false,
-    showWebinars: false,
-    showWorkshops: false,
-    showTutorials: false,
-    showDocumentation: false,
-    showAPI: false,
-    showSDK: false,
-    showCLI: false,
-    showPlugins: false,
-    showExtensions: false,
-    showIntegrations: false,
-    showAddons: false,
-    showThemes: false,
-    showTemplates: false,
-    showSnippets: false,
-    showExamples: true,
-    showDemos: true,
-    showSamples: false,
-    showShowcases: false,
-    showPortfolios: false,
-    showCaseStudies: false,
-    showSuccessStories: false,
-    showTestimonials: false,
-    showReviews: false,
-    showRatings: false,
-    showComparisons: false,
-    showAlternatives: false,
-    showInsights: false,
-  });
+  private editorConfig = signal<EditorConfig>({ title: 'Whiteboard' });
+
+  /** Nesting depth of {@link holdEvents}; events flow again once every hold is released. */
+  private holdDepth = 0;
+  private heldZoomChange = false;
+  private heldConfigChange = false;
+
+  /** `selectAfterDraw` to restore when the tool lock is released. */
+  private unlockedSelectAfterDraw: SelectAfterDrawConfig | undefined;
+
+  /** Tool lock: the drawing tool stays active after each element (`selectAfterDraw: false`). */
+  readonly toolLocked = computed(() => this.config().selectAfterDraw === false);
 
   constructor(private eventBusService: EventBusService) {}
+
+  toggleToolLock(): void {
+    if (this.toolLocked()) {
+      this.updateConfig({ selectAfterDraw: this.unlockedSelectAfterDraw });
+    } else {
+      this.unlockedSelectAfterDraw = this.config().selectAfterDraw;
+      this.updateConfig({ selectAfterDraw: false });
+    }
+  }
 
   getConfig(): Readonly<WhiteboardConfig> {
     return this.config();
@@ -145,9 +98,15 @@ export class ConfigService {
   }
 
   updateConfig(partialConfig: Partial<WhiteboardConfig>, emitEvent = true): void {
-    this.config.update((current) => ({ ...current, ...partialConfig }));
+    this.config.update((current) => applyThemeColors(current, { ...current, ...partialConfig }));
 
     const hasZoomRelatedChanges = 'zoom' in partialConfig;
+
+    if (this.holdDepth > 0) {
+      this.heldZoomChange ||= hasZoomRelatedChanges;
+      this.heldConfigChange ||= emitEvent;
+      return;
+    }
 
     if (hasZoomRelatedChanges) {
       const config = this.config();
@@ -160,12 +119,38 @@ export class ConfigService {
     }
   }
 
+  /**
+   * Coalesce the ZoomChange/ConfigChange events of `updateConfig` until the matching {@link releaseEvents},
+   * e.g. for the per-frame updates of a pinch. The config itself still updates immediately. Holds nest.
+   */
+  holdEvents(): void {
+    this.holdDepth++;
+  }
+
+  /** Release one hold; the last release emits at most one ZoomChange and one ConfigChange for the held updates. */
+  releaseEvents(): void {
+    if (this.holdDepth === 0) return;
+    this.holdDepth--;
+    if (this.holdDepth > 0) return;
+    const zoomChanged = this.heldZoomChange;
+    const configChanged = this.heldConfigChange;
+    this.heldZoomChange = false;
+    this.heldConfigChange = false;
+
+    if (zoomChanged) {
+      this.eventBusService.emit(WhiteboardEvent.ZoomChange, { zoom: this.config().zoom });
+    }
+    if (configChanged) {
+      this.eventBusService.emit(WhiteboardEvent.ConfigChange, this.config());
+    }
+  }
+
   isConfigDifferent(key: keyof WhiteboardConfig, value: WhiteboardConfig[keyof WhiteboardConfig]): boolean {
     return this.config()[key] !== value;
   }
 
   updateConfigValue(key: keyof WhiteboardConfig, value: WhiteboardConfig[keyof WhiteboardConfig]): void {
-    this.config.update((current) => ({ ...current, [key]: value }));
+    this.config.update((current) => applyThemeColors(current, { ...current, [key]: value }));
     this.eventBusService.emit(WhiteboardEvent.ConfigChange, this.config());
   }
 
@@ -184,7 +169,7 @@ export class ConfigService {
   }
 
   setConfigValue<K extends keyof WhiteboardConfig>(key: K, value: WhiteboardConfig[K]): void {
-    this.config.update((current) => ({ ...current, [key]: value }));
+    this.config.update((current) => applyThemeColors(current, { ...current, [key]: value }));
     this.eventBusService.emit(WhiteboardEvent.ConfigChange, this.config());
   }
 

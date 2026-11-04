@@ -1,0 +1,213 @@
+<div
+  #root
+  class="editor"
+  tabindex="-1"
+  [attr.data-theme]="themeSignal()"
+  [attr.data-layout]="layout()"
+  [attr.data-toolbar]="toolbarPosition()"
+  (keydown)="handleShortcut($event); containKey($event)"
+  (keyup)="containKey($event)"
+>
+  <div class="editor-container">
+    <ng-header-panel
+      class="wb-header"
+      [editorConfig]="editorConfigSignal()"
+      [layers]="layersSignal()"
+      [activeLayerId]="activeLayerIdSignal()"
+      [showLayers]="showLayersDropdownSignal()"
+      [compact]="isCompact()"
+      [hasSelection]="hasSelectionSignal()"
+      [propertiesOpen]="propertiesSheetOpenSignal()"
+      [menuOpen]="menuSheetOpenSignal()"
+      [menuItems]="mainMenuItems()"
+      [saveState]="saveStateSignal()"
+      [fileName]="fileNameSignal()"
+      (titleChange)="onTitleChange($event)"
+      (layersToggle)="toggleLayersDropdown($event)"
+      (layerAction)="onLayerAction($event)"
+      (propertiesToggle)="togglePropertiesSheet($event)"
+      (menuToggle)="toggleMenuSheet($event)"
+      (menuAction)="onHeaderMenuAction($event)"
+    >
+    </ng-header-panel>
+
+    <ng-history-panel
+      class="wb-history"
+      [canUndo]="canUndoSignal()"
+      [canRedo]="canRedoSignal()"
+      (undo)="undo()"
+      (redo)="redo()"
+    >
+    </ng-history-panel>
+
+    @if (isMeasured() && !isCompact()) {
+      <ng-properties-panel
+        class="wb-properties"
+        [config]="configSignal()"
+        [selectedElements]="selectedElementsSignal()"
+        [selectedProperties]="selectedPropertiesSignal()"
+        [activeTool]="selectedToolSignal()"
+        [isOpen]="isPanelOpenSignal()"
+        (colorChange)="onColorChange($event)"
+        (propertyChange)="onPropertyChange($event)"
+        (editStart)="onEditStart($event)"
+        (editEnd)="onEditEnd($event)"
+        (gridToggle)="toggleGrid()"
+        (snapToggle)="toggleSnapToGrid()"
+        (deleteSelected)="deleteElement()"
+        (togglePanel)="togglePanel()"
+        (alignmentChange)="onAlignmentChange($event)"
+      >
+      </ng-properties-panel>
+    }
+
+    <ng-toolbar
+      class="wb-toolbar"
+      [selectedTool]="selectedToolSignal()"
+      [tools]="configSignal().toolbarTools"
+      [position]="toolbarPosition()"
+      [compact]="isCompact()"
+      [locked]="toolLockedSignal()"
+      (toolSelect)="setSelectedTool($event)"
+      (lockToggle)="toggleToolLock()"
+    >
+    </ng-toolbar>
+
+    <ng-controls-panel
+      class="wb-controls"
+      [config]="configSignal()"
+      [showZoomMenu]="showZoomPopupSignal()"
+      [hasSelection]="hasSelectionSignal()"
+      [compact]="isCompact()"
+      (zoomIn)="zoomIn()"
+      (zoomOut)="zoomOut()"
+      (zoomToFit)="zoomToFit()"
+      (zoomToSelection)="zoomToSelection()"
+      (resetZoom)="resetZoom()"
+      (zoomMenuToggle)="toggleZoomPopup($event)"
+      (centerView)="onCenterView()"
+    >
+    </ng-controls-panel>
+
+    <div class="wb-status" role="status" aria-live="polite">
+      @if (statusMessageSignal(); as message) {
+        <span class="wb-status-message">{{ message }}</span>
+      }
+    </div>
+  </div>
+
+  @if (isCompact()) {
+    <ng-bottom-sheet
+      label="Properties"
+      [opener]="sheetOpenerSignal()"
+      [focusFallback]="root"
+      [open]="propertiesSheetOpenSignal()"
+      (closed)="propertiesSheetOpenSignal.set(false)"
+    >
+      <ng-properties-panel
+        [embedded]="true"
+        [config]="configSignal()"
+        [selectedElements]="selectedElementsSignal()"
+        [selectedProperties]="selectedPropertiesSignal()"
+        [activeTool]="selectedToolSignal()"
+        [isOpen]="true"
+        (colorChange)="onColorChange($event)"
+        (propertyChange)="onPropertyChange($event)"
+        (editStart)="onEditStart($event)"
+        (editEnd)="onEditEnd($event)"
+        (gridToggle)="toggleGrid()"
+        (snapToggle)="toggleSnapToGrid()"
+        (deleteSelected)="deleteElement()"
+        (togglePanel)="togglePropertiesSheet()"
+        (alignmentChange)="onAlignmentChange($event)"
+      >
+      </ng-properties-panel>
+    </ng-bottom-sheet>
+
+    <ng-bottom-sheet
+      label="Menu"
+      [opener]="sheetOpenerSignal()"
+      [focusFallback]="root"
+      [open]="menuSheetOpenSignal()"
+      (closed)="menuSheetOpenSignal.set(false)"
+    >
+      <ng-menu [embedded]="true" [items]="mainMenuItems()" (itemSelected)="runMenuAction($any($event))"></ng-menu>
+    </ng-bottom-sheet>
+
+    <ng-bottom-sheet
+      label="Layers"
+      [opener]="sheetOpenerSignal()"
+      [focusFallback]="root"
+      [open]="showLayersDropdownSignal()"
+      (closed)="showLayersDropdownSignal.set(false)"
+    >
+      <ng-layer-panel
+        class="wb-sheet-layers"
+        [layers]="layersSignal()"
+        [activeLayerId]="activeLayerIdSignal()"
+        (action)="onLayerAction($event)"
+      >
+      </ng-layer-panel>
+    </ng-bottom-sheet>
+
+    <ng-bottom-sheet
+      label="Zoom"
+      [opener]="sheetOpenerSignal()"
+      [focusFallback]="root"
+      [open]="showZoomPopupSignal()"
+      (closed)="showZoomPopupSignal.set(false)"
+    >
+      <div class="wb-sheet-menu">
+        @for (action of zoomActions; track action.id) {
+          <button
+            class="wb-sheet-item"
+            [disabled]="action.requiresSelection && !hasSelectionSignal()"
+            (click)="runZoomAction(action.id)"
+          >
+            <ng-icon [name]="action.icon"></ng-icon><span>{{ action.label }}</span>
+          </button>
+        }
+      </div>
+    </ng-bottom-sheet>
+  }
+
+  <ng-dialog
+    label="Export image"
+    heading="Export image"
+    [compact]="isCompact()"
+    [open]="exportDialogOpen()"
+    [opener]="sheetOpenerSignal()"
+    [focusFallback]="root"
+    (closed)="exportDialogOpen.set(false)"
+  >
+    @if (exportDialogOpen()) {
+      <wb-export-dialog
+        [hasSelection]="hasSelectionSignal()"
+        [title]="editorConfigSignal().title"
+        (closed)="exportDialogOpen.set(false)"
+      />
+    }
+  </ng-dialog>
+
+  @if (confirmKind(); as kind) {
+    <ng-confirm-dialog
+      [message]="confirmCopy[kind].message"
+      [confirmLabel]="confirmCopy[kind].confirmLabel"
+      [compact]="isCompact()"
+      [opener]="sheetOpenerSignal()"
+      [focusFallback]="root"
+      (confirmed)="onConfirmed()"
+      (cancelled)="confirmKind.set(null)"
+    ></ng-confirm-dialog>
+  }
+
+  <input
+    #fileInput
+    type="file"
+    hidden
+    tabindex="-1"
+    aria-hidden="true"
+    accept=".json,application/json,.png,image/png,.svg,image/svg+xml"
+    (change)="onFileSelected($event)"
+  />
+</div>

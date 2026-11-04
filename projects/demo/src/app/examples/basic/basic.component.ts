@@ -24,15 +24,7 @@ import {
   WhiteboardElement,
 } from 'ng-whiteboard';
 
-/**
- * Professional whiteboard component with modern UI and layer support
- * Features:
- * - Multiple drawing tools (pen, shapes, text, etc.)
- * - Layer management (add, delete, rename, visibility, lock)
- * - Customizable colors and stroke widths
- * - Import/export functionality
- * - Keyboard shortcuts
- */
+/** A custom editor UI built on NgWhiteboardService, with the built-in editor turned off. */
 @Component({
   selector: 'app-basic-component',
   templateUrl: './basic.component.html',
@@ -57,6 +49,8 @@ export class BasicComponent implements OnDestroy {
   private boardSignals = this.whiteboardService.signals(this.boardId);
 
   layers = this.boardSignals.layers;
+  /** Top-most layer first, matching the indices `reorderLayersByIndex` expects. */
+  layersTopFirst = computed(() => [...this.layers()].sort((a, b) => b.zIndex - a.zIndex));
   activeLayerId = this.boardSignals.activeLayerId;
   activeLayer = this.boardSignals.activeLayer;
   selectedTool = this.boardSignals.selectedTool;

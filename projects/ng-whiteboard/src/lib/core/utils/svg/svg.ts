@@ -28,7 +28,11 @@ export function svgToBase64(
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
-    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      reject(new Error('Canvas is not available for exporting'));
+      return;
+    }
 
     const img = new Image();
 
@@ -36,9 +40,21 @@ export function svgToBase64(
     img.src = `data:image/svg+xml;charset=utf-8,${encodedSvg}`;
 
     img.onload = () => {
-      ctx.drawImage(img, 0, 0, width, height);
-      const base64 = canvas.toDataURL(`image/${format}`);
-      resolve(base64);
+      try {
+        if (format === FormatType.Jpeg) {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, width, height);
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        const base64 = canvas.toDataURL(`image/${format}`);
+        if (base64 === 'data:,') {
+          reject(new Error('The image is too large to export; try a smaller scale'));
+          return;
+        }
+        resolve(base64);
+      } catch (error) {
+        reject(error);
+      }
     };
     img.onerror = (err) => {
       reject(err);

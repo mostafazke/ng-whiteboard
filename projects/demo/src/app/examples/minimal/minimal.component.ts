@@ -1,4 +1,3 @@
-import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { NgWhiteboardComponent, WhiteboardConfig, WhiteboardElement } from 'ng-whiteboard';
 const PersistKey = 'whiteboardData';
@@ -6,13 +5,18 @@ const PersistKey = 'whiteboardData';
 @Component({
   selector: 'app-minimal-component',
   template: `<div class="demo">
-    <ng-whiteboard [data]="data" [config]="config" (dataChange)="onDataChange($event)"></ng-whiteboard>
+    <ng-whiteboard
+      [data]="data"
+      [config]="config"
+      [showEditor]="false"
+      (dataChange)="onDataChange($event)"
+    ></ng-whiteboard>
   </div>`,
   standalone: true,
-  imports: [CommonModule, NgWhiteboardComponent],
+  imports: [NgWhiteboardComponent],
 })
 export class MinimalComponent implements OnInit {
-  data = [];
+  data: WhiteboardElement[] = [];
   config: Partial<WhiteboardConfig> = {
     fullScreen: true,
   };

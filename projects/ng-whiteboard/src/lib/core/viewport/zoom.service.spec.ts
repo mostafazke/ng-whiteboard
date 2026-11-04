@@ -7,6 +7,7 @@ import { SelectionService } from '../elements/selection.service';
 import { EventBusService } from '../event-bus/event-bus.service';
 import { WhiteboardConfig, WhiteboardElement, WhiteboardEvent } from '../types';
 import { Subject } from 'rxjs';
+import { getCanvasCoordinates } from '../utils/geometry';
 
 describe('ZoomService', () => {
   let service: ZoomService;
@@ -738,6 +739,96 @@ describe('ZoomService', () => {
       service.zoomToFit(2, false);
 
       expect(mockConfigService.updateConfig).toHaveBeenCalled();
+    });
+  });
+  describe('zoomAtPoint', () => {
+    function canvasPointAt(config: Partial<WhiteboardConfig>, sx: number, sy: number) {
+      return getCanvasCoordinates({ ...mockConfig, ...config } as WhiteboardConfig, { x: sx, y: sy });
+    }
+
+    function lastUpdate(): Partial<WhiteboardConfig> {
+      const calls = mockConfigService.updateConfig.mock.calls;
+      return calls[calls.length - 1][0];
+    }
+
+    it('zoomAtPoint keeps point fixed', () => {
+      mockConfigService.getConfig.mockReturnValue({ ...mockConfig, zoom: 1, x: 0, y: 0 } as WhiteboardConfig);
+      const before = canvasPointAt({ zoom: 1, x: 0, y: 0 }, 100, 100);
+
+      service.zoomAtPoint(2, 100, 100);
+
+      expect(mockConfigService.updateConfig).toHaveBeenCalledTimes(1);
+      const update = lastUpdate();
+      expect(update).toEqual({ zoom: 2, x: -50, y: -50 });
+      expect(canvasPointAt(update, 100, 100)).toEqual(before);
+    });
+
+    it('keeps the point fixed in fullScreen with an existing pan', () => {
+      const start = { zoom: 1.5, x: 20, y: -10, fullScreen: true };
+      mockConfigService.getConfig.mockReturnValue({ ...mockConfig, ...start } as WhiteboardConfig);
+      const before = canvasPointAt(start, 300, 200);
+
+      service.zoomAtPoint(0.75, 300, 200);
+
+      const after = canvasPointAt({ ...start, ...lastUpdate() }, 300, 200);
+      expect(after.x).toBeCloseTo(before.x);
+      expect(after.y).toBeCloseTo(before.y);
+    });
+
+    it('accounts for re-centering of the page when center is on', () => {
+      const start = { zoom: 1, x: 0, y: 0, center: true, fullScreen: false, canvasX: 100, canvasY: 100 };
+      mockConfigService.getConfig.mockReturnValue({ ...mockConfig, ...start } as WhiteboardConfig);
+      const before = canvasPointAt(start, 400, 300);
+
+      service.zoomAtPoint(1.2, 400, 300);
+
+      const update = lastUpdate();
+      // container 1000x800, canvas 800x600 → centred page offset at zoom 1.2
+      expect(update.canvasX).toBeCloseTo((1000 - 800 * 1.2) / 2);
+      expect(update.canvasY).toBeCloseTo((800 - 600 * 1.2) / 2);
+      const after = canvasPointAt({ ...start, ...update }, 400, 300);
+      expect(after.x).toBeCloseTo(before.x);
+      expect(after.y).toBeCloseTo(before.y);
+
+      // The ZoomChange re-centre that follows lands on the same offset, so it doesn't fight the pinch
+      mockConfigService.getConfig.mockReturnValue({ ...mockConfig, ...start, ...update } as WhiteboardConfig);
+      mockConfigService.updateConfig.mockClear();
+      zoomChangeSubject.next({});
+      expect(mockConfigService.updateConfig).toHaveBeenCalledWith(
+        { canvasX: update.canvasX, canvasY: update.canvasY },
+        false
+      );
+    });
+
+    it('zoomAtPoint clamps', () => {
+      mockConfigService.getConfig.mockReturnValue({ ...mockConfig, zoom: 1, x: 0, y: 0 } as WhiteboardConfig);
+
+      service.zoomAtPoint(1000, 50, 50);
+
+      expect(lastUpdate().zoom).toBe(service.getZoomLimits().max);
+    });
+
+    it('does not round the zoom level', () => {
+      mockConfigService.getConfig.mockReturnValue({ ...mockConfig, zoom: 1, x: 0, y: 0 } as WhiteboardConfig);
+
+      service.zoomAtPoint(1.004, 50, 50);
+
+      expect(lastUpdate().zoom).toBe(1.004);
+    });
+
+    it('is instant (no animation frame)', () => {
+      const rafSpy = jest.spyOn(global, 'requestAnimationFrame');
+      mockConfigService.getConfig.mockReturnValue({ ...mockConfig, zoom: 1, x: 0, y: 0 } as WhiteboardConfig);
+
+      service.zoomAtPoint(2, 0, 0);
+
+      expect(rafSpy).not.toHaveBeenCalled();
+      rafSpy.mockRestore();
+    });
+
+    it('ignores non-positive zoom', () => {
+      service.zoomAtPoint(0, 0, 0);
+      expect(mockConfigService.updateConfig).not.toHaveBeenCalled();
     });
   });
 });

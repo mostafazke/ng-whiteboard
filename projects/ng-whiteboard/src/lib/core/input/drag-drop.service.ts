@@ -4,6 +4,7 @@ import { ConfigService } from '../config/config.service';
 import { WhiteboardElement, ElementType } from '../types';
 import { createElement } from '../elements/element.utils';
 import { getCanvasCoordinates } from '../utils/geometry';
+import { generateId, remapGroupIds } from '../utils/common';
 import { FILE_TYPE_PREFIX } from '../constants';
 
 @Injectable({ providedIn: 'root' })
@@ -99,13 +100,20 @@ export class DragDropService {
       y: event.clientY,
     });
 
-    const copiedElements = elements.map((el) => ({
-      ...el,
-      x: dropPosition.x + (el.x || 0),
-      y: dropPosition.y + (el.y || 0),
-      zIndex: this.apiService.getNextZIndex(),
-    }));
+    const types = new Set<string>(Object.values(ElementType));
+    const layerId = this.apiService.getActiveLayerId();
+    const copiedElements = elements
+      .filter((el) => !!el && typeof el === 'object' && types.has(el.type))
+      .map((el) => ({
+        ...el,
+        id: generateId(),
+        layerId,
+        x: dropPosition.x + (Number(el.x) || 0),
+        y: dropPosition.y + (Number(el.y) || 0),
+        zIndex: this.apiService.getNextZIndex(),
+      }));
+    if (copiedElements.length === 0) return;
 
-    this.apiService.addElements(copiedElements);
+    this.apiService.addElements(remapGroupIds(copiedElements));
   }
 }

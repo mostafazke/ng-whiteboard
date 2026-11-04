@@ -15,7 +15,8 @@ export function getStrokePoints(rawInputPoints: number[][], options: StrokeOptio
 
   const t = 0.15 + (1 - streamline) * 0.85;
 
-  let pts = [...rawInputPoints];
+  // Normalize to [x, y, pressure] so pressure-less input isn't filtered out as zero pressure.
+  let pts = rawInputPoints.map(toPoint);
   let pointsRemovedFromNearEnd = 0;
 
   if (!simulatePressure) {

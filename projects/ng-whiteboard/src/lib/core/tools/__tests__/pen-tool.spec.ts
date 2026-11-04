@@ -2,7 +2,7 @@ import { ApiService } from '../../api/api.service';
 import { ElementType, LineCap, LineJoin, ToolType, WhiteboardConfig } from '../../types';
 import { PenTool } from '../pen-tool';
 import { createElement } from '../../elements/element.utils';
-import { getPresetForType } from '../../types/pen-presets';
+import { getPenTypeStyle } from '../../types/pen-presets';
 import { createMockPointerInfo, createMockApiService, createMockWhiteboardConfig } from '../../testing';
 import { PenElement } from '../../elements';
 
@@ -37,7 +37,7 @@ describe('PenTool', () => {
     apiService.getConfig = jest.fn().mockReturnValue(config);
     apiService.getCurrentLayer = jest.fn().mockReturnValue('layer1');
 
-    (getPresetForType as jest.Mock).mockReturnValue({
+    (getPenTypeStyle as jest.Mock).mockReturnValue({
       strokeOptions: {
         smoothing: 0.9,
         streamline: 0.8,
@@ -79,6 +79,7 @@ describe('PenTool', () => {
     expect(elementProps.points).toEqual([[100, 200]]);
     expect(elementProps.isComplete).toBe(false);
     expect(elementProps.zIndex).toBe(1);
+    expect(elementProps.penType).toBe(config.penType);
 
     // Check pathOptions
     expect(elementProps.pathOptions).toBeDefined();
@@ -223,7 +224,7 @@ describe('PenTool', () => {
     });
 
     it('should use default values when preset options are missing', () => {
-      (getPresetForType as jest.Mock).mockReturnValue({
+      (getPenTypeStyle as jest.Mock).mockReturnValue({
         strokeOptions: {},
       });
 
@@ -239,7 +240,7 @@ describe('PenTool', () => {
 
     it('should use provided easing function from preset', () => {
       const mockEasing = jest.fn().mockReturnValue(1);
-      (getPresetForType as jest.Mock).mockReturnValue({
+      (getPenTypeStyle as jest.Mock).mockReturnValue({
         strokeOptions: {
           easing: mockEasing,
         },
@@ -254,7 +255,7 @@ describe('PenTool', () => {
     });
 
     it('should use fallback easing function when not provided', () => {
-      (getPresetForType as jest.Mock).mockReturnValue({
+      (getPenTypeStyle as jest.Mock).mockReturnValue({
         strokeOptions: {},
       });
 
@@ -273,7 +274,7 @@ describe('PenTool', () => {
     });
 
     it('should handle all fallback branches for stroke options', () => {
-      (getPresetForType as jest.Mock).mockReturnValue({
+      (getPenTypeStyle as jest.Mock).mockReturnValue({
         strokeOptions: {
           simulatePressure: false,
         },
@@ -309,6 +310,13 @@ describe('PenTool', () => {
       expect(style).toHaveProperty('opacity');
     });
 
+    it('takes opacity from the pen type style', () => {
+      (getPenTypeStyle as jest.Mock).mockReturnValue({ strokeOptions: {}, opacity: 0.4 });
+
+      // @ts-expect-error - accessing private method for testing
+      expect(penTool.getElementStyle.bind(penTool)().opacity).toBe(0.4);
+    });
+
     it('should include opacity from preset', () => {
       // @ts-expect-error - accessing private method for testing
       const getElementStyle = penTool.getElementStyle.bind(penTool);
@@ -321,5 +329,33 @@ describe('PenTool', () => {
         expect(style.opacity).toBeLessThanOrEqual(1);
       }
     });
+  });
+
+  it('cancel() removes its draft so a later pointer up commits nothing', () => {
+    const removeDraftElements = jest.fn();
+    Object.assign(apiService, { removeDraftElements });
+    jest.spyOn(penTool, 'getPointerPosition').mockReturnValue({ x: 10, y: 10 });
+    (createElement as jest.Mock).mockReturnValue({ id: 'p1', points: [[10, 10]], style: {} });
+    penTool.handlePointerDown(createMockPointerInfo({ eventType: 'pointerdown' }));
+
+    penTool.cancel();
+    penTool.handlePointerUp();
+
+    expect(removeDraftElements).toHaveBeenCalledWith(['p1']);
+    expect(penTool.element).toBeNull();
+    expect(apiService.commitDraftElements).not.toHaveBeenCalled();
+    expect(apiService.finalizeDraw).not.toHaveBeenCalled();
+  });
+
+  it('keeps the in-progress stroke across deactivate/activate (temporary tool switch)', () => {
+    jest.spyOn(penTool, 'getPointerPosition').mockReturnValue({ x: 10, y: 10 });
+    (createElement as jest.Mock).mockReturnValue({ id: 'p1', points: [[10, 10]], style: {} });
+    penTool.handlePointerDown(createMockPointerInfo({ eventType: 'pointerdown' }));
+
+    penTool.deactivate();
+    penTool.activate();
+    penTool.handlePointerUp();
+
+    expect(apiService.commitDraftElements).toHaveBeenCalled();
   });
 });

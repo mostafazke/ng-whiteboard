@@ -1,0 +1,103 @@
+import { readdirSync, readFileSync, statSync } from 'fs';
+import { join } from 'path';
+
+const scssFiles = (dir: string): string[] =>
+  readdirSync(dir).flatMap((name) => {
+    const path = join(dir, name);
+    if (statSync(path).isDirectory()) return scssFiles(path);
+    return path.endsWith('.scss') ? [path] : [];
+  });
+
+describe('editor styles stay inside the editor', () => {
+  const files = scssFiles(__dirname);
+  const globalSheet = readFileSync(join(__dirname, 'whiteboard-editor.component.scss'), 'utf8');
+
+  it('declares and reads only --wb-* custom properties', () => {
+    const foreign = files.flatMap((file) =>
+      (readFileSync(file, 'utf8').match(/--[a-z][a-z0-9-]*/g) ?? []).filter((name) => !name.startsWith('--wb-'))
+    );
+    expect(foreign).toEqual([]);
+  });
+
+  it('the layer panel takes every color from a theme token', () => {
+    const sheet = readFileSync(join(__dirname, 'panels/layer-panel/layer-panel.component.scss'), 'utf8');
+    expect(sheet.match(/#[0-9a-f]{3,8}\b|rgba?\(|(?<![\w-])white(?![\w-])/gi) ?? []).toEqual([]);
+  });
+
+  it('the layer grip is a 44px target on coarse pointers', () => {
+    const sheet = readFileSync(join(__dirname, 'panels/layer-panel/layer-panel.component.scss'), 'utf8');
+    const grip = sheet.slice(sheet.indexOf('.lp-grip {'));
+    const coarse = grip.slice(grip.indexOf('@include bp.coarse'));
+    expect(coarse).toMatch(/width: 44px;\s*height: 44px;/);
+  });
+
+  it('container-relative sizes subtract tokens, never pixel literals tied to panel heights', () => {
+    const magic = files.flatMap((file) =>
+      (readFileSync(file, 'utf8').match(/calc\(100(?:cqh|cqw|%)[^;]*?-\s*\d+px[^;]*;/g) ?? []).map(
+        (rule) => `${file.split(/[\\/]/).pop()}: ${rule}`
+      )
+    );
+    expect(magic).toEqual([]);
+  });
+
+  it('the bars sized by --wb-bar / --wb-header draw their border with --wb-border-width', () => {
+    const bars: Record<string, string> = {
+      'panels/toolbar/toolbar.component.scss': '.toolbar-floating',
+      'panels/history-panel/history-panel.component.scss': '.history-panel',
+      'panels/controls-panel/controls-panel.component.scss': '.controls-panel',
+      'panels/header-panel/header-panel.component.scss': '.header-panel',
+    };
+    const borders = Object.entries(bars).map(([file, selector]) => {
+      const sheet = readFileSync(join(__dirname, file), 'utf8');
+      const rule = sheet.slice(sheet.indexOf(`${selector} {`));
+      return `${selector}: ${rule.match(/\n {2}border:\s*([^;]+);/)?.[1]}`;
+    });
+    expect(borders).toEqual(
+      Object.values(bars).map((s) => `${s}: var(--wb-border-width) solid var(--wb-color-border)`)
+    );
+  });
+
+  it('the coarse swatch row leaves room for the active ring and focus outline and contains overscroll', () => {
+    const sheet = readFileSync(join(__dirname, 'ui/color-picker/color-picker.component.scss'), 'utf8');
+    const coarse = sheet.slice(sheet.indexOf('@include bp.coarse'));
+    expect(coarse).toMatch(/\.color-swatches \{[^}]*padding: var\(--wb-space-2\);/);
+    expect(coarse).toMatch(/overscroll-behavior-x: contain;/);
+    expect(sheet).not.toMatch(/padding: 6px|margin: 0 2px/);
+  });
+
+  it('the unencapsulated sheet defines nothing on :root and prefixes its keyframes', () => {
+    expect(globalSheet).not.toMatch(/:root/);
+    expect(globalSheet.match(/@keyframes\s+[\w-]+/g)?.every((k) => /@keyframes\s+wb-/.test(k))).toBe(true);
+  });
+
+  it('every top-level rule of the unencapsulated sheet is scoped to .editor', () => {
+    const topLevelSelectors = globalSheet
+      .split('\n')
+      .filter((line) => /^[^\s/@}][^{]*\{\s*$/.test(line) || /^[^\s/@}][^{]*,\s*$/.test(line))
+      .map((line) => line.replace(/[{,]\s*$/, '').trim());
+    const unscoped = topLevelSelectors.filter((selector) => !/^(:where\(\.editor\)|\.editor\b)/.test(selector));
+    expect(unscoped).toEqual([]);
+  });
+
+  describe('export dialog in the compact sheet', () => {
+    const sheet = readFileSync(join(__dirname, 'ui/export-dialog/export-dialog.component.scss'), 'utf8');
+
+    it('keeps the footer sticky at the bottom of the sheet scroll area', () => {
+      const footer = sheet.slice(sheet.indexOf('.wb-export-footer'));
+      expect(footer).toMatch(/position:\s*sticky;\s*bottom:/);
+    });
+
+    it('caps the preview height in compact and shrinks it on short containers', () => {
+      expect(sheet).toContain('--wb-export-preview-max: min(35vh, 260px)');
+      expect(sheet).toMatch(/@container wb-editor \(max-height: 499\.98px\)[^}]*\{[^}]*--wb-export-preview-max: 25vh/s);
+    });
+
+    it('caps the preview image by the same limit so tall images shrink instead of being cropped', () => {
+      expect(sheet).toMatch(/\.wb-export-preview-img\s*\{[^}]*max-height: calc\(var\(--wb-export-preview-max\)/s);
+    });
+  });
+
+  it('the status toast sits above the bottom bars', () => {
+    expect(globalSheet).toMatch(/\.wb-status\s*\{[^}]*--wb-bottom-reserve/s);
+  });
+});

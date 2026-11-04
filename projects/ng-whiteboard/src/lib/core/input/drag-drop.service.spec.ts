@@ -627,13 +627,11 @@ describe('DragDropService', () => {
       expect(mockApiService.getNextZIndex).toHaveBeenCalledTimes(2);
       expect(mockApiService.addElements).toHaveBeenCalledWith([
         expect.objectContaining({
-          id: 'elem-1',
           x: 250, // 200 + 50
           y: 310, // 250 + 60
           zIndex: 10,
         }),
         expect.objectContaining({
-          id: 'elem-2',
           x: 300, // 200 + 100
           y: 370, // 250 + 120
           zIndex: 10,
@@ -673,10 +671,29 @@ describe('DragDropService', () => {
 
       service.handleElements(elements, event);
 
-      expect(mockApiService.addElements).toHaveBeenCalledWith([]);
+      expect(mockApiService.addElements).not.toHaveBeenCalled();
     });
 
-    it('should preserve all element properties except position and zIndex', () => {
+    it('gives dropped elements new ids on the active layer, with fresh groups', () => {
+      const elements = [
+        { id: 'a', type: ElementType.Rectangle, x: 0, y: 0, groupId: 'g' },
+        { id: 'b', type: ElementType.Ellipse, x: 0, y: 0, groupId: 'g' },
+        { id: 'junk', type: 'not-a-shape', x: 0, y: 0 },
+      ] as unknown as WhiteboardElement[];
+      mockGetCanvasCoordinates.mockReturnValue({ x: 0, y: 0 });
+
+      service.handleElements(elements, createMockDragEvent(0, 0));
+
+      const added = mockApiService.addElements.mock.calls[0][0] as WhiteboardElement[];
+      expect(added).toHaveLength(2);
+      expect(added.map((e) => e.id)).not.toContain('a');
+      expect(added[0].id).not.toBe(added[1].id);
+      expect(added.every((e) => e.layerId === 'layer-1')).toBe(true);
+      expect(added[0].groupId).not.toBe('g');
+      expect(added[1].groupId).toBe(added[0].groupId);
+    });
+
+    it('should preserve element properties other than id, layer, position and zIndex', () => {
       const event = createMockDragEvent(300, 400);
 
       const elements: WhiteboardElement[] = [
@@ -701,7 +718,6 @@ describe('DragDropService', () => {
 
       expect(mockApiService.addElements).toHaveBeenCalledWith([
         expect.objectContaining({
-          id: 'elem-1',
           type: ElementType.Rectangle,
           x: 250,
           y: 310,
@@ -710,7 +726,7 @@ describe('DragDropService', () => {
           rotation: 45,
           opacity: 80,
           zIndex: 10,
-          layerId: 'original-layer',
+          layerId: 'layer-1',
           style: { strokeColor: '#ff0000' },
         }),
       ]);

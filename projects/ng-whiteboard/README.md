@@ -12,7 +12,7 @@ ng-whiteboard
 
 Lightweight angular whiteboard.
 
-[![Build Status](https://dl.circleci.com/status-badge/img/gh/mostafazke/ng-whiteboard/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/mostafazke/ng-whiteboard/tree/master)
+[![Build Status](https://github.com/mostafazke/ng-whiteboard/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/mostafazke/ng-whiteboard/actions/workflows/ci.yml)
 [![ng-whiteboard](https://img.shields.io/badge/angular-whiteboard-blue)](https://mostafazke.github.io/ng-whiteboard)
 [![npm version](https://img.shields.io/npm/v/ng-whiteboard.svg)](https://www.npmjs.com/package/ng-whiteboard)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
@@ -96,6 +96,8 @@ export class AppModule {}
 <ng-whiteboard></ng-whiteboard>
 ```
 
+This renders the board with the built-in editor. For the canvas alone, under your own UI, use `<ng-whiteboard [showEditor]="false">`.
+
 ### Advanced Example With Persist Data
 
 ```typescript
@@ -139,12 +141,37 @@ export class WhiteboardContainerComponent implements OnInit {
 <ng-whiteboard (dataChange)="onDataChange($event)" [options]="whiteboardOptions"></ng-whiteboard>
 ```
 
+## 🧰 Built-in Editor
+
+```html
+<ng-whiteboard [config]="{ theme: 'dark' }"></ng-whiteboard>
+```
+
+- The editor (toolbar, properties, layers) is on by default. `[showEditor]="false"` renders only the canvas, for example under a custom editor built with `NgWhiteboardService`.
+- The editor is lazy-loaded (`@defer`), so it appears just after the canvas. With SSR, no editor markup is rendered until the page hydrates.
+- `config.theme` is `'light' | 'dark'`. Unset renders as before (light).
+- The layout adapts to the editor's own container. Phones and small containers get a bottom toolbar and bottom sheets.
+- Touch: pinch to zoom and two-finger pan work with or without the editor.
+- `Alt + P` toggles the properties panel.
+- Toolbar: each tool has a letter shortcut and the visible tools are numbered `1`–`0`. `Q` locks the current tool so it stays active after each shape, `Z` zooms to a dragged area, and the image tool opens a file picker. On phones the shape tools collapse into one button.
+- `config.toolbarTools` (a `ToolType[]`) limits which tools the toolbar shows; hidden tools also lose their shortcuts. `config.toolbarPosition` is `'bottom'` (default) or `'left'`; `'left'` falls back to the bottom on compact screens.
+- The properties panel adapts to the selected shape: arrow heads, arrow path and line ends for arrows, corner radius for rectangles, brush for the pen, and so on. The optional `config.cornerRadius` sets the corner radius of new rectangles (default `5`).
+- The header has a main menu (☰) with Open…, Save, Save as…, Export image…, Copy as PNG, Dark/Light mode and Reset canvas…, an editable board title, and a layers button. Shortcuts (editor only, focused board): `Ctrl/Cmd + O` open, `Ctrl/Cmd + S` save, `Ctrl/Cmd + Shift + S` save as, `Ctrl/Cmd + Shift + E` export image, `Ctrl/Cmd + Shift + C` copy as PNG.
+- **Save** writes a `.json` board file. In Chrome and Edge the first save asks where to put it and later saves overwrite that file; opening a `.json` file links it the same way. Other browsers download a copy on every save, and the menu shows **Save to file** instead of Save / Save as….
+- After the board has been saved or opened, a dot after the title shows unsaved changes; undoing back to the saved state clears it.
+- **Export image…** includes the board data in the PNG or SVG by default ("Include board data"), so **Open…** can load the image back for editing.
+- **Export image…** opens a dialog with a live preview, PNG or SVG, scale (1×/2×/3×), background on/off, an "only selected" option, a file name, and Download or Copy.
+- **Layers panel**: rename (double-click, `Enter` or `F2`), reorder by drag or `Alt + Arrow`, eye and lock toggles, and a ⋯ menu with opacity, blend mode, duplicate, merge down, and delete (with a confirm and a "move elements to the layer below" option).
+- Open, Reset and layer operations are undoable (one step each).
+- `EditorConfig` flags other than `title` are deprecated and ignored. They will be removed in the next major version.
+
 ## ⚙️ Configuration
 
 | Input               | Type                  | Default          | Description                                                                                        |
 | ------------------- | --------------------- | ---------------- | -------------------------------------------------------------------------------------------------- |
 | `[data]`            | `WhiteboardElement[]` | `[]`             | The whiteboard data                                                                                |
 | `[options]`         | `WhiteboardOptions`   | `null`           | Component configuration object, properties described below                                         |
+| `[showEditor]`      | `boolean`             | `true`           | Show the built-in editor; `false` renders only the canvas                                          |
 | `[drawingEnabled]`  | `boolean`             | `true`           | Enable mouse/touch interactions                                                                    |
 | `[selectedTool]`    | `ToolType`            | `ToolType.Pen`   | The current selected tool                                                                          |
 | `[canvasWidth]`     | `number`              | `800`            | The width of whiteboard canvas                                                                     |
@@ -303,7 +330,10 @@ export class MyWhiteboardComponent implements AfterViewInit {
 - **`clear()`** Clears all elements from the whiteboard.
 - **`undo()`** Reverts the last action.
 - **`redo()`** Restores the last undone action.
-- **`save(format = FormatType.Base64, name = 'New board')`** Saves the current whiteboard state in the specified format (e.g., Base64, JSON, SVG).
+- **`save(format = FormatType.Base64, name = 'whiteboard', options?: ExportOptions)`** Saves the current whiteboard in the specified format (e.g., Base64, JSON, SVG, PNG). `ExportOptions` is `{ scale?: number; background?: boolean; padding?: number; onlySelected?: boolean; embedBoardData?: boolean }`. With `embedBoardData`, a downloaded PNG or SVG also carries the board, so it can be opened again for editing.
+- **`copyToClipboard(format: FormatType.Png | FormatType.Svg, options?: ExportOptions)`** Copies the board image to the clipboard.
+- **`resetBoard()`** Clears elements and layers back to a fresh board (undoable).
+- **`hasContent()`** Returns `true` if the board has any elements.
 
 ### 🖌 Drawing Tools & Interaction
 
@@ -326,6 +356,11 @@ export class MyWhiteboardComponent implements AfterViewInit {
 - **`sendBackward(elementOrId: WhiteboardElement | string)`** Moves the element one layer backward.
 - **`setZIndex(elementOrId: WhiteboardElement | string, zIndex: number)`** Sets the exact z-index for an element.
 - **`getZIndex(elementOrId: WhiteboardElement | string)`** Returns the current z-index of an element.
+- **`removeLayer(id: string, mode: 'delete-elements' | 'move-elements' = 'delete-elements')`** Removes a layer; `'move-elements'` moves its elements to the layer below instead of deleting them.
+- **`mergeLayerDown(id: string)`** Merges a layer into the one below it.
+- **`beginLayerOpacityEdit(id: string)` / `endLayerOpacityEdit()`** Group a live opacity drag into a single undo step.
+
+Layer operations are undoable.
 
 ### ✂️ Clipboard Operations
 
@@ -342,6 +377,22 @@ export class MyWhiteboardComponent implements AfterViewInit {
 - **`resetZoom()`** Resets the zoom level to 100%.
 - **`pan(deltaX: number, deltaY: number)`** Pans the canvas by the specified offset.
 - **`resetPan()`** Resets the canvas to its original position.
+
+### ⚠️ Behaviour Changes
+
+- `<ng-whiteboard>` now shows the built-in editor by default. Add `[showEditor]="false"` to keep the previous canvas-only rendering.
+- The default `penType` is now `PenType.Marker` (was `PenType.Pen`). Set `config.penType` to `PenType.Pen` to keep the previous default.
+- `save()` output is now cropped to the content bounds with 16px padding (an empty board still exports the canvas box) and never includes editor chrome. For `FormatType.Svg` the vector is downloaded directly and the returned string is the SVG data URL.
+- JPEG export has a white background.
+- Raster exports are limited to 16384px per side and 268,435,456 pixels in total; the scale is reduced to fit.
+- `reorderLayersByIndex` indices count from the top layer, as shown in the layers panel.
+- `addLayer` and `setActiveLayer` no longer hide the other layers.
+- `removeLayer(id)` now deletes the layer's elements by default; pass `'move-elements'` to keep them. Moved elements are stacked above the target layer's elements when moving down, or below them when moving up.
+- `Ctrl/Cmd + Shift + C` no longer copies elements.
+- `importData` is a single undo step.
+- `importDataFromFile` also opens PNG and SVG images exported with `embedBoardData`; other images are rejected with `This image has no board data.`
+- Elements without a `layerId` (or with an unknown one) belong to the bottom layer for counts, visibility, lock and export. Older boards with orphaned elements now show them on the bottom layer.
+- The element arrays in `layers()` are now derived from each element's `layerId`.
 
 ## ⌨️ Keyboard Shortcuts
 

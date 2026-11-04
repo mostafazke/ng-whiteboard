@@ -1,0 +1,346 @@
+@use 'breakpoints' as bp;
+
+.editor {
+  --wb-space-1: 0.25rem;
+  --wb-space-2: 0.5rem;
+  --wb-space-3: 0.75rem;
+  --wb-space-4: 1rem;
+
+  --wb-radius-sm: 0.375rem;
+  --wb-radius: 0.5rem;
+  --wb-radius-lg: 0.75rem;
+}
+
+.editor {
+  --wb-color-primary: #3b82f6;
+  --wb-color-primary-dark: #2563eb;
+  --wb-color-white: #ffffff;
+  --wb-color-gray-50: #f9fafb;
+  --wb-color-gray-100: #f3f4f6;
+  --wb-color-gray-200: #e5e7eb;
+  --wb-color-gray-300: #d1d5db;
+  --wb-color-gray-400: #9ca3af;
+  --wb-color-gray-500: #6b7280;
+  --wb-color-gray-600: #4b5563;
+  --wb-color-gray-700: #374151;
+  --wb-color-gray-900: #111827;
+
+  --wb-color-surface: #ffffff;
+  --wb-color-border: #e5e7eb;
+  --wb-color-text-primary: #111827;
+  --wb-color-text-secondary: #6b7280;
+  --wb-color-text-tertiary: #9ca3af;
+  --wb-color-primary-subtle: #eff6ff;
+  --wb-color-primary-ring: rgba(59, 130, 246, 0.25);
+  --wb-color-warning: #d97706;
+  --wb-color-danger: #dc2626;
+  --wb-color-danger-subtle: #fee2e2;
+
+  --wb-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --wb-shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --wb-shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.editor[data-theme='dark'] {
+  --wb-color-primary: #60a5fa;
+  --wb-color-primary-dark: #3b82f6;
+  --wb-color-white: #ffffff;
+  --wb-color-gray-50: #111827;
+  --wb-color-gray-100: #1f2937;
+  --wb-color-gray-200: #374151;
+  --wb-color-gray-300: #4b5563;
+  --wb-color-gray-400: #6b7280;
+  --wb-color-gray-500: #9ca3af;
+  --wb-color-gray-600: #d1d5db;
+  --wb-color-gray-700: #e5e7eb;
+  --wb-color-gray-900: #f9fafb;
+
+  --wb-color-surface: #1f2937;
+  --wb-color-border: #374151;
+  --wb-color-text-primary: #f9fafb;
+  --wb-color-text-secondary: #d1d5db;
+  --wb-color-text-tertiary: #9ca3af;
+  --wb-color-primary-subtle: #1e3a5f;
+  --wb-color-primary-ring: rgba(96, 165, 250, 0.35);
+  --wb-color-warning: #fbbf24;
+  --wb-color-danger: #f87171;
+  --wb-color-danger-subtle: #450a0a;
+
+  --wb-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --wb-shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --wb-shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+}
+
+// Main editor container. It is the `wb-editor` size container for every layout query.
+.editor {
+  position: absolute;
+  inset: 0;
+  container: wb-editor / size;
+  --wb-gap: var(--wb-space-4);
+  --wb-border-width: 1px;
+  // Floating bars (toolbar, history, zoom): one row of controls plus padding and border.
+  --wb-control-size: 28px;
+  --wb-bar-padding: var(--wb-space-1);
+  --wb-bar: calc(var(--wb-control-size) + 2 * var(--wb-bar-padding) + 2 * var(--wb-border-width));
+  --wb-header-control-size: 40px;
+  --wb-header-padding: var(--wb-space-2);
+  --wb-header: calc(var(--wb-header-control-size) + 2 * var(--wb-header-padding) + 2 * var(--wb-border-width));
+  --wb-panel-width: 280px;
+  --wb-safe-top: env(safe-area-inset-top, 0px);
+  --wb-safe-bottom: env(safe-area-inset-bottom, 0px);
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+  color: var(--wb-color-text-primary);
+  pointer-events: none;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+
+  * {
+    box-sizing: border-box;
+  }
+
+  @include bp.coarse {
+    --wb-control-size: 44px;
+    --wb-header-control-size: 44px;
+
+    button {
+      min-width: 44px;
+      min-height: 44px;
+    }
+  }
+}
+
+:where(.editor) .editor-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  // Height taken from the bottom edge by the bottom bars, outer gap included.
+  --wb-bottom-reserve: calc(var(--wb-gap) + var(--wb-bar));
+  // Floating panels stop one gap above the bottom bars.
+  --wb-panel-max-height: calc(
+    100cqh - var(--wb-safe-top) - var(--wb-safe-bottom) - 2 * var(--wb-gap) - var(--wb-bottom-reserve)
+  );
+  --wb-popover-max-height: calc(var(--wb-panel-max-height) - var(--wb-header) - var(--wb-space-2));
+
+  > .wb-header,
+  > .wb-history,
+  > .wb-properties,
+  > .wb-toolbar,
+  > .wb-controls {
+    position: absolute;
+    z-index: 100;
+    pointer-events: auto;
+  }
+
+  > .wb-header {
+    top: var(--wb-gap);
+    left: var(--wb-gap);
+    max-width: calc(100% - 2 * var(--wb-gap));
+    padding: env(safe-area-inset-top) 0 0 env(safe-area-inset-left);
+  }
+
+  > .wb-properties {
+    top: var(--wb-gap);
+    right: var(--wb-gap);
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 0;
+  }
+
+  > .wb-toolbar {
+    bottom: var(--wb-gap);
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: calc(100% - 2 * var(--wb-gap));
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  > .wb-history {
+    bottom: var(--wb-gap);
+    left: var(--wb-gap);
+    padding: 0 0 env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+
+  > .wb-controls {
+    bottom: var(--wb-gap);
+    right: var(--wb-gap);
+    padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) 0;
+  }
+
+  // Undo/redo and zoom sit on a row above the toolbar so they never collide with it.
+  @include bp.not-wide {
+    --wb-bottom-reserve: calc(2 * var(--wb-gap) + 2 * var(--wb-bar));
+
+    > .wb-history,
+    > .wb-controls {
+      bottom: calc(2 * var(--wb-gap) + var(--wb-bar));
+    }
+  }
+
+  @include bp.medium {
+    > .wb-header {
+      max-width: calc(100% - var(--wb-panel-width) - 3 * var(--wb-gap));
+    }
+  }
+
+  @include bp.compact {
+    --wb-gap: var(--wb-space-2);
+
+    > .wb-header {
+      right: var(--wb-gap);
+      max-width: none;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left);
+    }
+
+    // Above the undo/zoom row so the shape flyout opens over it.
+    > .wb-toolbar {
+      z-index: 101;
+      left: var(--wb-gap);
+      right: var(--wb-gap);
+      transform: none;
+      max-width: none;
+      padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+  }
+}
+
+// Vertical toolbar on the left edge; the bottom row only holds undo/redo and zoom then.
+:where(.editor)[data-toolbar='left'] .editor-container {
+  --wb-bottom-reserve: calc(var(--wb-gap) + var(--wb-bar));
+
+  > .wb-toolbar {
+    top: 50%;
+    bottom: auto;
+    left: var(--wb-gap);
+    transform: translateY(-50%);
+    max-width: none;
+    padding: 0 0 0 env(safe-area-inset-left);
+  }
+
+  > .wb-history,
+  > .wb-controls {
+    bottom: var(--wb-gap);
+  }
+}
+
+// Transient feedback, centred above the bottom bars so it never covers the toolbar.
+:where(.editor) .editor-container > .wb-status {
+  position: absolute;
+  z-index: 110;
+  left: 50%;
+  bottom: calc(var(--wb-bottom-reserve) + var(--wb-safe-bottom) + var(--wb-gap));
+  transform: translateX(-50%);
+  max-width: calc(100% - 2 * var(--wb-gap));
+  pointer-events: none;
+}
+
+.editor .wb-status-message {
+  display: block;
+  padding: var(--wb-space-2) var(--wb-space-4);
+  border: 1px solid var(--wb-color-border);
+  border-radius: var(--wb-radius);
+  background: var(--wb-color-surface);
+  color: var(--wb-color-text-primary);
+  box-shadow: var(--wb-shadow-md);
+  font-size: 0.875rem;
+}
+
+// A sheet's content scrolls in the sheet, so sticky footers inside it stay at the sheet's bottom edge.
+.editor .bs-content .dlg-body {
+  overflow: visible;
+}
+
+:where(.editor) .wb-sheet-menu {
+  display: flex;
+  flex-direction: column;
+  padding: 0 var(--wb-space-2) var(--wb-space-3);
+}
+
+:where(.editor) .wb-sheet-item {
+  display: flex;
+  align-items: center;
+  gap: var(--wb-space-3);
+  min-height: 48px;
+  padding: 0 var(--wb-space-3);
+  border: none;
+  border-radius: var(--wb-radius-sm);
+  background: transparent;
+  color: var(--wb-color-text-primary);
+  font: inherit;
+  font-size: 0.9375rem;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: var(--wb-color-gray-100);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  ng-icon {
+    display: flex;
+    color: var(--wb-color-text-secondary);
+  }
+}
+
+:where(.editor) ng-bottom-sheet .wb-sheet-layers {
+  display: block;
+}
+
+// Icon button base styles; :where() keeps the specificity of a bare class
+:where(.editor) .icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: var(--wb-radius-sm);
+  color: var(--wb-color-text-secondary);
+
+  &:hover {
+    background-color: var(--wb-color-gray-100);
+    color: var(--wb-color-text-primary);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &.active {
+    background-color: var(--wb-color-primary);
+    color: var(--wb-color-white);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+@keyframes wb-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.editor :focus-visible {
+  outline: 2px solid var(--wb-color-primary);
+  outline-offset: 2px;
+}
+
+// Focusable only as a focus fallback (e.g. a sheet whose opener is gone); never draws a ring.
+.editor:focus {
+  outline: none;
+}

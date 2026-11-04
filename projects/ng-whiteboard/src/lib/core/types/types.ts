@@ -33,6 +33,8 @@ export interface AddImage {
   image: string | ArrayBuffer;
   x?: number;
   y?: number;
+  /** Treat x/y as the image's center instead of its top-left corner. */
+  center?: boolean;
 }
 
 export enum Direction {
@@ -87,4 +89,13 @@ export interface BoundingBox {
     rotateHandle: Point;
   };
   rotation: number;
+}
+
+export interface ExportOptions {
+  scale?: number;
+  background?: boolean;
+  padding?: number;
+  onlySelected?: boolean;
+  /** PNG and SVG downloads only: store the board inside the image so Open can load it back for editing. */
+  embedBoardData?: boolean;
 }

@@ -3,6 +3,13 @@ import { StrokeOptions } from './stroke-types';
 
 describe('Stroke Points', () => {
   describe('getStrokePoints', () => {
+    it('keeps pressure-less [x, y] points when pressure is not simulated', () => {
+      const input = Array.from({ length: 20 }, (_, i) => [i * 10, 0]);
+      const result = getStrokePoints(input, { size: 4, simulatePressure: false });
+      expect(result.length).toBeGreaterThan(10);
+      expect(input[0]).toEqual([0, 0]);
+    });
+
     describe('Basic Functionality', () => {
       it('should return empty array for empty input', () => {
         const result = getStrokePoints([]);

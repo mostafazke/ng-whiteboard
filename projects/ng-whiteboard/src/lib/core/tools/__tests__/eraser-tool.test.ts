@@ -119,4 +119,24 @@ describe('EraserTool', () => {
       expect(mockApiService.updateElements).toHaveBeenCalledWith([mockElement]);
     });
   });
+
+  describe('cancel', () => {
+    it('unmarks hovered elements, removes nothing, and stops erasing', () => {
+      const marked = { id: '1', type: ElementType.Rectangle, opacity: 100, isDeleting: true } as WhiteboardElement;
+      (mockApiService.getElements as jest.Mock).mockReturnValue([marked]);
+      eraserTool.activate();
+      eraserTool['isErasing'] = true;
+      eraserTool['lastPosition'] = { x: 0, y: 0 };
+      eraserTool['hoveredElementIds'].add('1');
+
+      eraserTool.cancel();
+      eraserTool.handlePointerUp();
+
+      expect(marked.isDeleting).toBe(false);
+      expect(mockApiService.updateElements).toHaveBeenCalledWith([marked]);
+      expect(mockApiService.removeElements).not.toHaveBeenCalled();
+      expect(eraserTool['isErasing']).toBe(false);
+      expect(eraserTool['lastPosition']).toBeNull();
+    });
+  });
 });

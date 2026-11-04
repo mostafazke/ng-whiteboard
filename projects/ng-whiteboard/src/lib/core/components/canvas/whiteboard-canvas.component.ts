@@ -5,6 +5,7 @@ import {
   Component,
   computed,
   ElementRef,
+  HostBinding,
   inject,
   ViewChild,
 } from '@angular/core';
@@ -13,12 +14,13 @@ import { GlobalKeyboardDirective, ResizeHandlerDirective } from '../../directive
 
 import { SvgDirective } from '../../svg/svg.directive';
 import { SvgService } from '../../svg/svg.service';
-import { ElementType, ToolType, WhiteboardElement } from '../../types';
+import { ElementType, PENCIL_FILTER_ID, ToolType, WhiteboardElement } from '../../types';
 import { ApiService } from '../../api';
 import { CanvasService } from '../../canvas';
 import { ConnectionUIService, HandleService, SelectionService } from '../../elements';
-import { GripCursorPipe, ElementOpacityPipe, PointsToPathPipe, ArrowheadPipe } from '../../pipes';
+import { GripCursorPipe, ElementOpacityPipe, PenRenderPipe, ArrowheadPipe } from '../../pipes';
 import { ToolsService } from '../../tools';
+import { effectiveLayerId } from '../../utils';
 
 @Component({
   selector: 'ng-whiteboard-canvas',
@@ -27,7 +29,7 @@ import { ToolsService } from '../../tools';
     CommonModule,
     GripCursorPipe,
     ElementOpacityPipe,
-    PointsToPathPipe,
+    PenRenderPipe,
     ArrowheadPipe,
     SvgDirective,
     ResizeHandlerDirective,
@@ -41,6 +43,11 @@ export class WhiteboardCanvasComponent implements AfterViewInit {
   @ViewChild('svgContainer', { static: false })
   svgContainer!: ElementRef<SVGSVGElement>;
 
+  @HostBinding('attr.data-theme')
+  get theme() {
+    return this.config().theme ?? null;
+  }
+
   apiService = inject(ApiService);
   configService = inject(ConfigService);
   toolsService = inject(ToolsService);
@@ -51,6 +58,7 @@ export class WhiteboardCanvasComponent implements AfterViewInit {
   handleService = inject(HandleService);
 
   config = this.configService.getConfigSignal();
+  readonly pencilFilterId = PENCIL_FILTER_ID;
 
   elements = this.apiService.allElements;
   layers = this.apiService.layers;
@@ -68,8 +76,8 @@ export class WhiteboardCanvasComponent implements AfterViewInit {
 
     const sortElements = (arr: WhiteboardElement[]) =>
       arr.slice().sort((a, b) => {
-        const layerA = a.layerId ? layersMap.get(a.layerId) : undefined;
-        const layerB = b.layerId ? layersMap.get(b.layerId) : undefined;
+        const layerA = layersMap.get(effectiveLayerId(a, layers) ?? '');
+        const layerB = layersMap.get(effectiveLayerId(b, layers) ?? '');
         const zA = (layerA?.zIndex ?? 0) * 1000 + (a.zIndex ?? 0);
         const zB = (layerB?.zIndex ?? 0) * 1000 + (b.zIndex ?? 0);
         return zA - zB;
@@ -82,12 +90,15 @@ export class WhiteboardCanvasComponent implements AfterViewInit {
       return [];
     }
 
-    const filtered = elements.filter((el) => !el.layerId || visibleLayerIds.has(el.layerId));
+    const filtered = elements.filter((el) => {
+      const layerId = effectiveLayerId(el, layers);
+      return !layerId || visibleLayerIds.has(layerId);
+    });
     const sorted = sortElements(filtered);
 
     // Add computed properties for rendering
     return sorted.map((el) => {
-      const layer = el.layerId ? layersMap.get(el.layerId) : undefined;
+      const layer = layersMap.get(effectiveLayerId(el, layers) ?? '');
       return {
         ...el,
         transform: this.buildTransform(el),

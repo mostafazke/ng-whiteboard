@@ -17,6 +17,7 @@ import { KeyboardShortcutService } from '../input/keyboard-shortcut.service';
 import { ContextMenuService } from '../components/context-menu/context-menu.service';
 import { DragDropService } from '../input/drag-drop.service';
 import { WheelHandlerService } from '../viewport/wheel-handler.service';
+import { ElementsService } from '../elements/elements.service';
 global.DOMRect = class DOMRect {
   constructor(
     public x = 0,
@@ -143,6 +144,7 @@ describe('SvgService', () => {
         { provide: KeyboardShortcutService, useValue: keyboardShortcutServiceMock },
         { provide: DragDropService, useValue: dragDropServiceMock },
         { provide: WheelHandlerService, useValue: wheelHandlerServiceMock },
+        { provide: ElementsService, useValue: { clearDraftElements: jest.fn() } },
       ],
     });
 
@@ -213,6 +215,20 @@ describe('SvgService', () => {
 
     expect(eventBusService.emit).toHaveBeenCalledWith(WhiteboardEvent.DrawEnd);
     expect(currentTool.handlePointerUp).toHaveBeenCalledWith(pointerInfo);
+  });
+
+  it('finishes a draw cut short by pointercancel like a release', () => {
+    service.onPointerDown(createMockPointerInfo({ eventType: 'pointerdown' }));
+    const cancel = createMockPointerInfo({ eventType: 'pointercancel' });
+    service.onPointerCancel(cancel);
+    expect(currentTool.handlePointerUp).toHaveBeenCalledWith(cancel);
+    expect(eventBusService.emit).toHaveBeenCalledWith(WhiteboardEvent.DrawEnd);
+  });
+
+  it('ignores pointercancel when nothing is being drawn', () => {
+    const cancel = createMockPointerInfo({ eventType: 'pointercancel' });
+    service.onPointerCancel(cancel);
+    expect(currentTool.handlePointerUp).not.toHaveBeenCalledWith(cancel);
   });
 
   it('should not emit events if drawing is disabled', () => {
@@ -401,6 +417,118 @@ describe('SvgService', () => {
       service.onPointerDown(down);
       expect(currentTool.handlePointerDown).toHaveBeenCalledWith(down);
       expect(selectTool.handlePointerDown).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('cancelInteraction', () => {
+    let toolsService: jest.Mocked<ToolsService>;
+    let elementsService: jest.Mocked<ElementsService>;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      toolsService = TestBed.inject(ToolsService) as jest.Mocked<ToolsService>;
+      elementsService = TestBed.inject(ElementsService) as jest.Mocked<ElementsService>;
+      apiService.selectedElements.mockReturnValue([]);
+    });
+
+    it('clears drafts and cancels the active drawing tool', () => {
+      const cancel = jest.fn();
+      (currentTool as { cancel?: () => void }).cancel = cancel;
+      service.onPointerDown(createMockPointerInfo());
+
+      service.cancelInteraction();
+
+      expect(elementsService.clearDraftElements).toHaveBeenCalled();
+      expect(cancel).toHaveBeenCalledTimes(1);
+      expect(currentTool.deactivate).not.toHaveBeenCalled();
+      expect(currentTool.handlePointerUp).not.toHaveBeenCalled();
+      expect(eventBusService.emit).toHaveBeenCalledWith(WhiteboardEvent.DrawEnd);
+      delete (currentTool as { cancel?: () => void }).cancel;
+    });
+
+    it('ends a selection gesture captured from a drawing tool', () => {
+      apiService.selectedElements.mockReturnValue([{ id: 'sel-1' } as WhiteboardElement]);
+      (getMouseTarget as jest.Mock).mockReturnValue({ id: 'selectorBox', getAttribute: () => null });
+      service.onPointerDown(createMockPointerInfo());
+      expect(selectTool.handlePointerDown).toHaveBeenCalled();
+
+      service.cancelInteraction();
+
+      expect(selectTool.handlePointerUp).toHaveBeenCalledTimes(1);
+      (selectTool.handlePointerUp as jest.Mock).mockClear();
+      service.onPointerUp(createMockPointerInfo({ eventType: 'pointerup' }));
+      expect(selectTool.handlePointerUp).not.toHaveBeenCalled();
+      expect(currentTool.handlePointerUp).toHaveBeenCalled();
+    });
+
+    it('finishes a Select-tool drag/marquee without deactivating (keeps the selection)', () => {
+      toolsService.getActiveToolType.mockReturnValue(ToolType.Select);
+      toolsService.getActiveToolInstance.mockReturnValue(selectTool);
+      service.onPointerDown(createMockPointerInfo());
+
+      service.cancelInteraction();
+
+      expect(selectTool.handlePointerUp).toHaveBeenCalledTimes(1);
+      expect(selectTool.deactivate).not.toHaveBeenCalled();
+      expect(elementsService.clearDraftElements).toHaveBeenCalled();
+
+      toolsService.getActiveToolType.mockReturnValue(ToolType.Pen);
+      toolsService.getActiveToolInstance.mockReturnValue(currentTool);
+    });
+
+    const drawEndCount = () =>
+      eventBusService.emit.mock.calls.filter(([type]) => type === WhiteboardEvent.DrawEnd).length;
+
+    it('emits no DrawEnd without a DrawStart for the current interaction', () => {
+      service.cancelInteraction();
+
+      expect(drawEndCount()).toBe(0);
+    });
+
+    it('emits no DrawEnd when the first down was blocked (drawing disabled)', () => {
+      configService.getConfig.mockReturnValue({ drawingEnabled: false } as WhiteboardConfig);
+      service.onPointerDown(createMockPointerInfo());
+
+      service.cancelInteraction();
+
+      expect(eventBusService.emit).not.toHaveBeenCalledWith(WhiteboardEvent.DrawStart, expect.anything());
+      expect(drawEndCount()).toBe(0);
+      configService.getConfig.mockReturnValue({
+        drawingEnabled: true,
+        keyboardShortcutsEnabled: true,
+      } as WhiteboardConfig);
+    });
+
+    it('a stale DrawStart never yields a DrawEnd for a later blocked down followed by a pinch', () => {
+      service.onPointerDown(createMockPointerInfo());
+      configService.getConfig.mockReturnValue({ drawingEnabled: false } as WhiteboardConfig);
+      service.onPointerUp(createMockPointerInfo({ eventType: 'pointerup' }));
+      eventBusService.emit.mockClear();
+
+      service.onPointerDown(createMockPointerInfo());
+      service.cancelInteraction();
+
+      expect(drawEndCount()).toBe(0);
+      configService.getConfig.mockReturnValue({
+        drawingEnabled: true,
+        keyboardShortcutsEnabled: true,
+      } as WhiteboardConfig);
+    });
+
+    it('pairs DrawEnd with DrawStart when a gesture resumes', () => {
+      service.onPointerDown(createMockPointerInfo());
+      service.cancelInteraction();
+      service.cancelInteraction();
+
+      expect(drawEndCount()).toBe(1);
+    });
+
+    it('emits no second DrawEnd when cancelling after the pointer was already released', () => {
+      service.onPointerDown(createMockPointerInfo());
+      service.onPointerUp(createMockPointerInfo({ eventType: 'pointerup' }));
+      service.cancelInteraction();
+
+      expect(drawEndCount()).toBe(1);
     });
   });
 
@@ -622,6 +750,16 @@ describe('SvgService', () => {
       expect(keyboardShortcutService.handleKeyDown).not.toHaveBeenCalled();
     });
 
+    it('releases the Space pan when focus leaves the board', () => {
+      service.onKeyDown(new KeyboardEvent('keydown', { code: 'Space' }));
+      service.releaseHeldKeys();
+      expect(toolsService.popTemporaryTool).toHaveBeenCalledWith('pan-space');
+
+      toolsService.popTemporaryTool.mockClear();
+      service.releaseHeldKeys();
+      expect(toolsService.popTemporaryTool).not.toHaveBeenCalled();
+    });
+
     it('should not activate hand tool multiple times when space is held', () => {
       const event1 = new KeyboardEvent('keydown', { code: 'Space' });
       const event2 = new KeyboardEvent('keydown', { code: 'Space' });
@@ -632,6 +770,19 @@ describe('SvgService', () => {
       service.onKeyDown(event2);
 
       expect(toolsService.pushTemporaryTool).not.toHaveBeenCalled();
+    });
+
+    it('emits keyDown$ once when the same event reaches onKeyDown twice', () => {
+      const emitted: KeyboardEvent[] = [];
+      service.keyDown$.subscribe((e) => emitted.push(e));
+      const event = new KeyboardEvent('keydown', { key: 'p', code: 'KeyP', altKey: true });
+
+      service.onKeyDown(event);
+      service.onKeyDown(event);
+      service.onKeyDown(new KeyboardEvent('keydown', { key: 'p', code: 'KeyP', altKey: true }));
+
+      expect(emitted.length).toBe(2);
+      expect(emitted[0]).toBe(event);
     });
 
     it('should deactivate hand tool on spacebar up', () => {

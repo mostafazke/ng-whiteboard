@@ -1,15 +1,25 @@
 import { signal, Injectable } from '@angular/core';
 import { WhiteboardElement } from '../types';
+import { LayerState } from '../types/layers';
+
+export interface BoardSnapshot {
+  elements: WhiteboardElement[];
+  layers?: LayerState;
+}
 
 interface HistoryEntry {
   before: WhiteboardElement[];
   after: WhiteboardElement[];
+  layersBefore?: LayerState;
+  layersAfter?: LayerState;
   description: string;
   timestamp: number;
+  id?: number;
 }
 
 export interface BatchHandle {
-  execute: () => void;
+  /** Commit the batch; `after` and `layersAfter`, when given, are recorded as its final state first. */
+  execute: (after?: WhiteboardElement[], layersAfter?: LayerState) => void;
   clear: () => void;
 }
 
@@ -24,12 +34,19 @@ export class HistoryService {
   private canRedoSignal = signal(false);
   private undoDescriptionSignal = signal<string | undefined>(undefined);
   private redoDescriptionSignal = signal<string | undefined>(undefined);
+  private stateIdSignal = signal(0);
+  /** State id at the bottom of the undo stack; moves up when the oldest entry is dropped. */
+  private baseStateId = 0;
+  private nextEntryId = 1;
 
   private batching = false;
   private batchDepth = 0;
   private batchBeforeSnapshot: WhiteboardElement[] | null = null;
   private batchDescription = 'Batch operation';
   private pendingBatchAfter: WhiteboardElement[] | null = null;
+  private batchLayersBefore: LayerState | undefined;
+  private pendingBatchLayersAfter: LayerState | undefined;
+  private batchGeneration = 0;
 
   getCanUndoSignal() {
     return this.canUndoSignal.asReadonly();
@@ -42,6 +59,10 @@ export class HistoryService {
   }
   getRedoDescriptionSignal() {
     return this.redoDescriptionSignal.asReadonly();
+  }
+  /** Identifies the board state reached through history: equal ids mean the same point in the undo stack. */
+  getStateIdSignal() {
+    return this.stateIdSignal.asReadonly();
   }
 
   recordChange(before: WhiteboardElement[], after: WhiteboardElement[], description: string) {
@@ -72,16 +93,31 @@ export class HistoryService {
     this.recordChange(before, after, 'Clear whiteboard');
   }
 
-  startBatch(description: string, beforeSnapshot: WhiteboardElement[]): BatchHandle {
+  startBatch(description: string, beforeSnapshot: WhiteboardElement[], layersBefore?: LayerState): BatchHandle {
     if (this.batchDepth === 0) {
       this.batchBeforeSnapshot = this.cloneElements(beforeSnapshot);
+      this.batchLayersBefore = this.cloneLayers(layersBefore);
       this.batchDescription = description;
       this.batching = true;
-    }
+    } else if (!this.batchLayersBefore) this.batchLayersBefore = this.cloneLayers(layersBefore);
     this.batchDepth++;
+    const generation = this.batchGeneration;
+    let settled = false;
+    // A handle settles once, and only while its batch is still the open one: after a cancel it no longer
+    // touches the depth, so a stale owner cannot close a batch opened by someone else.
+    const settle = (action: () => void) => {
+      if (settled) return;
+      settled = true;
+      if (generation === this.batchGeneration) action();
+    };
     return {
-      execute: () => this.finishBatchCommit(),
-      clear: () => this.cancelBatch(),
+      execute: (after?: WhiteboardElement[], layersAfter?: LayerState) =>
+        settle(() => {
+          if (after) this.completeBatch(after);
+          if (layersAfter && this.batching) this.pendingBatchLayersAfter = this.cloneLayers(layersAfter);
+          this.finishBatchCommit();
+        }),
+      clear: () => settle(() => this.cancelBatch()),
     };
   }
 
@@ -98,10 +134,15 @@ export class HistoryService {
       return;
     }
     const after = this.pendingBatchAfter ?? this.batchBeforeSnapshot;
-    if (!this.snapshotsEqual(this.batchBeforeSnapshot, after)) {
+    const layersAfter = this.pendingBatchLayersAfter ?? this.batchLayersBefore;
+    if (
+      !this.snapshotsEqual(this.batchBeforeSnapshot, after) ||
+      !this.layersEqual(this.batchLayersBefore, layersAfter)
+    ) {
       this.pushHistory({
         before: this.batchBeforeSnapshot,
         after,
+        ...this.layerParts(this.batchLayersBefore, layersAfter),
         description: this.batchDescription,
         timestamp: Date.now(),
       });
@@ -110,6 +151,7 @@ export class HistoryService {
   }
 
   private cancelBatch() {
+    this.batchGeneration++;
     this.batchDepth = 0;
     this.resetBatchState();
   }
@@ -117,44 +159,68 @@ export class HistoryService {
   private resetBatchState() {
     this.batching = false;
     this.batchBeforeSnapshot = null;
+    this.pendingBatchAfter = null;
+    this.batchLayersBefore = undefined;
+    this.pendingBatchLayersAfter = undefined;
     this.batchDescription = 'Batch operation';
   }
 
   undo(): WhiteboardElement[] | null {
-    return this.performUndo();
+    return this.undoSnapshot()?.elements ?? null;
   }
 
   redo(): WhiteboardElement[] | null {
-    return this.performRedo();
+    return this.redoSnapshot()?.elements ?? null;
+  }
+
+  undoSnapshot(): BoardSnapshot | null {
+    const entry = this.takeUndo();
+    if (!entry) return null;
+    return this.toSnapshot(entry.before, entry.layersBefore);
+  }
+
+  redoSnapshot(): BoardSnapshot | null {
+    const entry = this.takeRedo();
+    if (!entry) return null;
+    return this.toSnapshot(entry.after, entry.layersAfter);
   }
 
   clearHistory(): void {
+    this.baseStateId = this.stateIdSignal();
     this.undoStack = [];
     this.redoStack = [];
     this.updateSignals();
   }
 
-  private performUndo(): WhiteboardElement[] | null {
-    if (this.undoStack.length === 0) return null;
+  private takeUndo(): HistoryEntry | null {
     const entry = this.undoStack.pop();
     if (!entry) return null;
     this.redoStack.push(entry);
     this.updateSignals();
-    return this.cloneElements(entry.before);
+    return entry;
   }
 
-  private performRedo(): WhiteboardElement[] | null {
-    if (this.redoStack.length === 0) return null;
+  private takeRedo(): HistoryEntry | null {
     const entry = this.redoStack.pop();
     if (!entry) return null;
     this.undoStack.push(entry);
     this.updateSignals();
-    return this.cloneElements(entry.after);
+    return entry;
+  }
+
+  private toSnapshot(elements: WhiteboardElement[], layers?: LayerState): BoardSnapshot {
+    const snapshot: BoardSnapshot = { elements: this.cloneElements(elements) };
+    if (layers) snapshot.layers = this.cloneLayers(layers);
+    return snapshot;
   }
 
   private pushHistory(entry: HistoryEntry) {
+    entry.id = this.nextEntryId++;
     this.undoStack.push(entry);
-    if (this.undoStack.length > this.MAX_HISTORY) this.undoStack.shift();
+    if (this.undoStack.length > this.MAX_HISTORY) {
+      const dropped = this.undoStack.shift();
+      if (dropped?.id !== undefined) this.baseStateId = dropped.id;
+    }
     this.redoStack = [];
     this.updateSignals();
   }
@@ -164,6 +230,7 @@ export class HistoryService {
     this.canRedoSignal.set(this.redoStack.length > 0);
     this.undoDescriptionSignal.set(this.undoStack[this.undoStack.length - 1]?.description);
     this.redoDescriptionSignal.set(this.redoStack[this.redoStack.length - 1]?.description);
+    this.stateIdSignal.set(this.undoStack[this.undoStack.length - 1]?.id ?? this.baseStateId);
   }
 
   private cloneElements(elements: WhiteboardElement[]): WhiteboardElement[] {
@@ -178,6 +245,19 @@ export class HistoryService {
       }
       return cloned;
     });
+  }
+
+  private cloneLayers(layers: LayerState | undefined): LayerState | undefined {
+    return layers ? (JSON.parse(JSON.stringify(layers)) as LayerState) : undefined;
+  }
+
+  private layerParts(before: LayerState | undefined, after: LayerState | undefined) {
+    return before && after ? { layersBefore: this.cloneLayers(before), layersAfter: this.cloneLayers(after) } : {};
+  }
+
+  private layersEqual(a: LayerState | undefined, b: LayerState | undefined): boolean {
+    if (!a || !b) return true;
+    return JSON.stringify(a) === JSON.stringify(b);
   }
 
   private snapshotsEqual(a: WhiteboardElement[], b: WhiteboardElement[]): boolean {
