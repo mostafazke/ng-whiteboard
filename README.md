@@ -327,8 +327,6 @@ export class MyWhiteboardComponent implements AfterViewInit {
 - **`resetBoard()`** Clears elements and layers back to a fresh board (undoable).
 - **`hasContent()`** Returns `true` if the board has any elements.
 
-> **Behaviour changes:** `save()` output is now cropped to the content bounds with 16px padding (an empty board still exports the canvas box) and never includes editor chrome. `reorderLayersByIndex` indices count from the top layer, as shown in the layers panel. `addLayer` and `setActiveLayer` no longer hide the other layers. Elements without a `layerId` (or with an unknown one) belong to the bottom layer for counts, visibility, lock and export.
-
 ### 🖌 Drawing Tools & Interaction
 
 - **`setActiveTool(tool: ToolType)`** Sets the current drawing tool (e.g., pen, eraser, shape).
@@ -350,7 +348,6 @@ export class MyWhiteboardComponent implements AfterViewInit {
 - **`sendBackward(elementOrId: WhiteboardElement | string)`** Moves the element one layer backward.
 - **`setZIndex(elementOrId: WhiteboardElement | string, zIndex: number)`** Sets the exact z-index for an element.
 - **`getZIndex(elementOrId: WhiteboardElement | string)`** Returns the current z-index of an element.
-
 - **`removeLayer(id: string, mode: 'delete-elements' | 'move-elements' = 'delete-elements')`** Removes a layer; `'move-elements'` moves its elements to the layer below instead of deleting them.
 - **`mergeLayerDown(id: string)`** Merges a layer into the one below it.
 - **`beginLayerOpacityEdit(id: string)` / `endLayerOpacityEdit()`** Group a live opacity drag into a single undo step.
@@ -372,6 +369,19 @@ Layer operations are undoable.
 - **`resetZoom()`** Resets the zoom level to 100%.
 - **`pan(deltaX: number, deltaY: number)`** Pans the canvas by the specified offset.
 - **`resetPan()`** Resets the canvas to its original position.
+
+### ⚠️ Behaviour Changes
+
+- `save()` output is now cropped to the content bounds with 16px padding (an empty board still exports the canvas box) and never includes editor chrome. For `FormatType.Svg` the vector is downloaded directly and the returned string is the SVG data URL.
+- JPEG export has a white background.
+- Raster exports are limited to 16384px per side and 268,435,456 pixels in total; the scale is reduced to fit.
+- `reorderLayersByIndex` indices count from the top layer, as shown in the layers panel.
+- `addLayer` and `setActiveLayer` no longer hide the other layers.
+- `removeLayer(id)` now deletes the layer's elements by default; pass `'move-elements'` to keep them. Moved elements are stacked above the target layer's elements when moving down, or below them when moving up.
+- `Ctrl/Cmd + Shift + C` no longer copies elements.
+- `importData` is a single undo step.
+- Elements without a `layerId` (or with an unknown one) belong to the bottom layer for counts, visibility, lock and export. Older boards with orphaned elements now show them on the bottom layer.
+- The element arrays in `layers()` are now derived from each element's `layerId`.
 
 ## ⌨️ Keyboard Shortcuts
 
