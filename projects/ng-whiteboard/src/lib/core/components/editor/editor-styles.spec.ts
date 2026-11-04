@@ -24,6 +24,13 @@ describe('editor styles stay inside the editor', () => {
     expect(sheet.match(/#[0-9a-f]{3,8}\b|rgba?\(|(?<![\w-])white(?![\w-])/gi) ?? []).toEqual([]);
   });
 
+  it('the layer grip is a 44px target on coarse pointers', () => {
+    const sheet = readFileSync(join(__dirname, 'panels/layer-panel/layer-panel.component.scss'), 'utf8');
+    const grip = sheet.slice(sheet.indexOf('.lp-grip {'));
+    const coarse = grip.slice(grip.indexOf('@include bp.coarse'));
+    expect(coarse).toMatch(/width: 44px;\s*height: 44px;/);
+  });
+
   it('container-relative sizes subtract tokens, never pixel literals tied to panel heights', () => {
     const magic = files.flatMap((file) =>
       (readFileSync(file, 'utf8').match(/calc\(100(?:cqh|cqw|%)[^;]*?-\s*\d+px[^;]*;/g) ?? []).map(

@@ -79,14 +79,14 @@ describe('LayerManagementService', () => {
       expect(service.getActiveLayerId()).toBe(newLayer.id);
     });
 
-    it('should make previous layers invisible', () => {
+    it('should leave other layers visible', () => {
       const firstLayer = service.layers()[0];
       const newLayer = service.addLayer();
 
       const layers = service.layers();
       const previousLayer = layers.find((l) => l.id === firstLayer.id);
 
-      expect(previousLayer?.visible).toBe(false);
+      expect(previousLayer?.visible).toBe(true);
       expect(layers.find((l) => l.id === newLayer.id)?.visible).toBe(true);
     });
 
@@ -426,15 +426,16 @@ describe('LayerManagementService', () => {
       expect(service.getActiveLayerId()).toBe(layer2.id);
     });
 
-    it('should make only active layer visible', () => {
+    it('should not change any layer visibility when activating', () => {
       const layer1 = service.layers()[0];
       const layer2 = service.addLayer();
       const layer3 = service.addLayer();
 
+      service.toggleLayerVisibility(layer3.id);
       service.setActiveLayer(layer2.id);
 
       const layers = service.layers();
-      expect(layers.find((l) => l.id === layer1.id)?.visible).toBe(false);
+      expect(layers.find((l) => l.id === layer1.id)?.visible).toBe(true);
       expect(layers.find((l) => l.id === layer2.id)?.visible).toBe(true);
       expect(layers.find((l) => l.id === layer3.id)?.visible).toBe(false);
     });
@@ -466,13 +467,13 @@ describe('LayerManagementService', () => {
 
     it('should compute visibleLayers', () => {
       service.addLayer();
+      const layer2 = service.addLayer();
       service.addLayer();
-      const layer3 = service.addLayer();
+      service.toggleLayerVisibility(layer2.id);
 
-      // layer3 is the only visible one (active layer)
       const visible = service.visibleLayers();
-      expect(visible.length).toBe(1);
-      expect(visible[0].id).toBe(layer3.id);
+      expect(visible.length).toBe(3);
+      expect(visible.some((l) => l.id === layer2.id)).toBe(false);
       expect(visible.every((l) => l.visible)).toBe(true);
     });
 

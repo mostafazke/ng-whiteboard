@@ -5,11 +5,13 @@ import {
   Component,
   computed,
   DestroyRef,
+  effect,
   ElementRef,
   inject,
   Injector,
   Signal,
   signal,
+  untracked,
   viewChild,
   ViewEncapsulation,
 } from '@angular/core';
@@ -124,6 +126,9 @@ export class WhiteboardEditorComponent {
   constructor() {
     this.svgService.keyDown$.pipe(takeUntilDestroyed()).subscribe((event) => this.handleShortcut(event));
     afterNextRender(() => this.observeSize());
+    effect(() => {
+      if (!this.showLayersDropdownSignal()) untracked(() => this.editorStateService.endLayerOpacityEdit());
+    });
   }
 
   private observeSize() {
@@ -168,6 +173,7 @@ export class WhiteboardEditorComponent {
   }
 
   private closeSheets() {
+    this.editorStateService.endLayerOpacityEdit();
     this.propertiesSheetOpenSignal.set(false);
     this.menuSheetOpenSignal.set(false);
     this.showLayersDropdownSignal.set(false);

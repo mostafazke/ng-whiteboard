@@ -12,6 +12,7 @@
   padding: var(--wb-header-padding);
   gap: var(--wb-space-2);
   max-width: 100%;
+  position: relative;
 
   .header-left {
     display: flex;
@@ -58,12 +59,15 @@
         }
       }
 
+      &.layers-wrapper {
+        position: static;
+      }
+
       .layers-dropdown {
         position: absolute;
         top: calc(100% + var(--wb-space-2));
-        right: 0;
-        width: 300px;
-        max-width: calc(100vw - 2 * var(--wb-space-4));
+        left: 0;
+        width: min(300px, calc(100cqw - 2 * var(--wb-gap)));
         background: var(--wb-color-surface);
         border: 1px solid var(--wb-color-border);
         border-radius: var(--wb-radius);

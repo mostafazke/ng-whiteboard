@@ -145,6 +145,18 @@ describe('WhiteboardEditorComponent', () => {
       expect(opacityOf(top)).toBe(1);
     });
 
+    it('closing the layers popover mid-edit ends the opacity batch', () => {
+      const [top] = topFirst();
+      component.showLayersDropdownSignal.set(true);
+      fixture.detectChanges();
+      component.onLayerAction({ type: 'opacity', id: top, opacity: 0.8, phase: 'start' });
+      component.onLayerAction({ type: 'opacity', id: top, opacity: 0.8, phase: 'change' });
+      component.showLayersDropdownSignal.set(false);
+      fixture.detectChanges();
+      component.onLayerAction({ type: 'opacity', id: top, opacity: 0.3, phase: 'change' });
+      expect(undoSteps()).toBe(2);
+    });
+
     it('blend, duplicate and merge-down reach the board', () => {
       const [top, bottom] = topFirst();
       component.onLayerAction({ type: 'blend', id: top, blendMode: 'multiply' });

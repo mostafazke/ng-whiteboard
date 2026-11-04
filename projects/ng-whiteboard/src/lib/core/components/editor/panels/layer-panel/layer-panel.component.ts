@@ -60,6 +60,8 @@ interface DragState {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LayerPanelComponent {
+  private readonly endEditOnDestroy = inject(DestroyRef).onDestroy(() => this.endOpacity());
+
   layers = input<WhiteboardLayer[]>([]);
   activeLayerId = input('');
   showClose = input(false);
@@ -77,10 +79,6 @@ export class LayerPanelComponent {
   private injector = inject(Injector);
   private opacityEditing: { id: string } | null = null;
   private lastOpacity = 1;
-
-  constructor() {
-    inject(DestroyRef).onDestroy(() => this.endOpacity());
-  }
 
   @HostListener('document:pointerdown', ['$event'])
   protected onDocumentPointerDown(event: Event) {
@@ -116,10 +114,10 @@ export class LayerPanelComponent {
 
   protected onRowKeydown(event: KeyboardEvent, layer: WhiteboardLayer, index: number) {
     if (event.target !== event.currentTarget) return;
-    if (event.key === 'Enter' || event.key === ' ') {
+    if (event.key === ' ') {
       event.preventDefault();
       this.emit({ type: 'select', id: layer.id });
-    } else if (event.key === 'F2') {
+    } else if (event.key === 'Enter' || event.key === 'F2') {
       event.preventDefault();
       this.startRename(layer);
     } else if (event.altKey && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
@@ -259,6 +257,7 @@ export class LayerPanelComponent {
   protected requestDelete(layer: WhiteboardLayer) {
     this.closeMenu(false);
     if ((layer.elements?.length ?? 0) === 0) {
+      this.focusAfterDelete(layer);
       this.emit({ type: 'delete', id: layer.id, mode: 'delete-elements' });
       return;
     }
@@ -268,7 +267,19 @@ export class LayerPanelComponent {
 
   protected confirmDelete(layer: WhiteboardLayer, mode: LayerDeleteMode) {
     this.confirmId.set(null);
+    this.focusAfterDelete(layer);
     this.emit({ type: 'delete', id: layer.id, mode });
+  }
+
+  private focusAfterDelete(layer: WhiteboardLayer) {
+    const rows = this.rows();
+    const index = rows.findIndex((r) => r.id === layer.id);
+    const neighbour = rows[index + 1] ?? rows[index - 1];
+    this.focusAfterRender(neighbour ? `.lp-row[data-id="${neighbour.id}"]` : '.lp-add');
+  }
+
+  protected optionsId(layer: WhiteboardLayer): string {
+    return `lp-options-${layer.id}`;
   }
 
   protected cancelDelete(layer: WhiteboardLayer) {

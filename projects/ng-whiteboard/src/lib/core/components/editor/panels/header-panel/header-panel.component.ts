@@ -56,7 +56,7 @@ let nextMenuId = 0;
 
         <ng-editable-title [value]="editorConfig().title" (valueChange)="titleChange.emit($event)"> </ng-editable-title>
 
-        <div class="dropdown-wrapper" (keydown.escape)="onEscape($event)">
+        <div class="dropdown-wrapper layers-wrapper" (keydown.escape)="onEscape($event)">
           <button
             #layersTrigger
             (click)="toggleLayers($event)"

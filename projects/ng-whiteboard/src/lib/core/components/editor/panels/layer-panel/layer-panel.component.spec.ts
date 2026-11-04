@@ -38,6 +38,7 @@ describe('LayerPanelComponent', () => {
     qa('.lp-more')[index].click();
     fixture.detectChanges();
   };
+  const slider0 = () => q<HTMLInputElement>('.lp-slider');
   const twoLayers = () => setLayers([layer('a', 0, { elements: ids(2) }), layer('b', 1)], 'b');
 
   beforeEach(async () => {
@@ -156,6 +157,54 @@ describe('LayerPanelComponent', () => {
       expect(actions).toEqual([]);
       expect(bubbled).not.toHaveBeenCalled();
       expect(q('.lp-name').textContent?.trim()).toBe('Layer b');
+    });
+  });
+
+  describe('keyboard and structure', () => {
+    it('Enter on a focused row starts rename and Space selects', () => {
+      twoLayers();
+      key(rows()[1], { key: 'Enter' });
+      expect(q('.lp-name-input')).not.toBeNull();
+      expect(actions).toEqual([]);
+      q<HTMLInputElement>('.lp-name-input').dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      fixture.detectChanges();
+      key(rows()[1], { key: ' ' });
+      expect(actions).toEqual([{ type: 'select', id: 'a' }]);
+    });
+
+    it('hides the grip when there is a single layer', () => {
+      setLayers([layer('a', 0)]);
+      expect(q('.lp-grip')).toBeNull();
+      twoLayers();
+      expect(qa('.lp-grip').length).toBe(2);
+    });
+
+    it('the more button is a disclosure, not a menu popup', () => {
+      twoLayers();
+      expect(q('.lp-more').hasAttribute('aria-haspopup')).toBe(false);
+      expect(q('.lp-more').hasAttribute('aria-controls')).toBe(false);
+      openMenu(0);
+      expect(q('.lp-more').getAttribute('aria-controls')).toBe(q('.lp-options').id);
+    });
+
+    it('ends an open opacity edit when destroyed mid-drag', () => {
+      twoLayers();
+      openMenu(0);
+      slider0().value = '30';
+      slider0().dispatchEvent(new Event('input'));
+      fixture.destroy();
+      expect(actions.map((a) => (a.type === 'opacity' ? a.phase : a.type))).toEqual(['start', 'change', 'end']);
+    });
+
+    it('after deleting, focus moves to the neighbouring row', () => {
+      twoLayers();
+      qa('.lp-more')[0].click();
+      fixture.detectChanges();
+      qa<HTMLButtonElement>('.lp-action')
+        .find((b) => b.textContent?.includes('Delete'))!
+        .click();
+      fixture.detectChanges();
+      expect(document.activeElement).toBe(rows()[1]);
     });
   });
 

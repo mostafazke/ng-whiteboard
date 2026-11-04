@@ -56,13 +56,7 @@ export class LayerManagementService {
       blendMode: 'normal',
     };
 
-    // Make all other layers invisible
-    const updatedLayers = layers.map((layer) => ({
-      ...layer,
-      visible: false,
-    }));
-
-    this._layers.set([...updatedLayers, newLayer]);
+    this._layers.set([...layers, newLayer]);
     this.setActiveLayer(newLayer.id);
 
     return newLayer;
@@ -365,8 +359,7 @@ export class LayerManagementService {
    * Behavior:
    * - Allows activating any layer including locked layers
    * - When a locked layer is active, drawing will be disabled
-   * - Makes all other layers invisible when a layer is activated
-   * - This ensures only the active layer is visible
+   * - Never changes any layer's visibility
    */
   setActiveLayer(id: string): boolean {
     const layers = this._layers();
@@ -376,14 +369,6 @@ export class LayerManagementService {
       console.warn(`Layer with id ${id} not found`);
       return false;
     }
-
-    // Make all layers invisible except the one being activated
-    const updatedLayers = layers.map((l) => ({
-      ...l,
-      visible: l.id === id,
-    }));
-
-    this._layers.set(updatedLayers);
 
     this._activeLayerId.set(id);
     return true;

@@ -35,19 +35,21 @@
           (click)="emit({ type: 'select', id: layer.id })"
           (keydown)="onRowKeydown($event, layer, i)"
         >
-          <span
-            class="lp-grip"
-            title="Drag to reorder"
-            aria-hidden="true"
-            (click)="$event.stopPropagation()"
-            (pointerdown)="onGripDown($any($event), i)"
-            (pointermove)="onGripMove($any($event))"
-            (pointerup)="onGripUp($any($event))"
-            (pointercancel)="cancelDrag()"
-            (lostpointercapture)="cancelDrag()"
-          >
-            <ng-icon name="grip"></ng-icon>
-          </span>
+          @if (rows().length > 1) {
+            <span
+              class="lp-grip"
+              title="Drag to reorder"
+              aria-hidden="true"
+              (click)="$event.stopPropagation()"
+              (pointerdown)="onGripDown($any($event), i)"
+              (pointermove)="onGripMove($any($event))"
+              (pointerup)="onGripUp($any($event))"
+              (pointercancel)="cancelDrag()"
+              (lostpointercapture)="cancelDrag()"
+            >
+              <ng-icon name="grip"></ng-icon>
+            </span>
+          }
 
           <div class="lp-info">
             @if (renamingId() === layer.id) {
@@ -92,10 +94,10 @@
           <button
             type="button"
             class="lp-btn lp-toggle lp-more"
-            aria-haspopup="true"
             aria-label="Layer options"
             title="Layer options"
             [attr.aria-expanded]="menuId() === layer.id"
+            [attr.aria-controls]="menuId() === layer.id ? optionsId(layer) : null"
             (click)="toggleMenu(layer, $event)"
           >
             <ng-icon name="more"></ng-icon>
@@ -103,7 +105,7 @@
         </div>
 
         @if (menuId() === layer.id) {
-          <div class="lp-options" (keydown)="onOptionsKeydown($event)">
+          <div class="lp-options" [id]="optionsId(layer)" (keydown)="onOptionsKeydown($event)">
             <label class="lp-field">
               <span class="lp-field-label">Opacity</span>
               <input

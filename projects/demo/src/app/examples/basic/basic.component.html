@@ -100,7 +100,7 @@
           </div>
 
           <div class="layers-list" (scroll)="onLayersListScroll()">
-            @for (layer of layers(); track layer.id; let i = $index) {
+            @for (layer of layersTopFirst(); track layer.id; let i = $index) {
               <div
                 class="layer-item"
                 (dragover)="onDragOver($event, i)"

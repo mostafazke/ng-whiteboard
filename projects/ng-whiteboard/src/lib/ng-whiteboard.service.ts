@@ -904,10 +904,12 @@ export class NgWhiteboardService {
   }
 
   /**
-   * Reorder layers by index position.
+   * Reorder layers by index position. Indices refer to the top-first list, as shown in the
+   * layers panel: index 0 is the top-most layer (highest zIndex).
    *
    * @example
    * ```typescript
+   * // Move the third layer from the top to the very top
    * this.whiteboardService.reorderLayersByIndex(2, 0);
    * ```
    */

@@ -57,6 +57,8 @@ export class BasicComponent implements OnDestroy {
   private boardSignals = this.whiteboardService.signals(this.boardId);
 
   layers = this.boardSignals.layers;
+  /** Top-most layer first, matching the indices `reorderLayersByIndex` expects. */
+  layersTopFirst = computed(() => [...this.layers()].sort((a, b) => b.zIndex - a.zIndex));
   activeLayerId = this.boardSignals.activeLayerId;
   activeLayer = this.boardSignals.activeLayer;
   selectedTool = this.boardSignals.selectedTool;
