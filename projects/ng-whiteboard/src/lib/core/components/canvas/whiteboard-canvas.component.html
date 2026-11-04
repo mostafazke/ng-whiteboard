@@ -59,7 +59,7 @@
       </pattern>
     </defs>
 
-    <rect width="100%" height="100%" [attr.fill]="backgroundColor()"></rect>
+    <rect id="contentBackground" width="100%" height="100%" [attr.fill]="backgroundColor()"></rect>
 
     @if (enableGrid()) {
       <g [attr.transform]="gridConfig().transform">
@@ -73,7 +73,7 @@
       </g>
     }
 
-    <g [attr.transform]="contentTransform()" style="pointer-events: all">
+    <g id="contentGroup" [attr.transform]="contentTransform()" style="pointer-events: all">
       @for (item of filteredElements(); track item.id) {
         <g
           class="wb_element"

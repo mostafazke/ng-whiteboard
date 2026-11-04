@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HistoryService } from './history.service';
 import { WhiteboardElement, ElementType } from '../types';
+import { LayerState } from '../types/layers';
 
 describe('HistoryService', () => {
   let service: HistoryService;
@@ -110,6 +111,25 @@ describe('HistoryService', () => {
 
       const redoDescription = service.getRedoDescriptionSignal();
       expect(redoDescription()).toBe('Custom action');
+    });
+  });
+
+  describe('state id', () => {
+    it('changes on each step and returns to the same id on undo/redo', () => {
+      const stateId = service.getStateIdSignal();
+      expect(stateId()).toBe(0);
+      service.recordChange([], [createMockElement('1')], 'a');
+      const afterA = stateId();
+      service.recordChange([createMockElement('1')], [createMockElement('1'), createMockElement('2')], 'b');
+      const afterB = stateId();
+      expect(new Set([0, afterA, afterB]).size).toBe(3);
+      service.undo();
+      expect(stateId()).toBe(afterA);
+      service.redo();
+      expect(stateId()).toBe(afterB);
+      service.undo();
+      service.recordChange([createMockElement('1')], [], 'c');
+      expect([0, afterA, afterB]).not.toContain(stateId());
     });
   });
 
@@ -777,6 +797,99 @@ describe('HistoryService', () => {
       // Additional undo should return null (covers the !entry path)
       const result = service.undo();
       expect(result).toBeNull();
+    });
+  });
+  describe('layer-aware history', () => {
+    const layerState = (name: string): LayerState => ({
+      layers: [{ id: 'l1', name, visible: true, locked: false, zIndex: 1, elements: [] }],
+      activeLayerId: 'l1',
+    });
+
+    it('records a board change when only the layers differ', () => {
+      const els = [createMockElement('1')];
+      service.recordBoardChange(
+        { elements: els, layers: layerState('Old') },
+        { elements: els, layers: layerState('New') },
+        'Rename layer'
+      );
+      expect(service.getCanUndoSignal()()).toBe(true);
+      expect(service.undoSnapshot()?.layers).toEqual(layerState('Old'));
+      expect(service.redoSnapshot()?.layers).toEqual(layerState('New'));
+    });
+
+    it('ignores a board change with equal elements and layers', () => {
+      const els = [createMockElement('1')];
+      service.recordBoardChange(
+        { elements: els, layers: layerState('Same') },
+        { elements: els, layers: layerState('Same') },
+        'No-op'
+      );
+      expect(service.getCanUndoSignal()()).toBe(false);
+    });
+
+    it('deep-clones recorded layer state', () => {
+      const before = layerState('Old');
+      service.recordBoardChange({ elements: [], layers: before }, { elements: [], layers: layerState('New') }, 'x');
+      before.layers[0].name = 'Mutated';
+      expect(service.undoSnapshot()?.layers?.layers[0].name).toBe('Old');
+    });
+
+    it('leaves layers undefined for element-only entries', () => {
+      service.recordChange([], [createMockElement('1')], 'Add');
+      const snap = service.undoSnapshot();
+      expect(snap?.elements).toEqual([]);
+      expect(snap?.layers).toBeUndefined();
+    });
+
+    it('keeps undo() and redo() returning element arrays', () => {
+      service.recordBoardChange(
+        { elements: [], layers: layerState('Old') },
+        { elements: [createMockElement('1')], layers: layerState('New') },
+        'x'
+      );
+      expect(service.undo()).toEqual([]);
+      expect(service.redo()?.map((e) => e.id)).toEqual(['1']);
+    });
+
+    it('records a batch with layer parts as a single entry', () => {
+      const handle = service.startBatch('Layer opacity', [], layerState('Old'));
+      service.recordBoardChange(
+        { elements: [], layers: layerState('a') },
+        { elements: [], layers: layerState('b') },
+        'ignored'
+      );
+      handle.execute(undefined, layerState('New'));
+      expect(service.undoSnapshot()?.layers).toEqual(layerState('Old'));
+      expect(service.getCanUndoSignal()()).toBe(false);
+      expect(service.redoSnapshot()?.layers).toEqual(layerState('New'));
+    });
+
+    it('keeps the layer before-state when a layer batch is nested in an element-only batch', () => {
+      const outer = service.startBatch('Update properties', []);
+      const inner = service.startBatch('Layer opacity', [], layerState('Old'));
+      inner.execute(undefined, layerState('New'));
+      outer.execute([createMockElement('1')]);
+      expect(service.undoSnapshot()?.layers).toEqual(layerState('Old'));
+      expect(service.redoSnapshot()?.layers).toEqual(layerState('New'));
+    });
+
+    it('keeps entries symmetric when only one side carries layers', () => {
+      service.recordBoardChange({ elements: [] }, { elements: [], layers: layerState('New') }, 'one-sided');
+      expect(service.getCanUndoSignal()()).toBe(false);
+
+      service.recordBoardChange(
+        { elements: [] },
+        { elements: [createMockElement('1')], layers: layerState('New') },
+        'one-sided'
+      );
+      expect(service.undoSnapshot()?.layers).toBeUndefined();
+      expect(service.redoSnapshot()?.layers).toBeUndefined();
+    });
+
+    it('does not record a batch whose elements and layers are unchanged', () => {
+      const handle = service.startBatch('Noop', [], layerState('Same'));
+      handle.execute(undefined, layerState('Same'));
+      expect(service.getCanUndoSignal()()).toBe(false);
     });
   });
 });

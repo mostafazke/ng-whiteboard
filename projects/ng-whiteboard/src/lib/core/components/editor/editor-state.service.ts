@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { computed, inject, Injectable, OnDestroy, Signal } from '@angular/core';
+import { computed, inject, Injectable, OnDestroy, Signal, signal } from '@angular/core';
 import { ApiService } from '../../api/api.service';
 import { ConfigService } from '../../config/config.service';
 import { ArrowElement, ArrowheadType } from '../../elements/arrow-element';
@@ -9,12 +9,23 @@ import { SelectionService } from '../../elements/selection.service';
 import { IOService } from '../../input/io.service';
 import { BatchHandle, HistoryService } from '../../history/history.service';
 import { ToolsService } from '../../tools/tools.service';
+import { effectiveLayerId } from '../../utils';
+import { boardFileKind } from '../../utils/files/board-data';
+import {
+  BoardFileHandle,
+  isPickerAbort,
+  pickBoardOpenFile,
+  pickBoardSaveFile,
+  supportsFileSystemAccess,
+  writeBoardFile,
+} from '../../utils/files/file-system';
 import {
   ArrowHeadStyle,
   ArrowLineStyle,
   BlendMode,
   EditorConfig,
   ElementType,
+  ExportOptions,
   FormatType,
   LineCap,
   PenType,
@@ -26,6 +37,7 @@ import { ZoomService } from '../../viewport/zoom.service';
 import { PanService } from '../../viewport';
 import { AlignmentType, computeAlignmentUpdates } from './utils/alignment';
 import { isFlatCurve, toArrowPath } from './utils/arrow-path';
+import { DEFAULT_BOARD_TITLE } from './utils/board-title';
 import { buildDasharray, rescaleDasharray } from './utils/dasharray';
 import { mergeSelectedProperties } from './utils/selected-properties';
 import { arrowPathKind } from './utils/shape-capabilities';
@@ -40,6 +52,20 @@ export interface Layer {
   opacity?: number; // Layer opacity (0-100)
   blendMode?: string; // Layer blend mode
 }
+
+export interface ExportSettings {
+  format: 'png' | 'svg';
+  scale: 1 | 2 | 3;
+  background: boolean;
+  /** Store the board inside the image so Open can load it back for editing. */
+  embedBoardData: boolean;
+}
+
+/** `none`: the board was never saved or opened from a file in this session. */
+export type SaveState = 'none' | 'saved' | 'unsaved';
+
+export const EXPORT_PADDING = 16;
+const STATUS_MS = 2500;
 
 @Injectable()
 export class EditorStateService implements OnDestroy {
@@ -63,6 +89,27 @@ export class EditorStateService implements OnDestroy {
     this.endEdit();
   };
 
+  /** The title the host passed on first render; Reset restores it. */
+  readonly initialTitle = this.configService.getEditorConfig().title;
+  private readonly status = signal<string | null>(null);
+  private statusTimer: ReturnType<typeof setTimeout> | null = null;
+  readonly statusMessage = this.status.asReadonly();
+  readonly exportSettings = signal<ExportSettings>({ format: 'png', scale: 2, background: true, embedBoardData: true });
+
+  /** Chromium can write back to a picked file; other browsers download a copy on every save. */
+  readonly canSaveInPlace = supportsFileSystemAccess(this.win);
+  private readonly fileHandle = signal<BoardFileHandle | null>(null);
+  private readonly savedMarker = signal<{ stateId: number; title: string } | null>(null);
+  private readonly historyStateId = this.historyService.getStateIdSignal();
+  /** Name of the file Save writes to, when the board is linked to one. */
+  readonly fileName = computed(() => this.fileHandle()?.name ?? null);
+  readonly saveState = computed<SaveState>(() => {
+    const marker = this.savedMarker();
+    if (!marker) return 'none';
+    const unchanged = marker.stateId === this.historyStateId() && marker.title === this.getEditorConfigSignal()().title;
+    return unchanged ? 'saved' : 'unsaved';
+  });
+
   // Theme handling - use WhiteboardConfig as the source of truth
   themeSignal = computed(() => this.getConfigSignal()().theme ?? 'light');
 
@@ -80,7 +127,7 @@ export class EditorStateService implements OnDestroy {
   // Layer signals - delegate to LayerManagementService
   layersSignal = computed(() => {
     // Convert WhiteboardLayer to legacy Layer interface for compatibility
-    return this.layerManagementService.layers().map((layer) => ({
+    return this.layerManagementService.layersWithMembership(this.elementsService.elements()).map((layer) => ({
       id: layer.id,
       name: layer.name,
       visible: layer.visible,
@@ -143,7 +190,7 @@ export class EditorStateService implements OnDestroy {
 
   private isLocked(element: WhiteboardElement): boolean {
     if (element.locked) return true;
-    return !!element.layerId && !!this.layerManagementService.getElementLayer(element.id)?.locked;
+    return !!this.layerManagementService.getElementLayer(element)?.locked;
   }
 
   updateTitle(title: string) {
@@ -636,6 +683,16 @@ export class EditorStateService implements OnDestroy {
 
   ngOnDestroy() {
     this.endEdit();
+    if (this.statusTimer) clearTimeout(this.statusTimer);
+  }
+
+  notify(message: string): void {
+    if (this.statusTimer) clearTimeout(this.statusTimer);
+    this.status.set(message);
+    this.statusTimer = setTimeout(() => {
+      this.statusTimer = null;
+      this.status.set(null);
+    }, STATUS_MS);
   }
 
   // Remove currently selected elements
@@ -647,10 +704,142 @@ export class EditorStateService implements OnDestroy {
   // Save/export current board
   async save(format: FormatType, title?: string): Promise<void> {
     try {
-      await this.ioService.save(format, title || 'Whiteboard');
+      await this.ioService.save(format, title || DEFAULT_BOARD_TITLE);
     } catch {
       // IOService already logs the failure
     }
+  }
+
+  renderExport(format: FormatType.Png | FormatType.Svg, options: ExportOptions) {
+    return this.ioService.renderExport(format, options);
+  }
+
+  async exportImage(format: FormatType.Png | FormatType.Svg, name: string, options: ExportOptions): Promise<boolean> {
+    try {
+      await this.ioService.save(format, name, options);
+      return true;
+    } catch (error) {
+      console.error('Failed to export image:', error);
+      return false;
+    }
+  }
+
+  async copyImage(format: FormatType.Png | FormatType.Svg, options: ExportOptions): Promise<boolean> {
+    try {
+      await this.ioService.copyToClipboard(format, options);
+      return true;
+    } catch (error) {
+      console.error('Failed to copy image:', error);
+      return false;
+    }
+  }
+
+  hasContent(): boolean {
+    return this.apiService.hasContent();
+  }
+
+  /** Ctrl+S: writes to the linked file, or asks where to save the first time. */
+  async saveBoard(): Promise<void> {
+    const handle = this.fileHandle();
+    if (handle) await this.writeBoard(handle);
+    else await this.saveBoardAs();
+  }
+
+  async saveBoardAs(): Promise<void> {
+    this.endEdit();
+    const name = this.getEditorConfigSignal()().title || DEFAULT_BOARD_TITLE;
+    if (!this.canSaveInPlace) {
+      const marker = this.currentMarker();
+      this.ioService.exportDataAsFile(name);
+      this.savedMarker.set(marker);
+      this.notify(`Downloaded ${name}.json`);
+      return;
+    }
+    let handle: BoardFileHandle;
+    try {
+      handle = await pickBoardSaveFile(this.win, name);
+    } catch (error) {
+      if (isPickerAbort(error)) return;
+      console.error('Failed to pick a file to save to:', error);
+      this.notify("Couldn't save");
+      return;
+    }
+    await this.writeBoard(handle);
+  }
+
+  /** Opens through the browser's file picker so the opened board file can be saved back in place. */
+  async pickAndOpenBoard(): Promise<void> {
+    let handle: BoardFileHandle;
+    let file: File;
+    try {
+      handle = await pickBoardOpenFile(this.win);
+      file = await handle.getFile();
+    } catch (error) {
+      if (isPickerAbort(error)) return;
+      console.error('Failed to pick a board file:', error);
+      this.notify("Couldn't open that file");
+      return;
+    }
+    await this.openBoard(file, boardFileKind(file) === 'json' ? handle : null);
+  }
+
+  /** `handle` links the board to its file for Save; images are never overwritten with board JSON. */
+  async openBoard(file: File, handle: BoardFileHandle | null = null): Promise<void> {
+    this.endEdit();
+    try {
+      await this.ioService.importDataFromFile(file);
+    } catch (error) {
+      console.error('Failed to open board file:', error);
+      const noData = error instanceof Error && error.message.includes('no board data');
+      this.notify(noData ? 'This image has no board data' : "Couldn't open that file");
+      return;
+    }
+    this.fileHandle.set(handle);
+    this.savedMarker.set(this.currentMarker());
+  }
+
+  private async writeBoard(handle: BoardFileHandle): Promise<void> {
+    this.endEdit();
+    const marker = this.currentMarker();
+    try {
+      await writeBoardFile(handle, this.ioService.exportData());
+    } catch (error) {
+      console.error('Failed to save board file:', error);
+      this.notify("Couldn't save");
+      return;
+    }
+    this.fileHandle.set(handle);
+    this.savedMarker.set(marker);
+    this.notify(`Saved to ${handle.name}`);
+  }
+
+  private currentMarker() {
+    return { stateId: this.historyStateId(), title: this.getEditorConfigSignal()().title };
+  }
+
+  async copyAsPng(): Promise<void> {
+    const { scale, background } = this.exportSettings();
+    try {
+      await this.ioService.copyToClipboard(FormatType.Png, {
+        scale,
+        background,
+        padding: EXPORT_PADDING,
+        onlySelected: this.hasSelectionSignal(),
+      });
+      this.notify('Copied to clipboard');
+    } catch (error) {
+      console.error('Failed to copy image:', error);
+      this.notify("Couldn't copy");
+    }
+  }
+
+  resetBoard(): void {
+    this.endEdit();
+    this.apiService.resetBoard();
+    this.updateTitle(this.initialTitle);
+    this.centerView();
+    this.fileHandle.set(null);
+    this.savedMarker.set(null);
   }
 
   undo() {
@@ -677,12 +866,9 @@ export class EditorStateService implements OnDestroy {
 
   getVisibleElements(elements: WhiteboardElement[]): WhiteboardElement[] {
     const layers = this.layersSignal();
-    const visibleLayerIds = layers.filter((layer) => layer.visible).map((layer) => layer.id);
+    const visibleLayerIds = new Set(layers.filter((layer) => layer.visible).map((layer) => layer.id));
 
-    return elements.filter((element) => {
-      const layerId = element.layerId || 'default';
-      return visibleLayerIds.includes(layerId);
-    });
+    return elements.filter((element) => visibleLayerIds.has(effectiveLayerId(element, layers) ?? ''));
   }
 
   // ============================================================================
@@ -694,7 +880,7 @@ export class EditorStateService implements OnDestroy {
    * Add a new layer
    */
   addLayer(name?: string): Layer {
-    const whiteboardLayer = this.layerManagementService.addLayer(name);
+    const whiteboardLayer = this.apiService.addLayer(name);
     // Convert WhiteboardLayer to legacy Layer interface
     return {
       id: whiteboardLayer.id,
@@ -709,8 +895,29 @@ export class EditorStateService implements OnDestroy {
   /**
    * Remove a layer
    */
-  removeLayer(layerId: string): boolean {
-    return this.layerManagementService.removeLayer(layerId);
+  removeLayer(layerId: string, mode: 'delete-elements' | 'move-elements' = 'delete-elements'): boolean {
+    return this.apiService.removeLayer(layerId, mode);
+  }
+
+  /** Indices are positions in the top-first list shown by the layers panel. */
+  reorderLayersByIndex(previousIndex: number, currentIndex: number): boolean {
+    return this.apiService.reorderLayersByIndex(previousIndex, currentIndex);
+  }
+
+  mergeLayerDown(layerId: string): boolean {
+    return this.apiService.mergeLayerDown(layerId);
+  }
+
+  duplicateLayer(layerId: string): void {
+    this.apiService.duplicateLayer(layerId);
+  }
+
+  beginLayerOpacityEdit(layerId: string): void {
+    this.apiService.beginLayerOpacityEdit(layerId);
+  }
+
+  endLayerOpacityEdit(): void {
+    this.apiService.endLayerOpacityEdit();
   }
 
   /**
@@ -720,20 +927,20 @@ export class EditorStateService implements OnDestroy {
     let success = true;
 
     if (updates.name !== undefined) {
-      success = this.layerManagementService.renameLayer(layerId, updates.name) && success;
+      success = this.apiService.renameLayer(layerId, updates.name) && success;
     }
 
     if (updates.visible !== undefined) {
       const layer = this.layerManagementService.layers().find((l) => l.id === layerId);
       if (layer && layer.visible !== updates.visible) {
-        success = this.layerManagementService.toggleLayerVisibility(layerId) && success;
+        success = this.apiService.toggleLayerVisibility(layerId) && success;
       }
     }
 
     if (updates.locked !== undefined) {
       const layer = this.layerManagementService.layers().find((l) => l.id === layerId);
       if (layer && layer.locked !== updates.locked) {
-        success = this.layerManagementService.toggleLayerLock(layerId) && success;
+        success = this.apiService.toggleLayerLock(layerId) && success;
       }
     }
 
@@ -755,42 +962,42 @@ export class EditorStateService implements OnDestroy {
    * Move layer up in z-order
    */
   moveLayerUp(layerId: string): boolean {
-    return this.layerManagementService.moveLayerUp(layerId);
+    return this.apiService.moveLayerUp(layerId);
   }
 
   /**
    * Move layer down in z-order
    */
   moveLayerDown(layerId: string): boolean {
-    return this.layerManagementService.moveLayerDown(layerId);
+    return this.apiService.moveLayerDown(layerId);
   }
 
   /**
    * Toggle layer visibility
    */
   toggleLayerVisibility(layerId: string): boolean {
-    return this.layerManagementService.toggleLayerVisibility(layerId);
+    return this.apiService.toggleLayerVisibility(layerId);
   }
 
   /**
    * Toggle layer lock
    */
   toggleLayerLock(layerId: string): boolean {
-    return this.layerManagementService.toggleLayerLock(layerId);
+    return this.apiService.toggleLayerLock(layerId);
   }
 
   /**
    * Set layer opacity
    */
   setLayerOpacity(layerId: string, opacity: number): boolean {
-    return this.layerManagementService.setLayerOpacity(layerId, opacity);
+    return this.apiService.setLayerOpacity(layerId, opacity);
   }
 
   /**
    * Set layer blend mode
    */
   setLayerBlendMode(layerId: string, blendMode: BlendMode): boolean {
-    return this.layerManagementService.setLayerBlendMode(layerId, blendMode);
+    return this.apiService.setLayerBlendMode(layerId, blendMode);
   }
 }
 

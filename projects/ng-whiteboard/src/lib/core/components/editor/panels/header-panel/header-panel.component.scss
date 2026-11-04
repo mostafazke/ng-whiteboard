@@ -12,6 +12,7 @@
   padding: var(--wb-header-padding);
   gap: var(--wb-space-2);
   max-width: 100%;
+  position: relative;
 
   .header-left {
     display: flex;
@@ -23,7 +24,18 @@
     .dropdown-wrapper {
       position: relative;
 
-      .layers-button {
+      .menu-popover {
+        position: absolute;
+        top: calc(100% + var(--wb-space-2));
+        left: 0;
+        z-index: 1000;
+        width: max-content;
+        max-width: calc(100vw - 2 * var(--wb-space-4));
+        animation: wb-slide-up 0.2s ease;
+      }
+
+      .layers-button,
+      .menu-btn {
         width: var(--wb-header-control-size);
         height: var(--wb-header-control-size);
         border: none;
@@ -47,11 +59,15 @@
         }
       }
 
+      &.layers-wrapper {
+        position: static;
+      }
+
       .layers-dropdown {
         position: absolute;
         top: calc(100% + var(--wb-space-2));
         left: 0;
-        min-width: 280px;
+        width: min(300px, calc(100cqw - 2 * var(--wb-gap)));
         background: var(--wb-color-surface);
         border: 1px solid var(--wb-color-border);
         border-radius: var(--wb-radius);
@@ -60,186 +76,11 @@
         max-height: var(--wb-popover-max-height);
         overflow-y: auto;
         animation: wb-slide-up 0.2s ease;
-
-        .dropdown-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: var(--wb-space-3);
-          border-bottom: 1px solid var(--wb-color-gray-100);
-
-          h4 {
-            margin: 0;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--wb-color-gray-900);
-          }
-
-          .close-btn {
-            width: 24px;
-            height: 24px;
-            border: none;
-            background: transparent;
-            border-radius: var(--wb-radius-sm);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: var(--wb-color-gray-500);
-
-            &:hover {
-              background-color: var(--wb-color-gray-100);
-              color: var(--wb-color-gray-700);
-            }
-          }
-        }
-
-        .layers-list {
-          max-height: 200px;
-          overflow-y: auto;
-
-          .layer-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: var(--wb-space-3);
-            border-bottom: 1px solid var(--wb-color-gray-50);
-            transition: background-color 0.2s ease;
-
-            &:hover {
-              background-color: var(--wb-color-gray-50);
-            }
-
-            &:last-child {
-              border-bottom: none;
-            }
-
-            .layer-content {
-              display: flex;
-              align-items: center;
-              gap: var(--wb-space-2);
-
-              ng-icon {
-                width: 16px;
-                height: 16px;
-                color: var(--wb-color-gray-500);
-              }
-
-              .layer-name {
-                font-size: 0.875rem;
-                color: var(--wb-color-gray-700);
-                font-weight: 500;
-              }
-            }
-
-            .layer-controls {
-              display: flex;
-              gap: var(--wb-space-1);
-
-              .layer-control-btn {
-                width: 28px;
-                height: 28px;
-                border: none;
-                background: transparent;
-                border-radius: var(--wb-radius-sm);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                color: var(--wb-color-gray-400);
-                transition: all 0.2s ease;
-
-                &:hover {
-                  background-color: var(--wb-color-gray-100);
-                  color: var(--wb-color-gray-600);
-                }
-
-                &.active {
-                  color: var(--wb-color-primary);
-                }
-
-                ng-icon {
-                  width: 14px;
-                  height: 14px;
-                }
-              }
-            }
-          }
-        }
-
-        .layer-actions {
-          padding: var(--wb-space-3);
-          border-top: 1px solid var(--wb-color-gray-100);
-
-          .add-layer-btn {
-            width: 100%;
-            padding: var(--wb-space-2);
-            border: 1px dashed var(--wb-color-gray-300);
-            background: transparent;
-            border-radius: var(--wb-radius-sm);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: var(--wb-space-2);
-            cursor: pointer;
-            color: var(--wb-color-gray-600);
-            font-size: 0.875rem;
-            font-weight: 500;
-            transition: all 0.2s ease;
-
-            &:hover {
-              border-color: var(--wb-color-primary);
-              color: var(--wb-color-primary);
-              background-color: rgba(59, 130, 246, 0.05);
-            }
-
-            ng-icon {
-              width: 16px;
-              height: 16px;
-            }
-          }
-        }
       }
     }
 
-    .title-section {
+    ng-editable-title {
       flex: 0 1 auto;
-      min-width: 0;
-      max-width: 240px;
-
-      .title-input {
-        font-size: 1.125rem;
-        font-weight: 600;
-        padding: var(--wb-space-2);
-        border: 1px solid var(--wb-color-gray-300);
-        border-radius: var(--wb-radius-sm);
-        width: 100%;
-        background: var(--wb-color-surface);
-        color: var(--wb-color-text-primary);
-
-        &:focus {
-          border-color: var(--wb-color-primary);
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-      }
-
-      h1 {
-        font-size: 1.125rem;
-        font-weight: 600;
-        padding: var(--wb-space-2);
-        cursor: pointer;
-        color: var(--wb-color-gray-800);
-        margin: 0;
-        text-overflow: ellipsis;
-        overflow: hidden;
-        white-space: nowrap;
-        border-radius: var(--wb-radius-sm);
-        transition: background-color 0.2s ease;
-
-        &:hover {
-          background-color: var(--wb-color-gray-50);
-        }
-      }
     }
   }
 
@@ -279,15 +120,7 @@
           height: 16px;
         }
 
-        .action-label {
-          @include bp.not-wide {
-            display: none;
-          }
-        }
-
-        &.theme-btn,
-        &.properties-btn,
-        &.menu-btn {
+        &.properties-btn {
           padding: var(--wb-space-2);
         }
 
@@ -321,20 +154,14 @@
   }
 
   .action-btn,
-  .layers-button {
+  .layers-button,
+  .menu-btn {
     flex: none;
     justify-content: center;
 
     @include bp.coarse {
       min-width: 44px;
       min-height: 44px;
-    }
-  }
-
-  .header-left .dropdown-wrapper .layers-dropdown .dropdown-header .close-btn {
-    @include bp.coarse {
-      width: 44px;
-      height: 44px;
     }
   }
 }

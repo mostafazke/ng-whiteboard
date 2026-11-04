@@ -1,6 +1,19 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { WhiteboardElement } from '../../../../types';
+import {
+  afterNextRender,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  ElementRef,
+  HostListener,
+  inject,
+  Injector,
+  input,
+  output,
+  signal,
+} from '@angular/core';
+import { BlendMode } from '../../../../types';
+import { IconComponent } from '../../icon/icon.component';
 
 export interface WhiteboardLayer {
   id: string;
@@ -9,198 +22,280 @@ export interface WhiteboardLayer {
   locked: boolean;
   opacity: number;
   zIndex: number;
-  type: 'drawing' | 'text' | 'image' | 'shape';
-  elements?: WhiteboardElement[];
+  /** Ids of the elements in this layer. */
+  elements?: string[];
   blendMode?: string;
 }
 
-// Export event types for use in other components
-export interface LayerRenameEvent {
-  layerId: string;
-  name: string;
-}
+export type LayerDeleteMode = 'delete-elements' | 'move-elements';
 
-export interface LayerOpacityEvent {
-  layerId: string;
-  opacity: number;
-}
+export type LayerPanelAction =
+  | { type: 'select' | 'add' | 'toggle-visible' | 'toggle-lock' | 'duplicate' | 'merge-down'; id?: string }
+  | { type: 'rename'; id: string; name: string }
+  | { type: 'reorder'; from: number; to: number }
+  | { type: 'opacity'; id: string; opacity: number; phase: 'start' | 'change' | 'end' }
+  | { type: 'blend'; id: string; blendMode: BlendMode }
+  | { type: 'delete'; id: string; mode: LayerDeleteMode };
 
-export interface LayerMoveEvent {
-  layerId: string;
-  direction: 'up' | 'down';
-}
+export const LAYER_BLEND_MODES: readonly { value: BlendMode; label: string }[] = [
+  { value: 'normal', label: 'Normal' },
+  { value: 'multiply', label: 'Multiply' },
+  { value: 'screen', label: 'Screen' },
+  { value: 'overlay', label: 'Overlay' },
+  { value: 'darken', label: 'Darken' },
+  { value: 'lighten', label: 'Lighten' },
+];
 
-export interface LayerBlendModeEvent {
-  layerId: string;
-  blendMode: string;
+interface DragState {
+  from: number;
+  to: number;
 }
 
 @Component({
-  selector: 'ng-ng-layer-panel',
+  selector: 'ng-layer-panel',
   standalone: true,
-  imports: [CommonModule],
+  imports: [IconComponent],
   templateUrl: './layer-panel.component.html',
-  styleUrls: ['./layer-panel.component.scss'],
+  styleUrl: './layer-panel.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LayerPanelComponent implements OnInit {
-  @Input() layers: WhiteboardLayer[] = [];
-  @Input() activeLayerId: string | null = null;
+export class LayerPanelComponent {
+  private readonly endEditOnDestroy = inject(DestroyRef).onDestroy(() => this.endOpacity());
 
-  // Make Math available in template
-  Math = Math;
+  layers = input<WhiteboardLayer[]>([]);
+  activeLayerId = input('');
+  showClose = input(false);
+  action = output<LayerPanelAction>();
+  closed = output<void>();
 
-  @Output() layerSelected = new EventEmitter<string>();
-  @Output() layerAdded = new EventEmitter<void>();
-  @Output() layerDeleted = new EventEmitter<string>();
-  @Output() layerRenamed = new EventEmitter<LayerRenameEvent>();
-  @Output() layerVisibilityToggled = new EventEmitter<{ layerId: string; visible: boolean }>();
-  @Output() layerLockToggled = new EventEmitter<{ layerId: string; locked: boolean }>();
-  @Output() layerOpacityChanged = new EventEmitter<LayerOpacityEvent>();
-  @Output() layerMoved = new EventEmitter<LayerMoveEvent>();
-  @Output() layerBlendModeChanged = new EventEmitter<LayerBlendModeEvent>();
+  protected readonly blendModes = LAYER_BLEND_MODES;
+  protected rows = computed(() => [...this.layers()].sort((a, b) => b.zIndex - a.zIndex));
+  protected renamingId = signal<string | null>(null);
+  protected menuId = signal<string | null>(null);
+  protected confirmId = signal<string | null>(null);
+  protected drag = signal<DragState | null>(null);
 
-  ngOnInit() {
-    // Initialize with a default layer if none exist
-    if (this.layers.length === 0) {
-      this.layers = [
-        {
-          id: this.generateLayerId(),
-          name: 'Layer 1',
-          visible: true,
-          locked: false,
-          opacity: 1,
-          zIndex: 1,
-          type: 'drawing',
-          elements: [],
-        },
-      ];
-      this.activeLayerId = this.layers[0].id;
-    }
+  private host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private injector = inject(Injector);
+  private opacityEditing: { id: string } | null = null;
+  private lastOpacity = 1;
+
+  @HostListener('document:pointerdown', ['$event'])
+  protected onDocumentPointerDown(event: Event) {
+    if (this.menuId() === null) return;
+    const target = event.target;
+    if (target instanceof Element && target.closest('.lp-options, .lp-more')) return;
+    this.closeMenu(false);
   }
 
-  get sortedLayers(): WhiteboardLayer[] {
-    return [...this.layers].sort((a, b) => b.zIndex - a.zIndex);
+  protected countLabel(layer: WhiteboardLayer): string {
+    const count = layer.elements?.length ?? 0;
+    if (count === 0) return 'Empty';
+    return count === 1 ? '1 element' : `${count} elements`;
   }
 
-  get activeLayer(): WhiteboardLayer | undefined {
-    return this.layers.find((layer) => layer.id === this.activeLayerId);
+  protected deleteMessage(layer: WhiteboardLayer): string {
+    const count = layer.elements?.length ?? 0;
+    return `Delete layer and its ${count === 1 ? '1 element' : `${count} elements`}?`;
   }
 
-  trackByLayerId(index: number, layer: WhiteboardLayer): string {
-    return layer.id;
+  protected opacityPercent(layer: WhiteboardLayer): number {
+    return Math.round(layer.opacity * 100);
   }
 
-  getLayerOpacity(layer: WhiteboardLayer): number {
-    return layer.visible ? 1 : 0.5;
+  protected emit(action: LayerPanelAction) {
+    this.action.emit(action);
   }
 
-  getBlendMode(layer: WhiteboardLayer): string {
-    return layer.blendMode || 'normal';
-  }
-
-  generateLayerId(): string {
-    return `layer-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  }
-
-  onSelectLayer(layerId: string): void {
-    this.layerSelected.emit(layerId);
-  }
-
-  onAddLayer(): void {
-    this.layerAdded.emit();
-  }
-
-  onDeleteLayer(layerId: string, event: Event): void {
+  protected toggle(type: 'toggle-visible' | 'toggle-lock', id: string, event: Event) {
     event.stopPropagation();
-    if (this.layers.length > 1) {
-      this.layerDeleted.emit(layerId);
+    this.emit({ type, id });
+  }
+
+  protected onRowKeydown(event: KeyboardEvent, layer: WhiteboardLayer, index: number) {
+    if (event.target !== event.currentTarget) return;
+    if (event.key === ' ') {
+      event.preventDefault();
+      this.emit({ type: 'select', id: layer.id });
+    } else if (event.key === 'Enter' || event.key === 'F2') {
+      event.preventDefault();
+      this.startRename(layer);
+    } else if (event.altKey && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
+      event.preventDefault();
+      const to = index + (event.key === 'ArrowUp' ? -1 : 1);
+      if (to < 0 || to >= this.rows().length) return;
+      this.emit({ type: 'reorder', from: index, to });
+      this.focusAfterRender(`.lp-row[data-id="${layer.id}"]`);
     }
   }
 
-  onRenameLayer(layerId: string, event: Event): void {
-    const target = event.target as HTMLInputElement;
-    const newName = target.value.trim();
-    if (newName && newName !== this.layers.find((l) => l.id === layerId)?.name) {
-      this.layerRenamed.emit({ layerId: layerId, name: newName });
-    }
+  protected startRename(layer: WhiteboardLayer) {
+    this.closeMenu(false);
+    this.confirmId.set(null);
+    this.renamingId.set(layer.id);
+    afterNextRender(
+      () => {
+        const input = this.host.nativeElement.querySelector<HTMLInputElement>('.lp-name-input');
+        input?.focus();
+        input?.select();
+      },
+      { injector: this.injector }
+    );
   }
 
-  onRenameLayerCancel(originalName: string, event: Event): void {
+  protected commitRename(layer: WhiteboardLayer, input: HTMLInputElement) {
+    if (this.renamingId() !== layer.id) return;
+    this.renamingId.set(null);
+    const name = input.value.trim();
+    if (name && name !== layer.name) this.emit({ type: 'rename', id: layer.id, name });
+    this.focusAfterRender(`.lp-row[data-id="${layer.id}"]`);
+  }
+
+  protected cancelRename(event: Event, layer: WhiteboardLayer) {
+    event.preventDefault();
     event.stopPropagation();
-    (event.target as HTMLInputElement).value = originalName;
+    this.renamingId.set(null);
+    this.focusAfterRender(`.lp-row[data-id="${layer.id}"]`);
   }
 
-  onRenameLayerEnter(layerId: string, event: Event): void {
-    const target = event.target as HTMLInputElement;
-    const newName = target.value.trim();
-    if (newName && newName !== '') {
-      this.layerRenamed.emit({ layerId: layerId, name: newName });
-    }
-    target.blur();
-  }
-
-  onToggleVisibility(layerId: string, event: Event): void {
+  protected onGripDown(event: PointerEvent, index: number) {
+    if (event.button > 0) return;
+    event.preventDefault();
     event.stopPropagation();
-    const layer = this.layers.find((l) => l.id === layerId);
-    if (layer) {
-      this.layerVisibilityToggled.emit({
-        layerId: layerId,
-        visible: !layer.visible,
-      });
-    }
+    (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
+    this.drag.set({ from: index, to: index });
   }
 
-  onToggleLock(layerId: string, event: Event): void {
+  protected onGripMove(event: PointerEvent) {
+    const state = this.drag();
+    if (!state) return;
+    const to = this.indexAt(event.clientY);
+    if (to !== state.to) this.drag.set({ ...state, to });
+  }
+
+  protected onGripUp(event: PointerEvent) {
+    const state = this.drag();
+    if (!state) return;
+    this.drag.set(null);
+    const to = this.indexAt(event.clientY);
+    if (to !== state.from) this.emit({ type: 'reorder', from: state.from, to });
+  }
+
+  protected cancelDrag() {
+    this.drag.set(null);
+  }
+
+  private indexAt(clientY: number): number {
+    const items = Array.from(this.host.nativeElement.querySelectorAll<HTMLElement>('.lp-item'));
+    const index = items.findIndex((item) => clientY < item.getBoundingClientRect().bottom);
+    return index === -1 ? items.length - 1 : index;
+  }
+
+  protected toggleMenu(layer: WhiteboardLayer, event: Event) {
     event.stopPropagation();
-    const layer = this.layers.find((l) => l.id === layerId);
-    if (layer) {
-      this.layerLockToggled.emit({
-        layerId: layerId,
-        locked: !layer.locked,
-      });
+    if (this.menuId() === layer.id) {
+      this.closeMenu(true);
+      return;
     }
+    this.endOpacity();
+    this.confirmId.set(null);
+    this.renamingId.set(null);
+    this.menuId.set(layer.id);
   }
 
-  onOpacityChange(layerId: string, event: Event): void {
-    const target = event.target as HTMLInputElement;
-    const opacity = parseInt(target.value) / 100;
-    this.layerOpacityChanged.emit({ layerId: layerId, opacity });
+  protected closeMenu(refocus: boolean) {
+    const id = this.menuId();
+    this.endOpacity();
+    this.menuId.set(null);
+    if (refocus && id) this.focusAfterRender(`.lp-row[data-id="${id}"] .lp-more`);
   }
 
-  onBlendModeChange(event: Event): void {
-    const target = event.target as HTMLSelectElement;
-    const blendMode = target.value;
-    if (this.activeLayerId) {
-      this.layerBlendModeChanged.emit({
-        layerId: this.activeLayerId,
-        blendMode,
-      });
+  protected onOptionsKeydown(event: KeyboardEvent) {
+    if (event.key !== 'Escape') return;
+    event.preventDefault();
+    event.stopPropagation();
+    this.closeMenu(true);
+  }
+
+  protected onActionKeydown(event: KeyboardEvent) {
+    const step = event.key === 'ArrowDown' ? 1 : event.key === 'ArrowUp' ? -1 : 0;
+    if (!step) return;
+    event.preventDefault();
+    const buttons = Array.from(
+      this.host.nativeElement.querySelectorAll<HTMLButtonElement>('.lp-action:not(:disabled)')
+    );
+    const current = buttons.indexOf(event.target as HTMLButtonElement);
+    buttons[(current + step + buttons.length) % buttons.length]?.focus();
+  }
+
+  protected onOpacityInput(layer: WhiteboardLayer, slider: HTMLInputElement) {
+    const opacity = Number(slider.value) / 100;
+    if (!this.opacityEditing) {
+      this.opacityEditing = { id: layer.id };
+      this.emit({ type: 'opacity', id: layer.id, opacity, phase: 'start' });
     }
+    this.emit({ type: 'opacity', id: layer.id, opacity, phase: 'change' });
+    this.lastOpacity = opacity;
   }
 
-  onMoveLayerUp(): void {
-    if (this.activeLayerId && this.canMoveUp()) {
-      this.layerMoved.emit({ layerId: this.activeLayerId, direction: 'up' });
+  protected endOpacity() {
+    const editing = this.opacityEditing;
+    if (!editing) return;
+    this.opacityEditing = null;
+    this.emit({ type: 'opacity', id: editing.id, opacity: this.lastOpacity, phase: 'end' });
+  }
+
+  protected onBlend(layer: WhiteboardLayer, select: HTMLSelectElement) {
+    this.emit({ type: 'blend', id: layer.id, blendMode: select.value as BlendMode });
+  }
+
+  protected runAction(type: 'duplicate' | 'merge-down', layer: WhiteboardLayer) {
+    this.closeMenu(true);
+    this.emit({ type, id: layer.id });
+  }
+
+  protected requestDelete(layer: WhiteboardLayer) {
+    this.closeMenu(false);
+    if ((layer.elements?.length ?? 0) === 0) {
+      this.focusAfterDelete(layer);
+      this.emit({ type: 'delete', id: layer.id, mode: 'delete-elements' });
+      return;
     }
+    this.confirmId.set(layer.id);
+    this.focusAfterRender('.lp-confirm .lp-confirm-cancel');
   }
 
-  onMoveLayerDown(): void {
-    if (this.activeLayerId && this.canMoveDown()) {
-      this.layerMoved.emit({ layerId: this.activeLayerId, direction: 'down' });
-    }
+  protected confirmDelete(layer: WhiteboardLayer, mode: LayerDeleteMode) {
+    this.confirmId.set(null);
+    this.focusAfterDelete(layer);
+    this.emit({ type: 'delete', id: layer.id, mode });
   }
 
-  canMoveUp(): boolean {
-    if (!this.activeLayerId) return false;
-    const currentLayer = this.layers.find((l) => l.id === this.activeLayerId);
-    if (!currentLayer) return false;
-    return this.layers.some((l) => l.zIndex > currentLayer.zIndex);
+  private focusAfterDelete(layer: WhiteboardLayer) {
+    const rows = this.rows();
+    const index = rows.findIndex((r) => r.id === layer.id);
+    const neighbour = rows[index + 1] ?? rows[index - 1];
+    this.focusAfterRender(neighbour ? `.lp-row[data-id="${neighbour.id}"]` : '.lp-add');
   }
 
-  canMoveDown(): boolean {
-    if (!this.activeLayerId) return false;
-    const currentLayer = this.layers.find((l) => l.id === this.activeLayerId);
-    if (!currentLayer) return false;
-    return this.layers.some((l) => l.zIndex < currentLayer.zIndex);
+  protected optionsId(layer: WhiteboardLayer): string {
+    return `lp-options-${layer.id}`;
+  }
+
+  protected cancelDelete(layer: WhiteboardLayer) {
+    this.confirmId.set(null);
+    this.focusAfterRender(`.lp-row[data-id="${layer.id}"]`);
+  }
+
+  protected neighbourName(index: number): string {
+    const rows = this.rows();
+    return (rows[index + 1] ?? rows[index - 1])?.name ?? '';
+  }
+
+  private focusAfterRender(selector: string) {
+    afterNextRender(
+      () => this.host.nativeElement.querySelector<HTMLElement>(selector)?.focus({ preventScroll: true }),
+      { injector: this.injector }
+    );
   }
 }

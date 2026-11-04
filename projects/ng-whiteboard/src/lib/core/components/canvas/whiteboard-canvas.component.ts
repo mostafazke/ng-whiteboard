@@ -20,6 +20,7 @@ import { CanvasService } from '../../canvas';
 import { ConnectionUIService, HandleService, SelectionService } from '../../elements';
 import { GripCursorPipe, ElementOpacityPipe, PenRenderPipe, ArrowheadPipe } from '../../pipes';
 import { ToolsService } from '../../tools';
+import { effectiveLayerId } from '../../utils';
 
 @Component({
   selector: 'ng-whiteboard-canvas',
@@ -77,8 +78,8 @@ export class WhiteboardCanvasComponent implements AfterViewInit {
 
     const sortElements = (arr: WhiteboardElement[]) =>
       arr.slice().sort((a, b) => {
-        const layerA = a.layerId ? layersMap.get(a.layerId) : undefined;
-        const layerB = b.layerId ? layersMap.get(b.layerId) : undefined;
+        const layerA = layersMap.get(effectiveLayerId(a, layers) ?? '');
+        const layerB = layersMap.get(effectiveLayerId(b, layers) ?? '');
         const zA = (layerA?.zIndex ?? 0) * 1000 + (a.zIndex ?? 0);
         const zB = (layerB?.zIndex ?? 0) * 1000 + (b.zIndex ?? 0);
         return zA - zB;
@@ -91,12 +92,15 @@ export class WhiteboardCanvasComponent implements AfterViewInit {
       return [];
     }
 
-    const filtered = elements.filter((el) => !el.layerId || visibleLayerIds.has(el.layerId));
+    const filtered = elements.filter((el) => {
+      const layerId = effectiveLayerId(el, layers);
+      return !layerId || visibleLayerIds.has(layerId);
+    });
     const sorted = sortElements(filtered);
 
     // Add computed properties for rendering
     return sorted.map((el) => {
-      const layer = el.layerId ? layersMap.get(el.layerId) : undefined;
+      const layer = layersMap.get(effectiveLayerId(el, layers) ?? '');
       return {
         ...el,
         transform: this.buildTransform(el),

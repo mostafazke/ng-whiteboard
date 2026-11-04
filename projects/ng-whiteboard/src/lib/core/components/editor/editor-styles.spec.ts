@@ -24,6 +24,13 @@ describe('editor styles stay inside the editor', () => {
     expect(sheet.match(/#[0-9a-f]{3,8}\b|rgba?\(|(?<![\w-])white(?![\w-])/gi) ?? []).toEqual([]);
   });
 
+  it('the layer grip is a 44px target on coarse pointers', () => {
+    const sheet = readFileSync(join(__dirname, 'panels/layer-panel/layer-panel.component.scss'), 'utf8');
+    const grip = sheet.slice(sheet.indexOf('.lp-grip {'));
+    const coarse = grip.slice(grip.indexOf('@include bp.coarse'));
+    expect(coarse).toMatch(/width: 44px;\s*height: 44px;/);
+  });
+
   it('container-relative sizes subtract tokens, never pixel literals tied to panel heights', () => {
     const magic = files.flatMap((file) =>
       (readFileSync(file, 'utf8').match(/calc\(100(?:cqh|cqw|%)[^;]*?-\s*\d+px[^;]*;/g) ?? []).map(
@@ -70,5 +77,27 @@ describe('editor styles stay inside the editor', () => {
       .map((line) => line.replace(/[{,]\s*$/, '').trim());
     const unscoped = topLevelSelectors.filter((selector) => !/^(:where\(\.editor\)|\.editor\b)/.test(selector));
     expect(unscoped).toEqual([]);
+  });
+
+  describe('export dialog in the compact sheet', () => {
+    const sheet = readFileSync(join(__dirname, 'ui/export-dialog/export-dialog.component.scss'), 'utf8');
+
+    it('keeps the footer sticky at the bottom of the sheet scroll area', () => {
+      const footer = sheet.slice(sheet.indexOf('.wb-export-footer'));
+      expect(footer).toMatch(/position:\s*sticky;\s*bottom:/);
+    });
+
+    it('caps the preview height in compact and shrinks it on short containers', () => {
+      expect(sheet).toContain('--wb-export-preview-max: min(35vh, 260px)');
+      expect(sheet).toMatch(/@container wb-editor \(max-height: 499\.98px\)[^}]*\{[^}]*--wb-export-preview-max: 25vh/s);
+    });
+
+    it('caps the preview image by the same limit so tall images shrink instead of being cropped', () => {
+      expect(sheet).toMatch(/\.wb-export-preview-img\s*\{[^}]*max-height: calc\(var\(--wb-export-preview-max\)/s);
+    });
+  });
+
+  it('the status toast sits above the bottom bars', () => {
+    expect(globalSheet).toMatch(/\.wb-status\s*\{[^}]*--wb-bottom-reserve/s);
   });
 });

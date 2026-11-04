@@ -1,5 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { WhiteboardElement, WhiteboardLayer } from '../types';
+import { effectiveLayerId } from '../utils';
 
 @Pipe({
   name: 'elementOpacity',
@@ -20,11 +21,10 @@ export class ElementOpacityPipe implements PipeTransform {
       opacity *= element.style.opacity;
     }
 
-    if (element.layerId) {
-      const layer = layers.find((l) => l.id === element.layerId);
-      if (layer && layer.opacity !== undefined) {
-        opacity *= layer.opacity;
-      }
+    const layerId = effectiveLayerId(element, layers);
+    const layer = layerId ? layers.find((l) => l.id === layerId) : undefined;
+    if (layer && layer.opacity !== undefined) {
+      opacity *= layer.opacity;
     }
 
     return opacity;

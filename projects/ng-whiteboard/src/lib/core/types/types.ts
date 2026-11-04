@@ -88,3 +88,12 @@ export interface BoundingBox {
   };
   rotation: number;
 }
+
+export interface ExportOptions {
+  scale?: number;
+  background?: boolean;
+  padding?: number;
+  onlySelected?: boolean;
+  /** PNG and SVG downloads only: store the board inside the image so Open can load it back for editing. */
+  embedBoardData?: boolean;
+}

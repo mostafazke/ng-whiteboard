@@ -75,6 +75,8 @@ describe('ApiService', () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let mockEventBusService: any;
 
+  const batchHandle = { execute: jest.fn(), clear: jest.fn() };
+
   const mockElement: WhiteboardElement = {
     id: 'test-1',
     type: 'rectangle' as ElementType.Rectangle,
@@ -108,6 +110,10 @@ describe('ApiService', () => {
     mockZoomService = createMockService(ZoomService);
     mockPanService = createMockService(PanService);
     mockLayerService = createMockService(LayerManagementService);
+    mockHistoryService.startBatch = jest.fn().mockReturnValue(batchHandle);
+    mockElementsService.getElements.mockReturnValue([]);
+    mockLayerService.exportLayerState.mockReturnValue({ layers: [], activeLayerId: '' });
+    mockLayerService.layers = jest.fn().mockReturnValue([]);
     mockConfigService = {
       ...createMockService(ConfigService),
       getConfig: jest.fn().mockReturnValue({}),
@@ -623,14 +629,14 @@ describe('ApiService', () => {
     it('should save with default format', async () => {
       mockIOService.save.mockResolvedValue('saved-data');
       const result = await service.save();
-      expect(mockIOService.save).toHaveBeenCalledWith(FormatType.Base64, 'whiteboard');
+      expect(mockIOService.save).toHaveBeenCalledWith(FormatType.Base64, 'whiteboard', undefined);
       expect(result).toBe('saved-data');
     });
 
     it('should save with custom format and name', async () => {
       mockIOService.save.mockResolvedValue('saved-data');
       const result = await service.save(FormatType.Png, 'my-board');
-      expect(mockIOService.save).toHaveBeenCalledWith(FormatType.Png, 'my-board');
+      expect(mockIOService.save).toHaveBeenCalledWith(FormatType.Png, 'my-board', undefined);
       expect(result).toBe('saved-data');
     });
 
@@ -733,26 +739,42 @@ describe('ApiService', () => {
 
   describe('Undo/Redo Operations', () => {
     it('should undo when history available', () => {
-      mockHistoryService.undo.mockReturnValue([mockElement]);
+      mockHistoryService.undoSnapshot.mockReturnValue({ elements: [mockElement] });
       const result = service.undo();
-      expect(mockHistoryService.undo).toHaveBeenCalled();
+      expect(mockHistoryService.undoSnapshot).toHaveBeenCalled();
       expect(mockElementsService.setElements).toHaveBeenCalledWith([mockElement]);
       expect(mockSelectionService.clearSelection).toHaveBeenCalled();
       expect(mockEventBusService.emit).toHaveBeenCalledWith(WhiteboardEvent.Undo, undefined);
       expect(result).toBe(true);
     });
 
+    it('should import layers before setting elements on undo', () => {
+      const layers = { layers: [], activeLayerId: 'l1' };
+      mockHistoryService.undoSnapshot.mockReturnValue({ elements: [mockElement], layers });
+      service.undo();
+      expect(mockLayerService.importLayerState).toHaveBeenCalledWith(layers);
+      expect(mockLayerService.importLayerState.mock.invocationCallOrder[0]).toBeLessThan(
+        mockElementsService.setElements.mock.invocationCallOrder[0]
+      );
+    });
+
+    it('should not touch layers on undo when the entry has none', () => {
+      mockHistoryService.undoSnapshot.mockReturnValue({ elements: [mockElement] });
+      service.undo();
+      expect(mockLayerService.importLayerState).not.toHaveBeenCalled();
+    });
+
     it('should return false when undo not available', () => {
-      mockHistoryService.undo.mockReturnValue(null);
+      mockHistoryService.undoSnapshot.mockReturnValue(null);
       const result = service.undo();
-      expect(mockHistoryService.undo).toHaveBeenCalled();
+      expect(mockHistoryService.undoSnapshot).toHaveBeenCalled();
       expect(result).toBe(false);
     });
 
     it('should redo when history available', () => {
-      mockHistoryService.redo.mockReturnValue([mockElement]);
+      mockHistoryService.redoSnapshot.mockReturnValue({ elements: [mockElement] });
       const result = service.redo();
-      expect(mockHistoryService.redo).toHaveBeenCalled();
+      expect(mockHistoryService.redoSnapshot).toHaveBeenCalled();
       expect(mockElementsService.setElements).toHaveBeenCalledWith([mockElement]);
       expect(mockSelectionService.clearSelection).toHaveBeenCalled();
       expect(mockEventBusService.emit).toHaveBeenCalledWith(WhiteboardEvent.Redo, undefined);
@@ -760,9 +782,9 @@ describe('ApiService', () => {
     });
 
     it('should return false when redo not available', () => {
-      mockHistoryService.redo.mockReturnValue(null);
+      mockHistoryService.redoSnapshot.mockReturnValue(null);
       const result = service.redo();
-      expect(mockHistoryService.redo).toHaveBeenCalled();
+      expect(mockHistoryService.redoSnapshot).toHaveBeenCalled();
       expect(result).toBe(false);
     });
 
@@ -852,6 +874,7 @@ describe('ApiService', () => {
     });
 
     it('should remove layer', () => {
+      mockLayerService.sortedLayers = jest.fn().mockReturnValue([{ id: 'layer-0' }, { id: 'layer-1' }]);
       mockLayerService.removeLayer.mockReturnValue(true);
       const result = service.removeLayer('layer-1');
       expect(mockLayerService.removeLayer).toHaveBeenCalledWith('layer-1');
@@ -942,7 +965,7 @@ describe('ApiService', () => {
 
       expect(mockLayerService.duplicateLayer).toHaveBeenCalledWith('layer-1', [el1]);
       expect(mockElementsService.addElements).toHaveBeenCalled();
-      expect(mockHistoryService.recordChange).toHaveBeenCalled();
+      expect(batchHandle.execute).toHaveBeenCalled();
     });
 
     it('should not duplicate when result has no layer', () => {
@@ -979,31 +1002,6 @@ describe('ApiService', () => {
 
       service.duplicateLayer('layer-1');
 
-      expect(mockElementsService.addElements).toHaveBeenCalledWith([]);
-    });
-
-    it('should handle layer becoming null inside forEach iteration', () => {
-      const el1 = { ...mockElement, id: 'el-1', layerId: 'layer-1' };
-      mockElementsService.elements = signal([el1]);
-
-      const elementMap = new Map([['el-1', 'el-dup-1']]);
-      let callCount = 0;
-      const layerObj = { id: 'layer-dup', name: 'Layer Copy' };
-      mockLayerService.duplicateLayer.mockReturnValue({
-        get layer() {
-          callCount++;
-          // access 1: outer if check (result.layer && ...)
-          // access 2: inside forEach `const layer = result.layer`  -> return null
-          // access 3: after forEach `result.layer.name` -> return layer
-          if (callCount === 2) return null;
-          return layerObj;
-        },
-        elementMap,
-      });
-
-      service.duplicateLayer('layer-1');
-
-      // The inner !layer guard prevents the element from being added
       expect(mockElementsService.addElements).toHaveBeenCalledWith([]);
     });
   });

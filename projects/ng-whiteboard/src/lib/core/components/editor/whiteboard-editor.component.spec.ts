@@ -8,9 +8,9 @@ import { SelectionService } from '../../elements/selection.service';
 import { IOService } from '../../input/io.service';
 import { LayerManagementService } from '../../elements/layer-management.service';
 import { SvgService } from '../../svg/svg.service';
-import { ElementType, FormatType, WhiteboardElement } from '../../types';
+import { ElementType, WhiteboardElement } from '../../types';
 import { BottomSheetComponent } from './ui/bottom-sheet/bottom-sheet.component';
-import { DOCUMENT_ACTIONS, ZOOM_ACTIONS } from './utils/editor-actions';
+import { ZOOM_ACTIONS } from './utils/editor-actions';
 import { WhiteboardEditorComponent } from './whiteboard-editor.component';
 
 class FakeResizeObserver {
@@ -34,7 +34,13 @@ describe('WhiteboardEditorComponent', () => {
   let component: WhiteboardEditorComponent;
   let fixture: ComponentFixture<WhiteboardEditorComponent>;
   let keyDown$: Subject<KeyboardEvent>;
-  const ioServiceMock = { save: jest.fn().mockResolvedValue('') };
+  const ioServiceMock = {
+    save: jest.fn().mockResolvedValue(''),
+    exportDataAsFile: jest.fn(),
+    importDataFromFile: jest.fn().mockResolvedValue(undefined),
+    copyToClipboard: jest.fn().mockResolvedValue(undefined),
+    renderExport: jest.fn().mockResolvedValue({ dataUrl: 'data:image/png;base64,AAA', width: 1, height: 1 }),
+  };
 
   const altP = (): KeyboardEvent =>
     new KeyboardEvent('keydown', { key: 'p', code: 'KeyP', altKey: true, cancelable: true });
@@ -42,7 +48,7 @@ describe('WhiteboardEditorComponent', () => {
   beforeEach(async () => {
     FakeResizeObserver.instances = [];
     (globalThis as unknown as { ResizeObserver: unknown }).ResizeObserver = FakeResizeObserver;
-    ioServiceMock.save.mockClear();
+    Object.values(ioServiceMock).forEach((fn) => fn.mockClear());
     keyDown$ = new Subject<KeyboardEvent>();
     await TestBed.configureTestingModule({
       imports: [WhiteboardEditorComponent],
@@ -60,6 +66,18 @@ describe('WhiteboardEditorComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('announces copy feedback in a polite status region', async () => {
+    const region = fixture.nativeElement.querySelector('.wb-status') as HTMLElement;
+    expect(region.getAttribute('aria-live')).toBe('polite');
+    expect(region.textContent?.trim()).toBe('');
+
+    component.runMenuAction('copy-png');
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(region.textContent).toContain('Copied to clipboard');
   });
 
   it('toggles panel on Alt+P from board keydown', () => {
@@ -83,37 +101,129 @@ describe('WhiteboardEditorComponent', () => {
     expect(component.isPanelOpenSignal()).toBe(!before);
   });
 
-  it('Save calls IOService.save with SVG and the title', async () => {
-    await component.save();
-    expect(ioServiceMock.save).toHaveBeenCalledWith(
-      FormatType.Svg,
-      component.editorConfigSignal().title || 'Whiteboard'
-    );
-  });
-
-  it('Export calls IOService.save with PNG and the title', async () => {
-    await component.export();
-    expect(ioServiceMock.save).toHaveBeenCalledWith(
-      FormatType.Png,
-      component.editorConfigSignal().title || 'Whiteboard'
-    );
-  });
-
-  it('does not reject when saving fails', async () => {
-    ioServiceMock.save.mockRejectedValueOnce(new Error('x'));
-    await expect(component.save()).resolves.toBeUndefined();
-  });
-
   it('does not toggle on plain P', () => {
     const before = component.isPanelOpenSignal();
     keyDown$.next(new KeyboardEvent('keydown', { key: 'p' }));
     expect(component.isPanelOpenSignal()).toBe(before);
   });
 
-  it('slider 50 sets layer opacity 0.5', () => {
-    const spy = jest.spyOn(TestBed.inject(LayerManagementService), 'setLayerOpacity');
-    component.onLayerPanelOpacityChanged({ layerId: 'l1', opacity: 0.5 });
-    expect(spy).toHaveBeenCalledWith('l1', 0.5);
+  describe('layer actions', () => {
+    const layers = () => TestBed.inject(LayerManagementService);
+    const topFirst = () => [...layers().layers()].sort((a, b) => b.zIndex - a.zIndex).map((l) => l.id);
+    const opacityOf = (id: string) =>
+      layers()
+        .layers()
+        .find((l) => l.id === id)?.opacity;
+    const undoSteps = () => {
+      let n = 0;
+      while (component.canUndoSignal()) {
+        component.undo();
+        n++;
+      }
+      return n;
+    };
+
+    beforeEach(() => {
+      layers().addLayer('Top');
+      TestBed.inject(HistoryService).clearHistory();
+    });
+
+    it('select, add, rename, visibility and lock reach the board', () => {
+      const [top, bottom] = topFirst();
+      component.onLayerAction({ type: 'select', id: bottom });
+      expect(layers().activeLayerId()).toBe(bottom);
+
+      component.onLayerAction({ type: 'rename', id: top, name: 'Sketch' });
+      expect(
+        layers()
+          .layers()
+          .find((l) => l.id === top)?.name
+      ).toBe('Sketch');
+
+      component.onLayerAction({ type: 'toggle-visible', id: bottom });
+      component.onLayerAction({ type: 'toggle-lock', id: bottom });
+      const state = layers()
+        .layers()
+        .find((l) => l.id === bottom);
+      expect([state?.visible, state?.locked]).toEqual([false, true]);
+
+      component.onLayerAction({ type: 'add' });
+      expect(layers().layers().length).toBe(3);
+      expect(
+        layers()
+          .layers()
+          .some((l) => l.name === 'Layer 3')
+      ).toBe(true);
+    });
+
+    it('an opacity drag is one undo step', () => {
+      const [top] = topFirst();
+      component.onLayerAction({ type: 'opacity', id: top, opacity: 0.8, phase: 'start' });
+      component.onLayerAction({ type: 'opacity', id: top, opacity: 0.8, phase: 'change' });
+      component.onLayerAction({ type: 'opacity', id: top, opacity: 0.5, phase: 'change' });
+      component.onLayerAction({ type: 'opacity', id: top, opacity: 0.5, phase: 'end' });
+      expect(opacityOf(top)).toBe(0.5);
+      expect(undoSteps()).toBe(1);
+      expect(opacityOf(top)).toBe(1);
+    });
+
+    it('closing the layers popover mid-edit ends the opacity batch', () => {
+      const [top] = topFirst();
+      component.showLayersDropdownSignal.set(true);
+      fixture.detectChanges();
+      component.onLayerAction({ type: 'opacity', id: top, opacity: 0.8, phase: 'start' });
+      component.onLayerAction({ type: 'opacity', id: top, opacity: 0.8, phase: 'change' });
+      component.showLayersDropdownSignal.set(false);
+      fixture.detectChanges();
+      component.onLayerAction({ type: 'opacity', id: top, opacity: 0.3, phase: 'change' });
+      expect(undoSteps()).toBe(2);
+    });
+
+    it('blend, duplicate and merge-down reach the board', () => {
+      const [top, bottom] = topFirst();
+      component.onLayerAction({ type: 'blend', id: top, blendMode: 'multiply' });
+      expect(
+        layers()
+          .layers()
+          .find((l) => l.id === top)?.blendMode
+      ).toBe('multiply');
+      component.onLayerAction({ type: 'duplicate', id: top });
+      expect(layers().layers().length).toBe(3);
+      component.onLayerAction({ type: 'merge-down', id: top });
+      expect(
+        layers()
+          .layers()
+          .some((l) => l.id === bottom)
+      ).toBe(true);
+    });
+
+    it('reorder uses top-first indices', () => {
+      const [top, bottom] = topFirst();
+      component.onLayerAction({ type: 'reorder', from: 0, to: 1 });
+      expect(topFirst()).toEqual([bottom, top]);
+    });
+
+    it('delete passes its mode', () => {
+      const removeLayer = jest.spyOn(component.editorStateService, 'removeLayer');
+      const [top] = topFirst();
+      component.onLayerAction({ type: 'delete', id: top, mode: 'move-elements' });
+      expect(removeLayer).toHaveBeenCalledWith(top, 'move-elements');
+    });
+
+    it('the header panel forwards its panel actions through one layerAction output', () => {
+      const [top] = topFirst();
+      component.showLayersDropdownSignal.set(true);
+      fixture.detectChanges();
+      document.body.appendChild(fixture.nativeElement);
+      (fixture.nativeElement.querySelector('.layers-dropdown .lp-eye') as HTMLButtonElement).click();
+      fixture.detectChanges();
+      fixture.nativeElement.remove();
+      expect(
+        layers()
+          .layers()
+          .find((l) => l.id === top)?.visible
+      ).toBe(false);
+    });
   });
 
   it('toolbar has no more-tools button', () => {
@@ -475,6 +585,356 @@ describe('WhiteboardEditorComponent', () => {
     });
   });
 
+  describe('main menu, dialogs and file shortcuts', () => {
+    const q = <T extends HTMLElement>(selector: string) => fixture.nativeElement.querySelector(selector) as T;
+    const all = (selector: string) => Array.from(fixture.nativeElement.querySelectorAll(selector)) as HTMLElement[];
+    const items = () => all('ng-header-panel [role="menuitem"]') as HTMLButtonElement[];
+    const hasContent = () => component.editorStateService.hasContent();
+    const box = (): WhiteboardElement =>
+      ({
+        id: 'r1',
+        type: ElementType.Rectangle,
+        x: 0,
+        y: 0,
+        width: 10,
+        height: 10,
+        rx: 0,
+        rotation: 0,
+        opacity: 100,
+        zIndex: 1,
+        selectAfterDraw: false,
+        style: {},
+      }) as WhiteboardElement;
+    const mount = (copySupported: boolean) => {
+      fixture.destroy();
+      if (copySupported) {
+        Object.defineProperty(navigator, 'clipboard', { value: { write: jest.fn() }, configurable: true });
+        (globalThis as unknown as { ClipboardItem: unknown }).ClipboardItem = class {};
+      }
+      fixture = TestBed.createComponent(WhiteboardEditorComponent);
+      component = fixture.componentInstance;
+      document.body.appendChild(fixture.nativeElement);
+      fixture.detectChanges();
+      FakeResizeObserver.instances[FakeResizeObserver.instances.length - 1]?.resize(1440, 900);
+      fixture.detectChanges();
+    };
+    const choose = (label: string) => {
+      q<HTMLButtonElement>('ng-header-panel .menu-btn').click();
+      fixture.detectChanges();
+      const item = items().find((b) => (b.textContent ?? '').includes(label));
+      if (!item) throw new Error(`no menu item ${label}`);
+      item.click();
+      fixture.detectChanges();
+    };
+    const confirmDialog = () => q('ng-confirm-dialog .dlg');
+    const press = (target: EventTarget, init: KeyboardEventInit) => {
+      const event = new KeyboardEvent('keydown', { bubbles: true, cancelable: true, ...init });
+      target.dispatchEvent(event);
+      return event;
+    };
+
+    afterEach(() => {
+      fixture.nativeElement.remove();
+      delete (navigator as unknown as { clipboard?: unknown }).clipboard;
+      delete (globalThis as unknown as { ClipboardItem?: unknown }).ClipboardItem;
+    });
+    afterAll(() => {
+      delete (globalThis as unknown as { ResizeObserver?: unknown }).ResizeObserver;
+    });
+
+    it('lists the six items in order when image copy is supported', () => {
+      mount(true);
+      q<HTMLButtonElement>('ng-header-panel .menu-btn').click();
+      fixture.detectChanges();
+      expect(items().map((b) => (b.textContent ?? '').trim())).toEqual([
+        expect.stringContaining('Open…'),
+        expect.stringContaining('Save to file'),
+        expect.stringContaining('Export image…'),
+        expect.stringContaining('Copy as PNG'),
+        expect.stringContaining('Dark mode'),
+        expect.stringContaining('Reset canvas…'),
+      ]);
+    });
+
+    it('omits Copy as PNG when the browser cannot copy images', () => {
+      mount(false);
+      q<HTMLButtonElement>('ng-header-panel .menu-btn').click();
+      fixture.detectChanges();
+      expect(items().some((b) => (b.textContent ?? '').includes('Copy as PNG'))).toBe(false);
+      expect(items().length).toBe(5);
+    });
+
+    it('Reset canvas confirms, then clears the board and restores the initial title', () => {
+      mount(false);
+      TestBed.inject(ElementsService).setElements([box()]);
+      component.editorStateService.updateTitle('Changed');
+
+      choose('Reset canvas…');
+      expect(confirmDialog().textContent).toContain('Reset the canvas? This clears the board.');
+      expect(hasContent()).toBe(true);
+
+      q<HTMLButtonElement>('.confirm-btn').click();
+      fixture.detectChanges();
+      expect(hasContent()).toBe(false);
+      expect(component.editorConfigSignal().title).toBe('Whiteboard');
+      expect(confirmDialog()).toBeNull();
+    });
+
+    it('cancelling the reset confirm changes nothing', () => {
+      mount(false);
+      TestBed.inject(ElementsService).setElements([box()]);
+      choose('Reset canvas…');
+      q<HTMLButtonElement>('.cancel-btn').click();
+      fixture.detectChanges();
+      expect(hasContent()).toBe(true);
+      expect(confirmDialog()).toBeNull();
+    });
+
+    it('Open on an empty board goes straight to the file picker', () => {
+      mount(false);
+      const click = jest.spyOn(q<HTMLInputElement>('input[type="file"]'), 'click').mockImplementation();
+      choose('Open…');
+      expect(confirmDialog()).toBeNull();
+      expect(click).toHaveBeenCalledTimes(1);
+    });
+
+    it('Open on a non-empty board confirms the replacement before picking a file', () => {
+      mount(false);
+      TestBed.inject(ElementsService).setElements([box()]);
+      const input = q<HTMLInputElement>('input[type="file"]');
+      const click = jest.spyOn(input, 'click').mockImplementation();
+      choose('Open…');
+      expect(confirmDialog().textContent).toContain('Replace the current board?');
+      expect(click).not.toHaveBeenCalled();
+
+      q<HTMLButtonElement>('.confirm-btn').click();
+      expect(click).toHaveBeenCalledTimes(1);
+
+      const file = new File(['{}'], 'board.json', { type: 'application/json' });
+      Object.defineProperty(input, 'files', { value: [file], configurable: true });
+      input.dispatchEvent(new Event('change'));
+      expect(ioServiceMock.importDataFromFile).toHaveBeenCalledWith(file);
+    });
+
+    it('the hidden file input accepts board files and exported images', () => {
+      mount(false);
+      expect(q('input[type="file"]').getAttribute('accept')).toBe(
+        '.json,application/json,.png,image/png,.svg,image/svg+xml'
+      );
+    });
+
+    it('Save to file downloads the board under its title', () => {
+      mount(false);
+      component.editorStateService.updateTitle('Sprint');
+      choose('Save to file');
+      expect(ioServiceMock.exportDataAsFile).toHaveBeenCalledWith('Sprint');
+    });
+
+    it('Ctrl+Shift+S runs Save as on the focused board', () => {
+      mount(false);
+      const saveAs = jest.spyOn(component.editorStateService, 'saveBoardAs').mockResolvedValue();
+      component.handleShortcut(new KeyboardEvent('keydown', { code: 'KeyS', ctrlKey: true, shiftKey: true }));
+      expect(saveAs).toHaveBeenCalled();
+    });
+
+    it('Export image opens the export dialog', () => {
+      mount(false);
+      choose('Export image…');
+      expect(component.exportDialogOpen()).toBe(true);
+      expect(q('ng-dialog [role="dialog"] h2').textContent).toContain('Export image');
+    });
+
+    it('the export dialog previews the render and downloads the board under its title', async () => {
+      mount(false);
+      component.editorStateService.updateTitle('Sprint');
+      choose('Export image…');
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      fixture.detectChanges();
+      expect(q<HTMLImageElement>('wb-export-dialog img').src).toBe('data:image/png;base64,AAA');
+      q<HTMLButtonElement>('.wb-export-download').click();
+      expect(ioServiceMock.save).toHaveBeenCalledWith('png', 'Sprint', {
+        scale: 2,
+        background: true,
+        padding: 16,
+        onlySelected: false,
+        embedBoardData: true,
+      });
+    });
+
+    it('Escape closes the export dialog and returns focus to the menu trigger', () => {
+      mount(false);
+      const trigger = q<HTMLButtonElement>('ng-header-panel .menu-btn');
+      choose('Export image…');
+      press(q('ng-dialog [role="dialog"]'), { key: 'Escape' });
+      fixture.detectChanges();
+      expect(component.exportDialogOpen()).toBe(false);
+      expect(q('wb-export-dialog')).toBeNull();
+      expect(document.activeElement).toBe(trigger);
+    });
+
+    it('a scale chosen in the export dialog is remembered when it reopens', () => {
+      mount(false);
+      choose('Export image…');
+      Array.from(document.querySelectorAll<HTMLElement>('[aria-label="Scale"] [role="radio"]'))
+        .find((b) => b.textContent?.trim() === '3×')
+        ?.click();
+      component.exportDialogOpen.set(false);
+      fixture.detectChanges();
+      component.exportDialogOpen.set(true);
+      fixture.detectChanges();
+      expect(q('[aria-label="Scale"] [role="radio"][aria-checked="true"]').textContent?.trim()).toBe('3×');
+    });
+
+    it('Copy as PNG copies with the export settings', () => {
+      mount(true);
+      choose('Copy as PNG');
+      expect(ioServiceMock.copyToClipboard).toHaveBeenCalledWith('png', {
+        scale: 2,
+        background: true,
+        padding: 16,
+        onlySelected: false,
+      });
+    });
+
+    it('Dark mode toggles the theme and the label follows', () => {
+      mount(false);
+      choose('Dark mode');
+      expect(component.themeSignal()).toBe('dark');
+      q<HTMLButtonElement>('ng-header-panel .menu-btn').click();
+      fixture.detectChanges();
+      expect(items().some((b) => (b.textContent ?? '').includes('Light mode'))).toBe(true);
+    });
+
+    it('Escape closes the menu and focuses its trigger', () => {
+      mount(false);
+      const trigger = q<HTMLButtonElement>('ng-header-panel .menu-btn');
+      trigger.click();
+      fixture.detectChanges();
+      press(items()[0], { key: 'Escape' });
+      fixture.detectChanges();
+      expect(items().length).toBe(0);
+      expect(document.activeElement).toBe(trigger);
+    });
+
+    it('the reset confirm returns focus to the menu button on cancel', () => {
+      mount(false);
+      TestBed.inject(ElementsService).setElements([box()]);
+      choose('Reset canvas…');
+      press(q('.cancel-btn'), { key: 'Escape' });
+      fixture.detectChanges();
+      expect(document.activeElement).toBe(q('ng-header-panel .menu-btn'));
+    });
+
+    it('separates Copy as PNG, the theme toggle and Reset in the popover and in the compact sheet', () => {
+      mount(true);
+      const shape = (root: string) =>
+        Array.from(fixture.nativeElement.querySelector(`${root} [role="menu"]`).children as HTMLCollection).map(
+          (c) => c.getAttribute('role') + ':' + (c.textContent ?? '').trim().slice(0, 9)
+        );
+      const expected = [
+        'menuitem:Open…',
+        'menuitem:Save to f',
+        'menuitem:Export im',
+        'menuitem:Copy as P',
+        'separator:',
+        'menuitem:Dark mode',
+        'separator:',
+        'menuitem:Reset can',
+      ];
+      q<HTMLButtonElement>('ng-header-panel .menu-btn').click();
+      fixture.detectChanges();
+      expect(shape('ng-header-panel').map((e) => e.split(':')[0])).toEqual(expected.map((e) => e.split(':')[0]));
+
+      FakeResizeObserver.instances[FakeResizeObserver.instances.length - 1].resize(390, 844);
+      fixture.detectChanges();
+      component.menuSheetOpenSignal.set(true);
+      fixture.detectChanges();
+      expect(shape('ng-bottom-sheet').map((e) => e.split(':')[0])).toEqual(expected.map((e) => e.split(':')[0]));
+    });
+
+    it('Dark mode closes the compact menu sheet as well', () => {
+      mount(false);
+      FakeResizeObserver.instances[FakeResizeObserver.instances.length - 1].resize(390, 844);
+      fixture.detectChanges();
+      component.menuSheetOpenSignal.set(true);
+      fixture.detectChanges();
+      component.runMenuAction('theme');
+      expect(component.menuSheetOpenSignal()).toBe(false);
+    });
+
+    describe('shortcuts', () => {
+      it('are ignored while the reset confirm is open', () => {
+        mount(false);
+        TestBed.inject(ElementsService).setElements([box()]);
+        choose('Reset canvas…');
+        press(q('.cancel-btn'), { key: 's', code: 'KeyS', ctrlKey: true });
+        press(q('.cancel-btn'), { key: 'E', code: 'KeyE', ctrlKey: true, shiftKey: true });
+        expect(ioServiceMock.exportDataAsFile).not.toHaveBeenCalled();
+        expect(component.exportDialogOpen()).toBe(false);
+      });
+
+      it('are ignored while the export dialog is open', () => {
+        mount(false);
+        choose('Export image…');
+        press(q('.dlg-close'), { key: 's', code: 'KeyS', ctrlKey: true });
+        expect(ioServiceMock.exportDataAsFile).not.toHaveBeenCalled();
+      });
+
+      const toolbarButton = () => q<HTMLButtonElement>('ng-toolbar button');
+
+      it('Ctrl+S saves once even when the board also reports the event, and prevents default', () => {
+        mount(false);
+        const event = press(toolbarButton(), { key: 's', code: 'KeyS', ctrlKey: true });
+        keyDown$.next(event);
+        expect(ioServiceMock.exportDataAsFile).toHaveBeenCalledTimes(1);
+        expect(event.defaultPrevented).toBe(true);
+      });
+
+      it('Meta works in place of Ctrl', () => {
+        mount(false);
+        press(toolbarButton(), { key: 's', code: 'KeyS', metaKey: true });
+        expect(ioServiceMock.exportDataAsFile).toHaveBeenCalledTimes(1);
+      });
+
+      it('Ctrl+S from the board is handled', () => {
+        mount(false);
+        keyDown$.next(new KeyboardEvent('keydown', { key: 's', code: 'KeyS', ctrlKey: true, cancelable: true }));
+        expect(ioServiceMock.exportDataAsFile).toHaveBeenCalledTimes(1);
+      });
+
+      it('Ctrl+O opens the file picker', () => {
+        mount(false);
+        const click = jest.spyOn(q<HTMLInputElement>('input[type="file"]'), 'click').mockImplementation();
+        const event = press(toolbarButton(), { key: 'o', code: 'KeyO', ctrlKey: true });
+        expect(click).toHaveBeenCalledTimes(1);
+        expect(event.defaultPrevented).toBe(true);
+      });
+
+      it('Ctrl+Shift+E opens the export dialog', () => {
+        mount(false);
+        const event = press(toolbarButton(), { key: 'E', code: 'KeyE', ctrlKey: true, shiftKey: true });
+        expect(component.exportDialogOpen()).toBe(true);
+        expect(event.defaultPrevented).toBe(true);
+      });
+
+      it('Ctrl+Shift+C copies as PNG', () => {
+        mount(true);
+        const event = press(toolbarButton(), { key: 'C', code: 'KeyC', ctrlKey: true, shiftKey: true });
+        expect(ioServiceMock.copyToClipboard).toHaveBeenCalledTimes(1);
+        expect(event.defaultPrevented).toBe(true);
+      });
+
+      it('does nothing while typing in an input', () => {
+        mount(false);
+        q<HTMLButtonElement>('ng-header-panel .title-button').click();
+        fixture.detectChanges();
+        const event = press(q('ng-header-panel .title-input'), { key: 's', code: 'KeyS', ctrlKey: true });
+        expect(ioServiceMock.exportDataAsFile).not.toHaveBeenCalled();
+        expect(event.defaultPrevented).toBe(false);
+      });
+    });
+  });
+
   describe('layout', () => {
     const resize = (width: number, height: number) => {
       FakeResizeObserver.instances.forEach((o) => o.resize(width, height));
@@ -552,20 +1012,6 @@ describe('WhiteboardEditorComponent', () => {
       expect(component.isPanelOpenSignal()).toBe(panelOpen);
     });
 
-    it('the theme button label names the theme it switches to', () => {
-      resize(1440, 900);
-      const button = (): HTMLButtonElement => fixture.nativeElement.querySelector('ng-header-panel .theme-btn');
-      expect(button().getAttribute('aria-label')).toBe('Switch to dark mode');
-
-      button().click();
-      fixture.detectChanges();
-      expect(button().getAttribute('aria-label')).toBe('Switch to light mode');
-
-      button().click();
-      fixture.detectChanges();
-      expect(button().getAttribute('aria-label')).toBe('Switch to dark mode');
-    });
-
     it('compact layout renders properties inside bottom sheet closed by default', () => {
       resize(390, 844);
       const sheet = propertiesSheet();
@@ -613,22 +1059,22 @@ describe('WhiteboardEditorComponent', () => {
         reset: jest.spyOn(component.editorStateService, 'resetZoom').mockImplementation(),
       });
 
-      it('header and menu sheet list DOCUMENT_ACTIONS and run the same handlers', () => {
-        const clear = jest.spyOn(component, 'clear').mockImplementation();
-        const save = jest.spyOn(component, 'save').mockImplementation();
-        const exp = jest.spyOn(component, 'export').mockImplementation();
+      it('header popover and menu sheet list the same menu items and run the same handler', () => {
+        const run = jest.spyOn(component, 'runMenuAction').mockImplementation();
         resize(1440, 900);
-        expect(labels('ng-header-panel .action-btn:not(.theme-btn)')).toEqual(DOCUMENT_ACTIONS.map((a) => a.label));
-        buttons('ng-header-panel .action-btn:not(.theme-btn)').forEach((b) => b.click());
-        expect([clear, save, exp].map((s) => s.mock.calls.length)).toEqual([1, 1, 1]);
+        buttons('ng-header-panel .menu-btn')[0].click();
+        fixture.detectChanges();
+        const popover = labels('ng-header-panel [role="menuitem"]');
+        expect(popover.length).toBe(5);
+        buttons('ng-header-panel [role="menuitem"]')[1].click();
+        expect(run).toHaveBeenLastCalledWith('save');
 
         resize(390, 844);
         component.menuSheetOpenSignal.set(true);
         fixture.detectChanges();
-        const items = buttons('ng-bottom-sheet .wb-sheet-item').slice(0, DOCUMENT_ACTIONS.length);
-        expect(items.map((b) => (b.textContent ?? '').trim())).toEqual(DOCUMENT_ACTIONS.map((a) => a.label));
-        items.forEach((b) => b.click());
-        expect([clear, save, exp].map((s) => s.mock.calls.length)).toEqual([2, 2, 2]);
+        expect(labels('ng-bottom-sheet [role="menuitem"]')).toEqual(popover);
+        buttons('ng-bottom-sheet [role="menuitem"]')[1].click();
+        expect(run).toHaveBeenLastCalledWith('save');
       });
 
       it('zoom popover and zoom sheet list ZOOM_ACTIONS and run the same handlers', () => {

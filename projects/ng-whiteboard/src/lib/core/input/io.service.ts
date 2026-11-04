@@ -1,10 +1,22 @@
 import { Injectable } from '@angular/core';
 import { createElement } from '../elements/element.utils';
 import { EventBusService } from '../event-bus/event-bus.service';
-import { AddImage, ElementType, FormatType, WhiteboardConfig } from '../types';
+import { AddImage, ElementType, ExportOptions, FormatType, WhiteboardConfig, WhiteboardElement } from '../types';
 import { WhiteboardEvent } from '../types/events';
 import { downloadFile } from '../utils/common';
 import { svgToBase64 } from '../utils/svg';
+import { exportBounds, ExportBox } from '../utils/svg/export-bounds';
+import { buildExportSvg } from '../utils/svg/export-svg';
+import { canCopyImage, dataUrlToBlob } from '../utils/dom/clipboard';
+import { effectiveLayerId } from '../utils/layers/layer-membership';
+import {
+  boardFileKind,
+  bytesToDataUrl,
+  dataUrlToBytes,
+  embedBoardDataInPng,
+  embedBoardDataInSvg,
+  readBoardDataFromFile,
+} from '../utils/files/board-data';
 import { CanvasService } from '../canvas/canvas.service';
 import { ElementsService } from '../elements/elements.service';
 import { SelectionService } from '../elements/selection.service';
@@ -14,6 +26,11 @@ import { ZoomService } from '../viewport/zoom.service';
 import { LayerManagementService } from '../elements/layer-management.service';
 import { ConfigService } from '../config/config.service';
 import { isTheme } from '../config/theme-colors';
+import { HistoryService } from '../history/history.service';
+
+const MAX_EXPORT_SIDE = 16384;
+const MAX_EXPORT_AREA = 268435456;
+const DEFAULT_EXPORT_PADDING = 16;
 
 /**
  * Handles import/export operations for the whiteboard including images, state serialization, and various export formats.
@@ -28,7 +45,8 @@ export class IOService {
     private eventBusService: EventBusService,
     private selectionService: SelectionService,
     private layerManagementService: LayerManagementService,
-    private configService: ConfigService
+    private configService: ConfigService,
+    private historyService: HistoryService
   ) {}
 
   addImage(imageInfo: AddImage): void {
@@ -140,45 +158,131 @@ export class IOService {
     }
   }
 
-  async save(format: FormatType = FormatType.Base64, name = 'New board'): Promise<string> {
-    const canvas = this.canvasService.getCanvas();
-    const svgElement = canvas.getElementById('svgcontent') as SVGSVGElement;
-
-    if (!svgElement) {
-      throw new Error('SVG content not found');
-    }
-
-    const svgClone = this.prepareSvgForExport(svgElement);
-    const svgString = new XMLSerializer().serializeToString(svgClone);
-
-    const { canvasWidth, canvasHeight } = this.canvasService.getConfig();
+  /**
+   * Exports the board. Raster formats are clamped to 16384px per side and 268,435,456 px in total.
+   * For `FormatType.Svg` the vector is downloaded as is, and the returned string is the SVG data URL.
+   * With `embedBoardData`, PNG and SVG output also carries the board so `importDataFromFile` can reopen it.
+   */
+  async save(format: FormatType = FormatType.Base64, name = 'New board', options: ExportOptions = {}): Promise<string> {
+    const { svgString, width, height } = this.buildExport(options);
+    const embed = options.embedBoardData === true;
 
     try {
-      const imageString = await svgToBase64(svgString, canvasWidth, canvasHeight, format);
-
-      switch (format) {
-        case FormatType.Base64:
-          this.eventBusService.emit(WhiteboardEvent.Save, imageString);
-          break;
-
-        case FormatType.Svg: {
-          const imgSrc = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
-          this.downloadFile(imgSrc, name, 'svg');
-          this.eventBusService.emit(WhiteboardEvent.Save, imgSrc);
-          break;
-        }
-
-        default:
-          this.downloadFile(imageString, name, this.getFileExtension(format));
-          this.eventBusService.emit(WhiteboardEvent.Save, imageString);
-          break;
+      if (format === FormatType.Svg) {
+        const imgSrc = this.svgDataUrl(embed ? embedBoardDataInSvg(svgString, this.exportData()) : svgString);
+        this.downloadFile(imgSrc, name, 'svg');
+        this.eventBusService.emit(WhiteboardEvent.Save, imgSrc);
+        return imgSrc;
       }
+
+      let imageString = await svgToBase64(svgString, width, height, format);
+      if (embed && format === FormatType.Png) {
+        imageString = bytesToDataUrl(embedBoardDataInPng(dataUrlToBytes(imageString), this.exportData()), 'image/png');
+      }
+
+      if (format !== FormatType.Base64) {
+        this.downloadFile(imageString, name, this.getFileExtension(format));
+      }
+      this.eventBusService.emit(WhiteboardEvent.Save, imageString);
 
       return imageString;
     } catch (error) {
       console.error('Failed to save whiteboard:', error);
       throw error;
     }
+  }
+
+  async renderExport(
+    format: FormatType.Png | FormatType.Svg,
+    options: ExportOptions = {}
+  ): Promise<{ dataUrl: string; width: number; height: number }> {
+    const { svgString, width, height } = this.buildExport(options);
+    const dataUrl =
+      format === FormatType.Svg ? this.svgDataUrl(svgString) : await svgToBase64(svgString, width, height, format);
+    return { dataUrl, width, height };
+  }
+
+  async copyToClipboard(format: FormatType.Png | FormatType.Svg, options: ExportOptions = {}): Promise<void> {
+    if (format === FormatType.Svg) {
+      if (!navigator.clipboard?.writeText) {
+        throw new Error('Clipboard is not supported in this browser');
+      }
+      await navigator.clipboard.writeText(this.buildExport(options).svgString);
+      return;
+    }
+
+    if (!canCopyImage()) {
+      throw new Error('Copying images to the clipboard is not supported in this browser');
+    }
+    const blob = this.renderExport(FormatType.Png, options).then(({ dataUrl }) => dataUrlToBlob(dataUrl));
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+  }
+
+  private roundOutward(box: ExportBox): ExportBox {
+    const x = Math.floor(box.x);
+    const y = Math.floor(box.y);
+    return {
+      x,
+      y,
+      width: Math.ceil(box.x + box.width) - x,
+      height: Math.ceil(box.y + box.height) - y,
+    };
+  }
+
+  private svgDataUrl(svgString: string): string {
+    return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
+  }
+
+  private getExportableElements(onlySelected: boolean): WhiteboardElement[] {
+    const layers = this.layerManagementService.layers();
+    const visible = this.elementsService.getElements().filter((element) => {
+      if (element.isDeleting) return false;
+      const layerId = effectiveLayerId(element, layers);
+      return !layerId || !!layers.find((l) => l.id === layerId)?.visible;
+    });
+    if (!onlySelected) return visible;
+
+    const selected = new Set(this.selectionService.getSelectedIds());
+    const picked = visible.filter((element) => selected.has(element.id));
+    return picked.length > 0 ? picked : visible;
+  }
+
+  private buildExport(options: ExportOptions): { svgString: string; width: number; height: number } {
+    const svgElement = this.canvasService.getCanvas().getElementById('svgcontent') as SVGSVGElement;
+    if (!svgElement) {
+      throw new Error('SVG content not found');
+    }
+
+    const { background = true, onlySelected = false } = options;
+    const scale =
+      typeof options.scale === 'number' && Number.isFinite(options.scale) && options.scale > 0 ? options.scale : 1;
+    const padding =
+      typeof options.padding === 'number' && Number.isFinite(options.padding) && options.padding >= 0
+        ? options.padding
+        : DEFAULT_EXPORT_PADDING;
+    const exportable = this.getExportableElements(onlySelected);
+    const { canvasWidth, canvasHeight } = this.canvasService.getConfig();
+    const tight = exportBounds(exportable, padding);
+    const box: ExportBox = tight ? this.roundOutward(tight) : { x: 0, y: 0, width: canvasWidth, height: canvasHeight };
+    const fit = Math.min(
+      scale,
+      MAX_EXPORT_SIDE / box.width,
+      MAX_EXPORT_SIDE / box.height,
+      Math.sqrt(MAX_EXPORT_AREA / (box.width * box.height))
+    );
+    const round = fit < scale ? Math.floor : Math.round;
+    const width = Math.max(1, round(box.width * fit));
+    const height = Math.max(1, round(box.height * fit));
+
+    const clone = buildExportSvg(svgElement, {
+      box,
+      width,
+      height,
+      keepElementIds: new Set(exportable.map((e) => e.id)),
+      background,
+    });
+
+    return { svgString: new XMLSerializer().serializeToString(clone), width, height };
   }
 
   async exportAsPng(name = 'whiteboard'): Promise<string> {
@@ -200,7 +304,7 @@ export class IOService {
   exportData(): string {
     const elements = this.elementsService.getElements();
     const canvasConfig = this.canvasService.getConfig();
-    const layerState = this.layerManagementService.exportLayerState();
+    const layerState = this.layerManagementService.exportLayerState(elements);
     const editorConfig = this.configService.getEditorConfig();
 
     const exportData = {
@@ -267,13 +371,26 @@ export class IOService {
         throw new Error('Invalid data format: elements array not found');
       }
 
-      this.elementsService.clear();
+      const before = this.elementsService.getElements();
+      const batch = this.historyService.startBatch(
+        'Open board',
+        before,
+        this.layerManagementService.exportLayerState(before)
+      );
+      try {
+        this.elementsService.clear();
 
-      if (data.layers) {
-        this.layerManagementService.importLayerState(data.layers);
+        if (data.layers) {
+          this.layerManagementService.importLayerState(data.layers);
+        } else {
+          this.layerManagementService.reset();
+        }
+
+        this.elementsService.setElements(data.elements);
+      } finally {
+        const after = this.elementsService.getElements();
+        batch.execute(after, this.layerManagementService.exportLayerState(after));
       }
-
-      this.elementsService.setElements(data.elements);
 
       if (data.canvas) {
         const { canvas } = data;
@@ -381,35 +498,14 @@ export class IOService {
     }
   }
 
-  importDataFromFile(file: File): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (!file.type.includes('json')) {
-        reject(new Error('Invalid file type. Only JSON files are supported.'));
-        return;
-      }
-
-      const reader = new FileReader();
-
-      reader.onload = (event) => {
-        const result = event.target?.result;
-        if (result && typeof result === 'string') {
-          try {
-            this.importData(result);
-            resolve();
-          } catch (error) {
-            reject(error);
-          }
-        } else {
-          reject(new Error('Failed to read file'));
-        }
-      };
-
-      reader.onerror = () => {
-        reject(new Error('Failed to read file'));
-      };
-
-      reader.readAsText(file);
-    });
+  /** Opens a `.json` board file, or a PNG/SVG image exported with board data. */
+  async importDataFromFile(file: File): Promise<void> {
+    if (!boardFileKind(file)) {
+      throw new Error('Invalid file type. Only board files (.json) and exported PNG or SVG images are supported.');
+    }
+    const json = await readBoardDataFromFile(file);
+    if (!json) throw new Error('This image has no board data.');
+    this.importData(json);
   }
 
   private downloadFile(dataUrl: string, name: string, extension: string): void {
@@ -430,34 +526,6 @@ export class IOService {
       default:
         return 'png';
     }
-  }
-
-  private prepareSvgForExport(svgElement: SVGSVGElement): SVGSVGElement {
-    const svgClone = svgElement.cloneNode(true) as SVGSVGElement;
-
-    // Elements render with `transform-box: fill-box; transform-origin: center`
-    // via the component stylesheet, so rotation and scale pivot around each
-    // element's geometry center. That stylesheet is not part of the serialized
-    // SVG, so without these rules the export pivots around the local origin and
-    // rotated/scaled elements drift. Inline the rules to match the live render.
-    const style = document.createElementNS('http://www.w3.org/2000/svg', 'style');
-    style.textContent = '.wb_element { transform-box: fill-box; transform-origin: center; }';
-    svgClone.insertBefore(style, svgClone.firstChild);
-
-    const selectorParentGroup = svgClone.querySelector('#selectorParentGroup');
-    if (selectorParentGroup) {
-      selectorParentGroup.remove();
-    }
-
-    const contentBackground = svgClone.querySelector('#contentBackground');
-    if (contentBackground) {
-      contentBackground.removeAttribute('opacity');
-    }
-
-    svgClone.setAttribute('x', '0');
-    svgClone.setAttribute('y', '0');
-
-    return svgClone;
   }
 
   async importMultipleImages(files: FileList, spacing = 50): Promise<void> {

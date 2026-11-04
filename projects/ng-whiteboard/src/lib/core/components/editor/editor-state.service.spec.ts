@@ -9,7 +9,9 @@ import { HistoryService } from '../../history/history.service';
 import { ArrowBindingService } from '../../elements/arrow-binding.service';
 import { ArrowElement, ArrowheadType } from '../../elements';
 import { ElementType, LineCap, PenType, WhiteboardElement, WhiteboardEvent } from '../../types';
+import { IOService } from '../../input/io.service';
 import { EditorStateService } from './editor-state.service';
+import { DEFAULT_BOARD_TITLE } from './utils/board-title';
 import { MIXED } from './utils/selected-properties';
 
 const rect = (id: string, x: number, y: number, width: number, height: number, extra = {}): WhiteboardElement =>
@@ -64,6 +66,17 @@ describe('EditorStateService', () => {
     elements = TestBed.inject(ElementsService);
     selection = TestBed.inject(SelectionService);
     history = TestBed.inject(HistoryService);
+  });
+
+  describe('layersSignal', () => {
+    it('counts elements loaded without layerId on the default layer', () => {
+      elements.setElements(Array.from({ length: 6 }, (_, i) => rect(`r${i}`, 0, 0, 10, 10)));
+
+      const layers = service.layersSignal();
+
+      expect(layers).toHaveLength(1);
+      expect(layers[0].elements).toHaveLength(6);
+    });
   });
 
   describe('alignElements', () => {
@@ -595,5 +608,285 @@ describe('EditorStateService', () => {
       service.updateElementProperty('startHead', 'circle');
       expect(arrowOf('a').startHead.type).toBe('circle');
     });
+  });
+});
+
+describe('EditorStateService board file actions', () => {
+  let service: EditorStateService;
+  let io: {
+    exportDataAsFile: jest.Mock;
+    exportData: jest.Mock;
+    importDataFromFile: jest.Mock;
+    copyToClipboard: jest.Mock;
+  };
+  let api: ApiService;
+
+  beforeEach(() => {
+    io = {
+      exportDataAsFile: jest.fn(),
+      exportData: jest.fn().mockReturnValue('{"elements":[]}'),
+      importDataFromFile: jest.fn().mockResolvedValue(undefined),
+      copyToClipboard: jest.fn().mockResolvedValue(undefined),
+    };
+    TestBed.configureTestingModule({
+      providers: [EditorStateService, ApiService, { provide: IOService, useValue: io }],
+    });
+    TestBed.inject(ConfigService).updateEditorConfigValue('title', 'Host title');
+    service = TestBed.inject(EditorStateService);
+    api = TestBed.inject(ApiService);
+  });
+
+  it('captures the initial title on construction', () => {
+    expect(service.initialTitle).toBe('Host title');
+  });
+
+  it('exposes the export session settings with their defaults', () => {
+    expect(service.exportSettings()).toEqual({ format: 'png', scale: 2, background: true, embedBoardData: true });
+  });
+
+  it('without in-place saving, Save downloads the board as <title>', async () => {
+    expect(service.canSaveInPlace).toBe(false);
+    service.updateTitle('Sprint plan');
+    await service.saveBoard();
+    expect(io.exportDataAsFile).toHaveBeenCalledWith('Sprint plan');
+    expect(service.statusMessage()).toBe('Downloaded Sprint plan.json');
+  });
+
+  it('tracks unsaved changes only after the board was saved or opened', async () => {
+    const history = TestBed.inject(HistoryService);
+    expect(service.saveState()).toBe('none');
+    history.recordChange([], [rect('r', 0, 0, 10, 10)], 'Add');
+    expect(service.saveState()).toBe('none');
+
+    await service.saveBoard();
+    expect(service.saveState()).toBe('saved');
+
+    history.recordChange([rect('r', 0, 0, 10, 10)], [], 'Delete');
+    expect(service.saveState()).toBe('unsaved');
+    history.undo();
+    expect(service.saveState()).toBe('saved');
+
+    service.updateTitle('Renamed');
+    expect(service.saveState()).toBe('unsaved');
+  });
+
+  it('marks an opened board as saved and Reset unlinks it', async () => {
+    await service.openBoard(new File(['{}'], 'a.json', { type: 'application/json' }));
+    expect(service.saveState()).toBe('saved');
+    service.resetBoard();
+    expect(service.saveState()).toBe('none');
+    expect(service.fileName()).toBeNull();
+  });
+
+  it('openBoard imports the file', async () => {
+    const file = new File(['{}'], 'a.json', { type: 'application/json' });
+    await service.openBoard(file);
+    expect(io.importDataFromFile).toHaveBeenCalledWith(file);
+  });
+
+  it('openBoard logs a failure and does not reject', async () => {
+    const file = new File(['{}'], 'a.json', { type: 'application/json' });
+    const error = jest.spyOn(console, 'error').mockImplementation();
+    const failure = new Error('bad');
+    io.importDataFromFile.mockRejectedValueOnce(failure);
+    await expect(service.openBoard(file)).resolves.toBeUndefined();
+    expect(error).toHaveBeenCalledWith(expect.stringContaining('open'), failure);
+    error.mockRestore();
+  });
+
+  it('Save falls back to the default title', async () => {
+    service.updateTitle('');
+    await service.saveBoard();
+    expect(io.exportDataAsFile).toHaveBeenCalledWith(DEFAULT_BOARD_TITLE);
+  });
+
+  it('a failed open keeps the board unlinked and explains an image without board data', async () => {
+    jest.spyOn(console, 'error').mockImplementation();
+    io.importDataFromFile.mockRejectedValueOnce(new Error('This image has no board data.'));
+    await service.openBoard(new File(['x'], 'a.png', { type: 'image/png' }));
+    expect(service.saveState()).toBe('none');
+    expect(service.statusMessage()).toBe('This image has no board data');
+  });
+
+  it('copyAsPng copies with the export settings, padding 16 and the selection', async () => {
+    const elements = TestBed.inject(ElementsService);
+    elements.setElements([rect('r', 0, 0, 10, 10)]);
+    TestBed.inject(SelectionService).selectElements(['r']);
+    service.exportSettings.set({ format: 'png', scale: 3, background: false, embedBoardData: true });
+
+    await service.copyAsPng();
+
+    expect(io.copyToClipboard).toHaveBeenCalledWith('png', {
+      scale: 3,
+      background: false,
+      padding: 16,
+      onlySelected: true,
+    });
+  });
+
+  it('copyAsPng does not reject when the clipboard fails', async () => {
+    io.copyToClipboard.mockRejectedValueOnce(new Error('denied'));
+    await expect(service.copyAsPng()).resolves.toBeUndefined();
+  });
+
+  describe('status message', () => {
+    beforeEach(() => jest.useFakeTimers());
+    afterEach(() => jest.useRealTimers());
+
+    it('reports a successful copy and hides after 2.5s', async () => {
+      await service.copyAsPng();
+      expect(service.statusMessage()).toBe('Copied to clipboard');
+      jest.advanceTimersByTime(2499);
+      expect(service.statusMessage()).toBe('Copied to clipboard');
+      jest.advanceTimersByTime(2);
+      expect(service.statusMessage()).toBeNull();
+    });
+
+    it('reports a failed copy', async () => {
+      jest.spyOn(console, 'error').mockImplementation();
+      TestBed.inject(IOService).copyToClipboard = jest.fn().mockRejectedValue(new Error('denied'));
+      await service.copyAsPng();
+      expect(service.statusMessage()).toBe("Couldn't copy");
+    });
+
+    it('reports a file that could not be opened', async () => {
+      jest.spyOn(console, 'error').mockImplementation();
+      TestBed.inject(IOService).importDataFromFile = jest.fn().mockRejectedValue(new Error('bad'));
+      await service.openBoard(new File(['x'], 'a.json'));
+      expect(service.statusMessage()).toBe("Couldn't open that file");
+    });
+
+    it('a newer message restarts the timer', () => {
+      service.notify('one');
+      jest.advanceTimersByTime(2000);
+      service.notify('two');
+      jest.advanceTimersByTime(2000);
+      expect(service.statusMessage()).toBe('two');
+      jest.advanceTimersByTime(600);
+      expect(service.statusMessage()).toBeNull();
+    });
+  });
+
+  it('resetBoard clears the board, restores the title and resets zoom and pan', () => {
+    const reset = jest.spyOn(api, 'resetBoard');
+    const centre = jest.spyOn(service, 'centerView');
+    service.updateTitle('Changed');
+
+    service.resetBoard();
+
+    expect(reset).toHaveBeenCalledTimes(1);
+    expect(service.getEditorConfigSignal()().title).toBe('Host title');
+    expect(centre).toHaveBeenCalledTimes(1);
+  });
+
+  it('hasContent follows the board', () => {
+    expect(service.hasContent()).toBe(false);
+    TestBed.inject(ElementsService).setElements([rect('r', 0, 0, 10, 10)]);
+    expect(service.hasContent()).toBe(true);
+  });
+});
+
+describe('EditorStateService saving in place', () => {
+  type Handle = { name: string; getFile: jest.Mock; createWritable: jest.Mock };
+  const win = window as unknown as Record<string, unknown>;
+  let service: EditorStateService;
+  let io: { exportData: jest.Mock; importDataFromFile: jest.Mock; exportDataAsFile: jest.Mock };
+  let saveHandle: Handle;
+  let showSaveFilePicker: jest.Mock;
+  let showOpenFilePicker: jest.Mock;
+
+  function handle(name: string, file?: File): Handle {
+    return {
+      name,
+      getFile: jest.fn().mockResolvedValue(file),
+      createWritable: jest.fn().mockResolvedValue({
+        write: jest.fn().mockResolvedValue(undefined),
+        close: jest.fn().mockResolvedValue(undefined),
+      }),
+    };
+  }
+
+  beforeEach(() => {
+    saveHandle = handle('board.json');
+    showSaveFilePicker = jest.fn().mockResolvedValue(saveHandle);
+    showOpenFilePicker = jest.fn();
+    win['showSaveFilePicker'] = showSaveFilePicker;
+    win['showOpenFilePicker'] = showOpenFilePicker;
+    io = {
+      exportData: jest.fn().mockReturnValue('{"elements":[]}'),
+      importDataFromFile: jest.fn().mockResolvedValue(undefined),
+      exportDataAsFile: jest.fn(),
+    };
+    TestBed.configureTestingModule({
+      providers: [EditorStateService, ApiService, { provide: IOService, useValue: io }],
+    });
+    TestBed.inject(ConfigService).updateEditorConfigValue('title', 'Plan');
+    service = TestBed.inject(EditorStateService);
+  });
+
+  afterEach(() => {
+    delete win['showSaveFilePicker'];
+    delete win['showOpenFilePicker'];
+  });
+
+  it('asks where to save once, then writes to the same file', async () => {
+    expect(service.canSaveInPlace).toBe(true);
+    await service.saveBoard();
+    expect(showSaveFilePicker).toHaveBeenCalledWith(expect.objectContaining({ suggestedName: 'Plan.json' }));
+    expect(saveHandle.createWritable).toHaveBeenCalledTimes(1);
+    expect(service.fileName()).toBe('board.json');
+    expect(service.statusMessage()).toBe('Saved to board.json');
+
+    await service.saveBoard();
+    expect(showSaveFilePicker).toHaveBeenCalledTimes(1);
+    expect(saveHandle.createWritable).toHaveBeenCalledTimes(2);
+    expect(io.exportDataAsFile).not.toHaveBeenCalled();
+  });
+
+  it('Save as always asks for a new file', async () => {
+    await service.saveBoard();
+    showSaveFilePicker.mockResolvedValueOnce(handle('copy.json'));
+    await service.saveBoardAs();
+    expect(showSaveFilePicker).toHaveBeenCalledTimes(2);
+    expect(service.fileName()).toBe('copy.json');
+  });
+
+  it('cancelling the picker is silent and leaves the board unsaved', async () => {
+    showSaveFilePicker.mockRejectedValueOnce(new DOMException('cancelled', 'AbortError'));
+    await service.saveBoard();
+    expect(service.statusMessage()).toBeNull();
+    expect(service.saveState()).toBe('none');
+  });
+
+  it('reports a failed write without marking the board saved', async () => {
+    jest.spyOn(console, 'error').mockImplementation();
+    saveHandle.createWritable.mockRejectedValueOnce(new Error('denied'));
+    await service.saveBoard();
+    expect(service.statusMessage()).toBe("Couldn't save");
+    expect(service.saveState()).toBe('none');
+  });
+
+  it('opening a board file links it, so Save writes back without asking', async () => {
+    const file = new File(['{}'], 'mine.json', { type: 'application/json' });
+    const opened = handle('mine.json', file);
+    showOpenFilePicker.mockResolvedValue([opened]);
+    await service.pickAndOpenBoard();
+    expect(io.importDataFromFile).toHaveBeenCalledWith(file);
+    expect(service.fileName()).toBe('mine.json');
+
+    await service.saveBoard();
+    expect(showSaveFilePicker).not.toHaveBeenCalled();
+    expect(opened.createWritable).toHaveBeenCalled();
+  });
+
+  it('opening an exported image never links it, so Save asks for a board file', async () => {
+    const file = new File(['png'], 'shot.png', { type: 'image/png' });
+    showOpenFilePicker.mockResolvedValue([handle('shot.png', file)]);
+    await service.pickAndOpenBoard();
+    expect(service.fileName()).toBeNull();
+    expect(service.saveState()).toBe('saved');
+
+    await service.saveBoard();
+    expect(showSaveFilePicker).toHaveBeenCalled();
   });
 });

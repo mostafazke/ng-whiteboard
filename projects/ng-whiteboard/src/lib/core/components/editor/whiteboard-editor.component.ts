@@ -5,31 +5,46 @@ import {
   Component,
   computed,
   DestroyRef,
+  effect,
   ElementRef,
   inject,
   Injector,
   Signal,
   signal,
+  untracked,
   viewChild,
   ViewEncapsulation,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SvgService } from '../../svg/svg.service';
-import { BlendMode, FormatType, ToolType } from '../../types';
+import { ToolType } from '../../types';
+import { canCopyImage } from '../../utils/dom/clipboard';
 import { isEditableTarget } from '../../utils/dom/is-editable-target';
 import { EditorLayout, layoutFor } from './editor-layout';
-import { EditorStateService, Layer } from './editor-state.service';
+import { EditorStateService } from './editor-state.service';
 import { IconComponent } from './icon/icon.component';
 import { ControlsPanelComponent } from './panels/controls-panel/controls-panel.component';
 import { HeaderPanelComponent } from './panels/header-panel/header-panel.component';
 import { HistoryPanelComponent } from './panels/history-panel/history-panel.component';
-import { LayerPanelComponent } from './panels/layer-panel/layer-panel.component';
+import { LayerPanelAction, LayerPanelComponent } from './panels/layer-panel/layer-panel.component';
 import { PropertiesPanelComponent } from './panels/properties-panel/properties-panel.component';
 import { ToolbarComponent } from './panels/toolbar/toolbar.component';
 import { BottomSheetComponent } from './ui/bottom-sheet/bottom-sheet.component';
+import { ConfirmDialogComponent } from './ui/confirm-dialog/confirm-dialog.component';
+import { DialogComponent } from './ui/dialog/dialog.component';
+import { ExportDialogComponent } from './ui/export-dialog/export-dialog.component';
+import { MenuComponent } from './ui/menu/menu.component';
 import { AlignmentType } from './utils/alignment';
-import { DOCUMENT_ACTIONS, DocumentActionId, ZOOM_ACTIONS, ZoomActionId } from './utils/editor-actions';
-import { themeToggleLabel } from './utils/theme-label';
+import {
+  buildMainMenu,
+  CONFIRM_COPY,
+  ConfirmKind,
+  isMacPlatform,
+  MainMenuActionId,
+  ZOOM_ACTIONS,
+  ZoomActionId,
+} from './utils/editor-actions';
+import { matchFileShortcut } from './utils/editor-shortcuts';
 import { toWhiteboardLayers } from './utils/whiteboard-layers';
 
 function isCanvasKey(event: KeyboardEvent): boolean {
@@ -51,6 +66,10 @@ function isCanvasKey(event: KeyboardEvent): boolean {
     ControlsPanelComponent,
     BottomSheetComponent,
     LayerPanelComponent,
+    MenuComponent,
+    DialogComponent,
+    ExportDialogComponent,
+    ConfirmDialogComponent,
   ],
   templateUrl: './whiteboard-editor.component.html',
   styleUrl: './whiteboard-editor.component.scss',
@@ -64,8 +83,9 @@ export class WhiteboardEditorComponent {
   private destroyRef = inject(DestroyRef);
   private injector = inject(Injector);
   private root = viewChild.required<ElementRef<HTMLElement>>('root');
+  private fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
 
-  /** Alt+P can reach both the root keydown binding and the board's keyDown$; act on each event once. */
+  /** A shortcut can reach both the root keydown binding and the board's keyDown$; act on each event once. */
   private readonly handledPanelShortcuts = new WeakSet<KeyboardEvent>();
   /** `null` until the container is first measured, so neither the floating panel nor a sheet flashes in. */
   private layoutState = signal<EditorLayout | null>(null);
@@ -79,19 +99,22 @@ export class WhiteboardEditorComponent {
   themeSignal = this.editorStateService.themeSignal;
   // UI State signals
   isPanelOpenSignal = signal(true);
-  isEditingTitleSignal = signal(false);
   showLayersDropdownSignal = signal(false);
-  showLayerPanelSignal = signal(false);
   showZoomPopupSignal = signal(false);
   propertiesSheetOpenSignal = signal(false);
   menuSheetOpenSignal = signal(false);
   sheetOpenerSignal = signal<HTMLElement | null>(null);
-  readonly documentActions = DOCUMENT_ACTIONS;
+  exportDialogOpen = signal(false);
+  confirmKind = signal<ConfirmKind | null>(null);
+  readonly confirmCopy = CONFIRM_COPY;
   readonly zoomActions = ZOOM_ACTIONS;
 
   // Expose editor state signals
   selectedElementsSignal = this.editorStateService.selectedElementsSignal;
   selectedToolSignal = this.editorStateService.selectedToolSignal;
+  statusMessageSignal = this.editorStateService.statusMessage;
+  saveStateSignal = this.editorStateService.saveState;
+  fileNameSignal = this.editorStateService.fileName;
   layersSignal = this.editorStateService.layersSignal;
   activeLayerIdSignal = this.editorStateService.activeLayerIdSignal;
   hasSelectionSignal = this.editorStateService.hasSelectionSignal;
@@ -99,11 +122,21 @@ export class WhiteboardEditorComponent {
   canRedoSignal = this.editorStateService.canRedoSignal;
   selectedPropertiesSignal = this.editorStateService.selectedPropertiesSignal;
   whiteboardLayersSignal = computed(() => toWhiteboardLayers(this.layersSignal()));
-  themeToggleLabelSignal = computed(() => themeToggleLabel(this.themeSignal()));
+  mainMenuItems = computed(() =>
+    buildMainMenu({
+      theme: this.themeSignal(),
+      canCopyImage: canCopyImage(),
+      mac: isMacPlatform(),
+      canSaveInPlace: this.editorStateService.canSaveInPlace,
+    })
+  );
 
   constructor() {
-    this.svgService.keyDown$.pipe(takeUntilDestroyed()).subscribe((event) => this.togglePanelOnShortcut(event));
+    this.svgService.keyDown$.pipe(takeUntilDestroyed()).subscribe((event) => this.handleShortcut(event));
     afterNextRender(() => this.observeSize());
+    effect(() => {
+      if (!this.showLayersDropdownSignal()) untracked(() => this.editorStateService.endLayerOpacityEdit());
+    });
   }
 
   private observeSize() {
@@ -148,6 +181,7 @@ export class WhiteboardEditorComponent {
   }
 
   private closeSheets() {
+    this.editorStateService.endLayerOpacityEdit();
     this.propertiesSheetOpenSignal.set(false);
     this.menuSheetOpenSignal.set(false);
     this.showLayersDropdownSignal.set(false);
@@ -172,29 +206,28 @@ export class WhiteboardEditorComponent {
     return board !== null && board !== this.root().nativeElement.closest('ng-whiteboard');
   }
 
-  /** Alt+P toggles the properties panel (or sheet), from the editor's own controls or from the board. */
-  togglePanelOnShortcut(event: KeyboardEvent) {
+  /** Alt+P toggles the properties panel; Ctrl/Cmd+O, S, Shift+S, Shift+E and Shift+C run the file actions of the focused board. */
+  handleShortcut(event: KeyboardEvent) {
     if (this.handledPanelShortcuts.has(event)) return;
     this.handledPanelShortcuts.add(event);
-    if (this.isEditingTitleSignal() || isEditableTarget(event.target) || this.targetsAnotherBoard(event)) return;
+    if (isEditableTarget(event.target) || this.targetsAnotherBoard(event)) return;
 
     if (event.altKey && !event.ctrlKey && !event.metaKey && event.code === 'KeyP') {
       event.preventDefault();
       this.togglePanel();
+      return;
     }
+    const action = matchFileShortcut(event);
+    if (!action) return;
+    event.preventDefault();
+    if (this.exportDialogOpen() || this.confirmKind()) return;
+    if (action === 'copy-png' && !canCopyImage()) return;
+    this.rememberOpener(null);
+    this.runMenuAction(action);
   }
 
-  // Header Panel Events
   onTitleChange(title: string) {
     this.editorStateService.updateTitle(title);
-  }
-
-  onTitleEditStart() {
-    this.isEditingTitleSignal.set(true);
-  }
-
-  onTitleEditEnd() {
-    this.isEditingTitleSignal.set(false);
   }
 
   toggleLayersDropdown(opener?: HTMLElement | null) {
@@ -202,76 +235,98 @@ export class WhiteboardEditorComponent {
     this.showLayersDropdownSignal.update((value) => !value);
   }
 
-  onLayerVisibilityToggle(layer: Layer) {
-    this.editorStateService.toggleLayerVisibility(layer.id);
-  }
-
-  onLayerLockToggle(layer: Layer) {
-    this.editorStateService.toggleLayerLock(layer.id);
-  }
-
-  onLayerPanelVisibilityToggled(event: { layerId: string }) {
-    this.editorStateService.toggleLayerVisibility(event.layerId);
-  }
-
-  onLayerPanelLockToggled(event: { layerId: string }) {
-    this.editorStateService.toggleLayerLock(event.layerId);
-  }
-
-  onLayerAdd() {
-    const layers = this.layersSignal();
-    this.editorStateService.addLayer(`Layer ${layers.length + 1}`);
-  }
-
-  // Layer Panel Event Handlers (for header panel integration)
-  onLayerPanelLayerSelected(layerId: string) {
-    this.editorStateService.setActiveLayer(layerId);
-  }
-
-  onLayerPanelLayerDeleted(layerId: string) {
-    this.editorStateService.removeLayer(layerId);
-  }
-
-  onLayerPanelLayerRenamed(event: { layerId: string; name: string }) {
-    this.editorStateService.updateLayer(event.layerId, { name: event.name });
-  }
-
-  onLayerPanelOpacityChanged(event: { layerId: string; opacity: number }) {
-    this.editorStateService.setLayerOpacity(event.layerId, event.opacity);
-  }
-
-  onLayerPanelLayerMoved(event: { layerId: string; direction: 'up' | 'down' }) {
-    if (event.direction === 'up') {
-      this.editorStateService.moveLayerUp(event.layerId);
-    } else {
-      this.editorStateService.moveLayerDown(event.layerId);
+  onLayerAction(action: LayerPanelAction) {
+    const state = this.editorStateService;
+    switch (action.type) {
+      case 'select':
+        if (action.id) state.setActiveLayer(action.id);
+        break;
+      case 'add':
+        state.addLayer(`Layer ${this.layersSignal().length + 1}`);
+        break;
+      case 'toggle-visible':
+        if (action.id) state.toggleLayerVisibility(action.id);
+        break;
+      case 'toggle-lock':
+        if (action.id) state.toggleLayerLock(action.id);
+        break;
+      case 'duplicate':
+        if (action.id) state.duplicateLayer(action.id);
+        break;
+      case 'merge-down':
+        if (action.id) state.mergeLayerDown(action.id);
+        break;
+      case 'rename':
+        state.updateLayer(action.id, { name: action.name });
+        break;
+      case 'reorder':
+        state.reorderLayersByIndex(action.from, action.to);
+        break;
+      case 'opacity':
+        if (action.phase === 'start') state.beginLayerOpacityEdit(action.id);
+        else if (action.phase === 'end') state.endLayerOpacityEdit();
+        else state.setLayerOpacity(action.id, action.opacity);
+        break;
+      case 'blend':
+        state.setLayerBlendMode(action.id, action.blendMode);
+        break;
+      case 'delete':
+        state.removeLayer(action.id, action.mode);
+        break;
     }
   }
 
-  onLayerPanelBlendModeChanged(event: { layerId: string; blendMode: string }) {
-    this.editorStateService.setLayerBlendMode(event.layerId, event.blendMode as BlendMode);
+  onHeaderMenuAction(event: { id: MainMenuActionId; opener: HTMLElement | null }) {
+    this.rememberOpener(event.opener);
+    this.runMenuAction(event.id);
   }
 
-  clear() {
-    this.editorStateService.clear();
+  runMenuAction(id: MainMenuActionId) {
+    const state = this.editorStateService;
+    this.menuSheetOpenSignal.set(false);
+    switch (id) {
+      case 'open':
+        if (state.hasContent()) this.confirmKind.set('open');
+        else this.openFilePicker();
+        break;
+      case 'save':
+        void state.saveBoard();
+        break;
+      case 'save-as':
+        void state.saveBoardAs();
+        break;
+      case 'export':
+        this.exportDialogOpen.set(true);
+        break;
+      case 'copy-png':
+        void state.copyAsPng();
+        break;
+      case 'theme':
+        state.toggleTheme();
+        break;
+      case 'reset':
+        this.confirmKind.set('reset');
+        break;
+    }
   }
 
-  save() {
-    return this.editorStateService.save(FormatType.Svg, this.editorConfigSignal().title);
+  onConfirmed() {
+    const kind = this.confirmKind();
+    this.confirmKind.set(null);
+    if (kind === 'reset') this.editorStateService.resetBoard();
+    else if (kind === 'open') this.openFilePicker();
   }
 
-  export() {
-    return this.editorStateService.save(FormatType.Png, this.editorConfigSignal().title);
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (file) void this.editorStateService.openBoard(file);
   }
 
-  private readonly documentActionHandlers: Record<DocumentActionId, () => void> = {
-    new: () => this.clear(),
-    save: () => this.save(),
-    export: () => this.export(),
-  };
-
-  runDocumentAction(id: DocumentActionId) {
-    this.documentActionHandlers[id]();
+  private openFilePicker() {
+    if (this.editorStateService.canSaveInPlace) void this.editorStateService.pickAndOpenBoard();
+    else this.fileInput()?.nativeElement.click();
   }
 
   // Properties Panel Events
@@ -326,10 +381,6 @@ export class WhiteboardEditorComponent {
   toggleMenuSheet(opener?: HTMLElement | null) {
     this.rememberOpener(opener);
     this.menuSheetOpenSignal.update((value) => !value);
-  }
-
-  toggleTheme() {
-    this.editorStateService.toggleTheme();
   }
 
   onAlignmentChange(alignment: AlignmentType) {

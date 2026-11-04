@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { NgWhiteboardComponent } from '../../../ng-whiteboard.component';
 import { ApiService } from '../../api/api.service';
+import { IOService } from '../../input/io.service';
 import { ElementType, ToolType, WhiteboardElement } from '../../types';
 import { WhiteboardEditorComponent } from './whiteboard-editor.component';
 import { wideEditorResizeObserver } from './testing/wide-editor-resize-observer';
@@ -52,7 +53,7 @@ describe('Editor keyboard containment (integration)', () => {
   afterEach(() => host().remove());
 
   it('Space typed in the header title input inserts a space and keeps the tool', () => {
-    (host().querySelector('ng-header-panel h1') as HTMLElement).click();
+    (host().querySelector('ng-header-panel .title-button') as HTMLElement).click();
     fixture.detectChanges();
     const input = host().querySelector('ng-header-panel .title-input') as HTMLInputElement;
     input.focus();
@@ -198,7 +199,11 @@ describe('Editor keyboard containment (integration)', () => {
   it('Escape in the layer rename input restores the name and keeps the popover open', () => {
     (host().querySelector('ng-header-panel .layers-button') as HTMLButtonElement).click();
     fixture.detectChanges();
-    const input = host().querySelector('ng-header-panel .layer-name') as HTMLInputElement;
+    host()
+      .querySelector('ng-header-panel .lp-name')!
+      .dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    fixture.detectChanges();
+    const input = host().querySelector('ng-header-panel .lp-name-input') as HTMLInputElement;
     const original = input.value;
     input.focus();
     input.value = 'Renamed';
@@ -206,7 +211,7 @@ describe('Editor keyboard containment (integration)', () => {
     key(input, 'keydown', { key: 'Escape', code: 'Escape' });
     fixture.detectChanges();
 
-    expect(input.value).toBe(original);
+    expect(host().querySelector('ng-header-panel .lp-name')?.textContent?.trim()).toBe(original);
     expect(editor.showLayersDropdownSignal()).toBe(true);
     expect(host().querySelector('ng-header-panel .layers-dropdown')).not.toBeNull();
   });
@@ -261,5 +266,43 @@ describe('Alt+P with several boards (integration)', () => {
     press(button);
     expect(editors[1].isPanelOpenSignal()).toBe(false);
     expect(editors[0].isPanelOpenSignal()).toBe(true);
+  });
+});
+
+describe('File shortcuts with several boards (integration)', () => {
+  let fixtures: ComponentFixture<NgWhiteboardComponent>[];
+  let saves: jest.SpyInstance[];
+
+  beforeEach(async () => {
+    global.ResizeObserver = wideEditorResizeObserver();
+    await TestBed.configureTestingModule({ imports: [NgWhiteboardComponent] }).compileComponents();
+    fixtures = [0, 1].map(() => {
+      const f = TestBed.createComponent(NgWhiteboardComponent);
+      f.componentRef.setInput('showEditor', true);
+      document.body.appendChild(f.nativeElement);
+      return f;
+    });
+    for (const f of fixtures) await renderDeferredEditor(f);
+    saves = fixtures.map((f) =>
+      jest
+        .spyOn(f.debugElement.query(By.directive(WhiteboardEditorComponent)).injector.get(IOService), 'exportDataAsFile')
+        .mockImplementation(),
+    );
+    (fixtures[1].nativeElement.querySelector('[globalKeyboard]') as HTMLElement).dispatchEvent(
+      new MouseEvent('mouseenter'),
+    );
+  });
+
+  afterEach(() => fixtures.forEach((f) => f.nativeElement.remove()));
+
+  it('Ctrl+S with board A focused saves only board A, even while board B is hovered', () => {
+    const button = fixtures[0].nativeElement.querySelector('ng-toolbar button') as HTMLElement;
+    button.focus();
+
+    const event = new KeyboardEvent('keydown', { key: 's', code: 'KeyS', ctrlKey: true, bubbles: true, cancelable: true });
+    button.dispatchEvent(event);
+
+    expect(saves.map((s) => s.mock.calls.length)).toEqual([1, 0]);
+    expect(event.defaultPrevented).toBe(true);
   });
 });
