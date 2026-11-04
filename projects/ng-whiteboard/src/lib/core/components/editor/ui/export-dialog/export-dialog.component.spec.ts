@@ -22,7 +22,7 @@ class HostComponent {
 describe('ExportDialogComponent', () => {
   let fixture: ComponentFixture<HostComponent>;
   let host: HostComponent;
-  const exportSettings = signal<ExportSettings>({ format: 'png', scale: 2, background: true });
+  const exportSettings = signal<ExportSettings>({ format: 'png', scale: 2, background: true, embedBoardData: true });
   const state = {
     exportSettings,
     renderExport: jest.fn(),
@@ -57,7 +57,7 @@ describe('ExportDialogComponent', () => {
 
   beforeEach(() => {
     jest.useFakeTimers();
-    exportSettings.set({ format: 'png', scale: 2, background: true });
+    exportSettings.set({ format: 'png', scale: 2, background: true, embedBoardData: true });
     state.renderExport.mockReset().mockResolvedValue({ dataUrl: 'data:image/png;base64,AAA', width: 10, height: 10 });
     state.exportImage.mockReset().mockResolvedValue(true);
     state.copyImage.mockReset().mockResolvedValue(true);
@@ -113,7 +113,10 @@ describe('ExportDialogComponent', () => {
     await create();
     q<HTMLButtonElement>('.wb-export-download')?.click();
     await flush(0);
-    expect(state.exportImage).toHaveBeenCalledWith(FormatType.Png, 'Sprint', defaultOptions);
+    expect(state.exportImage).toHaveBeenCalledWith(FormatType.Png, 'Sprint', {
+      ...defaultOptions,
+      embedBoardData: true,
+    });
     expect(host.closedCount).toBe(1);
   });
 
@@ -130,7 +133,26 @@ describe('ExportDialogComponent', () => {
     expect(q<HTMLElement>('[role="switch"][aria-label="Only selected"]')?.getAttribute('aria-checked')).toBe('true');
     q<HTMLButtonElement>('.wb-export-download')?.click();
     await flush(0);
-    expect(state.exportImage).toHaveBeenCalledWith(FormatType.Png, 'Sprint', { ...defaultOptions, onlySelected: true });
+    expect(state.exportImage).toHaveBeenCalledWith(FormatType.Png, 'Sprint', {
+      ...defaultOptions,
+      onlySelected: true,
+      embedBoardData: true,
+    });
+  });
+
+  it('Include board data is on by default and turning it off stops embedding on download only', async () => {
+    await create();
+    const embed = q<HTMLElement>('.wb-export-switch[aria-labelledby^="wb-export-embed-"]');
+    expect(embed?.getAttribute('aria-checked')).toBe('true');
+    embed?.click();
+    await flush();
+    expect(exportSettings().embedBoardData).toBe(false);
+    q<HTMLButtonElement>('.wb-export-download')?.click();
+    await flush(0);
+    expect(state.exportImage).toHaveBeenCalledWith(FormatType.Png, 'Sprint', {
+      ...defaultOptions,
+      embedBoardData: false,
+    });
   });
 
   it('hides Only selected without a selection', async () => {
@@ -144,7 +166,11 @@ describe('ExportDialogComponent', () => {
     await flush();
     q<HTMLButtonElement>('.wb-export-download')?.click();
     await flush(0);
-    expect(state.exportImage).toHaveBeenCalledWith(FormatType.Png, 'Sprint', { ...defaultOptions, background: false });
+    expect(state.exportImage).toHaveBeenCalledWith(FormatType.Png, 'Sprint', {
+      ...defaultOptions,
+      background: false,
+      embedBoardData: true,
+    });
   });
 
   it('uses the edited filename and shows the extension as a suffix', async () => {
@@ -155,7 +181,7 @@ describe('ExportDialogComponent', () => {
     input.dispatchEvent(new Event('input'));
     q<HTMLButtonElement>('.wb-export-download')?.click();
     await flush(0);
-    expect(state.exportImage).toHaveBeenCalledWith(FormatType.Png, 'plan', defaultOptions);
+    expect(state.exportImage).toHaveBeenCalledWith(FormatType.Png, 'plan', { ...defaultOptions, embedBoardData: true });
   });
 
   it('sanitises the filename', async () => {
@@ -223,7 +249,7 @@ describe('ExportDialogComponent', () => {
     radio('Scale', '3×').click();
     radio('Format', 'SVG').click();
     fixture.detectChanges();
-    expect(exportSettings()).toEqual({ format: 'svg', scale: 3, background: true });
+    expect(exportSettings()).toEqual({ format: 'svg', scale: 3, background: true, embedBoardData: true });
     fixture.destroy();
     await create();
     expect(radio('Format', 'SVG').getAttribute('aria-checked')).toBe('true');
@@ -253,7 +279,7 @@ describe('ExportDialogComponent', () => {
 
     it('is available for SVG with writeText only', async () => {
       setClipboard({ writeText: jest.fn() });
-      exportSettings.set({ format: 'svg', scale: 2, background: true });
+      exportSettings.set({ format: 'svg', scale: 2, background: true, embedBoardData: true });
       await create();
       expect(q('.wb-export-copy')).not.toBeNull();
     });

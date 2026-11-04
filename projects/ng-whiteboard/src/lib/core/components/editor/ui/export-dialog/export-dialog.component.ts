@@ -19,6 +19,7 @@ import { DEFAULT_BOARD_TITLE } from '../../utils/board-title';
 import { SegmentedControlComponent, SegmentedOption } from '../segmented-control/segmented-control.component';
 
 const PREVIEW_DEBOUNCE_MS = 120;
+let nextExportDialogId = 0;
 const COPIED_MS = 1500;
 
 function sanitizeFilename(name: string, title: string): string {
@@ -70,6 +71,22 @@ function sanitizeFilename(name: string, title: string): string {
             aria-label="Background"
             [attr.aria-checked]="settings().background"
             (click)="toggleBackground()"
+          ></button>
+        </div>
+
+        <div class="wb-export-row">
+          <span class="wb-export-label-group">
+            <span class="wb-export-label" [id]="embedLabelId">Include board data</span>
+            <span class="wb-export-hint" [id]="embedHintId">Reopen it later to keep editing</span>
+          </span>
+          <button
+            type="button"
+            class="wb-export-switch"
+            role="switch"
+            [attr.aria-labelledby]="embedLabelId"
+            [attr.aria-describedby]="embedHintId"
+            [attr.aria-checked]="settings().embedBoardData"
+            (click)="toggleEmbedBoardData()"
           ></button>
         </div>
 
@@ -127,6 +144,8 @@ export class ExportDialogComponent {
 
   hasSelection = input(false);
   title = input('');
+  protected readonly embedLabelId = `wb-export-embed-${nextExportDialogId}`;
+  protected readonly embedHintId = `wb-export-embed-hint-${nextExportDialogId++}`;
   closed = output<void>();
 
   protected readonly formatOptions: SegmentedOption[] = [
@@ -202,6 +221,11 @@ export class ExportDialogComponent {
     this.settings.update((s) => ({ ...s, background: !s.background }));
   }
 
+  protected toggleEmbedBoardData(): void {
+    this.error.set(null);
+    this.settings.update((s) => ({ ...s, embedBoardData: !s.embedBoardData }));
+  }
+
   protected toggleOnlySelected(): void {
     this.error.set(null);
     this.onlySelected.update((value) => !value);
@@ -209,11 +233,10 @@ export class ExportDialogComponent {
 
   protected async download(): Promise<void> {
     this.error.set(null);
-    const ok = await this.state.exportImage(
-      this.format(),
-      sanitizeFilename(this.filename(), this.title()),
-      this.options()
-    );
+    const ok = await this.state.exportImage(this.format(), sanitizeFilename(this.filename(), this.title()), {
+      ...this.options(),
+      embedBoardData: this.settings().embedBoardData,
+    });
     if (this.destroyed) return;
     if (ok) this.closed.emit();
     else this.error.set('Export failed');

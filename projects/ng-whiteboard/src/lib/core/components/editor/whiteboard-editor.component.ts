@@ -113,6 +113,8 @@ export class WhiteboardEditorComponent {
   selectedElementsSignal = this.editorStateService.selectedElementsSignal;
   selectedToolSignal = this.editorStateService.selectedToolSignal;
   statusMessageSignal = this.editorStateService.statusMessage;
+  saveStateSignal = this.editorStateService.saveState;
+  fileNameSignal = this.editorStateService.fileName;
   layersSignal = this.editorStateService.layersSignal;
   activeLayerIdSignal = this.editorStateService.activeLayerIdSignal;
   hasSelectionSignal = this.editorStateService.hasSelectionSignal;
@@ -121,7 +123,12 @@ export class WhiteboardEditorComponent {
   selectedPropertiesSignal = this.editorStateService.selectedPropertiesSignal;
   whiteboardLayersSignal = computed(() => toWhiteboardLayers(this.layersSignal()));
   mainMenuItems = computed(() =>
-    buildMainMenu({ theme: this.themeSignal(), canCopyImage: canCopyImage(), mac: isMacPlatform() })
+    buildMainMenu({
+      theme: this.themeSignal(),
+      canCopyImage: canCopyImage(),
+      mac: isMacPlatform(),
+      canSaveInPlace: this.editorStateService.canSaveInPlace,
+    })
   );
 
   constructor() {
@@ -199,7 +206,7 @@ export class WhiteboardEditorComponent {
     return board !== null && board !== this.root().nativeElement.closest('ng-whiteboard');
   }
 
-  /** Alt+P toggles the properties panel; Ctrl/Cmd+O, S, Shift+E and Shift+C run the file actions of the focused board. */
+  /** Alt+P toggles the properties panel; Ctrl/Cmd+O, S, Shift+S, Shift+E and Shift+C run the file actions of the focused board. */
   handleShortcut(event: KeyboardEvent) {
     if (this.handledPanelShortcuts.has(event)) return;
     this.handledPanelShortcuts.add(event);
@@ -283,7 +290,10 @@ export class WhiteboardEditorComponent {
         else this.openFilePicker();
         break;
       case 'save':
-        state.saveBoardFile();
+        void state.saveBoard();
+        break;
+      case 'save-as':
+        void state.saveBoardAs();
         break;
       case 'export':
         this.exportDialogOpen.set(true);
@@ -315,7 +325,8 @@ export class WhiteboardEditorComponent {
   }
 
   private openFilePicker() {
-    this.fileInput()?.nativeElement.click();
+    if (this.editorStateService.canSaveInPlace) void this.editorStateService.pickAndOpenBoard();
+    else this.fileInput()?.nativeElement.click();
   }
 
   // Properties Panel Events

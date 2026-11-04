@@ -88,8 +88,12 @@ describe('editor styles stay inside the editor', () => {
     });
 
     it('caps the preview height in compact and shrinks it on short containers', () => {
-      expect(sheet).toContain('max-height: min(35vh, 260px)');
-      expect(sheet).toMatch(/@container wb-editor \(max-height: 499\.98px\)[^}]*\{[^}]*max-height: 25vh/s);
+      expect(sheet).toContain('--wb-export-preview-max: min(35vh, 260px)');
+      expect(sheet).toMatch(/@container wb-editor \(max-height: 499\.98px\)[^}]*\{[^}]*--wb-export-preview-max: 25vh/s);
+    });
+
+    it('caps the preview image by the same limit so tall images shrink instead of being cropped', () => {
+      expect(sheet).toMatch(/\.wb-export-preview-img\s*\{[^}]*max-height: calc\(var\(--wb-export-preview-max\)/s);
     });
   });
 

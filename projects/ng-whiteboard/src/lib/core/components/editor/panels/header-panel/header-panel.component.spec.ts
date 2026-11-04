@@ -11,7 +11,10 @@ describe('HeaderPanelComponent', () => {
     fixture = TestBed.createComponent(HeaderPanelComponent);
     document.body.appendChild(fixture.nativeElement);
     fixture.componentRef.setInput('editorConfig', { title: 'My board' });
-    fixture.componentRef.setInput('menuItems', buildMainMenu({ theme: 'light', canCopyImage: true, mac: false }));
+    fixture.componentRef.setInput(
+      'menuItems',
+      buildMainMenu({ theme: 'light', canCopyImage: true, mac: false, canSaveInPlace: true })
+    );
     fixture.detectChanges();
   });
   afterEach(() => fixture.nativeElement.remove());
@@ -84,10 +87,10 @@ describe('HeaderPanelComponent', () => {
     };
     const items = () => Array.from(el().querySelectorAll('[role="menuitem"]')) as HTMLButtonElement[];
 
-    it('opens a role=menu listing the six items', () => {
+    it('opens a role=menu listing the seven items', () => {
       open();
       expect(q('.menu-btn').getAttribute('aria-expanded')).toBe('true');
-      expect(items().length).toBe(6);
+      expect(items().length).toBe(7);
       expect(items()[0].textContent).toContain('Open…');
     });
 

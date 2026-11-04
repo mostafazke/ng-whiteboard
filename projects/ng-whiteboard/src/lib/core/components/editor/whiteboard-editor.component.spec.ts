@@ -716,9 +716,11 @@ describe('WhiteboardEditorComponent', () => {
       expect(ioServiceMock.importDataFromFile).toHaveBeenCalledWith(file);
     });
 
-    it('the hidden file input accepts JSON', () => {
+    it('the hidden file input accepts board files and exported images', () => {
       mount(false);
-      expect(q('input[type="file"]').getAttribute('accept')).toBe('.json,application/json');
+      expect(q('input[type="file"]').getAttribute('accept')).toBe(
+        '.json,application/json,.png,image/png,.svg,image/svg+xml'
+      );
     });
 
     it('Save to file downloads the board under its title', () => {
@@ -726,6 +728,13 @@ describe('WhiteboardEditorComponent', () => {
       component.editorStateService.updateTitle('Sprint');
       choose('Save to file');
       expect(ioServiceMock.exportDataAsFile).toHaveBeenCalledWith('Sprint');
+    });
+
+    it('Ctrl+Shift+S runs Save as on the focused board', () => {
+      mount(false);
+      const saveAs = jest.spyOn(component.editorStateService, 'saveBoardAs').mockResolvedValue();
+      component.handleShortcut(new KeyboardEvent('keydown', { code: 'KeyS', ctrlKey: true, shiftKey: true }));
+      expect(saveAs).toHaveBeenCalled();
     });
 
     it('Export image opens the export dialog', () => {
@@ -748,6 +757,7 @@ describe('WhiteboardEditorComponent', () => {
         background: true,
         padding: 16,
         onlySelected: false,
+        embedBoardData: true,
       });
     });
 

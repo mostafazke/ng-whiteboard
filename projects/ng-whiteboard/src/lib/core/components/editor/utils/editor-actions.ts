@@ -8,7 +8,7 @@ export interface EditorAction<Id extends string> {
   requiresSelection?: boolean;
 }
 
-export type MainMenuActionId = 'open' | 'save' | 'export' | 'copy-png' | 'theme' | 'reset';
+export type MainMenuActionId = 'open' | 'save' | 'save-as' | 'export' | 'copy-png' | 'theme' | 'reset';
 export type ZoomActionId = 'fit' | 'selection' | 'reset';
 
 export interface MainMenuAction extends EditorAction<MainMenuActionId> {
@@ -18,7 +18,8 @@ export interface MainMenuAction extends EditorAction<MainMenuActionId> {
 
 export const MAIN_MENU_ACTIONS: readonly MainMenuAction[] = [
   { id: 'open', label: 'Open…', icon: 'folder-open', shortcut: 'Ctrl+O' },
-  { id: 'save', label: 'Save to file', icon: 'file-json', shortcut: 'Ctrl+S' },
+  { id: 'save', label: 'Save', icon: 'save', shortcut: 'Ctrl+S' },
+  { id: 'save-as', label: 'Save as…', icon: 'file-json', shortcut: 'Ctrl+Shift+S' },
   { id: 'export', label: 'Export image…', icon: 'image-down', shortcut: 'Ctrl+Shift+E' },
   { id: 'copy-png', label: 'Copy as PNG', icon: 'clipboard-copy', shortcut: 'Ctrl+Shift+C' },
   { id: 'theme', label: 'Dark mode', icon: 'moon', separatorBefore: true },
@@ -51,11 +52,28 @@ export function formatShortcut(shortcut: string, mac: boolean): string {
   return mac ? shortcut.replace('Ctrl+Shift+', '⇧⌘').replace('Ctrl+', '⌘') : shortcut;
 }
 
-export function buildMainMenu(options: { theme: string; canCopyImage: boolean; mac: boolean }): MainMenuItem[] {
+export interface MainMenuOptions {
+  theme: string;
+  canCopyImage: boolean;
+  mac: boolean;
+  /** The browser can write back to a picked file; without it Save downloads a copy and Save as… is hidden. */
+  canSaveInPlace: boolean;
+}
+
+function menuLabel(action: MainMenuAction, options: MainMenuOptions): string {
+  if (action.id === 'theme') return options.theme === 'dark' ? 'Light mode' : 'Dark mode';
+  if (action.id === 'save' && !options.canSaveInPlace) return 'Save to file';
+  return action.label;
+}
+
+export function buildMainMenu(options: MainMenuOptions): MainMenuItem[] {
   const dark = options.theme === 'dark';
-  return MAIN_MENU_ACTIONS.filter((action) => action.id !== 'copy-png' || options.canCopyImage).map((action) => ({
+  return MAIN_MENU_ACTIONS.filter(
+    (action) =>
+      (action.id !== 'copy-png' || options.canCopyImage) && (action.id !== 'save-as' || options.canSaveInPlace)
+  ).map((action) => ({
     id: action.id,
-    label: action.id === 'theme' ? (dark ? 'Light mode' : 'Dark mode') : action.label,
+    label: menuLabel(action, options),
     icon: action.id === 'theme' ? (dark ? 'sun' : 'moon') : action.icon,
     shortcut: action.shortcut ? formatShortcut(action.shortcut, options.mac) : undefined,
     separatorBefore: action.separatorBefore,

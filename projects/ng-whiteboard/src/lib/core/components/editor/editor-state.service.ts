@@ -10,6 +10,15 @@ import { IOService } from '../../input/io.service';
 import { BatchHandle, HistoryService } from '../../history/history.service';
 import { ToolsService } from '../../tools/tools.service';
 import { effectiveLayerId } from '../../utils';
+import { boardFileKind } from '../../utils/files/board-data';
+import {
+  BoardFileHandle,
+  isPickerAbort,
+  pickBoardOpenFile,
+  pickBoardSaveFile,
+  supportsFileSystemAccess,
+  writeBoardFile,
+} from '../../utils/files/file-system';
 import {
   ArrowHeadStyle,
   ArrowLineStyle,
@@ -48,7 +57,12 @@ export interface ExportSettings {
   format: 'png' | 'svg';
   scale: 1 | 2 | 3;
   background: boolean;
+  /** Store the board inside the image so Open can load it back for editing. */
+  embedBoardData: boolean;
 }
+
+/** `none`: the board was never saved or opened from a file in this session. */
+export type SaveState = 'none' | 'saved' | 'unsaved';
 
 export const EXPORT_PADDING = 16;
 const STATUS_MS = 2500;
@@ -80,7 +94,21 @@ export class EditorStateService implements OnDestroy {
   private readonly status = signal<string | null>(null);
   private statusTimer: ReturnType<typeof setTimeout> | null = null;
   readonly statusMessage = this.status.asReadonly();
-  readonly exportSettings = signal<ExportSettings>({ format: 'png', scale: 2, background: true });
+  readonly exportSettings = signal<ExportSettings>({ format: 'png', scale: 2, background: true, embedBoardData: true });
+
+  /** Chromium can write back to a picked file; other browsers download a copy on every save. */
+  readonly canSaveInPlace = supportsFileSystemAccess(this.win);
+  private readonly fileHandle = signal<BoardFileHandle | null>(null);
+  private readonly savedMarker = signal<{ stateId: number; title: string } | null>(null);
+  private readonly historyStateId = this.historyService.getStateIdSignal();
+  /** Name of the file Save writes to, when the board is linked to one. */
+  readonly fileName = computed(() => this.fileHandle()?.name ?? null);
+  readonly saveState = computed<SaveState>(() => {
+    const marker = this.savedMarker();
+    if (!marker) return 'none';
+    const unchanged = marker.stateId === this.historyStateId() && marker.title === this.getEditorConfigSignal()().title;
+    return unchanged ? 'saved' : 'unsaved';
+  });
 
   // Theme handling - use WhiteboardConfig as the source of truth
   themeSignal = computed(() => this.getConfigSignal()().theme ?? 'light');
@@ -707,18 +735,83 @@ export class EditorStateService implements OnDestroy {
     return this.apiService.hasContent();
   }
 
-  saveBoardFile(): void {
-    this.ioService.exportDataAsFile(this.getEditorConfigSignal()().title || DEFAULT_BOARD_TITLE);
+  /** Ctrl+S: writes to the linked file, or asks where to save the first time. */
+  async saveBoard(): Promise<void> {
+    const handle = this.fileHandle();
+    if (handle) await this.writeBoard(handle);
+    else await this.saveBoardAs();
   }
 
-  async openBoard(file: File): Promise<void> {
+  async saveBoardAs(): Promise<void> {
+    this.endEdit();
+    const name = this.getEditorConfigSignal()().title || DEFAULT_BOARD_TITLE;
+    if (!this.canSaveInPlace) {
+      const marker = this.currentMarker();
+      this.ioService.exportDataAsFile(name);
+      this.savedMarker.set(marker);
+      this.notify(`Downloaded ${name}.json`);
+      return;
+    }
+    let handle: BoardFileHandle;
+    try {
+      handle = await pickBoardSaveFile(this.win, name);
+    } catch (error) {
+      if (isPickerAbort(error)) return;
+      console.error('Failed to pick a file to save to:', error);
+      this.notify("Couldn't save");
+      return;
+    }
+    await this.writeBoard(handle);
+  }
+
+  /** Opens through the browser's file picker so the opened board file can be saved back in place. */
+  async pickAndOpenBoard(): Promise<void> {
+    let handle: BoardFileHandle;
+    let file: File;
+    try {
+      handle = await pickBoardOpenFile(this.win);
+      file = await handle.getFile();
+    } catch (error) {
+      if (isPickerAbort(error)) return;
+      console.error('Failed to pick a board file:', error);
+      this.notify("Couldn't open that file");
+      return;
+    }
+    await this.openBoard(file, boardFileKind(file) === 'json' ? handle : null);
+  }
+
+  /** `handle` links the board to its file for Save; images are never overwritten with board JSON. */
+  async openBoard(file: File, handle: BoardFileHandle | null = null): Promise<void> {
     this.endEdit();
     try {
       await this.ioService.importDataFromFile(file);
     } catch (error) {
       console.error('Failed to open board file:', error);
-      this.notify("Couldn't open that file");
+      const noData = error instanceof Error && error.message.includes('no board data');
+      this.notify(noData ? 'This image has no board data' : "Couldn't open that file");
+      return;
     }
+    this.fileHandle.set(handle);
+    this.savedMarker.set(this.currentMarker());
+  }
+
+  private async writeBoard(handle: BoardFileHandle): Promise<void> {
+    this.endEdit();
+    const marker = this.currentMarker();
+    try {
+      await writeBoardFile(handle, this.ioService.exportData());
+    } catch (error) {
+      console.error('Failed to save board file:', error);
+      this.notify("Couldn't save");
+      return;
+    }
+    this.fileHandle.set(handle);
+    this.savedMarker.set(marker);
+    this.notify(`Saved to ${handle.name}`);
+  }
+
+  private currentMarker() {
+    return { stateId: this.historyStateId(), title: this.getEditorConfigSignal()().title };
   }
 
   async copyAsPng(): Promise<void> {
@@ -742,6 +835,8 @@ export class EditorStateService implements OnDestroy {
     this.apiService.resetBoard();
     this.updateTitle(this.initialTitle);
     this.centerView();
+    this.fileHandle.set(null);
+    this.savedMarker.set(null);
   }
 
   undo() {

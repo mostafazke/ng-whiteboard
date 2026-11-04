@@ -44,6 +44,41 @@
   &:focus-visible .title-pencil {
     opacity: 1;
   }
+
+  @media (pointer: fine) {
+    &.is-unsaved:hover .title-unsaved,
+    &.is-unsaved:focus-visible .title-unsaved {
+      opacity: 0;
+    }
+  }
+}
+
+// The unsaved dot and the pencil share one slot: hovering swaps the dot for the pencil.
+.title-trail {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+
+  @media (pointer: coarse) {
+    width: auto;
+  }
+}
+
+.title-unsaved {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--wb-color-text-secondary);
+  transition: opacity 0.15s ease;
+
+  @media (pointer: coarse) {
+    position: static;
+  }
 }
 
 .title-text {

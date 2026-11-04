@@ -2,6 +2,7 @@ import {
   afterNextRender,
   ChangeDetectionStrategy,
   Component,
+  computed,
   ElementRef,
   inject,
   Injector,
@@ -30,9 +31,22 @@ import { DEFAULT_BOARD_TITLE } from '../../utils/board-title';
         (blur)="commit(false)"
       />
     } @else {
-      <button #trigger type="button" class="title-button" aria-label="Rename board" [title]="value()" (click)="start()">
+      <button
+        #trigger
+        type="button"
+        class="title-button"
+        [class.is-unsaved]="unsaved()"
+        [attr.aria-label]="unsaved() ? 'Rename board, unsaved changes' : 'Rename board'"
+        [title]="tooltip()"
+        (click)="start()"
+      >
         <span class="title-text">{{ value() }}</span>
-        <ng-icon class="title-pencil" name="pencil"></ng-icon>
+        <span class="title-trail">
+          @if (unsaved()) {
+            <span class="title-unsaved" aria-hidden="true"></span>
+          }
+          <ng-icon class="title-pencil" name="pencil"></ng-icon>
+        </span>
       </button>
     }
   `,
@@ -41,7 +55,18 @@ import { DEFAULT_BOARD_TITLE } from '../../utils/board-title';
 })
 export class EditableTitleComponent {
   value = input(DEFAULT_BOARD_TITLE);
+  /** Shows a dot after the title while the linked file is behind the board. */
+  unsaved = input(false);
+  /** The file Save writes to, shown in the tooltip. */
+  fileName = input<string | null>(null);
   valueChange = output<string>();
+
+  protected tooltip = computed(() => {
+    const parts = [this.value()];
+    if (this.fileName()) parts.push(this.fileName() as string);
+    if (this.unsaved()) parts.push('Unsaved changes');
+    return parts.join(' · ');
+  });
 
   protected editing = signal(false);
   protected draft = signal('');

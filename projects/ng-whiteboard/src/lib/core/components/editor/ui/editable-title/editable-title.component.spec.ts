@@ -30,6 +30,19 @@ describe('EditableTitleComponent', () => {
     expect(button().getAttribute('title')).toBe('My board');
   });
 
+  it('shows no unsaved dot by default', () => {
+    expect(el().querySelector('.title-unsaved')).toBeNull();
+  });
+
+  it('shows the unsaved dot and names the file and state in the tooltip and label', () => {
+    fixture.componentRef.setInput('unsaved', true);
+    fixture.componentRef.setInput('fileName', 'plan.json');
+    fixture.detectChanges();
+    expect(el().querySelector('.title-unsaved')).not.toBeNull();
+    expect(button().getAttribute('title')).toBe('My board · plan.json · Unsaved changes');
+    expect(button().getAttribute('aria-label')).toBe('Rename board, unsaved changes');
+  });
+
   it('Enter commits the typed title', () => {
     button().click();
     fixture.detectChanges();

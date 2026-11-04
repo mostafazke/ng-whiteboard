@@ -13,7 +13,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { EditorConfig } from '../../../../types';
-import { Layer } from '../../editor-state.service';
+import { Layer, SaveState } from '../../editor-state.service';
 import { IconComponent } from '../../icon/icon.component';
 import { EditableTitleComponent } from '../../ui/editable-title/editable-title.component';
 import { MenuComponent } from '../../ui/menu/menu.component';
@@ -54,7 +54,13 @@ let nextMenuId = 0;
           }
         </div>
 
-        <ng-editable-title [value]="editorConfig().title" (valueChange)="titleChange.emit($event)"> </ng-editable-title>
+        <ng-editable-title
+          [value]="editorConfig().title"
+          [unsaved]="saveState() === 'unsaved'"
+          [fileName]="fileName()"
+          (valueChange)="titleChange.emit($event)"
+        >
+        </ng-editable-title>
 
         <div class="dropdown-wrapper layers-wrapper" (keydown.escape)="onEscape($event)">
           <button
@@ -121,6 +127,8 @@ export class HeaderPanelComponent {
   /** Whether the parent's compact menu sheet is open. */
   menuOpen = input<boolean>(false);
   menuItems = input<readonly MainMenuItem[]>([]);
+  saveState = input<SaveState>('none');
+  fileName = input<string | null>(null);
 
   protected menuPopoverOpen = signal(false);
   protected panelLayers = computed(() => toWhiteboardLayers(this.layers()));

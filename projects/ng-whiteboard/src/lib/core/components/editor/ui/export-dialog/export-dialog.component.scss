@@ -15,8 +15,9 @@
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
+    --wb-export-preview-max: 22rem;
     min-height: 12rem;
-    max-height: 22rem;
+    max-height: var(--wb-export-preview-max);
     padding: var(--wb-space-2);
     overflow: hidden;
     border: 1px solid var(--wb-color-border);
@@ -52,24 +53,22 @@
     }
 
     @include bp.compact {
+      --wb-export-preview-max: min(35vh, 260px);
       min-height: 8rem;
-      max-height: min(35vh, 260px);
     }
 
     @container wb-editor (max-height: 499.98px) {
-      max-height: 25vh;
+      --wb-export-preview-max: 25vh;
+      min-height: 0;
     }
   }
 
+  // The image is capped by the preview's own limit (minus padding and border) so it shrinks instead of being cropped.
   .wb-export-preview-img {
     display: block;
     max-width: 100%;
-    max-height: 20rem;
+    max-height: calc(var(--wb-export-preview-max) - 2 * var(--wb-space-2) - 2px);
     object-fit: contain;
-
-    @include bp.compact {
-      max-height: 100%;
-    }
   }
 
   .wb-export-empty {
@@ -100,6 +99,19 @@
   .wb-export-label {
     font-size: 0.8125rem;
     color: var(--wb-color-text-secondary);
+  }
+
+  .wb-export-label-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .wb-export-hint {
+    font-size: 0.75rem;
+    color: var(--wb-color-text-tertiary, var(--wb-color-text-secondary));
+    opacity: 0.85;
   }
 
   .wb-export-switch {
@@ -142,6 +154,14 @@
     @include bp.coarse {
       width: 44px;
       height: 26px;
+      min-height: 0;
+
+      // Invisible 44px-tall tap area around the 26px track.
+      &::before {
+        content: '';
+        position: absolute;
+        inset: -9px 0;
+      }
 
       &::after {
         width: 22px;
