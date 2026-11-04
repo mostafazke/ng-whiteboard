@@ -208,5 +208,25 @@ describe('ToolbarComponent', () => {
       fixture.detectChanges();
       expect(items()).toEqual([]);
     });
+
+    it('closes when focus leaves the menu', () => {
+      trigger().click();
+      fixture.detectChanges();
+      items()[0].dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: items()[1] }));
+      fixture.detectChanges();
+      expect(items().length).toBe(4);
+
+      items()[0].dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: document.body }));
+      fixture.detectChanges();
+      expect(items()).toEqual([]);
+    });
+
+    it('closes when the tool changes from elsewhere, e.g. a shortcut', () => {
+      trigger().click();
+      fixture.detectChanges();
+      fixture.componentRef.setInput('selectedTool', ToolType.Text);
+      fixture.detectChanges();
+      expect(items()).toEqual([]);
+    });
   });
 });

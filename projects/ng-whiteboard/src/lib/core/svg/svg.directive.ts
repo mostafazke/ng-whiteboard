@@ -183,6 +183,12 @@ export class SvgDirective implements OnDestroy {
     this.svgService.onKeyDown(event);
   }
 
+  @HostListener('blur')
+  @HostListener('window:blur')
+  onBlur(): void {
+    this.svgService.releaseHeldKeys();
+  }
+
   @HostListener('keyup', ['$event'])
   onKeyUp(event: KeyboardEvent): void {
     this.svgService.onKeyUp(event);

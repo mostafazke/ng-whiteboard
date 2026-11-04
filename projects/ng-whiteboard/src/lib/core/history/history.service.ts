@@ -35,6 +35,8 @@ export class HistoryService {
   private undoDescriptionSignal = signal<string | undefined>(undefined);
   private redoDescriptionSignal = signal<string | undefined>(undefined);
   private stateIdSignal = signal(0);
+  /** State id at the bottom of the undo stack; moves up when the oldest entry is dropped. */
+  private baseStateId = 0;
   private nextEntryId = 1;
 
   private batching = false;
@@ -200,6 +202,7 @@ export class HistoryService {
   }
 
   clearHistory(): void {
+    this.baseStateId = this.stateIdSignal();
     this.undoStack = [];
     this.redoStack = [];
     this.updateSignals();
@@ -238,7 +241,10 @@ export class HistoryService {
   private pushHistory(entry: HistoryEntry) {
     entry.id = this.nextEntryId++;
     this.undoStack.push(entry);
-    if (this.undoStack.length > this.MAX_HISTORY) this.undoStack.shift();
+    if (this.undoStack.length > this.MAX_HISTORY) {
+      const dropped = this.undoStack.shift();
+      if (dropped?.id !== undefined) this.baseStateId = dropped.id;
+    }
     this.redoStack = [];
     this.updateSignals();
   }
@@ -248,7 +254,7 @@ export class HistoryService {
     this.canRedoSignal.set(this.redoStack.length > 0);
     this.undoDescriptionSignal.set(this.undoStack[this.undoStack.length - 1]?.description);
     this.redoDescriptionSignal.set(this.redoStack[this.redoStack.length - 1]?.description);
-    this.stateIdSignal.set(this.undoStack[this.undoStack.length - 1]?.id ?? 0);
+    this.stateIdSignal.set(this.undoStack[this.undoStack.length - 1]?.id ?? this.baseStateId);
   }
 
   private cloneElements(elements: WhiteboardElement[]): WhiteboardElement[] {

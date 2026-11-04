@@ -151,6 +151,8 @@ export class WhiteboardContainerComponent implements OnInit {
 - The layout adapts to the editor's own container. Phones and small containers get a bottom toolbar and bottom sheets.
 - Touch: pinch to zoom and two-finger pan work with or without the editor.
 - `Alt + P` toggles the properties panel.
+- Toolbar: each tool has a letter shortcut and the visible tools are numbered `1`–`0`. `Q` locks the current tool so it stays active after each shape, `Z` zooms to a dragged area, and the image tool opens a file picker. On phones the shape tools collapse into one button.
+- `config.toolbarTools` (a `ToolType[]`) limits which tools the toolbar shows; hidden tools also lose their shortcuts. `config.toolbarPosition` is `'bottom'` (default) or `'left'`; `'left'` falls back to the bottom on compact screens.
 - The properties panel adapts to the selected shape: arrow heads, arrow path and line ends for arrows, corner radius for rectangles, brush for the pen, and so on. The optional `config.cornerRadius` sets the corner radius of new rectangles (default `5`).
 - The header has a main menu (☰) with Open…, Save, Save as…, Export image…, Copy as PNG, Dark/Light mode and Reset canvas…, an editable board title, and a layers button. Shortcuts (editor only, focused board): `Ctrl/Cmd + O` open, `Ctrl/Cmd + S` save, `Ctrl/Cmd + Shift + S` save as, `Ctrl/Cmd + Shift + E` export image, `Ctrl/Cmd + Shift + C` copy as PNG.
 - **Save** writes a `.json` board file. In Chrome and Edge the first save asks where to put it and later saves overwrite that file; opening a `.json` file links it the same way. Other browsers download a copy on every save, and the menu shows **Save to file** instead of Save / Save as….

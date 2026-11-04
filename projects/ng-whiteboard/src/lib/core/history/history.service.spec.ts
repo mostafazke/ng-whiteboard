@@ -131,6 +131,26 @@ describe('HistoryService', () => {
       service.recordChange([createMockElement('1')], [], 'c');
       expect([0, afterA, afterB]).not.toContain(stateId());
     });
+
+    it('does not return to the initial id after the oldest entries are dropped', () => {
+      const stateId = service.getStateIdSignal();
+      let elements: WhiteboardElement[] = [];
+      for (let i = 0; i < 60; i++) {
+        const next = [...elements, createMockElement(String(i))];
+        service.recordChange(elements, next, `add ${i}`);
+        elements = next;
+      }
+      while (service.getCanUndoSignal()()) service.undo();
+      expect(stateId()).not.toBe(0);
+    });
+
+    it('keeps the current id when history is cleared', () => {
+      const stateId = service.getStateIdSignal();
+      service.recordChange([], [createMockElement('1')], 'a');
+      const current = stateId();
+      service.clearHistory();
+      expect(stateId()).toBe(current);
+    });
   });
 
   describe('recordChange', () => {

@@ -21,12 +21,12 @@ export class KeyboardShortcutService {
     }
 
     const key = event.key.toLowerCase();
+    const code = event.code ?? '';
     const ctrl = event.ctrlKey || event.metaKey;
     const shift = event.shiftKey;
     const alt = event.altKey;
 
-    // Prevent default browser behavior for our shortcuts
-    if (this.handleKeyDownShortcuts(key, ctrl, shift, alt)) {
+    if (this.handleKeyDownShortcuts(key, code, ctrl, shift, alt)) {
       event.preventDefault();
       event.stopPropagation();
     }
@@ -45,7 +45,9 @@ export class KeyboardShortcutService {
     );
   }
 
-  private handleKeyDownShortcuts(key: string, ctrl: boolean, shift: boolean, alt: boolean): boolean {
+  private handleKeyDownShortcuts(key: string, code: string, ctrl: boolean, shift: boolean, alt: boolean): boolean {
+    // With Shift held, `key` is the shifted character (`)`, `!`, `:` on US layouts), so match the physical key too.
+    const digit = (n: number) => key === String(n) || code === `Digit${n}`;
     // Tool Shortcuts
     if (!ctrl && !shift && !alt) {
       const tool = toolForKey(key, this.configService.getConfig().toolbarTools);
@@ -175,16 +177,16 @@ export class KeyboardShortcutService {
       this.apiService.zoomOut();
       return true;
     }
-    if (shift && !ctrl && !alt && key === '0') {
-      this.apiService.resetZoom(); // Zoom to 100%
+    if (shift && !ctrl && !alt && digit(0)) {
+      this.apiService.resetZoom();
       return true;
     }
-    if (shift && !ctrl && !alt && key === '1') {
-      this.apiService.zoomToFit(); // Zoom to fit
+    if (shift && !ctrl && !alt && digit(1)) {
+      this.apiService.zoomToFit();
       return true;
     }
-    if (shift && !ctrl && !alt && key === '2') {
-      this.apiService.zoomToSelection(); // Zoom to selection
+    if (shift && !ctrl && !alt && digit(2)) {
+      this.apiService.zoomToSelection();
       return true;
     }
 
@@ -193,7 +195,7 @@ export class KeyboardShortcutService {
       this.apiService.toggleGrid();
       return true;
     }
-    if (ctrl && key === ';' && shift) {
+    if (ctrl && shift && (key === ';' || code === 'Semicolon')) {
       this.apiService.toggleSnapToGrid();
       return true;
     }

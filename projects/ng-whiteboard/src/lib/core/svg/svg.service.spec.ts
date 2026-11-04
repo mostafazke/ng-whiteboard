@@ -217,6 +217,20 @@ describe('SvgService', () => {
     expect(currentTool.handlePointerUp).toHaveBeenCalledWith(pointerInfo);
   });
 
+  it('finishes a draw cut short by pointercancel like a release', () => {
+    service.onPointerDown(createMockPointerInfo({ eventType: 'pointerdown' }));
+    const cancel = createMockPointerInfo({ eventType: 'pointercancel' });
+    service.onPointerCancel(cancel);
+    expect(currentTool.handlePointerUp).toHaveBeenCalledWith(cancel);
+    expect(eventBusService.emit).toHaveBeenCalledWith(WhiteboardEvent.DrawEnd);
+  });
+
+  it('ignores pointercancel when nothing is being drawn', () => {
+    const cancel = createMockPointerInfo({ eventType: 'pointercancel' });
+    service.onPointerCancel(cancel);
+    expect(currentTool.handlePointerUp).not.toHaveBeenCalledWith(cancel);
+  });
+
   it('should not emit events if drawing is disabled', () => {
     configService.getConfig.mockReturnValue({
       drawingEnabled: false,
@@ -479,7 +493,10 @@ describe('SvgService', () => {
 
       expect(eventBusService.emit).not.toHaveBeenCalledWith(WhiteboardEvent.DrawStart, expect.anything());
       expect(drawEndCount()).toBe(0);
-      configService.getConfig.mockReturnValue({ drawingEnabled: true, keyboardShortcutsEnabled: true } as WhiteboardConfig);
+      configService.getConfig.mockReturnValue({
+        drawingEnabled: true,
+        keyboardShortcutsEnabled: true,
+      } as WhiteboardConfig);
     });
 
     it('a stale DrawStart never yields a DrawEnd for a later blocked down followed by a pinch', () => {
@@ -731,6 +748,16 @@ describe('SvgService', () => {
       expect(toolsService.pushTemporaryTool).toHaveBeenCalledWith(ToolType.Hand, 'pan-space');
       expect(preventDefaultSpy).toHaveBeenCalled();
       expect(keyboardShortcutService.handleKeyDown).not.toHaveBeenCalled();
+    });
+
+    it('releases the Space pan when focus leaves the board', () => {
+      service.onKeyDown(new KeyboardEvent('keydown', { code: 'Space' }));
+      service.releaseHeldKeys();
+      expect(toolsService.popTemporaryTool).toHaveBeenCalledWith('pan-space');
+
+      toolsService.popTemporaryTool.mockClear();
+      service.releaseHeldKeys();
+      expect(toolsService.popTemporaryTool).not.toHaveBeenCalled();
     });
 
     it('should not activate hand tool multiple times when space is held', () => {

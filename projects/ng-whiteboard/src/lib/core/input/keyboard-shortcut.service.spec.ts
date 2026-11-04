@@ -15,6 +15,7 @@ describe('KeyboardShortcutService', () => {
 
   const createKeyEvent = (options: {
     key: string;
+    code?: string;
     ctrlKey?: boolean;
     metaKey?: boolean;
     shiftKey?: boolean;
@@ -22,6 +23,7 @@ describe('KeyboardShortcutService', () => {
   }): KeyboardEvent => {
     return new KeyboardEvent('keydown', {
       key: options.key,
+      code: options.code,
       ctrlKey: options.ctrlKey || false,
       metaKey: options.metaKey || false,
       shiftKey: options.shiftKey || false,
@@ -613,6 +615,20 @@ describe('KeyboardShortcutService', () => {
     });
 
     describe('additional zoom shortcuts', () => {
+      it.each([
+        [')', 'Digit0', 'resetZoom'],
+        ['!', 'Digit1', 'zoomToFit'],
+        ['@', 'Digit2', 'zoomToSelection'],
+      ] as const)('matches Shift+%s by its physical key %s', (key, code, method) => {
+        service.handleKeyDown(createKeyEvent({ key, code, shiftKey: true }));
+        expect(mockApiService[method]).toHaveBeenCalled();
+      });
+
+      it('matches Ctrl+Shift+; when the browser reports ":"', () => {
+        service.handleKeyDown(createKeyEvent({ key: ':', code: 'Semicolon', ctrlKey: true, shiftKey: true }));
+        expect(mockApiService.toggleSnapToGrid).toHaveBeenCalled();
+      });
+
       it('should handle Shift+0 for reset zoom (100%)', () => {
         const event = addSpies(createKeyEvent({ key: '0', shiftKey: true }));
         service.handleKeyDown(event);

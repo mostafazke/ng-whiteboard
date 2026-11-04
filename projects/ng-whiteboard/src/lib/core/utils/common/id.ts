@@ -30,3 +30,13 @@ export function generateUUID(): string {
     return v.toString(16);
   });
 }
+
+/** Copies get fresh group ids, consistent within the batch, so they never join the originals' groups. */
+export function remapGroupIds<T extends { groupId?: string }>(items: T[]): T[] {
+  const groupIds = new Map<string, string>();
+  return items.map((item) => {
+    if (!item.groupId) return item;
+    if (!groupIds.has(item.groupId)) groupIds.set(item.groupId, generateId());
+    return { ...item, groupId: groupIds.get(item.groupId) };
+  });
+}

@@ -97,6 +97,7 @@ import { IconComponent } from '../../icon/icon.component';
         aria-label="Shapes"
         [style.left.px]="flyoutLeft()"
         (keydown)="onFlyoutKeydown($event)"
+        (focusout)="onFlyoutFocusOut($event)"
       >
         @for (tool of shapes; track tool.tool) {
           <button
@@ -157,6 +158,7 @@ export class ToolbarComponent {
     effect(() => {
       const tool = this.selectedTool();
       if (this.isShape(tool)) this.lastShape.set(tool);
+      this.flyoutOpen.set(false);
     });
     effect(() => {
       if (!this.collapseShapes()) this.flyoutOpen.set(false);
@@ -219,6 +221,12 @@ export class ToolbarComponent {
     }
     event.preventDefault();
     event.stopPropagation();
+  }
+
+  onFlyoutFocusOut(event: FocusEvent) {
+    const next = event.relatedTarget as Element | null;
+    if (next?.closest('.flyout-menu, .flyout-trigger')) return;
+    this.flyoutOpen.set(false);
   }
 
   @HostListener('document:pointerdown', ['$event'])

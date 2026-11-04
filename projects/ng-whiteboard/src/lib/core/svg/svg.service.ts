@@ -132,14 +132,22 @@ export class SvgService {
   }
 
   /**
-   * Pointer interaction cut short (pointercancel / pointerleave): if a selection gesture is in
-   * flight, finalize it cleanly so the flag never sticks. `SelectTool.handlePointerUp` commits any
-   * open batch and resets its own state, so this leaves nothing dangling.
+   * Pointer interaction cut short (pointercancel / pointerleave): finish it as a release so neither
+   * a selection gesture nor a drawing tool's draft is left open.
    */
   onPointerCancel(info: PointerInfo): void {
     if (this.selectionGesture) {
       this.endSelectionGesture(info);
+    } else if (this.drawStarted) {
+      this.onPointerUp(info);
     }
+  }
+
+  /** Focus left the board while Space was held, so its keyup will never arrive here. */
+  releaseHeldKeys(): void {
+    if (!this.isSpaceHeld) return;
+    this.isSpaceHeld = false;
+    this.toolsService.popTemporaryTool(TEMPORARY_TOOL_ID.PAN_SPACE);
   }
 
   /**

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ClipboardData, ClipboardInfo, WhiteboardElement } from '../types';
 import { ElementsService } from '../elements/elements.service';
+import { remapGroupIds } from '../utils/common';
 
 /**
  * Manages clipboard operations for whiteboard elements with localStorage persistence.
@@ -122,11 +123,13 @@ export class ClipboardService {
     offsetX: number,
     offsetY: number
   ): WhiteboardElement[] {
-    return elements.map((element) => ({
-      ...element,
-      id: `${element.id}_copy_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      x: element.x + offsetX,
-      y: element.y + offsetY,
-    }));
+    return remapGroupIds(
+      elements.map((element) => ({
+        ...element,
+        id: `${element.id}_copy_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+        x: element.x + offsetX,
+        y: element.y + offsetY,
+      }))
+    );
   }
 }
