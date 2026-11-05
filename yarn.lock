@@ -13271,12 +13271,12 @@ ng-packagr@^20.3.2:
   optionalDependencies:
     rollup "^4.24.0"
 
-ngx-colors@^3.6.0:
-  version "3.6.0"
-  resolved "https://registry.yarnpkg.com/ngx-colors/-/ngx-colors-3.6.0.tgz#194313ad413dd90a53bd118c0318c46ebfc66780"
-  integrity sha512-jPFzosd7t7YHKqKTBbOxdAF67aevBTiv0UdS0i7umWQMdMfi0lwcNTrL8XLhW2YbIpy98r54zWgc0iZH5FpiZA==
+ngx-colors@^4.0.2:
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/ngx-colors/-/ngx-colors-4.0.2.tgz#11b564dc9fe9c294b2010b6bb4363bb62e6b6826"
+  integrity sha512-l5z54p+7LMut9Fjg9QBWnyC9pjPXa0mTLpyylKK4OIZjvUpz63mkfK/+i2lPfheGf7lUahTjFjZtnC4VgBL+NA==
   dependencies:
-    tslib "^2.0.0"
+    tslib "^2.3.0"
 
 node-abi@^3.3.0:
   version "3.77.0"
