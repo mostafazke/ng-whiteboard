@@ -1,3 +1,10 @@
+## [6.0.1](https://github.com/mostafazke/ng-whiteboard/compare/v6.0.0...v6.0.1) (2026-11-05)
+
+
+### Bug Fixes
+
+* **editor:** keep undo/zoom beside the toolbar when they fit ([#448](https://github.com/mostafazke/ng-whiteboard/issues/448)) ([837484b](https://github.com/mostafazke/ng-whiteboard/commit/837484b13ed1db33747864b8474b5a97b477d1a3))
+
 # [6.0.0](https://github.com/mostafazke/ng-whiteboard/compare/v5.6.0...v6.0.0) (2026-11-05)
 
 
