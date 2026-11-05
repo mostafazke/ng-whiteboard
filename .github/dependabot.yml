@@ -44,7 +44,6 @@ updates:
         patterns:
           - 'semantic-release'
           - '@semantic-release/*'
-          - '@theunderscorer/nx-semantic-release'
       # Sweep everything else into two type-based groups.
       dev-dependencies:
         dependency-type: development
