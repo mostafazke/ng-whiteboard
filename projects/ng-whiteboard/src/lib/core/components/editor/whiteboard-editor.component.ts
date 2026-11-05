@@ -19,7 +19,7 @@ import { SvgService } from '../../svg/svg.service';
 import { ToolType } from '../../types';
 import { canCopyImage } from '../../utils/dom/clipboard';
 import { isEditableTarget } from '../../utils/dom/is-editable-target';
-import { EditorLayout, layoutFor } from './editor-layout';
+import { bottomRowFits, EditorLayout, layoutFor } from './editor-layout';
 import { EditorStateService } from './editor-state.service';
 import { IconComponent } from './icon/icon.component';
 import { ControlsPanelComponent } from './panels/controls-panel/controls-panel.component';
@@ -89,6 +89,16 @@ export class WhiteboardEditorComponent {
   readonly layout: Signal<EditorLayout | null> = this.layoutState.asReadonly();
   readonly isMeasured = computed(() => this.layout() !== null);
   readonly isCompact = computed(() => this.layout() === 'compact');
+  private toolbarEl = viewChild.required<unknown, ElementRef<HTMLElement>>(ToolbarComponent, { read: ElementRef });
+  private historyEl = viewChild.required<unknown, ElementRef<HTMLElement>>(HistoryPanelComponent, { read: ElementRef });
+  private controlsEl = viewChild.required<unknown, ElementRef<HTMLElement>>(ControlsPanelComponent, {
+    read: ElementRef,
+  });
+  private bottomRowFitsState = signal(true);
+  /** Undo/redo and zoom move to a row above the bottom toolbar only when they would collide with it. */
+  readonly bottomRowStacked = computed(
+    () => this.isCompact() || (this.toolbarPosition() === 'bottom' && !this.bottomRowFitsState())
+  );
 
   configSignal = this.editorStateService.getConfigSignal();
   editorConfigSignal = this.editorStateService.getEditorConfigSignal();
@@ -144,9 +154,28 @@ export class WhiteboardEditorComponent {
       if (!this.isMeasured()) this.layoutState.set('wide');
       return;
     }
+    const barsObserver = new ResizeObserver(() => this.measureBottomRow());
+    [el, this.toolbarEl(), this.historyEl(), this.controlsEl()].forEach((bar) =>
+      barsObserver.observe(bar instanceof HTMLElement ? bar : bar.nativeElement)
+    );
     const observer = new ResizeObserver(([entry]) => this.setLayout(entry.contentRect.width, entry.contentRect.height));
     observer.observe(el);
-    this.destroyRef.onDestroy(() => observer.disconnect());
+    this.destroyRef.onDestroy(() => {
+      observer.disconnect();
+      barsObserver.disconnect();
+    });
+  }
+
+  private measureBottomRow() {
+    const toolbar = this.toolbarEl().nativeElement;
+    const history = this.historyEl().nativeElement;
+    const controls = this.controlsEl().nativeElement;
+    const width = toolbar.offsetParent?.clientWidth ?? 0;
+    if (!width) return;
+    const gap = history.offsetLeft;
+    const start = history.offsetLeft + history.offsetWidth;
+    const end = width - controls.offsetLeft;
+    this.bottomRowFitsState.set(bottomRowFits(width, toolbar.offsetWidth, start, end, gap));
   }
 
   private setLayout(width: number, height: number) {

@@ -11,12 +11,6 @@
   }
 }
 
-@mixin not-wide {
-  @container wb-editor (max-width: 1023.98px) or (max-height: 499.98px) {
-    @content;
-  }
-}
-
 @mixin coarse {
   @media (pointer: coarse) {
     @content;

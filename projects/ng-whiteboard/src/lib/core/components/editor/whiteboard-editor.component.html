@@ -5,6 +5,7 @@
   [attr.data-theme]="themeSignal()"
   [attr.data-layout]="layout()"
   [attr.data-toolbar]="toolbarPosition()"
+  [attr.data-bottom-row]="bottomRowStacked() ? 'stacked' : null"
   (keydown)="handleShortcut($event); containKey($event)"
   (keyup)="containKey($event)"
 >

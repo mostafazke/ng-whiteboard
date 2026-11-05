@@ -169,16 +169,6 @@
     padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) 0;
   }
 
-  // Undo/redo and zoom sit on a row above the toolbar so they never collide with it.
-  @include bp.not-wide {
-    --wb-bottom-reserve: calc(2 * var(--wb-gap) + 2 * var(--wb-bar));
-
-    > .wb-history,
-    > .wb-controls {
-      bottom: calc(2 * var(--wb-gap) + var(--wb-bar));
-    }
-  }
-
   @include bp.medium {
     > .wb-header {
       max-width: calc(100% - var(--wb-panel-width) - 3 * var(--wb-gap));
@@ -203,6 +193,16 @@
       max-width: none;
       padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     }
+  }
+}
+
+// Undo/redo and zoom sit on a row above the toolbar when they would collide with it (set by the editor).
+:where(.editor)[data-bottom-row='stacked'] .editor-container {
+  --wb-bottom-reserve: calc(2 * var(--wb-gap) + 2 * var(--wb-bar));
+
+  > .wb-history,
+  > .wb-controls {
+    bottom: calc(2 * var(--wb-gap) + var(--wb-bar));
   }
 }
 
