@@ -93,7 +93,7 @@
     "jest-canvas-mock": "^2.5.8",
     "jest-environment-jsdom": "^30.5.2",
     "jest-preset-angular": "^17.0.3",
-    "jsonc-eslint-parser": "^2.1.0",
+    "jsonc-eslint-parser": "^3.3.0",
     "ng-packagr": "^20.3.2",
     "nx": "22.7.12",
     "postcss": "^8.5.20",
