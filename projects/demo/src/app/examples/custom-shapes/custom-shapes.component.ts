@@ -17,7 +17,10 @@ const CUSTOM_SHAPES: ShapeDefinition[] = [
 @Component({
   selector: 'app-custom-shapes',
   template: `<div class="custom-shapes">
-    <button type="button" class="add-shape" (click)="addCloud()">Add cloud</button>
+    <div class="controls">
+      <label><input type="checkbox" [checked]="config.enableShapes" (change)="toggleShapes()" /> Enable shapes</label>
+      <button type="button" (click)="addCloud()">Add cloud</button>
+    </div>
     <ng-whiteboard [boardId]="boardId" [config]="config"></ng-whiteboard>
   </div>`,
   styles: `
@@ -27,11 +30,16 @@ const CUSTOM_SHAPES: ShapeDefinition[] = [
       height: 100%;
       position: relative;
     }
-    .add-shape {
+    .controls {
       position: absolute;
       top: 12px;
       right: 12px;
       z-index: 10;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .controls button {
       padding: 6px 12px;
       cursor: pointer;
     }
@@ -47,12 +55,17 @@ export class CustomShapesComponent {
 
   config: Partial<WhiteboardConfig> = {
     fullScreen: true,
+    enableShapes: true,
     shapes: CUSTOM_SHAPES,
     shapeId: 'cloud',
   };
 
   constructor() {
     this.whiteboardService.setActiveBoard(this.boardId);
+  }
+
+  toggleShapes() {
+    this.config = { ...this.config, enableShapes: !this.config.enableShapes };
   }
 
   addCloud() {

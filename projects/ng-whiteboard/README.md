@@ -196,29 +196,6 @@ export class WhiteboardContainerComponent implements OnInit {
 | `[dashoffset]`      | `number`              | `0`              | The default dash-offset                                                                            |
 | `[arrowConfig]`     | `ArrowConfig`         | See below        | Arrow-specific configuration (heads, line style). See [Arrow Configuration](#-arrow-configuration) |
 
-## 🔷 Custom Shapes
-
-The editor ships 12 built-in shapes (triangle, right-triangle, diamond, pentagon, hexagon, octagon, star, heart, cross, parallelogram, trapezoid, speech-bubble) behind a Shapes button in the toolbar. Add your own with the `shapes` config:
-
-```ts
-config: Partial<WhiteboardConfig> = {
-  shapes: [
-    {
-      id: 'pentagon',
-      name: 'Pentagon',
-      path: 'm0.99791,0.9981l162.54547,0l135.45454,149.40899l-135.45454,149.40898l-162.54547,0z',
-    },
-  ],
-  builtInShapes: ['star', 'heart'], // true (default) = all, false = none, or a list of ids
-  shapeId: 'pentagon', // shape drawn by the Shape tool (shortcut S)
-};
-```
-
-- `path` is any SVG path `d` in any coordinate space; it is normalized to its bounding box.
-- A custom shape with the id of a built-in replaces it in place.
-- `addShape(shapeId, props?)` adds a shape element (default width 100, height from the aspect ratio) drawn with the board's current drawing style; `props.style` overrides it. Returns `null` for an unknown id. `getAvailableShapes()` lists the shapes on the board.
-- Hide the Shapes button with `toolbarTools`.
-
 ## 🏹 Arrow Configuration
 
 The `arrowConfig` property controls the default appearance of newly drawn arrows.
@@ -339,8 +316,6 @@ export class MyWhiteboardComponent implements AfterViewInit {
 
 - **`addElement(element: WhiteboardElement)`** Adds a new element (e.g., shape, text) to the whiteboard.
 - **`addImage(image: string, x?: number, y?: number)`** Adds an image to the whiteboard at a specified position.
-- **`addShape(shapeId: string, props?: Partial<ShapeElement>)`** Adds a shape element by shape id, drawn with the board's current drawing style (`props.style` overrides it). Returns `null` for an unknown id.
-- **`getAvailableShapes()`** Returns the shapes available on the board.
 - **`removeElements(ids: string[])`** Removes elements from the whiteboard by IDs.
 - **`updateElement(element: WhiteboardElement)`** Updates an existing element with new properties.
 - **`updateSelectedElements(partialElement: Partial<WhiteboardElement>)`** Modifies only specific properties of the currently selected element.
@@ -453,20 +428,18 @@ The whiteboard supports comprehensive keyboard shortcuts for enhanced productivi
 
 ### Tools
 
-| Shortcut | Action                    |
-| -------- | ------------------------- |
-| `H`      | Hand tool (pan)           |
-| `V`      | Select tool               |
-| `P`      | Pen tool (`D` also works) |
-| `E`      | Eraser tool               |
-| `R`      | Rectangle tool            |
-| `O`      | Ellipse tool              |
-| `S`      | Shape tool                |
-| `L`      | Line tool                 |
-| `A`      | Arrow tool                |
-| `T`      | Text tool                 |
-| `I`      | Image tool                |
-| `Z`      | Zoom to area tool         |
+| Shortcut | Action          |
+| -------- | --------------- |
+| `V`      | Select tool     |
+| `P`      | Pen tool        |
+| `L`      | Line tool       |
+| `R`      | Rectangle tool  |
+| `E`      | Ellipse tool    |
+| `A`      | Arrow tool      |
+| `T`      | Text tool       |
+| `I`      | Image tool      |
+| `H`      | Hand tool (pan) |
+| `D`      | Eraser tool     |
 
 ### Viewport
 
