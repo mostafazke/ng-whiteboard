@@ -69,7 +69,10 @@
       [position]="toolbarPosition()"
       [compact]="isCompact()"
       [locked]="toolLockedSignal()"
+      [shapes]="shapesSignal()"
+      [activeShapeId]="configSignal().shapeId"
       (toolSelect)="setSelectedTool($event)"
+      (shapeSelect)="selectShape($event)"
       (lockToggle)="toggleToolLock()"
     >
     </ng-toolbar>

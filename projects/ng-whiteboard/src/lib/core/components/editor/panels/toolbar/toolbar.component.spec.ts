@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { AvailableShape } from '../../../../elements/shapes';
 import { ToolType } from '../../../../types';
 import { ToolbarComponent } from './toolbar.component';
 
@@ -183,10 +184,10 @@ describe('ToolbarComponent', () => {
       expect(items().map((b) => b.dataset['tool'])).toEqual([
         ToolType.Rectangle,
         ToolType.Ellipse,
-        ToolType.Shape,
         ToolType.Line,
         ToolType.Arrow,
       ]);
+      expect(root.querySelector('.shape-grid')).toBeNull();
 
       items()[1].click();
       fixture.detectChanges();
@@ -215,7 +216,7 @@ describe('ToolbarComponent', () => {
       fixture.detectChanges();
       items()[0].dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: items()[1] }));
       fixture.detectChanges();
-      expect(items().length).toBe(5);
+      expect(items().length).toBe(4);
 
       items()[0].dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: document.body }));
       fixture.detectChanges();
@@ -228,6 +229,187 @@ describe('ToolbarComponent', () => {
       fixture.componentRef.setInput('selectedTool', ToolType.Text);
       fixture.detectChanges();
       expect(items()).toEqual([]);
+    });
+  });
+
+  describe('shapes picker', () => {
+    const SHAPES: AvailableShape[] = [
+      { id: 'star', name: 'Star', path: 'M0 0 L1 0 Z', aspectRatio: 1 },
+      { id: 'heart', name: 'Heart', path: 'M0 0 L1 1 Z', aspectRatio: 1 },
+      { id: 'cloud', name: 'Cloud', path: 'M0 1 L1 1 Z', aspectRatio: 1 },
+      { id: 'hexagon', name: 'Hexagon', path: 'M0 0 L0 1 Z', aspectRatio: 1 },
+      { id: 'cross', name: 'Cross', path: 'M1 0 L0 1 Z', aspectRatio: 1 },
+      { id: 'moon', name: 'Moon', path: 'M1 0 L1 1 Z', aspectRatio: 1 },
+    ];
+    const trigger = () => root.querySelector<HTMLButtonElement>('.flyout-trigger') as HTMLButtonElement;
+    const gridItems = () => Array.from(root.querySelectorAll<HTMLButtonElement>('.shape-grid button'));
+    const iconPath = (button: HTMLElement) => button.querySelector('svg path')?.getAttribute('d');
+
+    beforeEach(() => {
+      fixture.componentRef.setInput('shapes', SHAPES);
+      fixture.componentRef.setInput('activeShapeId', 'heart');
+      fixture.detectChanges();
+    });
+
+    describe('wide', () => {
+      it('shows the Shapes button with the active shape icon, inline with the other shapes', () => {
+        expect(trigger().dataset['tool']).toBe(ToolType.Shape);
+        expect(iconPath(trigger())).toBe('M0 0 L1 1 Z');
+        expect(trigger().getAttribute('aria-haspopup')).toBe('menu');
+        expect(trigger().getAttribute('aria-label')).toBe('Shapes, Heart');
+        expect(root.querySelector('[data-tool="ellipse"]')).not.toBeNull();
+      });
+
+      it('falls back to the first shape when the active id is unknown', () => {
+        fixture.componentRef.setInput('activeShapeId', 'gone');
+        fixture.detectChanges();
+        expect(iconPath(trigger())).toBe('M0 0 L1 0 Z');
+      });
+
+      it('opens a grid of shapes and focuses the first item', () => {
+        trigger().click();
+        fixture.detectChanges();
+
+        expect(trigger().getAttribute('aria-expanded')).toBe('true');
+        expect(root.querySelector('.shape-grid')?.getAttribute('role')).toBe('menu');
+        expect(gridItems().map((b) => b.getAttribute('role'))).toEqual(SHAPES.map(() => 'menuitemradio'));
+        expect(gridItems().map((b) => b.getAttribute('aria-label'))).toEqual(SHAPES.map((s) => s.name));
+        expect(gridItems().map((b) => b.title)).toEqual(SHAPES.map((s) => s.name));
+        expect(gridItems().map((b) => b.getAttribute('aria-checked'))).toEqual([
+          'false',
+          'true',
+          'false',
+          'false',
+          'false',
+          'false',
+        ]);
+        expect(iconPath(gridItems()[2])).toBe('M0 1 L1 1 Z');
+        expect(document.activeElement).toBe(gridItems()[0]);
+      });
+
+      it('moves focus with the arrow keys, Home and End, and closes on Escape', () => {
+        trigger().click();
+        fixture.detectChanges();
+
+        press(gridItems()[0], 'ArrowRight');
+        expect(document.activeElement).toBe(gridItems()[1]);
+        const down = press(gridItems()[1], 'ArrowDown');
+        expect(down.defaultPrevented).toBe(true);
+        expect(document.activeElement).toBe(gridItems()[5]);
+        press(gridItems()[5], 'ArrowUp');
+        expect(document.activeElement).toBe(gridItems()[1]);
+        press(gridItems()[1], 'ArrowLeft');
+        expect(document.activeElement).toBe(gridItems()[0]);
+        press(gridItems()[0], 'ArrowLeft');
+        expect(document.activeElement).toBe(gridItems()[5]);
+        press(gridItems()[5], 'Home');
+        expect(document.activeElement).toBe(gridItems()[0]);
+        press(gridItems()[0], 'End');
+        expect(document.activeElement).toBe(gridItems()[5]);
+
+        press(gridItems()[5], 'Escape');
+        fixture.detectChanges();
+        expect(gridItems()).toEqual([]);
+        expect(document.activeElement).toBe(trigger());
+      });
+
+      it('emits the picked shape and closes', () => {
+        const emitted = jest.fn();
+        fixture.componentInstance.shapeSelect.subscribe(emitted);
+        trigger().click();
+        fixture.detectChanges();
+
+        gridItems()
+          .find((b) => b.getAttribute('aria-label') === 'Heart')
+          ?.click();
+        fixture.detectChanges();
+
+        expect(emitted).toHaveBeenCalledWith('heart');
+        expect(gridItems()).toEqual([]);
+        expect(document.activeElement).toBe(trigger());
+      });
+
+      it('re-renders the grid when shapes change at runtime', () => {
+        fixture.componentRef.setInput('shapes', [
+          ...SHAPES,
+          { id: 'logo', name: 'Logo', path: 'M0 0 L1 1 L0 1 Z', aspectRatio: 2 },
+        ]);
+        fixture.detectChanges();
+        trigger().click();
+        fixture.detectChanges();
+
+        expect(gridItems().length).toBe(SHAPES.length + 1);
+        expect(gridItems()[SHAPES.length].getAttribute('aria-label')).toBe('Logo');
+      });
+
+      it('hides the Shapes button when there are no shapes', () => {
+        fixture.componentRef.setInput('shapes', []);
+        fixture.detectChanges();
+        expect(root.querySelector('[data-tool="shape"]')).toBeNull();
+        expect(root.querySelector('.flyout-trigger')).toBeNull();
+      });
+    });
+
+    describe('compact', () => {
+      beforeEach(() => {
+        fixture.componentRef.setInput('compact', true);
+        fixture.detectChanges();
+      });
+
+      it('shows the shape tools with the shapes grid below in the same menu', () => {
+        trigger().click();
+        fixture.detectChanges();
+
+        const menus = root.querySelectorAll('.flyout-menu');
+        expect(menus.length).toBe(1);
+        const tools = Array.from(menus[0].querySelectorAll<HTMLButtonElement>('.flyout-tool'));
+        expect(tools.map((b) => b.dataset['tool'])).toEqual([
+          ToolType.Rectangle,
+          ToolType.Ellipse,
+          ToolType.Line,
+          ToolType.Arrow,
+        ]);
+        expect(menus[0].querySelector('.shape-grid')).not.toBeNull();
+        expect(gridItems().length).toBe(SHAPES.length);
+        expect(document.activeElement).toBe(tools[0]);
+
+        press(tools[1], 'ArrowDown');
+        expect(document.activeElement).toBe(gridItems()[1]);
+        press(gridItems()[1], 'ArrowUp');
+        expect(document.activeElement).toBe(tools[1]);
+      });
+
+      it('shows the picked shape on the collapsed trigger', () => {
+        const emitted = jest.fn();
+        fixture.componentInstance.shapeSelect.subscribe(emitted);
+        trigger().click();
+        fixture.detectChanges();
+
+        gridItems()
+          .find((b) => b.getAttribute('aria-label') === 'Cloud')
+          ?.click();
+        expect(emitted).toHaveBeenCalledWith('cloud');
+        fixture.componentRef.setInput('activeShapeId', 'cloud');
+        fixture.componentRef.setInput('selectedTool', ToolType.Shape);
+        fixture.detectChanges();
+
+        expect(trigger().dataset['tool']).toBe(ToolType.Shape);
+        expect(iconPath(trigger())).toBe('M0 1 L1 1 Z');
+        expect(trigger().getAttribute('aria-label')).toBe('Shapes, Cloud');
+
+        fixture.componentRef.setInput('selectedTool', ToolType.Pen);
+        fixture.detectChanges();
+        expect(iconPath(trigger())).toBe('M0 1 L1 1 Z');
+      });
+
+      it('omits the grid when there are no shapes', () => {
+        fixture.componentRef.setInput('shapes', []);
+        fixture.detectChanges();
+        trigger().click();
+        fixture.detectChanges();
+        expect(root.querySelector('.shape-grid')).toBeNull();
+        expect(root.querySelectorAll('.flyout-tool').length).toBe(4);
+      });
     });
   });
 });

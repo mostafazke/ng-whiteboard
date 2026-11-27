@@ -8,7 +8,7 @@ import { SelectionService } from '../../elements/selection.service';
 import { HistoryService } from '../../history/history.service';
 import { ArrowBindingService } from '../../elements/arrow-binding.service';
 import { ArrowElement, ArrowheadType } from '../../elements';
-import { ElementType, LineCap, PenType, WhiteboardElement, WhiteboardEvent } from '../../types';
+import { ElementType, LineCap, PenType, ToolType, WhiteboardElement, WhiteboardEvent } from '../../types';
 import { IOService } from '../../input/io.service';
 import { EditorStateService } from './editor-state.service';
 import { DEFAULT_BOARD_TITLE } from './utils/board-title';
@@ -400,6 +400,14 @@ describe('EditorStateService', () => {
 
       expect(emitted).not.toContain(WhiteboardEvent.ZoomChange);
       expect(config.getConfig().backgroundColor).toBe('#123456');
+    });
+  });
+
+  describe('selectShape', () => {
+    it('stores the shape id and activates the shape tool', () => {
+      service.selectShape('heart');
+      expect(TestBed.inject(ConfigService).getConfig().shapeId).toBe('heart');
+      expect(service.selectedToolSignal()).toBe(ToolType.Shape);
     });
   });
 

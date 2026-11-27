@@ -126,6 +126,30 @@
   border-radius: var(--wb-radius);
   box-shadow: var(--wb-shadow);
   z-index: 110;
+  flex-direction: column;
+
+  &.beside {
+    bottom: auto;
+    left: calc(100% + var(--wb-space-2));
+    transform: translateY(-50%);
+  }
+
+  .flyout-row {
+    display: flex;
+    gap: 2px;
+  }
+
+  .flyout-row + .shape-grid {
+    padding-top: var(--wb-space-1);
+    margin-top: var(--wb-space-1);
+    border-top: 1px solid var(--wb-color-gray-200);
+  }
+
+  .shape-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--wb-shape-columns), auto);
+    gap: 2px;
+  }
 
   .icon-btn {
     width: var(--wb-control-size);

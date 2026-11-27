@@ -10,14 +10,19 @@ import {
   inject,
   Injector,
   input,
+  output,
   Output,
   signal,
 } from '@angular/core';
+import { AvailableShape } from '../../../../elements/shapes';
 import { SHAPE_TOOLS, toolGroups, ToolShortcut } from '../../../../input/tool-shortcuts';
 import { ToolType } from '../../../../types';
 import { IconName } from '../../icon/icons';
 import { nextRadioIndex } from '../../ui/radio-group-keys';
 import { IconComponent } from '../../icon/icon.component';
+
+const GRID_COLUMNS = 4;
+const FLYOUT_NAV_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'];
 
 @Component({
   selector: 'ng-toolbar',
@@ -56,33 +61,52 @@ import { IconComponent } from '../../icon/icon.component';
               [class.active]="isShape(selectedTool())"
               [attr.data-tool]="shape.tool"
               data-tooltip="Shapes"
-              [attr.aria-label]="'Shapes, ' + shape.label"
+              [attr.aria-label]="'Shapes, ' + toolLabel(shape)"
               aria-haspopup="true"
               [attr.aria-expanded]="flyoutOpen()"
               [attr.tabindex]="shape.tool === tabStop() ? 0 : -1"
               (click)="toggleFlyout($event)"
             >
-              <ng-icon [name]="icons[shape.tool]"></ng-icon>
+              <ng-icon [name]="icons[shape.tool]" [path]="shapeIconPath(shape.tool)"></ng-icon>
               <span class="flyout-caret" aria-hidden="true"></span>
             </button>
           } @else {
             @for (tool of group; track tool.tool) {
-              <button
-                [class.active]="tool.tool === selectedTool()"
-                (click)="toolSelect.emit(tool.tool)"
-                [attr.data-tooltip]="getTooltip(tool)"
-                [attr.aria-label]="tool.label"
-                [attr.aria-keyshortcuts]="getAriaShortcuts(tool)"
-                [attr.aria-pressed]="tool.tool === selectedTool()"
-                [attr.tabindex]="tool.tool === tabStop() ? 0 : -1"
-                class="icon-btn tool-btn"
-                [attr.data-tool]="tool.tool"
-              >
-                <ng-icon [name]="icons[tool.tool]"></ng-icon>
-                @if (tool.digit) {
-                  <span class="tool-digit" aria-hidden="true">{{ tool.digit }}</span>
-                }
-              </button>
+              @if (tool.tool === shapeTool) {
+                <button
+                  class="icon-btn tool-btn flyout-trigger"
+                  [class.active]="tool.tool === selectedTool()"
+                  [attr.data-tool]="tool.tool"
+                  [attr.data-tooltip]="getTooltip(tool)"
+                  [attr.aria-label]="'Shapes, ' + toolLabel(tool)"
+                  [attr.aria-keyshortcuts]="getAriaShortcuts(tool)"
+                  [attr.aria-pressed]="tool.tool === selectedTool()"
+                  aria-haspopup="menu"
+                  [attr.aria-expanded]="flyoutOpen()"
+                  [attr.tabindex]="tool.tool === tabStop() ? 0 : -1"
+                  (click)="toggleFlyout($event)"
+                >
+                  <ng-icon [path]="activeShape()?.path"></ng-icon>
+                  <span class="flyout-caret" aria-hidden="true"></span>
+                </button>
+              } @else {
+                <button
+                  [class.active]="tool.tool === selectedTool()"
+                  (click)="toolSelect.emit(tool.tool)"
+                  [attr.data-tooltip]="getTooltip(tool)"
+                  [attr.aria-label]="tool.label"
+                  [attr.aria-keyshortcuts]="getAriaShortcuts(tool)"
+                  [attr.aria-pressed]="tool.tool === selectedTool()"
+                  [attr.tabindex]="tool.tool === tabStop() ? 0 : -1"
+                  class="icon-btn tool-btn"
+                  [attr.data-tool]="tool.tool"
+                >
+                  <ng-icon [name]="icons[tool.tool]"></ng-icon>
+                  @if (tool.digit) {
+                    <span class="tool-digit" aria-hidden="true">{{ tool.digit }}</span>
+                  }
+                </button>
+              }
             }
           }
           @if (!last) {
@@ -91,26 +115,49 @@ import { IconComponent } from '../../icon/icon.component';
         </div>
       }
     </div>
-    @if (flyoutOpen() && shapeGroup(); as shapes) {
+    @if (flyoutOpen()) {
       <div
         class="flyout-menu"
-        role="group"
-        aria-label="Shapes"
-        [style.left.px]="flyoutLeft()"
+        [class.beside]="vertical()"
+        [attr.role]="compact() ? 'group' : null"
+        [attr.aria-label]="compact() ? 'Shapes' : null"
+        [style.left.px]="vertical() ? null : flyoutLeft()"
+        [style.top.px]="vertical() ? flyoutTop() : null"
         (keydown)="onFlyoutKeydown($event)"
         (focusout)="onFlyoutFocusOut($event)"
       >
-        @for (tool of shapes; track tool.tool) {
-          <button
-            class="icon-btn flyout-item"
-            [class.active]="tool.tool === selectedTool()"
-            [attr.data-tool]="tool.tool"
-            [attr.aria-label]="tool.label"
-            [attr.aria-pressed]="tool.tool === selectedTool()"
-            (click)="pickShape(tool.tool)"
-          >
-            <ng-icon [name]="icons[tool.tool]"></ng-icon>
-          </button>
+        @if (compact() && flyoutTools().length) {
+          <div class="flyout-row">
+            @for (tool of flyoutTools(); track tool.tool) {
+              <button
+                class="icon-btn flyout-item flyout-tool"
+                [class.active]="tool.tool === selectedTool()"
+                [attr.data-tool]="tool.tool"
+                [attr.aria-label]="tool.label"
+                [attr.aria-pressed]="tool.tool === selectedTool()"
+                (click)="pickShape(tool.tool)"
+              >
+                <ng-icon [name]="icons[tool.tool]"></ng-icon>
+              </button>
+            }
+          </div>
+        }
+        @if (shapes().length) {
+          <div class="shape-grid" role="menu" aria-label="Shapes" [style.--wb-shape-columns]="gridColumns">
+            @for (shape of shapes(); track shape.id) {
+              <button
+                class="icon-btn flyout-item shape-item"
+                [class.active]="shape.id === activeShape()?.id"
+                role="menuitemradio"
+                [attr.aria-checked]="shape.id === activeShape()?.id"
+                [attr.aria-label]="shape.name"
+                [title]="shape.name"
+                (click)="pickLibraryShape(shape.id)"
+              >
+                <ng-icon [path]="shape.path"></ng-icon>
+              </button>
+            }
+          </div>
         }
       </div>
     }
@@ -125,19 +172,36 @@ export class ToolbarComponent {
   position = input<'bottom' | 'left'>('bottom');
   compact = input(false);
   locked = input(false);
+  shapes = input<AvailableShape[]>([]);
+  activeShapeId = input<string | undefined>();
 
   @Output() toolSelect = new EventEmitter<ToolType>();
   @Output() lockToggle = new EventEmitter<void>();
+  readonly shapeSelect = output<string>();
 
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly injector = inject(Injector);
 
-  readonly groups = computed(() => toolGroups(this.tools()));
+  readonly shapeTool = ToolType.Shape;
+  readonly gridColumns = GRID_COLUMNS;
+
+  /** Without any shapes the Shape tool has nothing to draw, so it is left out. */
+  readonly groups = computed(() => {
+    const groups = toolGroups(this.tools());
+    if (this.shapes().length) return groups;
+    return groups.map((g) => g.filter((t) => t.tool !== ToolType.Shape)).filter((g) => g.length > 0);
+  });
   readonly vertical = computed(() => this.position() === 'left' && !this.compact());
   readonly shapeGroup = computed(() => this.groups().find((g) => this.isShapeGroup(g)));
+  readonly flyoutTools = computed(() => this.shapeGroup()?.filter((t) => t.tool !== ToolType.Shape) ?? []);
+  readonly activeShape = computed(() => {
+    const shapes = this.shapes();
+    return shapes.find((s) => s.id === this.activeShapeId()) ?? shapes[0];
+  });
 
   readonly flyoutOpen = signal(false);
   readonly flyoutLeft = signal(0);
+  readonly flyoutTop = signal(0);
   private readonly lastShape = signal<ToolType>(ToolType.Rectangle);
 
   readonly icons: { readonly [tool: string]: IconName } = {
@@ -148,7 +212,6 @@ export class ToolbarComponent {
     [ToolType.Eraser]: 'Eraser',
     [ToolType.Rectangle]: 'Rectangle',
     [ToolType.Ellipse]: 'Ellipse',
-    [ToolType.Shape]: 'Rectangle',
     [ToolType.Line]: 'Line',
     [ToolType.Arrow]: 'Arrow',
     [ToolType.Text]: 'Text',
@@ -162,7 +225,8 @@ export class ToolbarComponent {
       this.flyoutOpen.set(false);
     });
     effect(() => {
-      if (!this.compact()) this.flyoutOpen.set(false);
+      this.compact();
+      this.flyoutOpen.set(false);
     });
   }
 
@@ -180,6 +244,14 @@ export class ToolbarComponent {
     return group.find((t) => t.tool === selected) ?? group.find((t) => t.tool === this.lastShape()) ?? group[0];
   }
 
+  toolLabel(tool: ToolShortcut): string {
+    return tool.tool === ToolType.Shape ? (this.activeShape()?.name ?? tool.label) : tool.label;
+  }
+
+  shapeIconPath(tool: ToolType): string | undefined {
+    return tool === ToolType.Shape ? this.activeShape()?.path : undefined;
+  }
+
   /** The tool whose button is tabbable; a collapsed shape counts through its trigger. */
   tabStop(): ToolType {
     const selected = this.selectedTool();
@@ -192,6 +264,7 @@ export class ToolbarComponent {
     const hostRect = this.host.nativeElement.getBoundingClientRect();
     const rect = button.getBoundingClientRect();
     this.flyoutLeft.set(rect.left + rect.width / 2 - hostRect.left);
+    this.flyoutTop.set(rect.top + rect.height / 2 - hostRect.top);
     this.flyoutOpen.update((open) => !open);
     if (this.flyoutOpen()) {
       afterNextRender(() => this.host.nativeElement.querySelector<HTMLButtonElement>('.flyout-item')?.focus(), {
@@ -206,20 +279,52 @@ export class ToolbarComponent {
     this.focusTrigger();
   }
 
+  pickLibraryShape(id: string) {
+    this.flyoutOpen.set(false);
+    this.shapeSelect.emit(id);
+    this.focusTrigger();
+  }
+
   onFlyoutKeydown(event: KeyboardEvent) {
-    const items = Array.from(this.host.nativeElement.querySelectorAll<HTMLButtonElement>('.flyout-item'));
-    const current = items.indexOf(event.target as HTMLButtonElement);
     if (event.key === 'Escape') {
       this.flyoutOpen.set(false);
       this.focusTrigger();
-    } else if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
-      const step = event.key === 'ArrowRight' ? 1 : -1;
-      items[(current + step + items.length) % items.length]?.focus();
+    } else if (FLYOUT_NAV_KEYS.includes(event.key)) {
+      this.flyoutKeyTarget(event.key, event.target as HTMLButtonElement)?.focus();
     } else {
       return;
     }
     event.preventDefault();
     event.stopPropagation();
+  }
+
+  /** Left/Right wrap within the tool row or the grid; Up/Down move by a grid row, and between the row and the grid. */
+  private flyoutKeyTarget(key: string, target: HTMLButtonElement): HTMLButtonElement | undefined {
+    const tools = this.flyoutButtons('.flyout-tool');
+    const grid = this.flyoutButtons('.shape-item');
+    const inGrid = grid.includes(target);
+    const list = inGrid ? grid : tools;
+    const index = list.indexOf(target);
+    switch (key) {
+      case 'ArrowRight':
+        return list[(index + 1) % list.length];
+      case 'ArrowLeft':
+        return list[(index - 1 + list.length) % list.length];
+      case 'Home':
+        return list[0];
+      case 'End':
+        return list[list.length - 1];
+      case 'ArrowDown':
+        return inGrid ? grid[index + GRID_COLUMNS] : grid[Math.min(index, grid.length - 1)];
+      case 'ArrowUp':
+        return inGrid ? (grid[index - GRID_COLUMNS] ?? tools[Math.min(index, tools.length - 1)]) : undefined;
+      default:
+        return undefined;
+    }
+  }
+
+  private flyoutButtons(selector: string): HTMLButtonElement[] {
+    return Array.from(this.host.nativeElement.querySelectorAll<HTMLButtonElement>(`.flyout-menu ${selector}`));
   }
 
   onFlyoutFocusOut(event: FocusEvent) {

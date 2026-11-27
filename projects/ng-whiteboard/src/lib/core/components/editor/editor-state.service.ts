@@ -6,6 +6,7 @@ import { ArrowElement, ArrowheadType } from '../../elements/arrow-element';
 import { ElementsService } from '../../elements/elements.service';
 import { LayerManagementService } from '../../elements/layer-management.service';
 import { SelectionService } from '../../elements/selection.service';
+import { ShapeRegistryService } from '../../elements/shapes';
 import { IOService } from '../../input/io.service';
 import { BatchHandle, HistoryService } from '../../history/history.service';
 import { ToolsService } from '../../tools/tools.service';
@@ -67,6 +68,7 @@ export class EditorStateService implements OnDestroy {
   private panService = inject(PanService);
   private layerManagementService = inject(LayerManagementService);
   private apiService = inject(ApiService);
+  private shapeRegistry = inject(ShapeRegistryService);
   private win = inject(DOCUMENT).defaultView;
   private editBatch: BatchHandle | null = null;
   private editOwner: EventTarget | null = null;
@@ -131,6 +133,13 @@ export class EditorStateService implements OnDestroy {
     this.endEdit();
     this.toolsService.setActiveTool(tool);
     if (tool === ToolType.Image) this.apiService.pickImage();
+  }
+
+  readonly shapesSignal = this.shapeRegistry.shapes;
+
+  selectShape(id: string) {
+    this.configService.updateConfigValue('shapeId', id);
+    this.selectTool(ToolType.Shape);
   }
 
   toggleToolLock() {
