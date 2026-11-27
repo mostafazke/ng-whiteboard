@@ -81,7 +81,7 @@ export class ShapeTool extends BaseTool {
     if (this.whiteboardConfig.snapToGrid) {
       const { gridSize } = this.whiteboardConfig;
       w = snapToGrid(w, gridSize);
-      h = snapToGrid(h, gridSize);
+      h = event.shiftKey ? w / this.aspectRatio : snapToGrid(h, gridSize);
       new_x = snapToGrid(new_x, gridSize);
       new_y = snapToGrid(new_y, gridSize);
     }

@@ -150,6 +150,28 @@ describe('ShapeTool', () => {
     expect(apiService.updateDraftElements).toHaveBeenCalledWith([{ id: 'e1', x: 100, y: 200, width: 200, height: 60 }]);
   });
 
+  it('keeps the exact aspect ratio with shift while snapping to the grid', () => {
+    config.snapToGrid = true;
+    getActiveShape.mockReturnValue({ ...STAR, aspectRatio: 3 });
+    down(100, 200);
+    move(333, 260, { shiftKey: true });
+
+    const [[update]] = (apiService.updateDraftElements as jest.Mock).mock.calls[0];
+    expect(update).toMatchObject({ x: 100, y: 200, width: 230 });
+    expect(update.width / update.height).toBeCloseTo(3);
+  });
+
+  it('keeps the exact aspect ratio with shift and alt while snapping to the grid', () => {
+    config.snapToGrid = true;
+    getActiveShape.mockReturnValue({ ...STAR, aspectRatio: 3 });
+    down(100, 200);
+    move(333, 260, { shiftKey: true, altKey: true });
+
+    const [[update]] = (apiService.updateDraftElements as jest.Mock).mock.calls[0];
+    expect(update.width).toBe(470);
+    expect(update.width / update.height).toBeCloseTo(3);
+  });
+
   it('commits and finalizes on pointer up', () => {
     down();
     move(300, 260);
