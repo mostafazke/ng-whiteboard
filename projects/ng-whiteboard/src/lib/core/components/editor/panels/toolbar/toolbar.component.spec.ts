@@ -313,6 +313,19 @@ describe('ToolbarComponent', () => {
         expect(document.activeElement).toBe(trigger());
       });
 
+      it('highlights the active shape only while the Shape tool is selected', () => {
+        const activeItems = () => Array.from(root.querySelectorAll('.shape-item.active'));
+        trigger().click();
+        fixture.detectChanges();
+        expect(activeItems()).toEqual([]);
+
+        fixture.componentRef.setInput('selectedTool', ToolType.Shape);
+        fixture.detectChanges();
+        trigger().click();
+        fixture.detectChanges();
+        expect(activeItems().map((b) => b.getAttribute('aria-label'))).toEqual(['Heart']);
+      });
+
       it('emits the picked shape and closes', () => {
         const emitted = jest.fn();
         fixture.componentInstance.shapeSelect.subscribe(emitted);
@@ -377,6 +390,19 @@ describe('ToolbarComponent', () => {
         expect(document.activeElement).toBe(gridItems()[1]);
         press(gridItems()[1], 'ArrowUp');
         expect(document.activeElement).toBe(tools[1]);
+      });
+
+      it('highlights the active shape only while the Shape tool is selected', () => {
+        const activeItems = () => Array.from(root.querySelectorAll('.shape-item.active'));
+        trigger().click();
+        fixture.detectChanges();
+        expect(activeItems()).toEqual([]);
+
+        fixture.componentRef.setInput('selectedTool', ToolType.Shape);
+        fixture.detectChanges();
+        trigger().click();
+        fixture.detectChanges();
+        expect(activeItems().map((b) => b.getAttribute('aria-label'))).toEqual(['Heart']);
       });
 
       it('shows the picked shape on the collapsed trigger', () => {

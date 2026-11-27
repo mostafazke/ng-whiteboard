@@ -147,7 +147,7 @@ const FLYOUT_NAV_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Hom
             @for (shape of shapes(); track shape.id) {
               <button
                 class="icon-btn flyout-item shape-item"
-                [class.active]="shape.id === activeShape()?.id"
+                [class.active]="selectedTool() === shapeTool && shape.id === activeShape()?.id"
                 role="menuitemradio"
                 [attr.aria-checked]="shape.id === activeShape()?.id"
                 [attr.aria-label]="shape.name"
