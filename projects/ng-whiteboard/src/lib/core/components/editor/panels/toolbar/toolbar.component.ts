@@ -197,7 +197,7 @@ export class ToolbarComponent {
   });
   readonly vertical = computed(() => this.position() === 'left' && !this.compact());
   readonly shapeGroup = computed(() => this.groups().find((g) => this.isShapeGroup(g)) ?? []);
-  readonly activeShape = computed(() => {
+  readonly activeShape = computed<AvailableShape | undefined>(() => {
     const shapes = this.shapes();
     return shapes.find((s) => s.id === this.activeShapeId()) ?? shapes[0];
   });
