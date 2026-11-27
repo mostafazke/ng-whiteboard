@@ -16,13 +16,7 @@ interface ToolDef {
   numbered: boolean;
 }
 
-export const SHAPE_TOOLS: readonly ToolType[] = [
-  ToolType.Rectangle,
-  ToolType.Ellipse,
-  ToolType.Line,
-  ToolType.Arrow,
-  ToolType.Shape,
-];
+export const SHAPE_TOOLS: readonly ToolType[] = [ToolType.Rectangle, ToolType.Ellipse, ToolType.Line, ToolType.Arrow];
 
 const GROUPS: readonly (readonly ToolDef[])[] = [
   [
@@ -34,7 +28,6 @@ const GROUPS: readonly (readonly ToolDef[])[] = [
   [
     { tool: ToolType.Rectangle, label: 'Rectangle', keys: ['r'], numbered: true },
     { tool: ToolType.Ellipse, label: 'Ellipse', keys: ['o'], numbered: true },
-    { tool: ToolType.Shape, label: 'Shapes', keys: ['s'], numbered: false },
     { tool: ToolType.Line, label: 'Line', keys: ['l'], numbered: true },
     { tool: ToolType.Arrow, label: 'Arrow', keys: ['a'], numbered: true },
   ],
@@ -43,6 +36,7 @@ const GROUPS: readonly (readonly ToolDef[])[] = [
     { tool: ToolType.Image, label: 'Image', keys: ['i'], numbered: true },
     { tool: ToolType.ZoomArea, label: 'Zoom to area', keys: ['z'], numbered: false },
   ],
+  [{ tool: ToolType.Shape, label: 'More shapes', keys: ['s'], numbered: false }],
 ];
 
 const DIGITS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];

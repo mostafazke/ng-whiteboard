@@ -1,5 +1,5 @@
 import { ToolType } from '../types';
-import { toolForKey, toolGroups } from './tool-shortcuts';
+import { SHAPE_TOOLS, toolForKey, toolGroups } from './tool-shortcuts';
 
 describe('tool shortcuts', () => {
   it('maps s to the shape tool', () => {
@@ -24,6 +24,12 @@ describe('tool shortcuts', () => {
       ['9', ToolType.Text],
       ['0', ToolType.Image],
     ]);
+  });
+
+  it('puts the shape tool alone in the last group, outside the shape flyout', () => {
+    const groups = toolGroups();
+    expect(groups[groups.length - 1].map((t) => [t.tool, t.label])).toEqual([[ToolType.Shape, 'More shapes']]);
+    expect(SHAPE_TOOLS).toEqual([ToolType.Rectangle, ToolType.Ellipse, ToolType.Line, ToolType.Arrow]);
   });
 
   it('does not give the shape tool a digit', () => {

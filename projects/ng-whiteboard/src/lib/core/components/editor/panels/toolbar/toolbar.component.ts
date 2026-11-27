@@ -22,6 +22,8 @@ import { nextRadioIndex } from '../../ui/radio-group-keys';
 import { IconComponent } from '../../icon/icon.component';
 
 const GRID_COLUMNS = 4;
+
+type ToolbarMenu = 'tools' | 'shapes';
 const FLYOUT_NAV_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'];
 
 @Component({
@@ -60,18 +62,15 @@ const FLYOUT_NAV_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Hom
               class="icon-btn tool-btn flyout-trigger"
               [class.active]="isShape(selectedTool())"
               [attr.data-tool]="shape.tool"
+              data-menu="tools"
               data-tooltip="Shapes"
-              [attr.aria-label]="'Shapes, ' + toolLabel(shape)"
-              aria-haspopup="true"
-              [attr.aria-expanded]="flyoutOpen()"
+              [attr.aria-label]="'Shapes, ' + shape.label"
+              aria-haspopup="menu"
+              [attr.aria-expanded]="openMenu() === 'tools'"
               [attr.tabindex]="shape.tool === tabStop() ? 0 : -1"
-              (click)="toggleFlyout($event)"
+              (click)="toggleMenu($event, 'tools')"
             >
-              <ng-icon
-                [name]="icons[shape.tool]"
-                [path]="shapeIconPath(shape.tool)"
-                [aspectRatio]="activeShape()?.aspectRatio"
-              ></ng-icon>
+              <ng-icon [name]="icons[shape.tool]"></ng-icon>
               <span class="flyout-caret" aria-hidden="true"></span>
             </button>
           } @else {
@@ -81,17 +80,17 @@ const FLYOUT_NAV_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Hom
                   class="icon-btn tool-btn flyout-trigger"
                   [class.active]="tool.tool === selectedTool()"
                   [attr.data-tool]="tool.tool"
+                  data-menu="shapes"
                   [attr.data-tooltip]="getTooltip(tool)"
-                  [attr.aria-label]="'Shapes, ' + toolLabel(tool)"
+                  [attr.aria-label]="tool.label"
                   [attr.aria-keyshortcuts]="getAriaShortcuts(tool)"
                   [attr.aria-pressed]="tool.tool === selectedTool()"
                   aria-haspopup="menu"
-                  [attr.aria-expanded]="flyoutOpen()"
+                  [attr.aria-expanded]="openMenu() === 'shapes'"
                   [attr.tabindex]="tool.tool === tabStop() ? 0 : -1"
-                  (click)="toggleFlyout($event)"
+                  (click)="toggleMenu($event, 'shapes')"
                 >
-                  <ng-icon [path]="activeShape()?.path" [aspectRatio]="activeShape()?.aspectRatio"></ng-icon>
-                  <span class="flyout-caret" aria-hidden="true"></span>
+                  <ng-icon name="more"></ng-icon>
                 </button>
               } @else {
                 <button
@@ -119,20 +118,20 @@ const FLYOUT_NAV_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Hom
         </div>
       }
     </div>
-    @if (flyoutOpen()) {
+    @if (openMenu(); as menu) {
       <div
         class="flyout-menu"
         [class.beside]="vertical()"
-        [attr.role]="compact() ? 'group' : null"
-        [attr.aria-label]="compact() ? 'Shapes' : null"
+        [attr.role]="menu === 'tools' ? 'group' : null"
+        [attr.aria-label]="menu === 'tools' ? 'Shapes' : null"
         [style.left.px]="vertical() ? null : flyoutLeft()"
         [style.top.px]="vertical() ? flyoutTop() : null"
         (keydown)="onFlyoutKeydown($event)"
         (focusout)="onFlyoutFocusOut($event)"
       >
-        @if (compact() && flyoutTools().length) {
+        @if (menu === 'tools') {
           <div class="flyout-row">
-            @for (tool of flyoutTools(); track tool.tool) {
+            @for (tool of shapeGroup(); track tool.tool) {
               <button
                 class="icon-btn flyout-item flyout-tool"
                 [class.active]="tool.tool === selectedTool()"
@@ -146,7 +145,7 @@ const FLYOUT_NAV_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Hom
             }
           </div>
         }
-        @if (showShapeGrid()) {
+        @if (menu === 'shapes') {
           <div class="shape-grid" role="menu" aria-label="Shapes" [style.--wb-shape-columns]="gridColumns">
             @for (shape of shapes(); track shape.id) {
               <button
@@ -196,15 +195,13 @@ export class ToolbarComponent {
     return groups.map((g) => g.filter((t) => t.tool !== ToolType.Shape)).filter((g) => g.length > 0);
   });
   readonly vertical = computed(() => this.position() === 'left' && !this.compact());
-  readonly shapeGroup = computed(() => this.groups().find((g) => this.isShapeGroup(g)));
-  readonly flyoutTools = computed(() => this.shapeGroup()?.filter((t) => t.tool !== ToolType.Shape) ?? []);
-  readonly showShapeGrid = computed(() => !!this.shapeGroup()?.some((t) => t.tool === ToolType.Shape));
+  readonly shapeGroup = computed(() => this.groups().find((g) => this.isShapeGroup(g)) ?? []);
   readonly activeShape = computed(() => {
     const shapes = this.shapes();
     return shapes.find((s) => s.id === this.activeShapeId()) ?? shapes[0];
   });
 
-  readonly flyoutOpen = signal(false);
+  readonly openMenu = signal<ToolbarMenu | null>(null);
   readonly flyoutLeft = signal(0);
   readonly flyoutTop = signal(0);
   private readonly lastShape = signal<ToolType>(ToolType.Rectangle);
@@ -227,11 +224,11 @@ export class ToolbarComponent {
     effect(() => {
       const tool = this.selectedTool();
       if (this.isShape(tool)) this.lastShape.set(tool);
-      this.flyoutOpen.set(false);
+      this.openMenu.set(null);
     });
     effect(() => {
       this.compact();
-      this.flyoutOpen.set(false);
+      this.openMenu.set(null);
     });
   }
 
@@ -249,14 +246,6 @@ export class ToolbarComponent {
     return group.find((t) => t.tool === selected) ?? group.find((t) => t.tool === this.lastShape()) ?? group[0];
   }
 
-  toolLabel(tool: ToolShortcut): string {
-    return tool.tool === ToolType.Shape ? (this.activeShape()?.name ?? tool.label) : tool.label;
-  }
-
-  shapeIconPath(tool: ToolType): string | undefined {
-    return tool === ToolType.Shape ? this.activeShape()?.path : undefined;
-  }
-
   /** The tool whose button is tabbable; a collapsed shape counts through its trigger. */
   tabStop(): ToolType {
     const selected = this.selectedTool();
@@ -264,14 +253,14 @@ export class ToolbarComponent {
     return visible.some((t) => t.tool === selected) ? selected : visible[0]?.tool;
   }
 
-  toggleFlyout(event: MouseEvent) {
+  toggleMenu(event: MouseEvent, menu: ToolbarMenu) {
     const button = event.currentTarget as HTMLElement;
     const hostRect = this.host.nativeElement.getBoundingClientRect();
     const rect = button.getBoundingClientRect();
     this.flyoutLeft.set(rect.left + rect.width / 2 - hostRect.left);
     this.flyoutTop.set(rect.top + rect.height / 2 - hostRect.top);
-    this.flyoutOpen.update((open) => !open);
-    if (this.flyoutOpen()) {
+    this.openMenu.update((open) => (open === menu ? null : menu));
+    if (this.openMenu()) {
       afterNextRender(() => this.host.nativeElement.querySelector<HTMLButtonElement>('.flyout-item')?.focus(), {
         injector: this.injector,
       });
@@ -279,21 +268,18 @@ export class ToolbarComponent {
   }
 
   pickShape(tool: ToolType) {
-    this.flyoutOpen.set(false);
+    this.closeMenu();
     this.toolSelect.emit(tool);
-    this.focusTrigger();
   }
 
   pickLibraryShape(id: string) {
-    this.flyoutOpen.set(false);
+    this.closeMenu();
     this.shapeSelect.emit(id);
-    this.focusTrigger();
   }
 
   onFlyoutKeydown(event: KeyboardEvent) {
     if (event.key === 'Escape') {
-      this.flyoutOpen.set(false);
-      this.focusTrigger();
+      this.closeMenu();
     } else if (FLYOUT_NAV_KEYS.includes(event.key)) {
       this.flyoutKeyTarget(event.key, event.target as HTMLButtonElement)?.focus();
     } else {
@@ -303,12 +289,10 @@ export class ToolbarComponent {
     event.stopPropagation();
   }
 
-  /** Left/Right wrap within the tool row or the grid; Up/Down move by a grid row, and between the row and the grid. */
+  /** Left/Right wrap within the open menu; Up/Down move by a grid row. */
   private flyoutKeyTarget(key: string, target: HTMLButtonElement): HTMLButtonElement | undefined {
-    const tools = this.flyoutButtons('.flyout-tool');
-    const grid = this.flyoutButtons('.shape-item');
-    const inGrid = grid.includes(target);
-    const list = inGrid ? grid : tools;
+    const inGrid = this.openMenu() === 'shapes';
+    const list = this.flyoutButtons(inGrid ? '.shape-item' : '.flyout-tool');
     const index = list.indexOf(target);
     switch (key) {
       case 'ArrowRight':
@@ -320,9 +304,9 @@ export class ToolbarComponent {
       case 'End':
         return list[list.length - 1];
       case 'ArrowDown':
-        return inGrid ? grid[index + GRID_COLUMNS] : grid[Math.min(index, grid.length - 1)];
+        return inGrid ? list[index + GRID_COLUMNS] : undefined;
       case 'ArrowUp':
-        return inGrid ? (grid[index - GRID_COLUMNS] ?? tools[Math.min(index, tools.length - 1)]) : undefined;
+        return inGrid ? list[index - GRID_COLUMNS] : undefined;
       default:
         return undefined;
     }
@@ -335,15 +319,15 @@ export class ToolbarComponent {
   onFlyoutFocusOut(event: FocusEvent) {
     const next = event.relatedTarget as Element | null;
     if (next?.closest('.flyout-menu, .flyout-trigger')) return;
-    this.flyoutOpen.set(false);
+    this.openMenu.set(null);
   }
 
   @HostListener('document:pointerdown', ['$event'])
   onDocumentPointerDown(event: PointerEvent) {
-    if (!this.flyoutOpen()) return;
+    if (!this.openMenu()) return;
     const target = event.target as Element | null;
     if (target?.closest('.flyout-menu, .flyout-trigger')) return;
-    this.flyoutOpen.set(false);
+    this.openMenu.set(null);
   }
 
   onKeydown(event: KeyboardEvent) {
@@ -365,7 +349,10 @@ export class ToolbarComponent {
     return [...tool.keys.map((k) => k.toUpperCase()), ...(tool.digit ? [tool.digit] : [])].join(' ');
   }
 
-  private focusTrigger() {
-    this.host.nativeElement.querySelector<HTMLButtonElement>('.flyout-trigger')?.focus();
+  /** Closes the open menu and returns focus to the button that opened it. */
+  private closeMenu() {
+    const menu = this.openMenu();
+    this.openMenu.set(null);
+    if (menu) this.host.nativeElement.querySelector<HTMLButtonElement>(`.flyout-trigger[data-menu="${menu}"]`)?.focus();
   }
 }
