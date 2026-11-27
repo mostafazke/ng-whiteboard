@@ -41,6 +41,11 @@ describe('ShapeRegistryService', () => {
     expect(ids()).toEqual(['star', 'heart']);
   });
 
+  it('lists a built-in only once when its id is repeated', () => {
+    config.updateConfig({ builtInShapes: ['star', 'star'] });
+    expect(ids()).toEqual(['star']);
+  });
+
   it('appends custom shapes after the built-ins', () => {
     config.updateConfig({ shapes: [{ id: 'cloud', name: 'Cloud', path: CLOUD }] });
     expect(ids()).toHaveLength(13);

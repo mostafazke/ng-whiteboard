@@ -49,7 +49,7 @@ export class ShapeRegistryService {
         ? [...BUILT_IN_SHAPES]
         : builtIn === false
           ? []
-          : builtIn.flatMap((id) => BUILT_IN_SHAPES.filter((shape) => shape.id === id));
+          : [...new Set(builtIn)].flatMap((id) => BUILT_IN_SHAPES.filter((shape) => shape.id === id));
 
     for (const custom of config.shapes ?? []) {
       const index = definitions.findIndex((shape) => shape.id === custom.id);
