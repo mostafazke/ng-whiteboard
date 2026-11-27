@@ -13,6 +13,7 @@ import {
   PenTool,
   RectangleTool,
   SelectTool,
+  ShapeTool,
   TextTool,
   ZoomAreaTool,
 } from './index';
@@ -89,6 +90,12 @@ describe('ToolFactory', () => {
       const tool = factory.createTool(ToolType.Rectangle, mockApiService as unknown as ApiService);
       expect(tool).toBeInstanceOf(RectangleTool);
       expect(tool.type).toBe(ToolType.Rectangle);
+    });
+
+    it('should create ShapeTool instance', () => {
+      const tool = factory.createTool(ToolType.Shape, mockApiService as unknown as ApiService);
+      expect(tool).toBeInstanceOf(ShapeTool);
+      expect(tool.type).toBe(ToolType.Shape);
     });
 
     it('should create SelectTool instance', () => {

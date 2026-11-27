@@ -148,6 +148,7 @@ export class ToolbarComponent {
     [ToolType.Eraser]: 'Eraser',
     [ToolType.Rectangle]: 'Rectangle',
     [ToolType.Ellipse]: 'Ellipse',
+    [ToolType.Shape]: 'Rectangle',
     [ToolType.Line]: 'Line',
     [ToolType.Arrow]: 'Arrow',
     [ToolType.Text]: 'Text',

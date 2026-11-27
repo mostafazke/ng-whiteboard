@@ -78,13 +78,22 @@ const DEFAULT_TOOLS: ReadonlyArray<ToolConfig> = [
     order: 6,
   },
   {
+    id: 'shape',
+    type: ToolType.Shape,
+    name: 'Shapes',
+    description: 'Draw shapes',
+    icon: TOOL_ICONS[ToolType.Shape],
+    enabled: true,
+    order: 7,
+  },
+  {
     id: 'text',
     type: ToolType.Text,
     name: 'Text',
     description: 'Add text annotations',
     icon: TOOL_ICONS[ToolType.Text],
     enabled: true,
-    order: 7,
+    order: 8,
   },
   {
     id: 'image',
@@ -93,7 +102,7 @@ const DEFAULT_TOOLS: ReadonlyArray<ToolConfig> = [
     description: 'Add images',
     icon: TOOL_ICONS[ToolType.Image],
     enabled: true,
-    order: 8,
+    order: 9,
   },
   {
     id: 'eraser',
@@ -102,7 +111,7 @@ const DEFAULT_TOOLS: ReadonlyArray<ToolConfig> = [
     description: 'Remove elements',
     icon: TOOL_ICONS[ToolType.Eraser],
     enabled: true,
-    order: 9,
+    order: 10,
   },
   {
     id: 'zoomArea',
@@ -111,7 +120,7 @@ const DEFAULT_TOOLS: ReadonlyArray<ToolConfig> = [
     description: 'Drag a rectangle to zoom into it',
     icon: TOOL_ICONS[ToolType.ZoomArea],
     enabled: true,
-    order: 10,
+    order: 11,
   },
 ] as const;
 

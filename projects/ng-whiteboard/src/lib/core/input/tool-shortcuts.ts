@@ -16,7 +16,13 @@ interface ToolDef {
   numbered: boolean;
 }
 
-export const SHAPE_TOOLS: readonly ToolType[] = [ToolType.Rectangle, ToolType.Ellipse, ToolType.Line, ToolType.Arrow];
+export const SHAPE_TOOLS: readonly ToolType[] = [
+  ToolType.Rectangle,
+  ToolType.Ellipse,
+  ToolType.Line,
+  ToolType.Arrow,
+  ToolType.Shape,
+];
 
 const GROUPS: readonly (readonly ToolDef[])[] = [
   [
@@ -28,6 +34,7 @@ const GROUPS: readonly (readonly ToolDef[])[] = [
   [
     { tool: ToolType.Rectangle, label: 'Rectangle', keys: ['r'], numbered: true },
     { tool: ToolType.Ellipse, label: 'Ellipse', keys: ['o'], numbered: true },
+    { tool: ToolType.Shape, label: 'Shapes', keys: ['s'], numbered: false },
     { tool: ToolType.Line, label: 'Line', keys: ['l'], numbered: true },
     { tool: ToolType.Arrow, label: 'Arrow', keys: ['a'], numbered: true },
   ],

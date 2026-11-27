@@ -28,6 +28,7 @@ const TOOL_SECTIONS: Partial<Record<ToolType, readonly PropertySection[]>> = {
   [ToolType.Pen]: ['stroke', 'strokeWidth', 'strokeStyle', 'brush'],
   [ToolType.Rectangle]: ['stroke', 'fill', 'strokeWidth', 'strokeStyle', 'cornerRadius'],
   [ToolType.Ellipse]: ['stroke', 'fill', 'strokeWidth', 'strokeStyle'],
+  [ToolType.Shape]: ['stroke', 'fill', 'strokeWidth', 'strokeStyle'],
   [ToolType.Line]: ['stroke', 'strokeWidth', 'strokeStyle', 'lineEnds'],
   [ToolType.Arrow]: ['stroke', 'strokeWidth', 'strokeStyle', 'lineEnds', 'arrowHeads', 'arrowPath'],
   [ToolType.Text]: ['stroke', 'font'],

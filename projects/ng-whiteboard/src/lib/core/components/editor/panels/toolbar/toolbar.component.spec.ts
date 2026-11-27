@@ -183,6 +183,7 @@ describe('ToolbarComponent', () => {
       expect(items().map((b) => b.dataset['tool'])).toEqual([
         ToolType.Rectangle,
         ToolType.Ellipse,
+        ToolType.Shape,
         ToolType.Line,
         ToolType.Arrow,
       ]);
@@ -214,7 +215,7 @@ describe('ToolbarComponent', () => {
       fixture.detectChanges();
       items()[0].dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: items()[1] }));
       fixture.detectChanges();
-      expect(items().length).toBe(4);
+      expect(items().length).toBe(5);
 
       items()[0].dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: document.body }));
       fixture.detectChanges();

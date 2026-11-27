@@ -11,6 +11,7 @@ import {
   PenTool,
   RectangleTool,
   SelectTool,
+  ShapeTool,
   TextTool,
   ZoomAreaTool,
 } from '../tools';
@@ -48,6 +49,8 @@ export class ToolFactory {
         tool.setConnectionServices(this.connectionPointsService, this.arrowBindingService, this.connectionUIService);
         return tool;
       }
+      case ToolType.Shape:
+        return new ShapeTool(apiService);
       case ToolType.Text:
         return new TextTool(apiService);
       case ToolType.ZoomArea:
