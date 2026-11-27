@@ -26,6 +26,7 @@ import {
   LayerManagementService,
   SelectionService,
 } from './core/elements';
+import { ShapeRegistryService } from './core/elements/shapes';
 import { EventBusService } from './core/event-bus/event-bus.service';
 import { HistoryService } from './core/history';
 import { ClipboardService, DragDropService, IOService, KeyboardShortcutService } from './core/input';
@@ -84,6 +85,7 @@ import { PanService, WheelHandlerService, ZoomService } from './core/viewport';
     ToolFactory,
     EventBusService,
     ConfigService,
+    ShapeRegistryService,
     KeyboardShortcutService,
     LayerManagementService,
     HistoryService,

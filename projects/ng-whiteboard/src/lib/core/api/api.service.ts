@@ -6,6 +6,9 @@ import { ElementsService } from '../elements/elements.service';
 import { LayerManagementService } from '../elements/layer-management.service';
 import { PanService } from '../viewport/pan.service';
 import { SelectionService } from '../elements/selection.service';
+import { createElement } from '../elements/element.utils';
+import { ShapeElement } from '../elements/shape-element';
+import { AvailableShape, ShapeRegistryService } from '../elements/shapes';
 import { ToolsService } from '../tools/tools.service';
 import { BatchHandle, HistoryService } from '../history/history.service';
 import { ZoomService } from '../viewport/zoom.service';
@@ -13,6 +16,7 @@ import {
   AddImage,
   AlignmentType,
   BoundingBox,
+  ElementType,
   FormatType,
   ExportOptions,
   SelectionBox,
@@ -41,6 +45,7 @@ export class ApiService {
   private configService = inject(ConfigService);
   private clipboardService = inject(ClipboardService);
   private eventBusService = inject(EventBusService);
+  private shapeRegistry = inject(ShapeRegistryService);
   private opacityBatch: BatchHandle | null = null;
 
   readonly elements: Signal<WhiteboardElement[]> = this.elementsService.elements;
@@ -408,6 +413,37 @@ export class ApiService {
 
   addImage(imageInfo: AddImage): void {
     this.ioService.addImage(imageInfo);
+  }
+
+  getAvailableShapes(): AvailableShape[] {
+    return this.shapeRegistry.shapes();
+  }
+
+  getActiveShape(): AvailableShape | undefined {
+    return this.shapeRegistry.activeShape();
+  }
+
+  addShape(shapeId: string, props: Partial<ShapeElement> = {}): ShapeElement | null {
+    const shape = this.shapeRegistry.get(shapeId);
+    if (!shape) {
+      console.warn(`ng-whiteboard: unknown shape "${shapeId}".`);
+      return null;
+    }
+    const width = props.width ?? 100;
+    const element = createElement(
+      ElementType.Shape,
+      {
+        width,
+        height: width / shape.aspectRatio,
+        ...props,
+        shapeId,
+        path: shape.path,
+        zIndex: props.zIndex ?? this.getNextZIndex(),
+      },
+      props.layerId ?? this.getActiveLayerId()
+    );
+    this.addElements([element]);
+    return element;
   }
 
   /** Open the file picker and add the chosen image at `at`, or centered in the viewport. */

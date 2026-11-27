@@ -14,6 +14,8 @@ import {
   CursorType,
   ClipboardInfo,
 } from './core/types';
+import { ShapeElement } from './core/elements/shape-element';
+import { AvailableShape } from './core/elements/shapes';
 
 /**
  * Service providing a clean API for interacting with whiteboard instances.
@@ -693,6 +695,22 @@ export class NgWhiteboardService {
   public addImage(imageInfo: AddImage): void {
     const instance = this.getApi();
     instance.addImage(imageInfo);
+  }
+
+  /**
+   * Get the shapes available on the board: enabled built-ins plus configured custom shapes.
+   */
+  public getAvailableShapes(): AvailableShape[] {
+    const instance = this.getApi();
+    return instance.getAvailableShapes();
+  }
+
+  /**
+   * Add a shape element by shape id. Returns null (and warns) when the id is unknown.
+   */
+  public addShape(shapeId: string, props?: Partial<ShapeElement>): ShapeElement | null {
+    const instance = this.getApi();
+    return instance.addShape(shapeId, props);
   }
 
   /**
