@@ -487,6 +487,62 @@ describe('WhiteboardCanvasComponent', () => {
     });
   });
 
+  describe('shape rendering', () => {
+    beforeAll(() => {
+      (globalThis as unknown as { ResizeObserver: unknown }).ResizeObserver = class {
+        observe() {
+          return;
+        }
+        unobserve() {
+          return;
+        }
+        disconnect() {
+          return;
+        }
+      };
+    });
+
+    afterAll(() => {
+      delete (globalThis as unknown as { ResizeObserver?: unknown }).ResizeObserver;
+    });
+
+    const shapeElement = (path: string) => ({
+      id: 'shape-1',
+      type: ElementType.Shape,
+      shapeId: 'triangle',
+      path,
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 50,
+      rotation: 0,
+      layerId: 'default',
+      opacity: 100,
+      zIndex: 0,
+      style: { strokeWidth: 2, strokeColor: '#000000', fill: 'red', lineJoin: 'round' },
+    });
+
+    it('renders a scaled path with style attributes', () => {
+      mockAllElements.set([shapeElement('M0 0 L1 0 L1 1 Z')] as unknown as (typeof mockElement)[]);
+      fixture.detectChanges();
+
+      const path = fixture.nativeElement.querySelector('g[data-wb-id] path');
+      expect(path.getAttribute('d')).toBe('M0 0 L100 0 L100 50 Z');
+      expect(path.getAttribute('fill')).toBe('red');
+      expect(path.getAttribute('stroke')).toBe('#000000');
+      expect(path.getAttribute('stroke-width')).toBe('2');
+      expect(path.getAttribute('stroke-linejoin')).toBe('round');
+    });
+
+    it('renders an empty path without throwing', () => {
+      mockAllElements.set([shapeElement('')] as unknown as (typeof mockElement)[]);
+      expect(() => fixture.detectChanges()).not.toThrow();
+
+      const path = fixture.nativeElement.querySelector('g[data-wb-id] path');
+      expect(path.getAttribute('d')).toBe('');
+    });
+  });
+
   describe('isArrowSelected', () => {
     it('should call selectionService.isSelected', () => {
       component.isArrowSelected('test-id');

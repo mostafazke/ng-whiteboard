@@ -18,7 +18,7 @@ import { ElementType, PENCIL_FILTER_ID, ToolType, WhiteboardElement } from '../.
 import { ApiService } from '../../api';
 import { CanvasService } from '../../canvas';
 import { ConnectionUIService, HandleService, SelectionService } from '../../elements';
-import { GripCursorPipe, ElementOpacityPipe, PenRenderPipe, ArrowheadPipe } from '../../pipes';
+import { GripCursorPipe, ElementOpacityPipe, PenRenderPipe, ArrowheadPipe, ShapePathPipe } from '../../pipes';
 import { ToolsService } from '../../tools';
 import { effectiveLayerId } from '../../utils';
 
@@ -31,6 +31,7 @@ import { effectiveLayerId } from '../../utils';
     ElementOpacityPipe,
     PenRenderPipe,
     ArrowheadPipe,
+    ShapePathPipe,
     SvgDirective,
     ResizeHandlerDirective,
     GlobalKeyboardDirective,
