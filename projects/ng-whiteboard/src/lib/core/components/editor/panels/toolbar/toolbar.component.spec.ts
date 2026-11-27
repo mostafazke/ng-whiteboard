@@ -353,6 +353,7 @@ describe('ToolbarComponent', () => {
 
         expect(gridItems().length).toBe(SHAPES.length + 1);
         expect(gridItems()[SHAPES.length].getAttribute('aria-label')).toBe('Logo');
+        expect(iconPath(gridItems()[SHAPES.length])).toBe('M0 0 L1 0.5 L0 0.5 Z');
       });
 
       it('hides the Shapes button when there are no shapes', () => {

@@ -67,7 +67,11 @@ const FLYOUT_NAV_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Hom
               [attr.tabindex]="shape.tool === tabStop() ? 0 : -1"
               (click)="toggleFlyout($event)"
             >
-              <ng-icon [name]="icons[shape.tool]" [path]="shapeIconPath(shape.tool)"></ng-icon>
+              <ng-icon
+                [name]="icons[shape.tool]"
+                [path]="shapeIconPath(shape.tool)"
+                [aspectRatio]="activeShape()?.aspectRatio"
+              ></ng-icon>
               <span class="flyout-caret" aria-hidden="true"></span>
             </button>
           } @else {
@@ -86,7 +90,7 @@ const FLYOUT_NAV_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Hom
                   [attr.tabindex]="tool.tool === tabStop() ? 0 : -1"
                   (click)="toggleFlyout($event)"
                 >
-                  <ng-icon [path]="activeShape()?.path"></ng-icon>
+                  <ng-icon [path]="activeShape()?.path" [aspectRatio]="activeShape()?.aspectRatio"></ng-icon>
                   <span class="flyout-caret" aria-hidden="true"></span>
                 </button>
               } @else {
@@ -154,7 +158,7 @@ const FLYOUT_NAV_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Hom
                 [title]="shape.name"
                 (click)="pickLibraryShape(shape.id)"
               >
-                <ng-icon [path]="shape.path"></ng-icon>
+                <ng-icon [path]="shape.path" [aspectRatio]="shape.aspectRatio"></ng-icon>
               </button>
             }
           </div>
