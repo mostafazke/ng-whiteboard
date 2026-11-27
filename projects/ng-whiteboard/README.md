@@ -204,14 +204,14 @@ The editor ships 12 built-in shapes (triangle, right-triangle, diamond, pentagon
 config: Partial<WhiteboardConfig> = {
   shapes: [
     {
-      id: 'pentagon',
-      name: 'Pentagon',
+      id: 'tag',
+      name: 'Tag',
       path: 'm0.99791,0.9981l162.54547,0l135.45454,149.40899l-135.45454,149.40898l-162.54547,0z',
     },
   ],
   enableShapes: true, // false turns the whole shapes feature off
   builtInShapes: ['star', 'heart'], // true (default) = all, false = none, or a list of ids
-  shapeId: 'pentagon', // shape drawn by the Shape tool (shortcut S)
+  shapeId: 'tag', // shape drawn by the Shape tool (shortcut S)
 };
 ```
 
