@@ -277,7 +277,8 @@ export class ConnectionPointsService {
       element.type === ElementType.Rectangle ||
       element.type === ElementType.Ellipse ||
       element.type === ElementType.Image ||
-      element.type === ElementType.Text
+      element.type === ElementType.Text ||
+      element.type === ElementType.Shape
     );
   }
 

@@ -380,6 +380,11 @@ describe('ConnectionPointsService', () => {
       expect(service.isConnectable(text)).toBe(true);
     });
 
+    it('should return true for shapes', () => {
+      const shape = createElement(ElementType.Shape, {});
+      expect(service.isConnectable(shape)).toBe(true);
+    });
+
     it('should return false for pen elements', () => {
       const pen = createElement(ElementType.Pen, {});
       expect(service.isConnectable(pen)).toBe(false);

@@ -70,6 +70,35 @@ describe('ElementsService', () => {
     layerManagement = TestBed.inject(LayerManagementService);
   });
 
+  describe('unknown element types', () => {
+    const bogus = () => createMockElement('x', { type: 'bogus' as ElementType });
+
+    it('setElements drops unknown types and warns once', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation();
+      const rect = createMockElement('r');
+      service.setElements([rect, bogus(), { ...bogus(), id: 'y' }]);
+      expect(service.elements().map((e) => e.id)).toEqual(['r']);
+      expect(warn).toHaveBeenCalledTimes(1);
+      warn.mockRestore();
+    });
+
+    it('addElements drops unknown types and warns once', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation();
+      const rect = createMockElement('r');
+      service.addElements([rect, bogus()]);
+      expect(service.elements().map((e) => e.id)).toEqual(['r']);
+      expect(warn).toHaveBeenCalledTimes(1);
+      warn.mockRestore();
+    });
+
+    it('does not warn when all types are known', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation();
+      service.setElements([createMockElement('r')]);
+      expect(warn).not.toHaveBeenCalled();
+      warn.mockRestore();
+    });
+  });
+
   describe('Initialization', () => {
     it('should be created', () => {
       expect(service).toBeTruthy();

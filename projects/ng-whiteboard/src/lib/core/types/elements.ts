@@ -6,6 +6,7 @@ import {
   ArrowElement,
   TextElement,
   ImageElement,
+  ShapeElement,
 } from '../elements';
 import { WhiteboardElementStyle } from './styles';
 import { Bounds, Direction, Point } from './types';
@@ -18,6 +19,7 @@ export enum ElementType {
   Arrow = 'arrow',
   Text = 'text',
   Image = 'image',
+  Shape = 'shape',
 }
 
 export type WhiteboardElements = {
@@ -28,6 +30,7 @@ export type WhiteboardElements = {
   [ElementType.Arrow]: ArrowElement;
   [ElementType.Text]: TextElement;
   [ElementType.Image]: ImageElement;
+  [ElementType.Shape]: ShapeElement;
 };
 
 export type WhiteboardElement = WhiteboardElements[keyof WhiteboardElements];

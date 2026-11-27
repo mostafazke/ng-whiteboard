@@ -21,6 +21,7 @@ const ELEMENT_SECTIONS: Record<ElementType, readonly PropertySection[]> = {
   [ElementType.Arrow]: ['stroke', 'strokeWidth', 'strokeStyle', 'lineEnds', 'arrowHeads', 'arrowPath', 'opacity'],
   [ElementType.Text]: ['stroke', 'font', 'opacity'],
   [ElementType.Image]: ['opacity'],
+  [ElementType.Shape]: ['stroke', 'fill', 'strokeWidth', 'strokeStyle', 'opacity'],
 };
 
 const TOOL_SECTIONS: Partial<Record<ToolType, readonly PropertySection[]>> = {
