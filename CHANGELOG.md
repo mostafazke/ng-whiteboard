@@ -1,3 +1,57 @@
+# [7.0.0](https://github.com/mostafazke/ng-whiteboard/compare/v6.0.1...v7.0.0) (2026-11-27)
+
+
+* feat(shapes)!: custom SVG shapes ([#460](https://github.com/mostafazke/ng-whiteboard/issues/460)) ([722e49e](https://github.com/mostafazke/ng-whiteboard/commit/722e49e57e0b6919975e9447d58045abe86c749c)), closes [#226](https://github.com/mostafazke/ng-whiteboard/issues/226) [#226](https://github.com/mostafazke/ng-whiteboard/issues/226)
+
+
+### BREAKING CHANGES
+
+* ElementType and ToolType gain a Shape member; exhaustive switches and Record<ElementType|ToolType, …> maps in consumer code must handle it. The editor toolbar shows a new Shapes button and binds the 's' key by default (hide via toolbarTools). 6.x clients cannot render or safely receive shape elements (e.g. in live collaboration); upgrade all clients together.
+
+* feat(shapes): add built-in shapes, registry and config
+
+* feat(shapes): render shape elements
+
+* feat(shapes): add shape tool
+
+* feat(shapes): add shapes picker to editor toolbar
+
+* fix(shapes): respect toolbarTools in compact shapes grid
+
+* docs(shapes): add custom shapes example and api reference
+
+* docs(shapes): list shape tool shortcut
+
+* fix(shapes): highlight grid shape only while shape tool is active
+
+* fix(shapes): draw addShape with the board drawing style
+
+* fix(shapes): keep shape icon proportions in the toolbar
+
+* fix(shapes): keep shift aspect ratio when snapping to grid
+
+* fix(shapes): ignore repeated ids in builtInShapes
+
+* docs: add shapes overflow button design
+
+* docs: add shapes overflow button plan
+
+* feat(shapes): add enableShapes switch
+
+* feat(shapes): open shapes from a more button at the end of the toolbar
+
+* docs(shapes): document enableShapes and the more button
+
+* docs(shapes): restore shapes docs in the root readme
+
+* fix(shapes): keep the shapes menu open and on screen when opened from the toolbar end
+
+* chore(demo): remove custom shapes example
+
+* fix(shapes): type the toolbar's active shape as possibly undefined
+
+* docs(shapes): add a custom shapes guide to the documentation site
+
 ## [6.0.1](https://github.com/mostafazke/ng-whiteboard/compare/v6.0.0...v6.0.1) (2026-11-05)
 
 
