@@ -216,7 +216,7 @@ config: Partial<WhiteboardConfig> = {
 
 - `path` is any SVG path `d` in any coordinate space; it is normalized to its bounding box.
 - A custom shape with the id of a built-in replaces it in place.
-- `addShape(shapeId, props?)` adds a shape element (default width 100, height from the aspect ratio) and returns `null` for an unknown id. `getAvailableShapes()` lists the shapes on the board.
+- `addShape(shapeId, props?)` adds a shape element (default width 100, height from the aspect ratio) drawn with the board's current drawing style; `props.style` overrides it. Returns `null` for an unknown id. `getAvailableShapes()` lists the shapes on the board.
 - Hide the Shapes button with `toolbarTools`.
 
 ## 🏹 Arrow Configuration
@@ -339,7 +339,7 @@ export class MyWhiteboardComponent implements AfterViewInit {
 
 - **`addElement(element: WhiteboardElement)`** Adds a new element (e.g., shape, text) to the whiteboard.
 - **`addImage(image: string, x?: number, y?: number)`** Adds an image to the whiteboard at a specified position.
-- **`addShape(shapeId: string, props?: Partial<ShapeElement>)`** Adds a shape element by shape id. Returns `null` for an unknown id.
+- **`addShape(shapeId: string, props?: Partial<ShapeElement>)`** Adds a shape element by shape id, drawn with the board's current drawing style (`props.style` overrides it). Returns `null` for an unknown id.
 - **`getAvailableShapes()`** Returns the shapes available on the board.
 - **`removeElements(ids: string[])`** Removes elements from the whiteboard by IDs.
 - **`updateElement(element: WhiteboardElement)`** Updates an existing element with new properties.

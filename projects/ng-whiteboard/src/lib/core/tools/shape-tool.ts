@@ -1,6 +1,7 @@
 import { ShapeElement } from '../elements';
 import { createElement } from '../elements/element.utils';
-import { ElementType, Point, PointerInfo, ToolType, WhiteboardElementStyle } from '../types';
+import { drawingStyle } from '../config/drawing-style';
+import { ElementType, Point, PointerInfo, ToolType } from '../types';
 import { CursorType } from '../types/cursors';
 import { snapToGrid } from '../utils/geometry';
 import { BaseTool } from './base-tool';
@@ -41,7 +42,7 @@ export class ShapeTool extends BaseTool {
         y,
         shapeId: shape.id,
         path: shape.path,
-        style: this.getElementStyle(),
+        style: drawingStyle(this.whiteboardConfig),
         zIndex: this.apiService.getNextZIndex(),
       },
       this.apiService.getActiveLayerId()
@@ -99,16 +100,5 @@ export class ShapeTool extends BaseTool {
       this.startPoint = null;
       this.element = null;
     }
-  }
-
-  private getElementStyle(): WhiteboardElementStyle {
-    return {
-      strokeColor: this.whiteboardConfig.strokeColor,
-      strokeWidth: this.whiteboardConfig.strokeWidth,
-      lineJoin: this.whiteboardConfig.lineJoin,
-      fill: this.whiteboardConfig.fill,
-      dasharray: this.whiteboardConfig.dasharray,
-      dashoffset: this.whiteboardConfig.dashoffset,
-    };
   }
 }

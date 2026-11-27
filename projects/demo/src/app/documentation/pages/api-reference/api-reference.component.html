@@ -528,8 +528,9 @@
                     <td><code>addShape(shapeId, props?)</code></td>
                     <td>
                       Add a shape element (<code>ElementType.Shape</code>). Default width is 100 and the height follows
-                      the shape's aspect ratio. Returns the element, or <code>null</code> with a warning for an unknown
-                      id
+                      the shape's aspect ratio. It uses the board's current drawing style;
+                      <code>props.style</code> overrides it. Returns the element, or <code>null</code> with a warning
+                      for an unknown id
                     </td>
                   </tr>
                   <tr>

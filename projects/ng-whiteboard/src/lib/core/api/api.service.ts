@@ -1,5 +1,6 @@
 import { Injectable, Signal, computed, inject } from '@angular/core';
 import { ConfigService } from '../config/config.service';
+import { drawingStyle } from '../config/drawing-style';
 import { EventBusService } from '../event-bus/event-bus.service';
 import { CanvasService } from '../canvas/canvas.service';
 import { ElementsService } from '../elements/elements.service';
@@ -433,11 +434,13 @@ export class ApiService {
     const element = createElement(
       ElementType.Shape,
       {
-        width,
-        height: width / shape.aspectRatio,
         ...props,
+        type: ElementType.Shape,
+        width,
+        height: props.height ?? width / shape.aspectRatio,
         shapeId,
         path: shape.path,
+        style: { ...drawingStyle(this.getConfig()), ...props.style },
         zIndex: props.zIndex ?? this.getNextZIndex(),
       },
       props.layerId ?? this.getActiveLayerId()
