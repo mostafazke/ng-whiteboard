@@ -453,19 +453,20 @@ The whiteboard supports comprehensive keyboard shortcuts for enhanced productivi
 
 ### Tools
 
-| Shortcut | Action          |
-| -------- | --------------- |
-| `V`      | Select tool     |
-| `P`      | Pen tool        |
-| `L`      | Line tool       |
-| `R`      | Rectangle tool  |
-| `E`      | Ellipse tool    |
-| `S`      | Shape tool      |
-| `A`      | Arrow tool      |
-| `T`      | Text tool       |
-| `I`      | Image tool      |
-| `H`      | Hand tool (pan) |
-| `D`      | Eraser tool     |
+| Shortcut | Action                    |
+| -------- | ------------------------- |
+| `H`      | Hand tool (pan)           |
+| `V`      | Select tool               |
+| `P`      | Pen tool (`D` also works) |
+| `E`      | Eraser tool               |
+| `R`      | Rectangle tool            |
+| `O`      | Ellipse tool              |
+| `S`      | Shape tool                |
+| `L`      | Line tool                 |
+| `A`      | Arrow tool                |
+| `T`      | Text tool                 |
+| `I`      | Image tool                |
+| `Z`      | Zoom to area tool         |
 
 ### Viewport
 
