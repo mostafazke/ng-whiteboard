@@ -20,6 +20,7 @@ import { ToolType } from '../../../../types';
 import { IconName } from '../../icon/icons';
 import { nextRadioIndex } from '../../ui/radio-group-keys';
 import { IconComponent } from '../../icon/icon.component';
+import { clampCenter } from './flyout-position';
 
 const GRID_COLUMNS = 4;
 
@@ -259,11 +260,29 @@ export class ToolbarComponent {
     const rect = button.getBoundingClientRect();
     this.flyoutLeft.set(rect.left + rect.width / 2 - hostRect.left);
     this.flyoutTop.set(rect.top + rect.height / 2 - hostRect.top);
+    // Removing the old menu's focused item would fire a focusout that closes the new menu.
+    if (this.openMenu() && this.openMenu() !== menu) button.focus();
     this.openMenu.update((open) => (open === menu ? null : menu));
     if (this.openMenu()) {
-      afterNextRender(() => this.host.nativeElement.querySelector<HTMLButtonElement>('.flyout-item')?.focus(), {
-        injector: this.injector,
-      });
+      afterNextRender(
+        () => {
+          this.keepMenuInside();
+          this.host.nativeElement.querySelector<HTMLButtonElement>('.flyout-item')?.focus();
+        },
+        { injector: this.injector }
+      );
+    }
+  }
+
+  private keepMenuInside() {
+    const menu = this.host.nativeElement.querySelector<HTMLElement>('.flyout-menu');
+    const hostRect = this.host.nativeElement.getBoundingClientRect();
+    if (!menu || !hostRect.width) return;
+    const menuRect = menu.getBoundingClientRect();
+    if (this.vertical()) {
+      this.flyoutTop.set(clampCenter(this.flyoutTop(), menuRect.height, hostRect.height));
+    } else {
+      this.flyoutLeft.set(clampCenter(this.flyoutLeft(), menuRect.width, hostRect.width));
     }
   }
 

@@ -444,6 +444,18 @@ describe('ToolbarComponent', () => {
         expect(document.activeElement).toBe(shapeTrigger());
       });
 
+      it('moves focus off the old menu before switching, so its removal does not close the new one', () => {
+        shapeTrigger().click();
+        fixture.detectChanges();
+        const rectangle = root.querySelector<HTMLButtonElement>('.flyout-tool') as HTMLButtonElement;
+        rectangle.focus();
+
+        more().click();
+        expect(document.activeElement).toBe(more());
+        fixture.detectChanges();
+        expect(gridItems().length).toBe(SHAPES.length);
+      });
+
       it('hides the more-shapes button when the shape tool is not in tools', () => {
         fixture.componentRef.setInput('tools', [ToolType.Pen, ToolType.Rectangle, ToolType.Ellipse]);
         fixture.detectChanges();
