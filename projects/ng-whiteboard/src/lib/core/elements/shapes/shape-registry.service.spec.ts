@@ -36,6 +36,15 @@ describe('ShapeRegistryService', () => {
     expect(registry.activeShape()).toBeUndefined();
   });
 
+  it('has no shapes while shapes are disabled, and restores them when re-enabled', () => {
+    config.updateConfig({ enableShapes: false });
+    expect(registry.shapes()).toEqual([]);
+    expect(registry.activeShape()).toBeUndefined();
+
+    config.updateConfig({ enableShapes: true });
+    expect(registry.shapes()).toHaveLength(12);
+  });
+
   it('keeps only the listed built-ins, in the listed order', () => {
     config.updateConfig({ builtInShapes: ['star', 'heart'] });
     expect(ids()).toEqual(['star', 'heart']);

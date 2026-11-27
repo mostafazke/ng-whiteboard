@@ -534,6 +534,15 @@ describe('WhiteboardCanvasComponent', () => {
       expect(path.getAttribute('stroke-linejoin')).toBe('round');
     });
 
+    it('still renders existing shapes while shapes are disabled', () => {
+      mockConfigSignal.set({ ...mockConfig, enableShapes: false } as typeof mockConfig);
+      mockAllElements.set([shapeElement('M0 0 L1 0 L1 1 Z')] as unknown as (typeof mockElement)[]);
+      fixture.detectChanges();
+
+      const path = fixture.nativeElement.querySelector('g[data-wb-id] path');
+      expect(path.getAttribute('d')).toBe('M0 0 L100 0 L100 50 Z');
+    });
+
     it('renders an empty path without throwing', () => {
       mockAllElements.set([shapeElement('')] as unknown as (typeof mockElement)[]);
       expect(() => fixture.detectChanges()).not.toThrow();

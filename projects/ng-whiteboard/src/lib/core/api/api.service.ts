@@ -425,6 +425,10 @@ export class ApiService {
   }
 
   addShape(shapeId: string, props: Partial<ShapeElement> = {}): ShapeElement | null {
+    if (this.getConfig().enableShapes === false) {
+      console.warn('ng-whiteboard: shapes are disabled (enableShapes: false).');
+      return null;
+    }
     const shape = this.shapeRegistry.get(shapeId);
     if (!shape) {
       console.warn(`ng-whiteboard: unknown shape "${shapeId}".`);

@@ -25,6 +25,7 @@ export class ShapeRegistryService {
   readonly shapes: Signal<AvailableShape[]> = computed(
     () => {
       const config = this.configService.getConfigSignal()();
+      if (config.enableShapes === false) return [];
       return this.definitions(config).flatMap((definition) => {
         const normalized = this.normalize(definition);
         return normalized ? [{ id: definition.id, name: definition.name, ...normalized }] : [];

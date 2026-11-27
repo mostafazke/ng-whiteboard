@@ -97,4 +97,15 @@ describe('NgWhiteboardService shapes', () => {
     expect(warn).toHaveBeenCalledTimes(1);
     expect(api.getElements()).toHaveLength(before);
   });
+
+  it('refuses to add shapes while shapes are disabled', () => {
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    api.updateConfig({ enableShapes: false });
+    const before = api.getElements().length;
+
+    expect(service.addShape('star')).toBeNull();
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('shapes are disabled'));
+    expect(api.getElements()).toHaveLength(before);
+    expect(service.getAvailableShapes()).toEqual([]);
+  });
 });
