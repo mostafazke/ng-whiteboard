@@ -5,6 +5,7 @@ import { ImageElementUtil } from './image-element';
 import { LineElementUtil } from './line-element';
 import { PenElementUtil } from './pen-element';
 import { RectangleElementUtil } from './rectangle-element';
+import { ShapeElementUtil } from './shape-element';
 import { TextElementUtil } from './text-element';
 
 const elementUtilsMap: Record<ElementType, ElementUtil<WhiteboardElement>> = {
@@ -15,7 +16,14 @@ const elementUtilsMap: Record<ElementType, ElementUtil<WhiteboardElement>> = {
   [ElementType.Pen]: new PenElementUtil(),
   [ElementType.Rectangle]: new RectangleElementUtil(),
   [ElementType.Text]: new TextElementUtil(),
+  [ElementType.Shape]: new ShapeElementUtil(),
 } as const;
+
+const knownElementTypes: ReadonlySet<unknown> = new Set(Object.values(ElementType));
+
+export function isKnownElementType(type: unknown): type is ElementType {
+  return knownElementTypes.has(type);
+}
 
 export function getElementUtil(type: ElementType) {
   return elementUtilsMap[type];

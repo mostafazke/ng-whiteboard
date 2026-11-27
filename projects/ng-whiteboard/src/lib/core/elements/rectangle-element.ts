@@ -10,6 +10,49 @@ export interface RectangleElement extends BaseElement {
   rx: number;
 }
 
+type Box = { x: number; y: number; width: number; height: number };
+
+export function resizeBox<T extends Box>(element: T, direction: Direction, dx: number, dy: number): T {
+  if (direction.includes(Direction.N)) {
+    const newHeight = element.height - dy;
+    if (newHeight > 0) {
+      element.y += dy;
+      element.height = newHeight;
+    }
+  }
+  if (direction.includes(Direction.S)) {
+    const newHeight = element.height + dy;
+    if (newHeight > 0) {
+      element.height = newHeight;
+    }
+  }
+  if (direction.includes(Direction.W)) {
+    const newWidth = element.width - dx;
+    if (newWidth > 0) {
+      element.x += dx;
+      element.width = newWidth;
+    }
+  }
+  if (direction.includes(Direction.E)) {
+    const newWidth = element.width + dx;
+    if (newWidth > 0) {
+      element.width = newWidth;
+    }
+  }
+  return element;
+}
+
+export function boxBounds(element: Box): Bounds {
+  return {
+    minX: element.x,
+    minY: element.y,
+    maxX: element.x + element.width,
+    maxY: element.y + element.height,
+    width: element.width,
+    height: element.height,
+  };
+}
+
 export class RectangleElementUtil implements ElementUtil<RectangleElement> {
   create(props: Partial<RectangleElement>): RectangleElement {
     return {
@@ -33,44 +76,11 @@ export class RectangleElementUtil implements ElementUtil<RectangleElement> {
   }
 
   resize(element: RectangleElement, direction: Direction, dx: number, dy: number): RectangleElement {
-    if (direction.includes(Direction.N)) {
-      const newHeight = element.height - dy;
-      if (newHeight > 0) {
-        element.y += dy;
-        element.height = newHeight;
-      }
-    }
-    if (direction.includes(Direction.S)) {
-      const newHeight = element.height + dy;
-      if (newHeight > 0) {
-        element.height = newHeight;
-      }
-    }
-    if (direction.includes(Direction.W)) {
-      const newWidth = element.width - dx;
-      if (newWidth > 0) {
-        element.x += dx;
-        element.width = newWidth;
-      }
-    }
-    if (direction.includes(Direction.E)) {
-      const newWidth = element.width + dx;
-      if (newWidth > 0) {
-        element.width = newWidth;
-      }
-    }
-    return element;
+    return resizeBox(element, direction, dx, dy);
   }
 
   getBounds(element: RectangleElement): Bounds {
-    return {
-      minX: element.x,
-      minY: element.y,
-      maxX: element.x + element.width,
-      maxY: element.y + element.height,
-      width: element.width,
-      height: element.height,
-    };
+    return boxBounds(element);
   }
 
   hitTest(element: RectangleElement, pointA: Point, pointB: Point, threshold: number): boolean {

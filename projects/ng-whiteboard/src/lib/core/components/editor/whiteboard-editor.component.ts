@@ -128,6 +128,7 @@ export class WhiteboardEditorComponent {
   hasSelectionSignal = this.editorStateService.hasSelectionSignal;
   canUndoSignal = this.editorStateService.canUndoSignal;
   canRedoSignal = this.editorStateService.canRedoSignal;
+  shapesSignal = this.editorStateService.shapesSignal;
   selectedPropertiesSignal = this.editorStateService.selectedPropertiesSignal;
   mainMenuItems = computed(() =>
     buildMainMenu({
@@ -410,6 +411,10 @@ export class WhiteboardEditorComponent {
 
   onAlignmentChange(alignment: AlignmentType) {
     this.editorStateService.alignElements(alignment);
+  }
+
+  selectShape(id: string) {
+    this.editorStateService.selectShape(id);
   }
 
   setSelectedTool(tool: ToolType) {

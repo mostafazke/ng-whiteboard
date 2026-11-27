@@ -1,0 +1,137 @@
+<div class="doc-section custom-shapes">
+  <h2><span class="material-icons">category</span> Custom Shapes</h2>
+
+  <div class="note-section">
+    <div class="note info">
+      <strong><span class="material-icons">info</span> Shape tool:</strong>
+      <p>
+        The Shape tool (<code>ToolType.Shape</code>, keyboard shortcut <kbd>S</kbd>) draws shapes from a list you can
+        extend with any SVG path. Users pick a shape from the ⋯ (More shapes) button at the end of the toolbar. Shapes
+        resize, rotate, fill, snap with <kbd>Shift</kbd>, accept arrow bindings and export like any other element.
+      </p>
+    </div>
+  </div>
+
+  <h3><span class="material-icons">description</span> 1. Describe the shape</h3>
+  <p>A shape is a <code>ShapeDefinition</code>: an id, a display name and an SVG path <code>d</code> string.</p>
+  <app-code-block [code]="definitionCode" language="typescript" title="tag.shape.ts" />
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Property</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>id</code></td>
+          <td><code>string</code></td>
+          <td>Unique key. Used by <code>shapeId</code> and <code>addShape()</code>, and stored on drawn elements.</td>
+        </tr>
+        <tr>
+          <td><code>name</code></td>
+          <td><code>string</code></td>
+          <td>Label shown as the tooltip and accessible name in the shapes menu.</td>
+        </tr>
+        <tr>
+          <td><code>path</code></td>
+          <td><code>string</code></td>
+          <td>Any SVG path <code>d</code>: absolute or relative commands, curves and arcs, in any coordinate space.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>How paths are handled</h4>
+  <ul>
+    <li>
+      The path is normalized to its own bounding box, so the numbers you use don't matter: a 300 × 300 path and a
+      1 × 1 path of the same outline give the same shape.
+    </li>
+    <li>The bounding box's proportions are kept for the menu icon and for <code>addShape()</code>'s default height.</li>
+    <li>When the user draws or resizes, the shape stretches to the box. Hold <kbd>Shift</kbd> to keep its proportions.</li>
+    <li>Drawn elements store the normalized path, so boards that use the shape still render where it isn't registered.</li>
+    <li>A path that can't be parsed is skipped with a console warning.</li>
+  </ul>
+
+  <h3><span class="material-icons">add_box</span> 2. Register it</h3>
+  <p>
+    Pass your shapes in the <code>shapes</code> config. They are added to the ⋯ menu after the built-in shapes.
+  </p>
+  <app-code-block [code]="basicCode" language="typescript" title="shapes-board.component.ts" />
+
+  <h3><span class="material-icons">tune</span> 3. Choose the built-ins</h3>
+  <p>The library ships 12 built-in shapes:</p>
+  <p>
+    @for (id of builtInShapes; track id; let last = $last) {
+      <code>{{ id }}</code
+      >{{ last ? '' : ', ' }}
+    }
+  </p>
+  <app-code-block [code]="builtInCode" language="typescript" title="config examples" />
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Option</th>
+          <th>Type</th>
+          <th>Default</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>shapes</code></td>
+          <td><code>ShapeDefinition[]</code></td>
+          <td><code>unset</code></td>
+          <td>Your shapes. One with a built-in's id replaces that built-in in place.</td>
+        </tr>
+        <tr>
+          <td><code>builtInShapes</code></td>
+          <td><code>string[] | boolean</code></td>
+          <td><code>true</code></td>
+          <td><code>true</code> for all built-ins, <code>false</code> for none, or a list of ids in menu order.</td>
+        </tr>
+        <tr>
+          <td><code>shapeId</code></td>
+          <td><code>string</code></td>
+          <td><code>first available</code></td>
+          <td>Shape drawn by the Shape tool until the user picks another.</td>
+        </tr>
+        <tr>
+          <td><code>enableShapes</code></td>
+          <td><code>boolean</code></td>
+          <td><code>true</code></td>
+          <td>Turns the whole shapes feature on or off.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3><span class="material-icons">code</span> 4. Add shapes from code</h3>
+  <p>
+    <code>addShape(shapeId, props?)</code> places a shape using the board's current drawing style, and
+    <code>props.style</code> overrides it. Width defaults to <code>100</code> and height follows the shape's
+    proportions. It returns the new <code>ShapeElement</code>, or <code>null</code> for an unknown id or when shapes
+    are disabled. <code>getAvailableShapes()</code> returns the shapes in menu order.
+  </p>
+  <app-code-block [code]="addShapeCode" language="typescript" title="shapes-api.component.ts" />
+
+  <h3><span class="material-icons">toggle_on</span> 5. Turn shapes off</h3>
+  <p>With <code>enableShapes: false</code>:</p>
+  <ul>
+    <li>the ⋯ button is hidden;</li>
+    <li>the Shape tool and its <kbd>S</kbd> shortcut do nothing, and a board on the Shape tool switches to Select;</li>
+    <li><code>addShape()</code> warns and returns <code>null</code>;</li>
+    <li>shapes already on the board still render.</li>
+  </ul>
+  <p>
+    To hide only the ⋯ button, leave <code>ToolType.Shape</code> out of <code>toolbarTools</code>. That also removes
+    the <kbd>S</kbd> shortcut, but <code>addShape()</code> keeps working.
+  </p>
+  <app-code-block [code]="toggleCode" language="typescript" title="config examples" />
+</div>

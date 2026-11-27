@@ -43,6 +43,8 @@ export class ConfigService {
     penType: PenType.Marker,
     penThrottlingThreshold: 2,
     arrowConfig: { ...defaultArrowConfig },
+    enableShapes: true,
+    builtInShapes: true,
   });
 
   private editorConfig = signal<EditorConfig>({ title: 'Whiteboard' });

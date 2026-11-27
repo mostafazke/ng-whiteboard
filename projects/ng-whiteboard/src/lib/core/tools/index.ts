@@ -8,6 +8,7 @@ export * from './line-tool';
 export * from './pen-tool';
 export * from './rectangle-tool';
 export * from './select-tool';
+export * from './shape-tool';
 export * from './text-tool';
 export * from './zoom-area-tool';
 export * from './tools.service';

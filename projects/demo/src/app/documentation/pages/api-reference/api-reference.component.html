@@ -372,6 +372,41 @@
                     <td>Tools shown in the editor toolbar. Hidden tools also lose their keyboard shortcuts.</td>
                   </tr>
                   <tr>
+                    <td><code>shapes</code></td>
+                    <td><code>ShapeDefinition[]</code></td>
+                    <td><code>unset</code></td>
+                    <td>
+                      Extra shapes appended after the built-ins. A shape with the same <code>id</code> as a built-in
+                      replaces it in place. <code>path</code> is any SVG path <code>d</code>, normalized to its bounding
+                      box.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>enableShapes</code></td>
+                    <td><code>boolean</code></td>
+                    <td><code>true</code></td>
+                    <td>
+                      Turns the shapes feature on or off. When <code>false</code>, the ⋯ (More shapes) toolbar button is
+                      hidden, the Shape tool and its <code>S</code> shortcut do nothing, and
+                      <code>addShape</code> returns <code>null</code>. Shapes already on the board still render.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>builtInShapes</code></td>
+                    <td><code>string[] | boolean</code></td>
+                    <td><code>true</code></td>
+                    <td>
+                      <code>true</code> enables all 12 built-in shapes, <code>false</code> none, and a list of ids only
+                      those shapes in that order
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>shapeId</code></td>
+                    <td><code>string</code></td>
+                    <td><code>first available</code></td>
+                    <td>Shape drawn by the Shape tool</td>
+                  </tr>
+                  <tr>
                     <td><code>toolbarPosition</code></td>
                     <td><code>'bottom' | 'left'</code></td>
                     <td><code>'bottom'</code></td>
@@ -498,6 +533,22 @@
                   <tr>
                     <td><code>addImage(imageInfo)</code></td>
                     <td>Add an image element with positioning options</td>
+                  </tr>
+                  <tr>
+                    <td><code>addShape(shapeId, props?)</code></td>
+                    <td>
+                      Add a shape element (<code>ElementType.Shape</code>). Default width is 100 and the height follows
+                      the shape's aspect ratio. It uses the board's current drawing style;
+                      <code>props.style</code> overrides it. Returns the element, or <code>null</code> with a warning
+                      for an unknown id or when <code>enableShapes</code> is <code>false</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>getAvailableShapes()</code></td>
+                    <td>
+                      Shapes available on the board (<code>AvailableShape[]</code>): enabled built-ins plus configured
+                      custom shapes
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -995,8 +1046,17 @@
               <li><code>ToolType.Arrow</code> - Draw arrows</li>
               <li><code>ToolType.Rectangle</code> - Draw rectangles</li>
               <li><code>ToolType.Ellipse</code> - Draw ellipses/circles</li>
+              <li>
+                <code>ToolType.Shape</code> - Draw the shape selected by <code>shapeId</code>, picked from the ⋯ (More
+                shapes) button at the end of the toolbar (shortcut <code>S</code>)
+              </li>
               <li><code>ToolType.Text</code> - Add text</li>
             </ul>
+            <p>
+              Shapes drawn with the Shape tool or <code>addShape()</code> are elements of type
+              <code>ElementType.Shape</code> (<code>ShapeElement</code>) holding the <code>shapeId</code> and the
+              normalized <code>path</code>.
+            </p>
           </div>
         }
         @case ('examples') {

@@ -219,6 +219,19 @@
                 ></ellipse>
               </g>
             }
+            @case (types.Shape) {
+              <g>
+                <path
+                  [attr.d]="item.path | shapePath: item.width : item.height"
+                  [attr.stroke-dasharray]="item.style.dasharray"
+                  [attr.stroke-dashoffset]="item.style.dashoffset"
+                  [attr.stroke-width]="item.style.strokeWidth"
+                  [attr.fill]="item.style.fill"
+                  [attr.stroke]="item.style.strokeColor"
+                  [attr.stroke-linejoin]="item.style.lineJoin"
+                ></path>
+              </g>
+            }
             @case (types.Text) {
               <g>
                 <text

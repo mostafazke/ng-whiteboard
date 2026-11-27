@@ -34,6 +34,13 @@ export const appRoutes: Routes = [
           ),
       },
       {
+        path: 'custom-shapes',
+        loadComponent: () =>
+          import('./documentation/pages/custom-shapes/custom-shapes.component').then(
+            (m) => m.CustomShapesDocsComponent
+          ),
+      },
+      {
         path: 'arrow-configuration',
         loadComponent: () =>
           import('./documentation/pages/arrow-configuration/arrow-configuration.component').then(

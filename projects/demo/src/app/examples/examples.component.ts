@@ -10,6 +10,12 @@ import { ComprehensiveComponent } from './comprehensive/comprehensive.component'
   templateUrl: './examples.component.html',
   styleUrls: ['./examples.component.scss'],
   standalone: true,
-  imports: [RouterLink, HeaderComponent, MinimalComponent, OutOfTheBoxComponent, ComprehensiveComponent],
+  imports: [
+    RouterLink,
+    HeaderComponent,
+    MinimalComponent,
+    OutOfTheBoxComponent,
+    ComprehensiveComponent,
+  ],
 })
 export class ExamplesComponent {}

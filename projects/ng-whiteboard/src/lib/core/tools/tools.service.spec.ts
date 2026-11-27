@@ -7,6 +7,7 @@ import { ToolType, Tool, ToolConfig } from '../types';
 import { CursorType } from '../types/cursors';
 import { WhiteboardEvent } from '../types/events';
 import { createMockApiService } from '../testing';
+import { ConfigService } from '../config/config.service';
 
 describe('ToolsService', () => {
   let service: ToolsService;
@@ -73,7 +74,7 @@ describe('ToolsService', () => {
 
     it('should have correct number of default tools', () => {
       const configs = service.getToolConfigs();
-      expect(configs.length).toBe(11); // Hand, Select, Pen, Line, Arrow, Rectangle, Ellipse, Text, Image, Eraser, ZoomArea
+      expect(configs.length).toBe(12); // Hand, Select, Pen, Line, Arrow, Rectangle, Ellipse, Shape, Text, Image, Eraser, ZoomArea
     });
   });
 
@@ -666,6 +667,36 @@ describe('ToolsService', () => {
       expect(toolTypes).toContain(ToolType.Text);
       expect(toolTypes).toContain(ToolType.Image);
       expect(toolTypes).toContain(ToolType.Eraser);
+    });
+  });
+
+  describe('Shape tool availability', () => {
+    let config: ConfigService;
+
+    beforeEach(() => {
+      config = TestBed.inject(ConfigService);
+      service.setActiveTool(ToolType.Pen);
+    });
+
+    it('does not activate the Shape tool while shapes are disabled', () => {
+      config.updateConfig({ enableShapes: false });
+      service.setActiveTool(ToolType.Shape);
+      expect(service.selectedTool()).toBe(ToolType.Pen);
+    });
+
+    it('does not activate the Shape tool when no shapes are available', () => {
+      config.updateConfig({ builtInShapes: false, shapes: [] });
+      service.setActiveTool(ToolType.Shape);
+      expect(service.selectedTool()).toBe(ToolType.Pen);
+    });
+
+    it('falls back to Select when shapes are disabled while the Shape tool is active', () => {
+      service.setActiveTool(ToolType.Shape);
+      expect(service.selectedTool()).toBe(ToolType.Shape);
+
+      config.updateConfig({ enableShapes: false });
+      TestBed.tick();
+      expect(service.selectedTool()).toBe(ToolType.Select);
     });
   });
 });

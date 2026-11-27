@@ -9,6 +9,7 @@ export enum ToolType {
   Line = 'line',
   Arrow = 'arrow',
   Ellipse = 'ellipse',
+  Shape = 'shape',
   Text = 'text',
   Eraser = 'eraser',
   ZoomArea = 'zoomArea',

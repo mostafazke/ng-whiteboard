@@ -126,7 +126,14 @@ export class BasicComponent implements OnDestroy {
 
   shapeTools = computed(() => {
     const tools = this.availableTools();
-    const shapeTypes = [ToolType.Line, ToolType.Arrow, ToolType.Rectangle, ToolType.Ellipse, ToolType.Text];
+    const shapeTypes = [
+      ToolType.Line,
+      ToolType.Arrow,
+      ToolType.Rectangle,
+      ToolType.Ellipse,
+      ToolType.Shape,
+      ToolType.Text,
+    ];
     return tools
       .filter((tool) => shapeTypes.includes(tool.type) && tool.enabled)
       .map((tool) => ({

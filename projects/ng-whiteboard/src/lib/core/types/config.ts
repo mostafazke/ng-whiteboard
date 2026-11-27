@@ -36,6 +36,13 @@ export const defaultArrowConfig: ArrowConfig = {
   lineStyle: 'curve',
 };
 
+/** A custom shape: any SVG path `d` string, normalized when registered. */
+export interface ShapeDefinition {
+  id: string;
+  name: string;
+  path: string;
+}
+
 export interface WhiteboardConfig {
   drawingEnabled: boolean;
   canvasWidth: number;
@@ -83,6 +90,17 @@ export interface WhiteboardConfig {
   toolbarTools?: ToolType[];
   /** Where the editor toolbar sits; `left` falls back to `bottom` on compact screens. Defaults to `bottom`. */
   toolbarPosition?: 'bottom' | 'left';
+  /**
+   * Turns the shapes feature on or off. When `false`, the toolbar's more-shapes button is hidden and the Shape
+   * tool and `addShape` are unavailable; shapes already on the board still render. Defaults to `true`.
+   */
+  enableShapes?: boolean;
+  /** Custom shapes, appended after the built-ins; one with a built-in id replaces that built-in in place. */
+  shapes?: ShapeDefinition[];
+  /** Built-in shapes to offer: all (`true`, the default), none (`false`) or the listed ids in that order. */
+  builtInShapes?: string[] | boolean;
+  /** Id of the shape the Shape tool draws; the first available shape when unset or unknown. */
+  shapeId?: string;
 }
 
 export const DEFAULT_CORNER_RADIUS = 5;

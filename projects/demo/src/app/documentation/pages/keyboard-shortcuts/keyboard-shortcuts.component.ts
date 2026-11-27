@@ -30,6 +30,7 @@ export class KeyboardShortcutsComponent {
         { keys: ['E'], action: 'Eraser tool' },
         { keys: ['R'], action: 'Rectangle tool' },
         { keys: ['O'], action: 'Ellipse tool' },
+        { keys: ['S'], action: 'Shape tool' },
         { keys: ['L'], action: 'Line tool' },
         { keys: ['A'], action: 'Arrow tool' },
         { keys: ['T'], action: 'Text tool' },

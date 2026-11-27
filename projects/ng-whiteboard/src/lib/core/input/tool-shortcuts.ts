@@ -36,6 +36,7 @@ const GROUPS: readonly (readonly ToolDef[])[] = [
     { tool: ToolType.Image, label: 'Image', keys: ['i'], numbered: true },
     { tool: ToolType.ZoomArea, label: 'Zoom to area', keys: ['z'], numbered: false },
   ],
+  [{ tool: ToolType.Shape, label: 'More shapes', keys: ['s'], numbered: false }],
 ];
 
 const DIGITS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];

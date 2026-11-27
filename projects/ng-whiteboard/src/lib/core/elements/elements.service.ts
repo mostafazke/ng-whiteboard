@@ -2,6 +2,7 @@ import { HistoryService } from '../history/history.service';
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { EventBusService } from '../event-bus';
 import { WhiteboardElement, WhiteboardEvent } from '../types';
+import { isKnownElementType } from './element.utils';
 import { effectiveLayerId, getElementBounds } from '../utils';
 import { LayerManagementService } from './layer-management.service';
 
@@ -194,11 +195,26 @@ export class ElementsService {
 
   // ---------- Element Management ----------
 
+  private filterKnownElements(elements: WhiteboardElement[] | null | undefined): WhiteboardElement[] {
+    if (!elements?.length) return [];
+    const unknownTypes = new Set<unknown>();
+    const known = elements.filter((element) => {
+      if (isKnownElementType(element.type)) return true;
+      unknownTypes.add(element.type);
+      return false;
+    });
+    if (unknownTypes.size) {
+      console.warn(`Ignoring elements with unknown types: ${[...unknownTypes].join(', ')}`);
+    }
+    return known;
+  }
+
   /**
    * Add elements to persistent storage
    */
-  addElements(elements: WhiteboardElement[]): void {
-    if (!elements?.length) return;
+  addElements(input: WhiteboardElement[]): void {
+    const elements = this.filterKnownElements(input);
+    if (!elements.length) return;
 
     const activeLayerId = this.layerManagement.getActiveLayerId();
 
@@ -362,8 +378,8 @@ export class ElementsService {
   /**
    * Set all persistent elements (replaces current elements)
    */
-  setElements(elements: WhiteboardElement[]): void {
-    const elementsWithZIndex = elements.map((element) => ({
+  setElements(input: WhiteboardElement[]): void {
+    const elementsWithZIndex = this.filterKnownElements(input).map((element) => ({
       ...element,
       zIndex: element.zIndex ?? this.getNextZIndex(),
     }));

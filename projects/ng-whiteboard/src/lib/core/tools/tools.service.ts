@@ -6,6 +6,7 @@ import { WhiteboardEvent } from '../types/events';
 import { ToolFactory } from '../tools/tool-factory.service';
 import { ApiService } from '../api';
 import { BaseTool } from '../tools';
+import { ShapeRegistryService } from '../elements/shapes/shape-registry.service';
 
 interface TemporaryToolOverride {
   tool: ToolType;
@@ -78,13 +79,22 @@ const DEFAULT_TOOLS: ReadonlyArray<ToolConfig> = [
     order: 6,
   },
   {
+    id: 'shape',
+    type: ToolType.Shape,
+    name: 'Shapes',
+    description: 'Draw shapes',
+    icon: TOOL_ICONS[ToolType.Shape],
+    enabled: true,
+    order: 7,
+  },
+  {
     id: 'text',
     type: ToolType.Text,
     name: 'Text',
     description: 'Add text annotations',
     icon: TOOL_ICONS[ToolType.Text],
     enabled: true,
-    order: 7,
+    order: 8,
   },
   {
     id: 'image',
@@ -93,7 +103,7 @@ const DEFAULT_TOOLS: ReadonlyArray<ToolConfig> = [
     description: 'Add images',
     icon: TOOL_ICONS[ToolType.Image],
     enabled: true,
-    order: 8,
+    order: 9,
   },
   {
     id: 'eraser',
@@ -102,7 +112,7 @@ const DEFAULT_TOOLS: ReadonlyArray<ToolConfig> = [
     description: 'Remove elements',
     icon: TOOL_ICONS[ToolType.Eraser],
     enabled: true,
-    order: 9,
+    order: 10,
   },
   {
     id: 'zoomArea',
@@ -111,7 +121,7 @@ const DEFAULT_TOOLS: ReadonlyArray<ToolConfig> = [
     description: 'Drag a rectangle to zoom into it',
     icon: TOOL_ICONS[ToolType.ZoomArea],
     enabled: true,
-    order: 10,
+    order: 11,
   },
 ] as const;
 
@@ -119,6 +129,7 @@ const DEFAULT_TOOLS: ReadonlyArray<ToolConfig> = [
 export class ToolsService {
   private readonly eventBusService = inject(EventBusService);
   private readonly toolFactory = inject(ToolFactory);
+  private readonly shapeRegistry = inject(ShapeRegistryService);
   private readonly _apiServiceCache = signal<ApiService | undefined>(undefined);
 
   private readonly _selectedTool = signal<ToolType>(ToolType.Pen);
@@ -155,6 +166,12 @@ export class ToolsService {
       // Only update tool instance after ApiService is initialized
       if (apiService) {
         this.updateCurrentToolInstance(toolType);
+      }
+    });
+
+    effect(() => {
+      if (this._selectedTool() === ToolType.Shape && !this.shapesAvailable()) {
+        this._selectedTool.set(ToolType.Select);
       }
     });
 
@@ -212,9 +229,14 @@ export class ToolsService {
   }
 
   setActiveTool(tool: ToolType): void {
+    if (tool === ToolType.Shape && !this.shapesAvailable()) return;
     if (this._selectedTool() !== tool) {
       this._selectedTool.set(tool);
     }
+  }
+
+  private shapesAvailable(): boolean {
+    return this.shapeRegistry.shapes().length > 0;
   }
 
   isToolActive(tool: ToolType): boolean {

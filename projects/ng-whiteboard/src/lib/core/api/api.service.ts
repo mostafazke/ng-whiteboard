@@ -1,11 +1,15 @@
 import { Injectable, Signal, computed, inject } from '@angular/core';
 import { ConfigService } from '../config/config.service';
+import { drawingStyle } from '../config/drawing-style';
 import { EventBusService } from '../event-bus/event-bus.service';
 import { CanvasService } from '../canvas/canvas.service';
 import { ElementsService } from '../elements/elements.service';
 import { LayerManagementService } from '../elements/layer-management.service';
 import { PanService } from '../viewport/pan.service';
 import { SelectionService } from '../elements/selection.service';
+import { createElement } from '../elements/element.utils';
+import { ShapeElement } from '../elements/shape-element';
+import { AvailableShape, ShapeRegistryService } from '../elements/shapes';
 import { ToolsService } from '../tools/tools.service';
 import { BatchHandle, HistoryService } from '../history/history.service';
 import { ZoomService } from '../viewport/zoom.service';
@@ -13,6 +17,7 @@ import {
   AddImage,
   AlignmentType,
   BoundingBox,
+  ElementType,
   FormatType,
   ExportOptions,
   SelectionBox,
@@ -41,6 +46,7 @@ export class ApiService {
   private configService = inject(ConfigService);
   private clipboardService = inject(ClipboardService);
   private eventBusService = inject(EventBusService);
+  private shapeRegistry = inject(ShapeRegistryService);
   private opacityBatch: BatchHandle | null = null;
 
   readonly elements: Signal<WhiteboardElement[]> = this.elementsService.elements;
@@ -408,6 +414,43 @@ export class ApiService {
 
   addImage(imageInfo: AddImage): void {
     this.ioService.addImage(imageInfo);
+  }
+
+  getAvailableShapes(): AvailableShape[] {
+    return this.shapeRegistry.shapes();
+  }
+
+  getActiveShape(): AvailableShape | undefined {
+    return this.shapeRegistry.activeShape();
+  }
+
+  addShape(shapeId: string, props: Partial<ShapeElement> = {}): ShapeElement | null {
+    if (this.getConfig().enableShapes === false) {
+      console.warn('ng-whiteboard: shapes are disabled (enableShapes: false).');
+      return null;
+    }
+    const shape = this.shapeRegistry.get(shapeId);
+    if (!shape) {
+      console.warn(`ng-whiteboard: unknown shape "${shapeId}".`);
+      return null;
+    }
+    const width = props.width ?? 100;
+    const element = createElement(
+      ElementType.Shape,
+      {
+        ...props,
+        type: ElementType.Shape,
+        width,
+        height: props.height ?? width / shape.aspectRatio,
+        shapeId,
+        path: shape.path,
+        style: { ...drawingStyle(this.getConfig()), ...props.style },
+        zIndex: props.zIndex ?? this.getNextZIndex(),
+      },
+      props.layerId ?? this.getActiveLayerId()
+    );
+    this.addElements([element]);
+    return element;
   }
 
   /** Open the file picker and add the chosen image at `at`, or centered in the viewport. */
