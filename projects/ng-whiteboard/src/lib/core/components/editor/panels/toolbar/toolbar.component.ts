@@ -142,7 +142,7 @@ const FLYOUT_NAV_KEYS = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Hom
             }
           </div>
         }
-        @if (shapes().length) {
+        @if (showShapeGrid()) {
           <div class="shape-grid" role="menu" aria-label="Shapes" [style.--wb-shape-columns]="gridColumns">
             @for (shape of shapes(); track shape.id) {
               <button
@@ -194,6 +194,7 @@ export class ToolbarComponent {
   readonly vertical = computed(() => this.position() === 'left' && !this.compact());
   readonly shapeGroup = computed(() => this.groups().find((g) => this.isShapeGroup(g)));
   readonly flyoutTools = computed(() => this.shapeGroup()?.filter((t) => t.tool !== ToolType.Shape) ?? []);
+  readonly showShapeGrid = computed(() => !!this.shapeGroup()?.some((t) => t.tool === ToolType.Shape));
   readonly activeShape = computed(() => {
     const shapes = this.shapes();
     return shapes.find((s) => s.id === this.activeShapeId()) ?? shapes[0];

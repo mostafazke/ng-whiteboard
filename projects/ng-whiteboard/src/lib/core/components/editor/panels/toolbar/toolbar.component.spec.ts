@@ -410,6 +410,17 @@ describe('ToolbarComponent', () => {
         expect(root.querySelector('.shape-grid')).toBeNull();
         expect(root.querySelectorAll('.flyout-tool').length).toBe(4);
       });
+
+      it('omits the grid when the shape tool is not in tools', () => {
+        fixture.componentRef.setInput('tools', [ToolType.Pen, ToolType.Rectangle, ToolType.Ellipse]);
+        fixture.detectChanges();
+        trigger().click();
+        fixture.detectChanges();
+        expect(root.querySelector('.shape-grid')).toBeNull();
+        expect(
+          Array.from(root.querySelectorAll<HTMLButtonElement>('.flyout-tool')).map((b) => b.dataset['tool'])
+        ).toEqual([ToolType.Rectangle, ToolType.Ellipse]);
+      });
     });
   });
 });
